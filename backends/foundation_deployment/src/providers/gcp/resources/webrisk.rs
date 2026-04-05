@@ -10,30 +10,34 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// GoogleCloudWebriskV1ComputeThreatListDiffResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponse {
     /// A set of entries to add to a local threat type''s list.
     #[serde(default)]
-    pub additions: Option<GoogleCloudWebriskV1ThreatEntryAdditions>,
+    pub additions:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudWebriskV1ThreatEntryAdditions>>,
     /// The expected SHA256 hash of the client state; that is, of the sorted list of all hashes present in the database after applying the provided diff. If the client state doesn''t match the expected state, the client must discard this diff and retry later.
     #[serde(default)]
-    pub checksum: Option<GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum>,
+    pub checksum: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum>,
+    >,
     /// The new opaque client version token. This should be retained by the client and passed into the next call of ComputeThreatListDiff as ''version_token''. A separate version token should be stored and used for each threatList.
     #[serde(default, rename = "newVersionToken")]
-    pub new_version_token: Option<String>,
+    pub new_version_token: ::core::option::Option<String>,
     /// The soonest the client should wait before issuing any diff request. Querying sooner is unlikely to produce a meaningful diff. Waiting longer is acceptable considering the use case. If this field is not set clients may update as soon as they want.
     #[serde(default, rename = "recommendedNextDiff")]
-    pub recommended_next_diff: Option<String>,
+    pub recommended_next_diff: ::core::option::Option<String>,
     /// A set of entries to remove from a local threat type''s list. This field may be empty.
     #[serde(default)]
-    pub removals: Option<GoogleCloudWebriskV1ThreatEntryRemovals>,
+    pub removals:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudWebriskV1ThreatEntryRemovals>>,
     /// The type of response. This may indicate that an action must be taken by the client when the response is received. // TODO: enum values: ["RESPONSE_TYPE_UNSPECIFIED", "DIFF", "RESET"]
     #[serde(default, rename = "responseType")]
-    pub response_type: Option<String>,
+    pub response_type: ::core::option::Option<String>,
 }
 
 /// The expected state of a client''s local database.
@@ -41,7 +45,7 @@ pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponse {
 pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum {
     /// The SHA256 hash of the client state; that is, of the sorted list of all hashes present in the database.
     #[serde(default)]
-    pub sha256: Option<String>,
+    pub sha256: ::core::option::Option<String>,
 }
 
 /// The uncompressed threat entries in hash format. Hashes can be anywhere from 4 to 32 bytes in size. A large majority are 4 bytes, but some hashes are lengthened if they collide with the hash of a popular URI. Used for sending ThreatEntryAdditons to clients that do not support compression, or when sending non-4-byte hashes to clients that do support compression.
@@ -49,10 +53,10 @@ pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum {
 pub struct GoogleCloudWebriskV1RawHashes {
     /// The number of bytes for each prefix encoded below. This field can be anywhere from 4 (shortest prefix) to 32 (full SHA256 hash). In practice this is almost always 4, except in exceptional circumstances.
     #[serde(default, rename = "prefixSize")]
-    pub prefix_size: Option<i32>,
+    pub prefix_size: ::core::option::Option<i32>,
     /// The hashes, in binary format, concatenated into one long string. Hashes are sorted in lexicographic order. For JSON API users, hashes are base64-encoded.
     #[serde(default, rename = "rawHashes")]
-    pub raw_hashes: Option<String>,
+    pub raw_hashes: ::core::option::Option<String>,
 }
 
 /// A set of raw indices to remove from a local list.
@@ -60,7 +64,7 @@ pub struct GoogleCloudWebriskV1RawHashes {
 pub struct GoogleCloudWebriskV1RawIndices {
     /// The indices to remove from a lexicographically-sorted local list.
     #[serde(default)]
-    pub indices: Option<Vec<i32>>,
+    pub indices: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// The Rice-Golomb encoded data. Used for sending compressed 4-byte hashes or compressed removal indices.
@@ -68,16 +72,16 @@ pub struct GoogleCloudWebriskV1RawIndices {
 pub struct GoogleCloudWebriskV1RiceDeltaEncoding {
     /// The encoded deltas that are encoded using the Golomb-Rice coder.
     #[serde(default, rename = "encodedData")]
-    pub encoded_data: Option<String>,
+    pub encoded_data: ::core::option::Option<String>,
     /// The number of entries that are delta encoded in the encoded data. If only a single integer was encoded, this will be zero and the single value will be stored in first_value.
     #[serde(default, rename = "entryCount")]
-    pub entry_count: Option<i32>,
+    pub entry_count: ::core::option::Option<i32>,
     /// The offset of the first entry in the encoded data, or, if only a single integer was encoded, that single integer''s value. If the field is empty or missing, assume zero.
     #[serde(default, rename = "firstValue")]
-    pub first_value: Option<String>,
+    pub first_value: ::core::option::Option<String>,
     /// The Golomb-Rice parameter, which is a number between 2 and 28. This field is missing (that is, zero) if num_entries is zero.
     #[serde(default, rename = "riceParameter")]
-    pub rice_parameter: Option<i32>,
+    pub rice_parameter: ::core::option::Option<i32>,
 }
 
 /// GoogleCloudWebriskV1SearchHashesResponse resource type.
@@ -85,10 +89,12 @@ pub struct GoogleCloudWebriskV1RiceDeltaEncoding {
 pub struct GoogleCloudWebriskV1SearchHashesResponse {
     /// For requested entities that did not match the threat list, how long to cache the response until.
     #[serde(default, rename = "negativeExpireTime")]
-    pub negative_expire_time: Option<String>,
+    pub negative_expire_time: ::core::option::Option<String>,
     /// The full hashes that matched the requested prefixes. The hash will be populated in the key.
     #[serde(default)]
-    pub threats: Option<Vec<GoogleCloudWebriskV1SearchHashesResponseThreatHash>>,
+    pub threats: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudWebriskV1SearchHashesResponseThreatHash>>,
+    >,
 }
 
 /// Contains threat information on a matching hash.
@@ -96,13 +102,13 @@ pub struct GoogleCloudWebriskV1SearchHashesResponse {
 pub struct GoogleCloudWebriskV1SearchHashesResponseThreatHash {
     /// The cache lifetime for the returned match. Clients must not cache this response past this timestamp to avoid false positives.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// A 32 byte SHA256 hash. This field is in binary format. For JSON requests, hashes are base64-encoded.
     #[serde(default)]
-    pub hash: Option<String>,
+    pub hash: ::core::option::Option<String>,
     /// The ThreatList this threat belongs to. This must contain at least one entry.
     #[serde(default, rename = "threatTypes")]
-    pub threat_types: Option<Vec<String>>,
+    pub threat_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudWebriskV1SearchUrisResponse resource type.
@@ -110,7 +116,8 @@ pub struct GoogleCloudWebriskV1SearchHashesResponseThreatHash {
 pub struct GoogleCloudWebriskV1SearchUrisResponse {
     /// The threat list matches. This might be empty if the URI is on no list.
     #[serde(default)]
-    pub threat: Option<GoogleCloudWebriskV1SearchUrisResponseThreatUri>,
+    pub threat:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudWebriskV1SearchUrisResponseThreatUri>>,
 }
 
 /// Contains threat information on a matching uri.
@@ -118,10 +125,10 @@ pub struct GoogleCloudWebriskV1SearchUrisResponse {
 pub struct GoogleCloudWebriskV1SearchUrisResponseThreatUri {
     /// The cache lifetime for the returned match. Clients must not cache this response past this timestamp to avoid false positives.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// The ThreatList this threat belongs to.
     #[serde(default, rename = "threatTypes")]
-    pub threat_types: Option<Vec<String>>,
+    pub threat_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Wraps a URI that might be displaying malicious content.
@@ -129,7 +136,7 @@ pub struct GoogleCloudWebriskV1SearchUrisResponseThreatUri {
 pub struct GoogleCloudWebriskV1Submission {
     /// Required. The URI that is being reported for malicious content to be analyzed.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Contains the set of entries to add to a local database. May contain a combination of compressed and raw data in a single response.
@@ -137,10 +144,12 @@ pub struct GoogleCloudWebriskV1Submission {
 pub struct GoogleCloudWebriskV1ThreatEntryAdditions {
     /// The raw SHA256-formatted entries. Repeated to allow returning sets of hashes with different prefix sizes.
     #[serde(default, rename = "rawHashes")]
-    pub raw_hashes: Option<Vec<GoogleCloudWebriskV1RawHashes>>,
+    pub raw_hashes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudWebriskV1RawHashes>>>,
     /// The encoded 4-byte prefixes of SHA256-formatted entries, using a Golomb-Rice encoding. The hashes are converted to uint32, sorted in ascending order, then delta encoded and stored as encoded_data.
     #[serde(default, rename = "riceHashes")]
-    pub rice_hashes: Option<GoogleCloudWebriskV1RiceDeltaEncoding>,
+    pub rice_hashes:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudWebriskV1RiceDeltaEncoding>>,
 }
 
 /// Contains the set of entries to remove from a local database.
@@ -148,10 +157,11 @@ pub struct GoogleCloudWebriskV1ThreatEntryAdditions {
 pub struct GoogleCloudWebriskV1ThreatEntryRemovals {
     /// The raw removal indices for a local list.
     #[serde(default, rename = "rawIndices")]
-    pub raw_indices: Option<GoogleCloudWebriskV1RawIndices>,
+    pub raw_indices: ::core::option::Option<::std::boxed::Box<GoogleCloudWebriskV1RawIndices>>,
     /// The encoded local, lexicographically-sorted list indices, using a Golomb-Rice encoding. Used for sending compressed removal indices. The removal indices (uint32) are sorted in ascending order, then delta encoded and stored as encoded_data.
     #[serde(default, rename = "riceIndices")]
-    pub rice_indices: Option<GoogleCloudWebriskV1RiceDeltaEncoding>,
+    pub rice_indices:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudWebriskV1RiceDeltaEncoding>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -159,13 +169,14 @@ pub struct GoogleCloudWebriskV1ThreatEntryRemovals {
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -173,19 +184,19 @@ pub struct GoogleLongrunningListOperationsResponse {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Contains a SubmitUriMetadata object.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Matches the /v1/{project-name}/operations/{operation-id} pattern.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -193,11 +204,11 @@ pub struct GoogleLongrunningOperation {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }

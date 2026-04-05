@@ -10,19 +10,19 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Response message includes the context and a list of matching results which contain the detail of associated entities.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchResponse {
     /// The local context applicable for the response. See more details at http://www.w3.org/TR/json-ld/#context-definitions.
     #[serde(default, rename = "@context")]
-    pub context: Option<serde_json::Value>,
+    pub context: ::core::option::Option<serde_json::Value>,
     /// The schema type of top-level JSON-LD object, e.g. ItemList.
     #[serde(default, rename = "@type")]
-    pub type_: Option<serde_json::Value>,
+    pub type_: ::core::option::Option<serde_json::Value>,
     /// The item list of search results.
     #[serde(default, rename = "itemListElement")]
-    pub item_list_element: Option<Vec<serde_json::Value>>,
+    pub item_list_element: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }

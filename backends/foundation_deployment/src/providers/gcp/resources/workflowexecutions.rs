@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An instance of a Callback created by an execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Callback {
     /// Output only. The payloads received by the callback that have not been processed by a waiting execution step.
     #[serde(default, rename = "availablePayloads")]
-    pub available_payloads: Option<Vec<String>>,
+    pub available_payloads: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The method accepted by the callback. For example: GET, POST, PUT.
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// Output only. The resource name of the callback. Format: projects/{project}/locations/{location}/workflows/{workflow}/executions/{execution}/callback/{callback}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Number of execution steps waiting on this callback.
     #[serde(default)]
-    pub waiters: Option<String>,
+    pub waiters: ::core::option::Option<String>,
 }
 
 /// Error describes why the execution was abnormally terminated.
@@ -35,13 +35,13 @@ pub struct Callback {
 pub struct Error {
     /// Human-readable stack trace string.
     #[serde(default)]
-    pub context: Option<String>,
+    pub context: ::core::option::Option<String>,
     /// Error message and data returned represented as a JSON string.
     #[serde(default)]
-    pub payload: Option<String>,
+    pub payload: ::core::option::Option<String>,
     /// Stack trace with detailed information of where error was generated.
     #[serde(default, rename = "stackTrace")]
-    pub stack_trace: Option<StackTrace>,
+    pub stack_trace: ::core::option::Option<::std::boxed::Box<StackTrace>>,
 }
 
 /// Exception describes why the step entry failed.
@@ -49,7 +49,7 @@ pub struct Error {
 pub struct Exception {
     /// Error message represented as a JSON string.
     #[serde(default)]
-    pub payload: Option<String>,
+    pub payload: ::core::option::Option<String>,
 }
 
 /// A running instance of a [Workflow](/workflows/docs/reference/rest/v1/projects.locations.workflows).
@@ -57,52 +57,52 @@ pub struct Exception {
 pub struct Execution {
     /// Input parameters of the execution represented as a JSON string. The size limit is 32KB. *Note*: If you are using the REST API directly to run your workflow, you must escape any JSON string value of argument. Example: ''{"argument":"{\"firstName\":\"FIRST\",\"lastName\":\"LAST\"}"}''
     #[serde(default)]
-    pub argument: Option<String>,
+    pub argument: ::core::option::Option<String>,
     /// The call logging level associated to this execution. // TODO: enum values: ["CALL_LOG_LEVEL_UNSPECIFIED", "LOG_ALL_CALLS", "LOG_ERRORS_ONLY", "LOG_NONE"]
     #[serde(default, rename = "callLogLevel")]
-    pub call_log_level: Option<String>,
+    pub call_log_level: ::core::option::Option<String>,
     /// Output only. Marks the creation of the execution.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. If set to true, the execution will not be backlogged when the concurrency quota is exhausted. The backlog execution starts when the concurrency quota becomes available.
     #[serde(default, rename = "disableConcurrencyQuotaOverflowBuffering")]
-    pub disable_concurrency_quota_overflow_buffering: Option<bool>,
+    pub disable_concurrency_quota_overflow_buffering: ::core::option::Option<bool>,
     /// Output only. Measures the duration of the execution.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Output only. Marks the end of execution, successful or not.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The error which caused the execution to finish prematurely. The value is only present if the execution''s state is FAILED or CANCELLED.
     #[serde(default)]
-    pub error: Option<Error>,
+    pub error: ::core::option::Option<::std::boxed::Box<Error>>,
     /// Optional. Describes the execution history level to apply to this execution. If not specified, the execution history level is determined by its workflow''s execution history level. If the levels are different, the executionHistoryLevel overrides the workflow''s execution history level for this execution. // TODO: enum values: ["EXECUTION_HISTORY_LEVEL_UNSPECIFIED", "EXECUTION_HISTORY_BASIC", "EXECUTION_HISTORY_DETAILED"]
     #[serde(default, rename = "executionHistoryLevel")]
-    pub execution_history_level: Option<String>,
+    pub execution_history_level: ::core::option::Option<String>,
     /// Labels associated with this execution. Labels can contain at most 64 entries. Keys and values can be no longer than 63 characters and can only contain lowercase letters, numeric characters, underscores, and dashes. Label keys must start with a letter. International characters are allowed. By default, labels are inherited from the workflow but are overridden by any labels associated with the execution.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The resource name of the execution. Format: projects/{project}/locations/{location}/workflows/{workflow}/executions/{execution}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Output of the execution represented as a JSON string. The value can only be present if the execution''s state is SUCCEEDED.
     #[serde(default)]
-    pub result: Option<String>,
+    pub result: ::core::option::Option<String>,
     /// Output only. Marks the beginning of execution. Note that this will be the same as createTime for executions that start immediately.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. Current state of the execution. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "SUCCEEDED", "FAILED", "CANCELLED", "UNAVAILABLE", "QUEUED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Error regarding the state of the Execution resource. For example, this field will have error details if the execution data is unavailable due to revoked KMS key permissions.
     #[serde(default, rename = "stateError")]
-    pub state_error: Option<StateError>,
+    pub state_error: ::core::option::Option<::std::boxed::Box<StateError>>,
     /// Output only. Status tracks the current steps and progress data of this execution.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. Revision of the workflow this execution is using.
     #[serde(default, rename = "workflowRevisionId")]
-    pub workflow_revision_id: Option<String>,
+    pub workflow_revision_id: ::core::option::Option<String>,
 }
 
 /// Response for the ExportData method.
@@ -110,7 +110,7 @@ pub struct Execution {
 pub struct ExportDataResponse {
     /// The JSON string with customer data and metadata for an execution with the given name
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
 }
 
 /// RPC response object for the ListCallbacks method.
@@ -118,10 +118,10 @@ pub struct ExportDataResponse {
 pub struct ListCallbacksResponse {
     /// The callbacks which match the request.
     #[serde(default)]
-    pub callbacks: Option<Vec<Callback>>,
+    pub callbacks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Callback>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response for the ListExecutions method.
@@ -129,10 +129,10 @@ pub struct ListCallbacksResponse {
 pub struct ListExecutionsResponse {
     /// The executions which match the request.
     #[serde(default)]
-    pub executions: Option<Vec<Execution>>,
+    pub executions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Execution>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ExecutionHistory.ListStepEntries.
@@ -140,13 +140,13 @@ pub struct ListExecutionsResponse {
 pub struct ListStepEntriesResponse {
     /// A token to retrieve next page of results. Pass this value in the ListStepEntriesRequest.page_token field in the subsequent call to ListStepEntries method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of entries.
     #[serde(default, rename = "stepEntries")]
-    pub step_entries: Option<Vec<StepEntry>>,
+    pub step_entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StepEntry>>>,
     /// Indicates the total number of StepEntries that matched the request filter. For running executions, this number shows the number of StepEntries that are executed thus far.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// NavigationInfo describes what steps if any come before or after this step, or what steps are parents or children of this step.
@@ -154,16 +154,16 @@ pub struct ListStepEntriesResponse {
 pub struct NavigationInfo {
     /// Step entries that can be reached by "stepping into" e.g. a subworkflow call.
     #[serde(default)]
-    pub children: Option<Vec<String>>,
+    pub children: ::core::option::Option<::std::vec::Vec<String>>,
     /// The index of the next step in the current workflow, if any.
     #[serde(default)]
-    pub next: Option<String>,
+    pub next: ::core::option::Option<String>,
     /// The step entry, if any, that can be reached by "stepping out" of the current workflow being executed.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// The index of the previous step in the current workflow, if any.
     #[serde(default)]
-    pub previous: Option<String>,
+    pub previous: ::core::option::Option<String>,
 }
 
 /// Position contains source position information about the stack trace element such as line number, column number and length of the code block in bytes.
@@ -171,13 +171,13 @@ pub struct NavigationInfo {
 pub struct Position {
     /// The source code column position (of the line) the current instruction was generated from.
     #[serde(default)]
-    pub column: Option<String>,
+    pub column: ::core::option::Option<String>,
     /// The number of bytes of source code making up this stack trace element.
     #[serde(default)]
-    pub length: Option<String>,
+    pub length: ::core::option::Option<String>,
     /// The source code line number the current instruction was generated from.
     #[serde(default)]
-    pub line: Option<String>,
+    pub line: ::core::option::Option<String>,
 }
 
 /// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
@@ -185,19 +185,19 @@ pub struct Position {
 pub struct PubsubMessage {
     /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. The message data field. If this field is empty, the message must contain at least one attribute.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// ID of this message, assigned by the server when the message is published. Guaranteed to be unique within the topic. This value may be read by a subscriber that receives a PubsubMessage via a Pull call or a push delivery. It must not be populated by the publisher in a Publish call.
     #[serde(default, rename = "messageId")]
-    pub message_id: Option<String>,
+    pub message_id: ::core::option::Option<String>,
     /// Optional. If non-empty, identifies related messages for which publish order should be respected. If a Subscription has enable_message_ordering set to true, messages published with the same non-empty ordering_key value will be delivered to subscribers in the order in which they are received by the Pub/Sub system. All PubsubMessages published in a given PublishRequest must specify the same ordering_key value. For more information, see [ordering messages](https://cloud.google.com/pubsub/docs/ordering).
     #[serde(default, rename = "orderingKey")]
-    pub ordering_key: Option<String>,
+    pub ordering_key: ::core::option::Option<String>,
     /// The time at which the message was published, populated by the server when it receives the Publish call. It must not be populated by the publisher in a Publish call.
     #[serde(default, rename = "publishTime")]
-    pub publish_time: Option<String>,
+    pub publish_time: ::core::option::Option<String>,
 }
 
 /// A collection of stack elements (frames) where an error occurred.
@@ -205,7 +205,7 @@ pub struct PubsubMessage {
 pub struct StackTrace {
     /// An array of stack elements.
     #[serde(default)]
-    pub elements: Option<Vec<StackTraceElement>>,
+    pub elements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StackTraceElement>>>,
 }
 
 /// A single stack element (frame) where an error occurred.
@@ -213,13 +213,13 @@ pub struct StackTrace {
 pub struct StackTraceElement {
     /// The source position information of the stack trace element.
     #[serde(default)]
-    pub position: Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
     /// The routine where the error occurred.
     #[serde(default)]
-    pub routine: Option<String>,
+    pub routine: ::core::option::Option<String>,
     /// The step the error occurred at.
     #[serde(default)]
-    pub step: Option<String>,
+    pub step: ::core::option::Option<String>,
 }
 
 /// Describes an error related to the current state of the Execution resource.
@@ -227,10 +227,10 @@ pub struct StackTraceElement {
 pub struct StateError {
     /// Provides specifics about the error.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// The type of this state error. // TODO: enum values: ["TYPE_UNSPECIFIED", "KMS_ERROR"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents the current status of this execution.
@@ -238,7 +238,7 @@ pub struct StateError {
 pub struct Status {
     /// A list of currently executing or last executed step names for the workflow execution currently running. If the workflow has succeeded or failed, this is the last attempted or executed step. Presently, if the current step is inside a subworkflow, the list only includes that step. In the future, the list will contain items for each step in the call stack, starting with the outermost step in the main subworkflow, and ending with the most deeply nested step.
     #[serde(default, rename = "currentSteps")]
-    pub current_steps: Option<Vec<Step>>,
+    pub current_steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Step>>>,
 }
 
 /// Represents a step of the workflow this execution is running.
@@ -246,10 +246,10 @@ pub struct Status {
 pub struct Step {
     /// Name of a routine within the workflow.
     #[serde(default)]
-    pub routine: Option<String>,
+    pub routine: ::core::option::Option<String>,
     /// Name of a step within the routine.
     #[serde(default)]
-    pub step: Option<String>,
+    pub step: ::core::option::Option<String>,
 }
 
 /// An StepEntry contains debugging information for a step transition in a workflow execution.
@@ -257,40 +257,40 @@ pub struct Step {
 pub struct StepEntry {
     /// Output only. The creation time of the step entry.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The numeric ID of this step entry, used for navigation.
     #[serde(default, rename = "entryId")]
-    pub entry_id: Option<String>,
+    pub entry_id: ::core::option::Option<String>,
     /// Output only. The exception thrown by the step entry.
     #[serde(default)]
-    pub exception: Option<Exception>,
+    pub exception: ::core::option::Option<::std::boxed::Box<Exception>>,
     /// Output only. The full resource name of the step entry. Each step entry has a unique entry ID, which is a monotonically increasing counter. Step entry names have the format: projects/{project}/locations/{location}/workflows/{workflow}/executions/{execution}/stepEntries/{step_entry}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The NavigationInfo associated with this step.
     #[serde(default, rename = "navigationInfo")]
-    pub navigation_info: Option<NavigationInfo>,
+    pub navigation_info: ::core::option::Option<::std::boxed::Box<NavigationInfo>>,
     /// Output only. The name of the routine this step entry belongs to. A routine name is the subworkflow name defined in the YAML source code. The top level routine name is main.
     #[serde(default)]
-    pub routine: Option<String>,
+    pub routine: ::core::option::Option<String>,
     /// Output only. The state of the step entry. // TODO: enum values: ["STATE_UNSPECIFIED", "STATE_IN_PROGRESS", "STATE_SUCCEEDED", "STATE_FAILED", "STATE_CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The name of the step this step entry belongs to.
     #[serde(default)]
-    pub step: Option<String>,
+    pub step: ::core::option::Option<String>,
     /// Output only. The StepEntryMetadata associated with this step.
     #[serde(default, rename = "stepEntryMetadata")]
-    pub step_entry_metadata: Option<StepEntryMetadata>,
+    pub step_entry_metadata: ::core::option::Option<::std::boxed::Box<StepEntryMetadata>>,
     /// Output only. The type of the step this step entry belongs to. // TODO: enum values: ["STEP_TYPE_UNSPECIFIED", "STEP_ASSIGN", "STEP_STD_LIB_CALL", "STEP_CONNECTOR_CALL", "STEP_SUBWORKFLOW_CALL", "STEP_CALL", "STEP_SWITCH", "STEP_CONDITION", "STEP_FOR", "STEP_FOR_ITERATION", "STEP_PARALLEL_FOR", "STEP_PARALLEL_BRANCH", "STEP_PARALLEL_BRANCH_ENTRY", "STEP_TRY_RETRY_EXCEPT", "STEP_TRY", "STEP_RETRY", "STEP_EXCEPT", "STEP_RETURN", "STEP_RAISE", "STEP_GOTO"]
     #[serde(default, rename = "stepType")]
-    pub step_type: Option<String>,
+    pub step_type: ::core::option::Option<String>,
     /// Output only. The most recently updated time of the step entry.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The VariableData associated with this step.
     #[serde(default, rename = "variableData")]
-    pub variable_data: Option<VariableData>,
+    pub variable_data: ::core::option::Option<::std::boxed::Box<VariableData>>,
 }
 
 /// StepEntryMetadata contains metadata information about this step.
@@ -298,16 +298,16 @@ pub struct StepEntry {
 pub struct StepEntryMetadata {
     /// Expected iteration represents the expected number of iterations in the step''s progress.
     #[serde(default, rename = "expectedIteration")]
-    pub expected_iteration: Option<String>,
+    pub expected_iteration: ::core::option::Option<String>,
     /// Progress number represents the current state of the current progress. eg: A step entry represents the 4th iteration in a progress of PROGRESS_TYPE_FOR. Note: This field is only populated when an iteration exists and the starting value is 1.
     #[serde(default, rename = "progressNumber")]
-    pub progress_number: Option<String>,
+    pub progress_number: ::core::option::Option<String>,
     /// Progress type of this step entry. // TODO: enum values: ["PROGRESS_TYPE_UNSPECIFIED", "PROGRESS_TYPE_FOR", "PROGRESS_TYPE_SWITCH", "PROGRESS_TYPE_RETRY", "PROGRESS_TYPE_PARALLEL_FOR", "PROGRESS_TYPE_PARALLEL_BRANCH"]
     #[serde(default, rename = "progressType")]
-    pub progress_type: Option<String>,
+    pub progress_type: ::core::option::Option<String>,
     /// Child thread id that this step entry belongs to.
     #[serde(default, rename = "threadId")]
-    pub thread_id: Option<String>,
+    pub thread_id: ::core::option::Option<String>,
 }
 
 /// Request for the TriggerPubsubExecution method.
@@ -315,14 +315,14 @@ pub struct StepEntryMetadata {
 pub struct TriggerPubsubExecutionRequest {
     /// Required. LINT: LEGACY_NAMES The query parameter value for __GCP_CloudEventsMode, set by the Eventarc service when configuring triggers.
     #[serde(default, rename = "GCPCloudEventsMode")]
-    pub g_c_p_cloud_events_mode: Option<String>,
+    pub g_c_p_cloud_events_mode: ::core::option::Option<String>,
     /// The number of attempts that have been made to deliver this message. This is set by Pub/Sub for subscriptions that have the "dead letter" feature enabled, and hence provided here for compatibility, but is ignored by Workflows.
     #[serde(default, rename = "deliveryAttempt")]
-    pub delivery_attempt: Option<i32>,
+    pub delivery_attempt: ::core::option::Option<i32>,
     /// Required. The message of the Pub/Sub push notification.
     #[serde(default)]
-    pub message: Option<PubsubMessage>,
+    pub message: ::core::option::Option<::std::boxed::Box<PubsubMessage>>,
     /// Required. The subscription of the Pub/Sub push notification. Format: projects/{project}/subscriptions/{sub}
     #[serde(default)]
-    pub subscription: Option<String>,
+    pub subscription: ::core::option::Option<String>,
 }

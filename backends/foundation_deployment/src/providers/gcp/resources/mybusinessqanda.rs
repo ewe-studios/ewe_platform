@@ -10,30 +10,30 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents an answer to a question
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Answer {
     /// Output only. The author of the answer. Will only be set during list operations.
     #[serde(default)]
-    pub author: Option<Author>,
+    pub author: ::core::option::Option<::std::boxed::Box<Author>>,
     /// Output only. The timestamp for when the answer was written. Only retrieved during ListResponse fetching.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The unique name for the answer locations/*/questions/*/answers/*
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The text of the answer. It should contain at least one non-whitespace character. The maximum length is 4096 characters.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Output only. The timestamp for when the answer was last modified.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The number of upvotes for the answer.
     #[serde(default, rename = "upvoteCount")]
-    pub upvote_count: Option<i32>,
+    pub upvote_count: ::core::option::Option<i32>,
 }
 
 /// Represents the author of a question or answer
@@ -41,13 +41,13 @@ pub struct Answer {
 pub struct Author {
     /// The display name of the user
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The profile photo URI of the user.
     #[serde(default, rename = "profilePhotoUri")]
-    pub profile_photo_uri: Option<String>,
+    pub profile_photo_uri: ::core::option::Option<String>,
     /// The type of user the author is. // TODO: enum values: ["AUTHOR_TYPE_UNSPECIFIED", "REGULAR_USER", "LOCAL_GUIDE", "MERCHANT"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Response message for QuestionsAndAnswers.ListAnswers
@@ -55,13 +55,13 @@ pub struct Author {
 pub struct ListAnswersResponse {
     /// The requested answers.
     #[serde(default)]
-    pub answers: Option<Vec<Answer>>,
+    pub answers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Answer>>>,
     /// If the number of answers exceeds the requested max page size, this field is populated with a token to fetch the next page of answers on a subsequent call. If there are no more answers, this field is not present in the response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The total number of answers posted for this question across all pages.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// Response message for QuestionsAndAnswers.ListQuestions
@@ -69,13 +69,13 @@ pub struct ListAnswersResponse {
 pub struct ListQuestionsResponse {
     /// If the number of questions exceeds the requested max page size, this field is populated with a token to fetch the next page of questions on a subsequent call. If there are no more questions, this field is not present in the response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The requested questions,
     #[serde(default)]
-    pub questions: Option<Vec<Question>>,
+    pub questions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Question>>>,
     /// The total number of questions posted for this location across all pages.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// Represents a single question and some of its answers.
@@ -83,28 +83,28 @@ pub struct ListQuestionsResponse {
 pub struct Question {
     /// Output only. The author of the question.
     #[serde(default)]
-    pub author: Option<Author>,
+    pub author: ::core::option::Option<::std::boxed::Box<Author>>,
     /// Output only. The timestamp for when the question was written.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Immutable. The unique name for the question. locations/*/questions/* This field will be ignored if set during question creation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The text of the question. It should contain at least three words and the total length should be greater than or equal to 10 characters. The maximum length is 4096 characters.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Output only. A list of answers to the question, sorted by upvotes. This may not be a complete list of answers depending on the request parameters (answers_per_question)
     #[serde(default, rename = "topAnswers")]
-    pub top_answers: Option<Vec<Answer>>,
+    pub top_answers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Answer>>>,
     /// Output only. The total number of answers posted for this question.
     #[serde(default, rename = "totalAnswerCount")]
-    pub total_answer_count: Option<i32>,
+    pub total_answer_count: ::core::option::Option<i32>,
     /// Output only. The timestamp for when the question was last modified.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The number of upvotes for the question.
     #[serde(default, rename = "upvoteCount")]
-    pub upvote_count: Option<i32>,
+    pub upvote_count: ::core::option::Option<i32>,
 }
 
 /// Request message for QuestionsAndAnswers.UpsertAnswer
@@ -112,5 +112,5 @@ pub struct Question {
 pub struct UpsertAnswerRequest {
     /// Required. The new answer.
     #[serde(default)]
-    pub answer: Option<Answer>,
+    pub answer: ::core::option::Option<::std::boxed::Box<Answer>>,
 }

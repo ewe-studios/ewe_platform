@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Obsolete in favor of ApproximateReportedProgress and ApproximateSplitRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApproximateProgress {
     /// Obsolete.
     #[serde(default, rename = "percentComplete")]
-    pub percent_complete: Option<f32>,
+    pub percent_complete: ::core::option::Option<f32>,
     /// Obsolete.
     #[serde(default)]
-    pub position: Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
     /// Obsolete.
     #[serde(default, rename = "remainingTime")]
-    pub remaining_time: Option<String>,
+    pub remaining_time: ::core::option::Option<String>,
 }
 
 /// A progress measurement of a WorkItem by a worker.
@@ -32,16 +32,16 @@ pub struct ApproximateProgress {
 pub struct ApproximateReportedProgress {
     /// Total amount of parallelism in the portion of input of this task that has already been consumed and is no longer active. In the first two examples above (see remaining_parallelism), the value should be 29 or 2 respectively. The sum of remaining_parallelism and consumed_parallelism should equal the total amount of parallelism in this work item. If specified, must be finite.
     #[serde(default, rename = "consumedParallelism")]
-    pub consumed_parallelism: Option<ReportedParallelism>,
+    pub consumed_parallelism: ::core::option::Option<::std::boxed::Box<ReportedParallelism>>,
     /// Completion as fraction of the input consumed, from 0.0 (beginning, nothing consumed), to 1.0 (end of the input, entire input consumed).
     #[serde(default, rename = "fractionConsumed")]
-    pub fraction_consumed: Option<f64>,
+    pub fraction_consumed: ::core::option::Option<f64>,
     /// A Position within the work to represent a progress.
     #[serde(default)]
-    pub position: Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
     /// Total amount of parallelism in the input of this task that remains, (i.e. can be delegated to this task and any new tasks via dynamic splitting). Always at least 1 for non-finished work items and 0 for finished. "Amount of parallelism" refers to how many non-empty parts of the input can be read in parallel. This does not necessarily equal number of records. An input that can be read in parallel down to the individual records is called "perfectly splittable". An example of non-perfectly parallelizable input is a block-compressed file format where a block of records has to be read as a whole, but different blocks can be read in parallel. Examples: * If we are processing record #30 (starting at 1) out of 50 in a perfectly splittable 50-record input, this value should be 21 (20 remaining + 1 current). * If we are reading through block 3 in a block-compressed file consisting of 5 blocks, this value should be 3 (since blocks 4 and 5 can be processed in parallel by new tasks via dynamic splitting and the current task remains processing block 3). * If we are reading through the last block in a block-compressed file, or reading or processing the last record in a perfectly splittable input, this value should be 1, because apart from the current task, no additional remainder can be split off.
     #[serde(default, rename = "remainingParallelism")]
-    pub remaining_parallelism: Option<ReportedParallelism>,
+    pub remaining_parallelism: ::core::option::Option<::std::boxed::Box<ReportedParallelism>>,
 }
 
 /// A suggestion by the service to the worker to dynamically split the WorkItem.
@@ -49,13 +49,13 @@ pub struct ApproximateReportedProgress {
 pub struct ApproximateSplitRequest {
     /// A fraction at which to split the work item, from 0.0 (beginning of the input) to 1.0 (end of the input).
     #[serde(default, rename = "fractionConsumed")]
-    pub fraction_consumed: Option<f64>,
+    pub fraction_consumed: ::core::option::Option<f64>,
     /// The fraction of the remainder of work to split the work item at, from 0.0 (split at the current position) to 1.0 (end of the input).
     #[serde(default, rename = "fractionOfRemainder")]
-    pub fraction_of_remainder: Option<f64>,
+    pub fraction_of_remainder: ::core::option::Option<f64>,
     /// A Position at which to split the work item.
     #[serde(default)]
-    pub position: Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
 }
 
 /// A structured message reporting an autoscaling decision made by the Dataflow service.
@@ -63,22 +63,22 @@ pub struct ApproximateSplitRequest {
 pub struct AutoscalingEvent {
     /// The current number of workers the job has.
     #[serde(default, rename = "currentNumWorkers")]
-    pub current_num_workers: Option<String>,
+    pub current_num_workers: ::core::option::Option<String>,
     /// A message describing why the system decided to adjust the current number of workers, why it failed, or why the system decided to not make any changes to the number of workers.
     #[serde(default)]
-    pub description: Option<StructuredMessage>,
+    pub description: ::core::option::Option<::std::boxed::Box<StructuredMessage>>,
     /// The type of autoscaling event to report. // TODO: enum values: ["TYPE_UNKNOWN", "TARGET_NUM_WORKERS_CHANGED", "CURRENT_NUM_WORKERS_CHANGED", "ACTUATION_FAILURE", "NO_CHANGE"]
     #[serde(default, rename = "eventType")]
-    pub event_type: Option<String>,
+    pub event_type: ::core::option::Option<String>,
     /// The target number of workers the worker pool wants to resize to use.
     #[serde(default, rename = "targetNumWorkers")]
-    pub target_num_workers: Option<String>,
+    pub target_num_workers: ::core::option::Option<String>,
     /// The time this event was emitted to indicate a new target or current num_workers value.
     #[serde(default)]
-    pub time: Option<String>,
+    pub time: ::core::option::Option<String>,
     /// A short and friendly name for the worker pool this event refers to.
     #[serde(default, rename = "workerPool")]
-    pub worker_pool: Option<String>,
+    pub worker_pool: ::core::option::Option<String>,
 }
 
 /// Settings for WorkerPool autoscaling.
@@ -86,10 +86,10 @@ pub struct AutoscalingEvent {
 pub struct AutoscalingSettings {
     /// The algorithm to use for autoscaling. // TODO: enum values: ["AUTOSCALING_ALGORITHM_UNKNOWN", "AUTOSCALING_ALGORITHM_NONE", "AUTOSCALING_ALGORITHM_BASIC"]
     #[serde(default)]
-    pub algorithm: Option<String>,
+    pub algorithm: ::core::option::Option<String>,
     /// The maximum number of workers to cap scaling at.
     #[serde(default, rename = "maxNumWorkers")]
-    pub max_num_workers: Option<i32>,
+    pub max_num_workers: ::core::option::Option<i32>,
 }
 
 /// Exponential buckets where the growth factor between buckets is 2**(2**-scale). e.g. for scale=1 growth factor is 2**(2**(-1))=sqrt(2). n buckets will have the following boundaries. - 0th: [0, gf) - i in [1, n-1]: [gf^(i), gf^(i+1))
@@ -97,10 +97,10 @@ pub struct AutoscalingSettings {
 pub struct Base2Exponent {
     /// Must be greater than 0.
     #[serde(default, rename = "numberOfBuckets")]
-    pub number_of_buckets: Option<i32>,
+    pub number_of_buckets: ::core::option::Option<i32>,
     /// Must be between -3 and 3. This forces the growth factor of the bucket boundaries to be between 2^(1/8) and 256.
     #[serde(default)]
-    pub scale: Option<i32>,
+    pub scale: ::core::option::Option<i32>,
 }
 
 /// Metadata for a BigQuery connector used by the job.
@@ -108,16 +108,16 @@ pub struct Base2Exponent {
 pub struct BigQueryIODetails {
     /// Dataset accessed in the connection.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Project accessed in the connection.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Query used to access data in the connection.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Table accessed in the connection.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
 }
 
 /// Metadata for a Cloud Bigtable connector used by the job.
@@ -125,13 +125,13 @@ pub struct BigQueryIODetails {
 pub struct BigTableIODetails {
     /// InstanceId accessed in the connection.
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
     /// ProjectId accessed in the connection.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// TableId accessed in the connection.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// The message type used for encoding metrics of type bounded trie.
@@ -139,13 +139,13 @@ pub struct BigTableIODetails {
 pub struct BoundedTrie {
     /// The maximum number of elements to store before truncation.
     #[serde(default)]
-    pub bound: Option<i32>,
+    pub bound: ::core::option::Option<i32>,
     /// A compact representation of all the elements in this trie.
     #[serde(default)]
-    pub root: Option<BoundedTrieNode>,
+    pub root: ::core::option::Option<::std::boxed::Box<BoundedTrieNode>>,
     /// A more efficient representation for metrics consisting of a single value.
     #[serde(default)]
-    pub singleton: Option<Vec<String>>,
+    pub singleton: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A single node in a BoundedTrie.
@@ -153,10 +153,10 @@ pub struct BoundedTrie {
 pub struct BoundedTrieNode {
     /// Children of this node. Must be empty if truncated is true.
     #[serde(default)]
-    pub children: Option<serde_json::Value>,
+    pub children: ::core::option::Option<serde_json::Value>,
     /// Whether this node has been truncated. A truncated leaf represents possibly many children with the same prefix.
     #[serde(default)]
-    pub truncated: Option<bool>,
+    pub truncated: ::core::option::Option<bool>,
 }
 
 /// BucketOptions describes the bucket boundaries used in the histogram.
@@ -164,10 +164,10 @@ pub struct BoundedTrieNode {
 pub struct BucketOptions {
     /// Bucket boundaries grow exponentially.
     #[serde(default)]
-    pub exponential: Option<Base2Exponent>,
+    pub exponential: ::core::option::Option<::std::boxed::Box<Base2Exponent>>,
     /// Bucket boundaries grow linearly.
     #[serde(default)]
-    pub linear: Option<Linear>,
+    pub linear: ::core::option::Option<::std::boxed::Box<Linear>>,
 }
 
 /// Modeled after information exposed by /proc/stat.
@@ -175,13 +175,13 @@ pub struct BucketOptions {
 pub struct CPUTime {
     /// Average CPU utilization rate (% non-idle cpu / second) since previous sample.
     #[serde(default)]
-    pub rate: Option<f64>,
+    pub rate: ::core::option::Option<f64>,
     /// Timestamp of the measurement.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
     /// Total active CPU time across all cores (ie., non-idle) in milliseconds since start-up.
     #[serde(default, rename = "totalMs")]
-    pub total_ms: Option<String>,
+    pub total_ms: ::core::option::Option<String>,
 }
 
 /// Description of an interstitial value between transforms in an execution stage.
@@ -189,13 +189,13 @@ pub struct CPUTime {
 pub struct ComponentSource {
     /// Dataflow service generated name for this source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User name for the original user transform or collection with which this source is most closely associated.
     #[serde(default, rename = "originalTransformOrCollection")]
-    pub original_transform_or_collection: Option<String>,
+    pub original_transform_or_collection: ::core::option::Option<String>,
     /// Human-readable name for this transform; may be user or system generated.
     #[serde(default, rename = "userName")]
-    pub user_name: Option<String>,
+    pub user_name: ::core::option::Option<String>,
 }
 
 /// Description of a transform executed as part of an execution stage.
@@ -203,13 +203,13 @@ pub struct ComponentSource {
 pub struct ComponentTransform {
     /// Dataflow service generated name for this source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User name for the original user transform with which this transform is most closely associated.
     #[serde(default, rename = "originalTransform")]
-    pub original_transform: Option<String>,
+    pub original_transform: ::core::option::Option<String>,
     /// Human-readable name for this transform; may be user or system generated.
     #[serde(default, rename = "userName")]
-    pub user_name: Option<String>,
+    pub user_name: ::core::option::Option<String>,
 }
 
 /// All configuration data for a particular Computation.
@@ -217,22 +217,23 @@ pub struct ComponentTransform {
 pub struct ComputationTopology {
     /// The ID of the computation.
     #[serde(default, rename = "computationId")]
-    pub computation_id: Option<String>,
+    pub computation_id: ::core::option::Option<String>,
     /// The inputs to the computation.
     #[serde(default)]
-    pub inputs: Option<Vec<StreamLocation>>,
+    pub inputs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StreamLocation>>>,
     /// The key ranges processed by the computation.
     #[serde(default, rename = "keyRanges")]
-    pub key_ranges: Option<Vec<KeyRangeLocation>>,
+    pub key_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<KeyRangeLocation>>>,
     /// The outputs from the computation.
     #[serde(default)]
-    pub outputs: Option<Vec<StreamLocation>>,
+    pub outputs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StreamLocation>>>,
     /// The state family values.
     #[serde(default, rename = "stateFamilies")]
-    pub state_families: Option<Vec<StateFamilyConfig>>,
+    pub state_families:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StateFamilyConfig>>>,
     /// The system stage name.
     #[serde(default, rename = "systemStageName")]
-    pub system_stage_name: Option<String>,
+    pub system_stage_name: ::core::option::Option<String>,
 }
 
 /// A position that encapsulates an inner position and an index for the inner position. A ConcatPosition can be used by a reader of a source that encapsulates a set of other sources.
@@ -240,10 +241,10 @@ pub struct ComputationTopology {
 pub struct ConcatPosition {
     /// Index of the inner source.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     /// Position within the inner source.
     #[serde(default)]
-    pub position: Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
 }
 
 /// Container Spec.
@@ -251,25 +252,26 @@ pub struct ConcatPosition {
 pub struct ContainerSpec {
     /// Default runtime environment for the job.
     #[serde(default, rename = "defaultEnvironment")]
-    pub default_environment: Option<FlexTemplateRuntimeEnvironment>,
+    pub default_environment:
+        ::core::option::Option<::std::boxed::Box<FlexTemplateRuntimeEnvironment>>,
     /// Name of the docker container image. E.g., gcr.io/project/some-image
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// Cloud Storage path to self-signed certificate of private registry.
     #[serde(default, rename = "imageRepositoryCertPath")]
-    pub image_repository_cert_path: Option<String>,
+    pub image_repository_cert_path: ::core::option::Option<String>,
     /// Secret Manager secret id for password to authenticate to private registry.
     #[serde(default, rename = "imageRepositoryPasswordSecretId")]
-    pub image_repository_password_secret_id: Option<String>,
+    pub image_repository_password_secret_id: ::core::option::Option<String>,
     /// Secret Manager secret id for username to authenticate to private registry.
     #[serde(default, rename = "imageRepositoryUsernameSecretId")]
-    pub image_repository_username_secret_id: Option<String>,
+    pub image_repository_username_secret_id: ::core::option::Option<String>,
     /// Metadata describing a template including description and validation rules.
     #[serde(default)]
-    pub metadata: Option<TemplateMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<TemplateMetadata>>,
     /// Required. SDK info of the Flex Template.
     #[serde(default, rename = "sdkInfo")]
-    pub sdk_info: Option<SDKInfo>,
+    pub sdk_info: ::core::option::Option<::std::boxed::Box<SDKInfo>>,
 }
 
 /// CounterMetadata includes all static non-name non-value counter attributes.
@@ -277,16 +279,16 @@ pub struct ContainerSpec {
 pub struct CounterMetadata {
     /// Human-readable description of the counter semantics.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Counter aggregation kind. // TODO: enum values: ["INVALID", "SUM", "MAX", "MIN", "MEAN", "OR", "AND", "SET", "DISTRIBUTION", "LATEST_VALUE"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// A string referring to the unit type.
     #[serde(default, rename = "otherUnits")]
-    pub other_units: Option<String>,
+    pub other_units: ::core::option::Option<String>,
     /// System defined Units, see above enum. // TODO: enum values: ["BYTES", "BYTES_PER_SEC", "MILLISECONDS", "MICROSECONDS", "NANOSECONDS", "TIMESTAMP_MSEC", "TIMESTAMP_USEC", "TIMESTAMP_NSEC"]
     #[serde(default, rename = "standardUnits")]
-    pub standard_units: Option<String>,
+    pub standard_units: ::core::option::Option<String>,
 }
 
 /// Identifies a counter within a per-job namespace. Counters whose structured names are the same get merged into a single value for the job.
@@ -294,34 +296,34 @@ pub struct CounterMetadata {
 pub struct CounterStructuredName {
     /// Name of the optimized step being executed by the workers.
     #[serde(default, rename = "componentStepName")]
-    pub component_step_name: Option<String>,
+    pub component_step_name: ::core::option::Option<String>,
     /// Name of the stage. An execution step contains multiple component steps.
     #[serde(default, rename = "executionStepName")]
-    pub execution_step_name: Option<String>,
+    pub execution_step_name: ::core::option::Option<String>,
     /// Index of an input collection that''s being read from/written to as a side input. The index identifies a step''s side inputs starting by 1 (e.g. the first side input has input_index 1, the third has input_index 3). Side inputs are identified by a pair of (original_step_name, input_index). This field helps uniquely identify them.
     #[serde(default, rename = "inputIndex")]
-    pub input_index: Option<i32>,
+    pub input_index: ::core::option::Option<i32>,
     /// Counter name. Not necessarily globally-unique, but unique within the context of the other fields. Required.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// One of the standard Origins defined above. // TODO: enum values: ["SYSTEM", "USER"]
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
     /// A string containing a more specific namespace of the counter''s origin.
     #[serde(default, rename = "originNamespace")]
-    pub origin_namespace: Option<String>,
+    pub origin_namespace: ::core::option::Option<String>,
     /// The step name requesting an operation, such as GBK. I.e. the ParDo causing a read/write from shuffle to occur, or a read from side inputs.
     #[serde(default, rename = "originalRequestingStepName")]
-    pub original_requesting_step_name: Option<String>,
+    pub original_requesting_step_name: ::core::option::Option<String>,
     /// System generated name of the original step in the user''s graph, before optimization.
     #[serde(default, rename = "originalStepName")]
-    pub original_step_name: Option<String>,
+    pub original_step_name: ::core::option::Option<String>,
     /// Portion of this counter, either key or value. // TODO: enum values: ["ALL", "KEY", "VALUE"]
     #[serde(default)]
-    pub portion: Option<String>,
+    pub portion: ::core::option::Option<String>,
     /// ID of a particular worker.
     #[serde(default, rename = "workerId")]
-    pub worker_id: Option<String>,
+    pub worker_id: ::core::option::Option<String>,
 }
 
 /// A single message which encapsulates structured name and metadata for a given counter.
@@ -329,10 +331,10 @@ pub struct CounterStructuredName {
 pub struct CounterStructuredNameAndMetadata {
     /// Metadata associated with a counter
     #[serde(default)]
-    pub metadata: Option<CounterMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<CounterMetadata>>,
     /// Structured name of the counter.
     #[serde(default)]
-    pub name: Option<CounterStructuredName>,
+    pub name: ::core::option::Option<::std::boxed::Box<CounterStructuredName>>,
 }
 
 /// An update to a Counter sent from a worker. Next ID: 17
@@ -340,52 +342,53 @@ pub struct CounterStructuredNameAndMetadata {
 pub struct CounterUpdate {
     /// Boolean value for And, Or.
     #[serde(default)]
-    pub boolean: Option<bool>,
+    pub boolean: ::core::option::Option<bool>,
     /// Bounded trie data
     #[serde(default, rename = "boundedTrie")]
-    pub bounded_trie: Option<BoundedTrie>,
+    pub bounded_trie: ::core::option::Option<::std::boxed::Box<BoundedTrie>>,
     /// True if this counter is reported as the total cumulative aggregate value accumulated since the worker started working on this WorkItem. By default this is false, indicating that this counter is reported as a delta.
     #[serde(default)]
-    pub cumulative: Option<bool>,
+    pub cumulative: ::core::option::Option<bool>,
     /// Distribution data
     #[serde(default)]
-    pub distribution: Option<DistributionUpdate>,
+    pub distribution: ::core::option::Option<::std::boxed::Box<DistributionUpdate>>,
     /// Floating point value for Sum, Max, Min.
     #[serde(default, rename = "floatingPoint")]
-    pub floating_point: Option<f64>,
+    pub floating_point: ::core::option::Option<f64>,
     /// List of floating point numbers, for Set.
     #[serde(default, rename = "floatingPointList")]
-    pub floating_point_list: Option<FloatingPointList>,
+    pub floating_point_list: ::core::option::Option<::std::boxed::Box<FloatingPointList>>,
     /// Floating point mean aggregation value for Mean.
     #[serde(default, rename = "floatingPointMean")]
-    pub floating_point_mean: Option<FloatingPointMean>,
+    pub floating_point_mean: ::core::option::Option<::std::boxed::Box<FloatingPointMean>>,
     /// Integer value for Sum, Max, Min.
     #[serde(default)]
-    pub integer: Option<SplitInt64>,
+    pub integer: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
     /// Gauge data
     #[serde(default, rename = "integerGauge")]
-    pub integer_gauge: Option<IntegerGauge>,
+    pub integer_gauge: ::core::option::Option<::std::boxed::Box<IntegerGauge>>,
     /// List of integers, for Set.
     #[serde(default, rename = "integerList")]
-    pub integer_list: Option<IntegerList>,
+    pub integer_list: ::core::option::Option<::std::boxed::Box<IntegerList>>,
     /// Integer mean aggregation value for Mean.
     #[serde(default, rename = "integerMean")]
-    pub integer_mean: Option<IntegerMean>,
+    pub integer_mean: ::core::option::Option<::std::boxed::Box<IntegerMean>>,
     /// Value for internally-defined counters used by the Dataflow service.
     #[serde(default)]
-    pub internal: Option<serde_json::Value>,
+    pub internal: ::core::option::Option<serde_json::Value>,
     /// Counter name and aggregation type.
     #[serde(default, rename = "nameAndKind")]
-    pub name_and_kind: Option<NameAndKind>,
+    pub name_and_kind: ::core::option::Option<::std::boxed::Box<NameAndKind>>,
     /// The service-generated short identifier for this counter. The short_id -&gt; (name, metadata) mapping is constant for the lifetime of a job.
     #[serde(default, rename = "shortId")]
-    pub short_id: Option<String>,
+    pub short_id: ::core::option::Option<String>,
     /// List of strings, for Set.
     #[serde(default, rename = "stringList")]
-    pub string_list: Option<StringList>,
+    pub string_list: ::core::option::Option<::std::boxed::Box<StringList>>,
     /// Counter structured name and metadata.
     #[serde(default, rename = "structuredNameAndMetadata")]
-    pub structured_name_and_metadata: Option<CounterStructuredNameAndMetadata>,
+    pub structured_name_and_metadata:
+        ::core::option::Option<::std::boxed::Box<CounterStructuredNameAndMetadata>>,
 }
 
 /// A request to create a Cloud Dataflow job from a template.
@@ -393,19 +396,19 @@ pub struct CounterUpdate {
 pub struct CreateJobFromTemplateRequest {
     /// The runtime environment for the job.
     #[serde(default)]
-    pub environment: Option<RuntimeEnvironment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<RuntimeEnvironment>>,
     /// Required. A Cloud Storage path to the template from which to create the job. Must be a valid Cloud Storage URL, beginning with gs://.
     #[serde(default, rename = "gcsPath")]
-    pub gcs_path: Option<String>,
+    pub gcs_path: ::core::option::Option<String>,
     /// Required. The job name to use for the created job.
     #[serde(default, rename = "jobName")]
-    pub job_name: Option<String>,
+    pub job_name: ::core::option::Option<String>,
     /// The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) to which to direct the request.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The runtime parameters to pass to the job.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// Identifies the location of a custom souce.
@@ -413,7 +416,7 @@ pub struct CreateJobFromTemplateRequest {
 pub struct CustomSourceLocation {
     /// Whether this source is stateful.
     #[serde(default)]
-    pub stateful: Option<bool>,
+    pub stateful: ::core::option::Option<bool>,
 }
 
 /// Data disk assignment for a given VM instance.
@@ -421,10 +424,10 @@ pub struct CustomSourceLocation {
 pub struct DataDiskAssignment {
     /// Mounted data disks. The order is important a data disk''s 0-based index in this list defines which persistent directory the disk is mounted to, for example the list of { "myproject-1014-104817-4c2-harness-0-disk-0" }, { "myproject-1014-104817-4c2-harness-0-disk-1" }.
     #[serde(default, rename = "dataDisks")]
-    pub data_disks: Option<Vec<String>>,
+    pub data_disks: ::core::option::Option<::std::vec::Vec<String>>,
     /// VM instance name the data disks mounted to, for example "myproject-1014-104817-4c2-harness-0".
     #[serde(default, rename = "vmInstance")]
-    pub vm_instance: Option<String>,
+    pub vm_instance: ::core::option::Option<String>,
 }
 
 /// Configuration options for sampling elements.
@@ -432,7 +435,7 @@ pub struct DataDiskAssignment {
 pub struct DataSamplingConfig {
     /// List of given sampling behaviors to enable. For example, specifying behaviors = [ALWAYS_ON] samples in-flight elements but does not sample exceptions. Can be used to specify multiple behaviors like, behaviors = [ALWAYS_ON, EXCEPTIONS] for specifying periodic sampling and exception sampling. If DISABLED is in the list, then sampling will be disabled and ignore the other given behaviors. Ordering does not matter.
     #[serde(default)]
-    pub behaviors: Option<Vec<String>>,
+    pub behaviors: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Contains per-worker telemetry about the data sampling feature.
@@ -440,25 +443,25 @@ pub struct DataSamplingConfig {
 pub struct DataSamplingReport {
     /// Optional. Delta of bytes written to file from previous report.
     #[serde(default, rename = "bytesWrittenDelta")]
-    pub bytes_written_delta: Option<String>,
+    pub bytes_written_delta: ::core::option::Option<String>,
     /// Optional. Delta of bytes sampled from previous report.
     #[serde(default, rename = "elementsSampledBytes")]
-    pub elements_sampled_bytes: Option<String>,
+    pub elements_sampled_bytes: ::core::option::Option<String>,
     /// Optional. Delta of number of elements sampled from previous report.
     #[serde(default, rename = "elementsSampledCount")]
-    pub elements_sampled_count: Option<String>,
+    pub elements_sampled_count: ::core::option::Option<String>,
     /// Optional. Delta of number of samples taken from user code exceptions from previous report.
     #[serde(default, rename = "exceptionsSampledCount")]
-    pub exceptions_sampled_count: Option<String>,
+    pub exceptions_sampled_count: ::core::option::Option<String>,
     /// Optional. Delta of number of PCollections sampled from previous report.
     #[serde(default, rename = "pcollectionsSampledCount")]
-    pub pcollections_sampled_count: Option<String>,
+    pub pcollections_sampled_count: ::core::option::Option<String>,
     /// Optional. Delta of errors counts from persisting the samples from previous report.
     #[serde(default, rename = "persistenceErrorsCount")]
-    pub persistence_errors_count: Option<String>,
+    pub persistence_errors_count: ::core::option::Option<String>,
     /// Optional. Delta of errors counts from retrieving, or translating the samples from previous report.
     #[serde(default, rename = "translationErrorsCount")]
-    pub translation_errors_count: Option<String>,
+    pub translation_errors_count: ::core::option::Option<String>,
 }
 
 /// The gauge value of a metric.
@@ -466,10 +469,10 @@ pub struct DataSamplingReport {
 pub struct DataflowGaugeValue {
     /// The timestamp when the gauge was recorded.
     #[serde(default, rename = "measuredTime")]
-    pub measured_time: Option<String>,
+    pub measured_time: ::core::option::Option<String>,
     /// The value of the gauge.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Summary statistics for a population of values. HistogramValue contains a sequence of buckets and gives a count of values that fall into each bucket. Bucket boundares are defined by a formula and bucket widths are either fixed or exponentially increasing.
@@ -477,16 +480,16 @@ pub struct DataflowGaugeValue {
 pub struct DataflowHistogramValue {
     /// Optional. The number of values in each bucket of the histogram, as described in bucket_options. bucket_counts should contain N values, where N is the number of buckets specified in bucket_options. If bucket_counts has fewer than N values, the remaining values are assumed to be 0.
     #[serde(default, rename = "bucketCounts")]
-    pub bucket_counts: Option<Vec<String>>,
+    pub bucket_counts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Describes the bucket boundaries used in the histogram.
     #[serde(default, rename = "bucketOptions")]
-    pub bucket_options: Option<BucketOptions>,
+    pub bucket_options: ::core::option::Option<::std::boxed::Box<BucketOptions>>,
     /// Number of values recorded in this histogram.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Statistics on the values recorded in the histogram that fall out of the bucket boundaries.
     #[serde(default, rename = "outlierStats")]
-    pub outlier_stats: Option<OutlierStats>,
+    pub outlier_stats: ::core::option::Option<::std::boxed::Box<OutlierStats>>,
 }
 
 /// Metadata for a Datastore connector used by the job.
@@ -494,10 +497,10 @@ pub struct DataflowHistogramValue {
 pub struct DatastoreIODetails {
     /// Namespace used in the connection.
     #[serde(default)]
-    pub namespace: Option<String>,
+    pub namespace: ::core::option::Option<String>,
     /// ProjectId accessed in the connection.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
 }
 
 /// Describes any options that have an effect on the debugging of pipelines.
@@ -505,10 +508,10 @@ pub struct DatastoreIODetails {
 pub struct DebugOptions {
     /// Configuration options for sampling elements from a running pipeline.
     #[serde(default, rename = "dataSampling")]
-    pub data_sampling: Option<DataSamplingConfig>,
+    pub data_sampling: ::core::option::Option<::std::boxed::Box<DataSamplingConfig>>,
     /// Optional. When true, enables the logging of the literal hot key to the user''s Cloud Logging.
     #[serde(default, rename = "enableHotKeyLogging")]
-    pub enable_hot_key_logging: Option<bool>,
+    pub enable_hot_key_logging: ::core::option::Option<bool>,
 }
 
 /// Specification of one of the bundles produced as a result of splitting a Source (e.g. when executing a SourceSplitRequest, or when splitting an active task using WorkItemStatus.dynamic_source_split), relative to the source being split.
@@ -516,10 +519,10 @@ pub struct DebugOptions {
 pub struct DerivedSource {
     /// What source to base the produced source on (if any). // TODO: enum values: ["SOURCE_DERIVATION_MODE_UNKNOWN", "SOURCE_DERIVATION_MODE_INDEPENDENT", "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT", "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT"]
     #[serde(default, rename = "derivationMode")]
-    pub derivation_mode: Option<String>,
+    pub derivation_mode: ::core::option::Option<String>,
     /// Specification of the source.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// Describes the data disk used by a workflow job.
@@ -527,13 +530,13 @@ pub struct DerivedSource {
 pub struct Disk {
     /// Disk storage type, as defined by Google Compute Engine. This must be a disk type appropriate to the project and zone in which the workers will run. If unknown or unspecified, the service will attempt to choose a reasonable default. For example, the standard persistent disk type is a resource name typically ending in "pd-standard". If SSD persistent disks are available, the resource name typically ends with "pd-ssd". The actual valid values are defined the Google Compute Engine API, not by the Cloud Dataflow API; consult the Google Compute Engine documentation for more information about determining the set of available disk types for a particular project and zone. Google Compute Engine Disk types are local to a particular project in a particular zone, and so the resource name will typically look something like this: compute.googleapis.com/projects/project-id/zones/zone/diskTypes/pd-standard
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Directory in a VM where disk is mounted.
     #[serde(default, rename = "mountPoint")]
-    pub mount_point: Option<String>,
+    pub mount_point: ::core::option::Option<String>,
     /// Size of disk in GB. If zero or unspecified, the service will attempt to choose a reasonable default.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<i32>,
+    pub size_gb: ::core::option::Option<i32>,
 }
 
 /// Data provided with a pipeline or transform to provide descriptive info.
@@ -541,40 +544,40 @@ pub struct Disk {
 pub struct DisplayData {
     /// Contains value if the data is of a boolean type.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// Contains value if the data is of duration type.
     #[serde(default, rename = "durationValue")]
-    pub duration_value: Option<String>,
+    pub duration_value: ::core::option::Option<String>,
     /// Contains value if the data is of float type.
     #[serde(default, rename = "floatValue")]
-    pub float_value: Option<f32>,
+    pub float_value: ::core::option::Option<f32>,
     /// Contains value if the data is of int64 type.
     #[serde(default, rename = "int64Value")]
-    pub int64_value: Option<String>,
+    pub int64_value: ::core::option::Option<String>,
     /// Contains value if the data is of java class type.
     #[serde(default, rename = "javaClassValue")]
-    pub java_class_value: Option<String>,
+    pub java_class_value: ::core::option::Option<String>,
     /// The key identifying the display data. This is intended to be used as a label for the display data when viewed in a dax monitoring system.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// An optional label to display in a dax UI for the element.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The namespace for the key. This is usually a class name or programming language namespace (i.e. python module) which defines the display data. This allows a dax monitoring system to specially handle the data and perform custom rendering.
     #[serde(default)]
-    pub namespace: Option<String>,
+    pub namespace: ::core::option::Option<String>,
     /// A possible additional shorter value to display. For example a java_class_name_value of com.mypackage.MyDoFn will be stored with MyDoFn as the short_str_value and com.mypackage.MyDoFn as the java_class_name value. short_str_value can be displayed and java_class_name_value will be displayed as a tooltip.
     #[serde(default, rename = "shortStrValue")]
-    pub short_str_value: Option<String>,
+    pub short_str_value: ::core::option::Option<String>,
     /// Contains value if the data is of string type.
     #[serde(default, rename = "strValue")]
-    pub str_value: Option<String>,
+    pub str_value: ::core::option::Option<String>,
     /// Contains value if the data is of timestamp type.
     #[serde(default, rename = "timestampValue")]
-    pub timestamp_value: Option<String>,
+    pub timestamp_value: ::core::option::Option<String>,
     /// An optional full URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A metric value representing a distribution.
@@ -582,22 +585,22 @@ pub struct DisplayData {
 pub struct DistributionUpdate {
     /// The count of the number of elements present in the distribution.
     #[serde(default)]
-    pub count: Option<SplitInt64>,
+    pub count: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
     /// (Optional) Histogram of value counts for the distribution.
     #[serde(default)]
-    pub histogram: Option<Histogram>,
+    pub histogram: ::core::option::Option<::std::boxed::Box<Histogram>>,
     /// The maximum value present in the distribution.
     #[serde(default)]
-    pub max: Option<SplitInt64>,
+    pub max: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
     /// The minimum value present in the distribution.
     #[serde(default)]
-    pub min: Option<SplitInt64>,
+    pub min: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
     /// Use an int64 since we''d prefer the added precision. If overflow is a common problem we can detect it and use an additional int64 or a double.
     #[serde(default)]
-    pub sum: Option<SplitInt64>,
+    pub sum: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
     /// Use a double since the sum of squares is likely to overflow int64.
     #[serde(default, rename = "sumOfSquares")]
-    pub sum_of_squares: Option<f64>,
+    pub sum_of_squares: ::core::option::Option<f64>,
 }
 
 /// When a task splits using WorkItemStatus.dynamic_source_split, this message describes the two parts of the split relative to the description of the current task''s input.
@@ -605,10 +608,10 @@ pub struct DistributionUpdate {
 pub struct DynamicSourceSplit {
     /// Primary part (continued to be processed by worker). Specified relative to the previously-current source. Becomes current.
     #[serde(default)]
-    pub primary: Option<DerivedSource>,
+    pub primary: ::core::option::Option<::std::boxed::Box<DerivedSource>>,
     /// Residual part (returned to the pool of work). Specified relative to the previously-current source.
     #[serde(default)]
-    pub residual: Option<DerivedSource>,
+    pub residual: ::core::option::Option<::std::boxed::Box<DerivedSource>>,
 }
 
 /// Describes the environment in which a Dataflow Job runs.
@@ -616,64 +619,64 @@ pub struct DynamicSourceSplit {
 pub struct Environment {
     /// The type of cluster manager API to use. If unknown or unspecified, the service will attempt to choose a reasonable default. This should be in the form of the API service name, e.g. "compute.googleapis.com".
     #[serde(default, rename = "clusterManagerApiService")]
-    pub cluster_manager_api_service: Option<String>,
+    pub cluster_manager_api_service: ::core::option::Option<String>,
     /// Optional. The dataset for the current project where various workflow related tables are stored. The supported resource type is: Google BigQuery: bigquery.googleapis.com/{dataset}
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Optional. Any debugging options to be supplied to the job.
     #[serde(default, rename = "debugOptions")]
-    pub debug_options: Option<DebugOptions>,
+    pub debug_options: ::core::option::Option<::std::boxed::Box<DebugOptions>>,
     /// The list of experiments to enable. This field should be used for SDK related experiments and not for service related experiments. The proper field for service related experiments is service_options.
     #[serde(default)]
-    pub experiments: Option<Vec<String>>,
+    pub experiments: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Which Flexible Resource Scheduling mode to run in. // TODO: enum values: ["FLEXRS_UNSPECIFIED", "FLEXRS_SPEED_OPTIMIZED", "FLEXRS_COST_OPTIMIZED"]
     #[serde(default, rename = "flexResourceSchedulingGoal")]
-    pub flex_resource_scheduling_goal: Option<String>,
+    pub flex_resource_scheduling_goal: ::core::option::Option<String>,
     /// Experimental settings.
     #[serde(default, rename = "internalExperiments")]
-    pub internal_experiments: Option<serde_json::Value>,
+    pub internal_experiments: ::core::option::Option<serde_json::Value>,
     /// The Cloud Dataflow SDK pipeline options specified by the user. These options are passed through the service and are used to recreate the SDK pipeline options on the worker in a language agnostic and platform independent way.
     #[serde(default, rename = "sdkPipelineOptions")]
-    pub sdk_pipeline_options: Option<serde_json::Value>,
+    pub sdk_pipeline_options: ::core::option::Option<serde_json::Value>,
     /// Optional. Identity to run virtual machines as. Defaults to the default account.
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
     /// Optional. If set, contains the Cloud KMS key identifier used to encrypt data at rest, AKA a Customer Managed Encryption Key (CMEK). Format: projects/PROJECT_ID/locations/LOCATION/keyRings/KEY_RING/cryptoKeys/KEY
     #[serde(default, rename = "serviceKmsKeyName")]
-    pub service_kms_key_name: Option<String>,
+    pub service_kms_key_name: ::core::option::Option<String>,
     /// Optional. The list of service options to enable. This field should be used for service related experiments only. These experiments, when graduating to GA, should be replaced by dedicated fields or become default (i.e. always on).
     #[serde(default, rename = "serviceOptions")]
-    pub service_options: Option<Vec<String>>,
+    pub service_options: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The shuffle mode used for the job. // TODO: enum values: ["SHUFFLE_MODE_UNSPECIFIED", "VM_BASED", "SERVICE_BASED"]
     #[serde(default, rename = "shuffleMode")]
-    pub shuffle_mode: Option<String>,
+    pub shuffle_mode: ::core::option::Option<String>,
     /// Optional. Specifies the Streaming Engine message processing guarantees. Reduces cost and latency but might result in duplicate messages committed to storage. Designed to run simple mapping streaming ETL jobs at the lowest cost. For example, Change Data Capture (CDC) to BigQuery is a canonical use case. For more information, see [Set the pipeline streaming mode](https://cloud.google.com/dataflow/docs/guides/streaming-modes). // TODO: enum values: ["STREAMING_MODE_UNSPECIFIED", "STREAMING_MODE_EXACTLY_ONCE", "STREAMING_MODE_AT_LEAST_ONCE"]
     #[serde(default, rename = "streamingMode")]
-    pub streaming_mode: Option<String>,
+    pub streaming_mode: ::core::option::Option<String>,
     /// The prefix of the resources the system should use for temporary storage. The system will append the suffix "/temp-{JOBNAME} to this resource prefix, where {JOBNAME} is the value of the job_name field. The resulting bucket and object prefix is used as the prefix of the resources used to store temporary data needed during the job execution. NOTE: This will override the value in taskrunner_settings. The supported resource type is: Google Cloud Storage: storage.googleapis.com/{bucket}/{object} bucket.storage.googleapis.com/{object}
     #[serde(default, rename = "tempStoragePrefix")]
-    pub temp_storage_prefix: Option<String>,
+    pub temp_storage_prefix: ::core::option::Option<String>,
     /// Optional. True when any worker pool that uses public IPs is present.
     #[serde(default, rename = "usePublicIps")]
-    pub use_public_ips: Option<bool>,
+    pub use_public_ips: ::core::option::Option<bool>,
     /// Output only. Whether the job uses the Streaming Engine resource-based billing model.
     #[serde(default, rename = "useStreamingEngineResourceBasedBilling")]
-    pub use_streaming_engine_resource_based_billing: Option<bool>,
+    pub use_streaming_engine_resource_based_billing: ::core::option::Option<bool>,
     /// Optional. A description of the process that generated the request.
     #[serde(default, rename = "userAgent")]
-    pub user_agent: Option<serde_json::Value>,
+    pub user_agent: ::core::option::Option<serde_json::Value>,
     /// A structure describing which components and their versions of the service are required in order to run the job.
     #[serde(default)]
-    pub version: Option<serde_json::Value>,
+    pub version: ::core::option::Option<serde_json::Value>,
     /// The worker pools. At least one "harness" worker pool must be specified in order for the job to have workers.
     #[serde(default, rename = "workerPools")]
-    pub worker_pools: Option<Vec<WorkerPool>>,
+    pub worker_pools: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkerPool>>>,
     /// Optional. The Compute Engine region (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1". Mutually exclusive with worker_zone. If neither worker_region nor worker_zone is specified, default to the control plane''s region.
     #[serde(default, rename = "workerRegion")]
-    pub worker_region: Option<String>,
+    pub worker_region: ::core::option::Option<String>,
     /// Optional. The Compute Engine zone (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1-a". Mutually exclusive with worker_region. If neither worker_region nor worker_zone is specified, a zone in the control plane''s region is chosen based on available capacity.
     #[serde(default, rename = "workerZone")]
-    pub worker_zone: Option<String>,
+    pub worker_zone: ::core::option::Option<String>,
 }
 
 /// A message describing the state of a particular execution stage.
@@ -681,13 +684,13 @@ pub struct Environment {
 pub struct ExecutionStageState {
     /// The time at which the stage transitioned to this state.
     #[serde(default, rename = "currentStateTime")]
-    pub current_state_time: Option<String>,
+    pub current_state_time: ::core::option::Option<String>,
     /// The name of the execution stage.
     #[serde(default, rename = "executionStageName")]
-    pub execution_stage_name: Option<String>,
+    pub execution_stage_name: ::core::option::Option<String>,
     /// Executions stage states allow the same set of values as JobState. // TODO: enum values: ["JOB_STATE_UNKNOWN", "JOB_STATE_STOPPED", "JOB_STATE_RUNNING", "JOB_STATE_DONE", "JOB_STATE_FAILED", "JOB_STATE_CANCELLED", "JOB_STATE_UPDATED", "JOB_STATE_DRAINING", "JOB_STATE_DRAINED", "JOB_STATE_PENDING", "JOB_STATE_CANCELLING", "JOB_STATE_QUEUED", "JOB_STATE_RESOURCE_CLEANING_UP", "JOB_STATE_PAUSING", "JOB_STATE_PAUSED"]
     #[serde(default, rename = "executionStageState")]
-    pub execution_stage_state: Option<String>,
+    pub execution_stage_state: ::core::option::Option<String>,
 }
 
 /// Description of the composing transforms, names/ids, and input/outputs of a stage of execution. Some composing transforms and sources may have been generated by the Dataflow service during execution planning.
@@ -695,28 +698,30 @@ pub struct ExecutionStageState {
 pub struct ExecutionStageSummary {
     /// Collections produced and consumed by component transforms of this stage.
     #[serde(default, rename = "componentSource")]
-    pub component_source: Option<Vec<ComponentSource>>,
+    pub component_source:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ComponentSource>>>,
     /// Transforms that comprise this execution stage.
     #[serde(default, rename = "componentTransform")]
-    pub component_transform: Option<Vec<ComponentTransform>>,
+    pub component_transform:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ComponentTransform>>>,
     /// Dataflow service generated id for this stage.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Input sources for this stage.
     #[serde(default, rename = "inputSource")]
-    pub input_source: Option<Vec<StageSource>>,
+    pub input_source: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StageSource>>>,
     /// Type of transform this stage is executing. // TODO: enum values: ["UNKNOWN_KIND", "PAR_DO_KIND", "GROUP_BY_KEY_KIND", "FLATTEN_KIND", "READ_KIND", "WRITE_KIND", "CONSTANT_KIND", "SINGLETON_KIND", "SHUFFLE_KIND"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Dataflow service generated name for this stage.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output sources for this stage.
     #[serde(default, rename = "outputSource")]
-    pub output_source: Option<Vec<StageSource>>,
+    pub output_source: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StageSource>>>,
     /// Other stages that must complete before this stage can run.
     #[serde(default, rename = "prerequisiteStage")]
-    pub prerequisite_stage: Option<Vec<String>>,
+    pub prerequisite_stage: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Indicates which [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) failed to respond to a request for data.
@@ -724,7 +729,7 @@ pub struct ExecutionStageSummary {
 pub struct FailedLocation {
     /// The name of the [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that failed to respond.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metadata for a File connector used by the job.
@@ -732,7 +737,7 @@ pub struct FailedLocation {
 pub struct FileIODetails {
     /// File Pattern used to access files by the connector.
     #[serde(default, rename = "filePattern")]
-    pub file_pattern: Option<String>,
+    pub file_pattern: ::core::option::Option<String>,
 }
 
 /// An instruction that copies its inputs (zero or more) to its (single) output.
@@ -740,7 +745,7 @@ pub struct FileIODetails {
 pub struct FlattenInstruction {
     /// Describes the inputs to the flatten instruction.
     #[serde(default)]
-    pub inputs: Option<Vec<InstructionInput>>,
+    pub inputs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstructionInput>>>,
 }
 
 /// The environment values to be set at runtime for flex template.
@@ -748,82 +753,82 @@ pub struct FlattenInstruction {
 pub struct FlexTemplateRuntimeEnvironment {
     /// Additional experiment flags for the job.
     #[serde(default, rename = "additionalExperiments")]
-    pub additional_experiments: Option<Vec<String>>,
+    pub additional_experiments: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Additional pipeline option flags for the job.
     #[serde(default, rename = "additionalPipelineOptions")]
-    pub additional_pipeline_options: Option<Vec<String>>,
+    pub additional_pipeline_options: ::core::option::Option<::std::vec::Vec<String>>,
     /// Additional user labels to be specified for the job. Keys and values must follow the restrictions specified in the [labeling restrictions](https://cloud.google.com/compute/docs/labeling-resources#restrictions) page. An object containing a list of "key": value pairs. Example: { "name": "wrench", "mass": "1kg", "count": "3" }.
     #[serde(default, rename = "additionalUserLabels")]
-    pub additional_user_labels: Option<serde_json::Value>,
+    pub additional_user_labels: ::core::option::Option<serde_json::Value>,
     /// The algorithm to use for autoscaling // TODO: enum values: ["AUTOSCALING_ALGORITHM_UNKNOWN", "AUTOSCALING_ALGORITHM_NONE", "AUTOSCALING_ALGORITHM_BASIC"]
     #[serde(default, rename = "autoscalingAlgorithm")]
-    pub autoscaling_algorithm: Option<String>,
+    pub autoscaling_algorithm: ::core::option::Option<String>,
     /// Worker disk size, in gigabytes.
     #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: Option<i32>,
+    pub disk_size_gb: ::core::option::Option<i32>,
     /// If true, when processing time is spent almost entirely on garbage collection (GC), saves a heap dump before ending the thread or process. If false, ends the thread or process without saving a heap dump. Does not save a heap dump when the Java Virtual Machine (JVM) has an out of memory error during processing. The location of the heap file is either echoed back to the user, or the user is given the opportunity to download the heap file.
     #[serde(default, rename = "dumpHeapOnOom")]
-    pub dump_heap_on_oom: Option<bool>,
+    pub dump_heap_on_oom: ::core::option::Option<bool>,
     /// If true serial port logging will be enabled for the launcher VM.
     #[serde(default, rename = "enableLauncherVmSerialPortLogging")]
-    pub enable_launcher_vm_serial_port_logging: Option<bool>,
+    pub enable_launcher_vm_serial_port_logging: ::core::option::Option<bool>,
     /// Whether to enable Streaming Engine for the job.
     #[serde(default, rename = "enableStreamingEngine")]
-    pub enable_streaming_engine: Option<bool>,
+    pub enable_streaming_engine: ::core::option::Option<bool>,
     /// Set FlexRS goal for the job. https://cloud.google.com/dataflow/docs/guides/flexrs // TODO: enum values: ["FLEXRS_UNSPECIFIED", "FLEXRS_SPEED_OPTIMIZED", "FLEXRS_COST_OPTIMIZED"]
     #[serde(default, rename = "flexrsGoal")]
-    pub flexrs_goal: Option<String>,
+    pub flexrs_goal: ::core::option::Option<String>,
     /// Configuration for VM IPs. // TODO: enum values: ["WORKER_IP_UNSPECIFIED", "WORKER_IP_PUBLIC", "WORKER_IP_PRIVATE"]
     #[serde(default, rename = "ipConfiguration")]
-    pub ip_configuration: Option<String>,
+    pub ip_configuration: ::core::option::Option<String>,
     /// Name for the Cloud KMS key for the job. Key format is: projects//locations//keyRings//cryptoKeys/
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// The machine type to use for launching the job. The default is n1-standard-1.
     #[serde(default, rename = "launcherMachineType")]
-    pub launcher_machine_type: Option<String>,
+    pub launcher_machine_type: ::core::option::Option<String>,
     /// The machine type to use for the job. Defaults to the value from the template if not specified.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// The maximum number of Google Compute Engine instances to be made available to your pipeline during execution, from 1 to 1000.
     #[serde(default, rename = "maxWorkers")]
-    pub max_workers: Option<i32>,
+    pub max_workers: ::core::option::Option<i32>,
     /// Network to which VMs will be assigned. If empty or unspecified, the service will use the network "default".
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// The initial number of Google Compute Engine instances for the job.
     #[serde(default, rename = "numWorkers")]
-    pub num_workers: Option<i32>,
+    pub num_workers: ::core::option::Option<i32>,
     /// Cloud Storage bucket (directory) to upload heap dumps to. Enabling this field implies that dump_heap_on_oom is set to true.
     #[serde(default, rename = "saveHeapDumpsToGcsPath")]
-    pub save_heap_dumps_to_gcs_path: Option<String>,
+    pub save_heap_dumps_to_gcs_path: ::core::option::Option<String>,
     /// Docker registry location of container image to use for the ''worker harness. Default is the container for the version of the SDK. Note this field is only valid for portable pipelines.
     #[serde(default, rename = "sdkContainerImage")]
-    pub sdk_container_image: Option<String>,
+    pub sdk_container_image: ::core::option::Option<String>,
     /// The email address of the service account to run the job as.
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
     /// The Cloud Storage path for staging local files. Must be a valid Cloud Storage URL, beginning with gs://.
     #[serde(default, rename = "stagingLocation")]
-    pub staging_location: Option<String>,
+    pub staging_location: ::core::option::Option<String>,
     /// Optional. Specifies the Streaming Engine message processing guarantees. Reduces cost and latency but might result in duplicate messages committed to storage. Designed to run simple mapping streaming ETL jobs at the lowest cost. For example, Change Data Capture (CDC) to BigQuery is a canonical use case. For more information, see [Set the pipeline streaming mode](https://cloud.google.com/dataflow/docs/guides/streaming-modes). // TODO: enum values: ["STREAMING_MODE_UNSPECIFIED", "STREAMING_MODE_EXACTLY_ONCE", "STREAMING_MODE_AT_LEAST_ONCE"]
     #[serde(default, rename = "streamingMode")]
-    pub streaming_mode: Option<String>,
+    pub streaming_mode: ::core::option::Option<String>,
     /// Subnetwork to which VMs will be assigned, if desired. You can specify a subnetwork using either a complete URL or an abbreviated path. Expected to be of the form "https://www.googleapis.com/compute/v1/projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNETWORK" or "regions/REGION/subnetworks/SUBNETWORK". If the subnetwork is located in a Shared VPC network, you must use the complete URL.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
     /// The Cloud Storage path to use for temporary files. Must be a valid Cloud Storage URL, beginning with gs://.
     #[serde(default, rename = "tempLocation")]
-    pub temp_location: Option<String>,
+    pub temp_location: ::core::option::Option<String>,
     /// The Compute Engine region (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1". Mutually exclusive with worker_zone. If neither worker_region nor worker_zone is specified, default to the control plane''s region.
     #[serde(default, rename = "workerRegion")]
-    pub worker_region: Option<String>,
+    pub worker_region: ::core::option::Option<String>,
     /// The Compute Engine zone (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1-a". Mutually exclusive with worker_region. If neither worker_region nor worker_zone is specified, a zone in the control plane''s region is chosen based on available capacity. If both worker_zone and zone are set, worker_zone takes precedence.
     #[serde(default, rename = "workerZone")]
-    pub worker_zone: Option<String>,
+    pub worker_zone: ::core::option::Option<String>,
     /// The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// A metric value representing a list of floating point numbers.
@@ -831,7 +836,7 @@ pub struct FlexTemplateRuntimeEnvironment {
 pub struct FloatingPointList {
     /// Elements of the list.
     #[serde(default)]
-    pub elements: Option<Vec<f64>>,
+    pub elements: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// A representation of a floating point mean metric contribution.
@@ -839,10 +844,10 @@ pub struct FloatingPointList {
 pub struct FloatingPointMean {
     /// The number of values being aggregated.
     #[serde(default)]
-    pub count: Option<SplitInt64>,
+    pub count: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
     /// The sum of all values being aggregated.
     #[serde(default)]
-    pub sum: Option<f64>,
+    pub sum: ::core::option::Option<f64>,
 }
 
 /// Information about the GPU usage on the worker.
@@ -850,10 +855,10 @@ pub struct FloatingPointMean {
 pub struct GPUUsage {
     /// Required. Timestamp of the measurement.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
     /// Required. Utilization info about the GPU.
     #[serde(default)]
-    pub utilization: Option<GPUUtilization>,
+    pub utilization: ::core::option::Option<::std::boxed::Box<GPUUtilization>>,
 }
 
 /// Utilization details about the GPU.
@@ -861,7 +866,7 @@ pub struct GPUUsage {
 pub struct GPUUtilization {
     /// Required. GPU utilization rate of any kernel over the last sample period in the range of [0, 1].
     #[serde(default)]
-    pub rate: Option<f64>,
+    pub rate: ::core::option::Option<f64>,
 }
 
 /// Request to get updated debug configuration for component.
@@ -869,13 +874,13 @@ pub struct GPUUtilization {
 pub struct GetDebugConfigRequest {
     /// The internal component id for which debug configuration is requested.
     #[serde(default, rename = "componentId")]
-    pub component_id: Option<String>,
+    pub component_id: ::core::option::Option<String>,
     /// The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that contains the job specified by job_id.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The worker id, i.e., VM hostname.
     #[serde(default, rename = "workerId")]
-    pub worker_id: Option<String>,
+    pub worker_id: ::core::option::Option<String>,
 }
 
 /// Response to a get debug configuration request.
@@ -883,7 +888,7 @@ pub struct GetDebugConfigRequest {
 pub struct GetDebugConfigResponse {
     /// The encoded debug configuration for the requested component.
     #[serde(default)]
-    pub config: Option<String>,
+    pub config: ::core::option::Option<String>,
 }
 
 /// The response to a GetTemplate request.
@@ -891,16 +896,16 @@ pub struct GetDebugConfigResponse {
 pub struct GetTemplateResponse {
     /// The template metadata describing the template name, available parameters, etc.
     #[serde(default)]
-    pub metadata: Option<TemplateMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<TemplateMetadata>>,
     /// Describes the runtime metadata with SDKInfo and available parameters.
     #[serde(default, rename = "runtimeMetadata")]
-    pub runtime_metadata: Option<RuntimeMetadata>,
+    pub runtime_metadata: ::core::option::Option<::std::boxed::Box<RuntimeMetadata>>,
     /// The status of the get template request. Any problems with the request will be indicated in the error_details.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Template Type. // TODO: enum values: ["UNKNOWN", "LEGACY", "FLEX"]
     #[serde(default, rename = "templateType")]
-    pub template_type: Option<String>,
+    pub template_type: ::core::option::Option<String>,
 }
 
 /// Request to get worker stacktraces from debug capture.
@@ -908,10 +913,10 @@ pub struct GetTemplateResponse {
 pub struct GetWorkerStacktracesRequest {
     /// The end time for the stacktrace query. The returned stacktraces will be a recent stack trace at or shortly before this time.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The worker for which to get stacktraces. The returned stacktraces will be for the SDK harness running on this worker.
     #[serde(default, rename = "workerId")]
-    pub worker_id: Option<String>,
+    pub worker_id: ::core::option::Option<String>,
 }
 
 /// Response to get worker stacktraces from debug capture.
@@ -919,7 +924,7 @@ pub struct GetWorkerStacktracesRequest {
 pub struct GetWorkerStacktracesResponse {
     /// Repeated as unified worker may have multiple SDK processes.
     #[serde(default)]
-    pub sdks: Option<Vec<Sdk>>,
+    pub sdks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Sdk>>>,
 }
 
 /// Histogram of value counts for a distribution. Buckets have an inclusive lower bound and exclusive upper bound and use "1,2,5 bucketing": The first bucket range is from [0,1) and all subsequent bucket boundaries are powers of ten multiplied by 1, 2, or 5. Thus, bucket boundaries are 0, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, ... Negative values are not supported.
@@ -927,10 +932,10 @@ pub struct GetWorkerStacktracesResponse {
 pub struct Histogram {
     /// Counts of values in each bucket. For efficiency, prefix and trailing buckets with count = 0 are elided. Buckets can store the full range of values of an unsigned long, with ULLONG_MAX falling into the 59th bucket with range [1e19, 2e19).
     #[serde(default, rename = "bucketCounts")]
-    pub bucket_counts: Option<Vec<String>>,
+    pub bucket_counts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Starting index of first stored bucket. The non-inclusive upper-bound of the ith bucket is given by: pow(10,(i-first_bucket_offset)/3) * (1,2,5)[(i-first_bucket_offset)%3]
     #[serde(default, rename = "firstBucketOffset")]
-    pub first_bucket_offset: Option<i32>,
+    pub first_bucket_offset: ::core::option::Option<i32>,
 }
 
 /// Proto describing a hot key detected on a given WorkItem.
@@ -938,13 +943,13 @@ pub struct Histogram {
 pub struct HotKeyDetection {
     /// The age of the hot key measured from when it was first detected.
     #[serde(default, rename = "hotKeyAge")]
-    pub hot_key_age: Option<String>,
+    pub hot_key_age: ::core::option::Option<String>,
     /// System-defined name of the step containing this hot key. Unique across the workflow.
     #[serde(default, rename = "systemName")]
-    pub system_name: Option<String>,
+    pub system_name: ::core::option::Option<String>,
     /// User-provided name of the step that contains this hot key.
     #[serde(default, rename = "userStepName")]
-    pub user_step_name: Option<String>,
+    pub user_step_name: ::core::option::Option<String>,
 }
 
 /// Information about a hot key.
@@ -952,13 +957,13 @@ pub struct HotKeyDetection {
 pub struct HotKeyInfo {
     /// The age of the hot key measured from when it was first detected.
     #[serde(default, rename = "hotKeyAge")]
-    pub hot_key_age: Option<String>,
+    pub hot_key_age: ::core::option::Option<String>,
     /// A detected hot key that is causing limited parallelism. This field will be populated only if the following flag is set to true: "--enable_hot_key_logging".
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// If true, then the above key is truncated and cannot be deserialized. This occurs if the key above is populated and the key size is &gt;5MB.
     #[serde(default, rename = "keyTruncated")]
-    pub key_truncated: Option<bool>,
+    pub key_truncated: ::core::option::Option<bool>,
 }
 
 /// An input of an instruction, as a reference to an output of a producer instruction.
@@ -966,10 +971,10 @@ pub struct HotKeyInfo {
 pub struct InstructionInput {
     /// The output index (origin zero) within the producer.
     #[serde(default, rename = "outputNum")]
-    pub output_num: Option<i32>,
+    pub output_num: ::core::option::Option<i32>,
     /// The index (origin zero) of the parallel instruction that produces the output to be consumed by this input. This index is relative to the list of instructions in this input''s instruction''s containing MapTask.
     #[serde(default, rename = "producerInstructionIndex")]
-    pub producer_instruction_index: Option<i32>,
+    pub producer_instruction_index: ::core::option::Option<i32>,
 }
 
 /// An output of an instruction.
@@ -977,22 +982,22 @@ pub struct InstructionInput {
 pub struct InstructionOutput {
     /// The codec to use to encode data being written via this output.
     #[serde(default)]
-    pub codec: Option<serde_json::Value>,
+    pub codec: ::core::option::Option<serde_json::Value>,
     /// The user-provided name of this output.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// For system-generated byte and mean byte metrics, certain instructions should only report the key size.
     #[serde(default, rename = "onlyCountKeyBytes")]
-    pub only_count_key_bytes: Option<bool>,
+    pub only_count_key_bytes: ::core::option::Option<bool>,
     /// For system-generated byte and mean byte metrics, certain instructions should only report the value size.
     #[serde(default, rename = "onlyCountValueBytes")]
-    pub only_count_value_bytes: Option<bool>,
+    pub only_count_value_bytes: ::core::option::Option<bool>,
     /// System-defined name for this output in the original workflow graph. Outputs that do not contribute to an original instruction do not set this.
     #[serde(default, rename = "originalName")]
-    pub original_name: Option<String>,
+    pub original_name: ::core::option::Option<String>,
     /// System-defined name of this output. Unique across the workflow.
     #[serde(default, rename = "systemName")]
-    pub system_name: Option<String>,
+    pub system_name: ::core::option::Option<String>,
 }
 
 /// A metric value representing temporal values of a variable.
@@ -1000,10 +1005,10 @@ pub struct InstructionOutput {
 pub struct IntegerGauge {
     /// The time at which this value was measured. Measured as msecs from epoch.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
     /// The value of the variable represented by this gauge.
     #[serde(default)]
-    pub value: Option<SplitInt64>,
+    pub value: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
 }
 
 /// A metric value representing a list of integers.
@@ -1011,7 +1016,7 @@ pub struct IntegerGauge {
 pub struct IntegerList {
     /// Elements of the list.
     #[serde(default)]
-    pub elements: Option<Vec<SplitInt64>>,
+    pub elements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SplitInt64>>>,
 }
 
 /// A representation of an integer mean metric contribution.
@@ -1019,10 +1024,10 @@ pub struct IntegerList {
 pub struct IntegerMean {
     /// The number of values being aggregated.
     #[serde(default)]
-    pub count: Option<SplitInt64>,
+    pub count: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
     /// The sum of all values being aggregated.
     #[serde(default)]
-    pub sum: Option<SplitInt64>,
+    pub sum: ::core::option::Option<::std::boxed::Box<SplitInt64>>,
 }
 
 /// Defines a job to be run by the Cloud Dataflow service. Do not enter confidential information when you supply string values using the API.
@@ -1030,91 +1035,92 @@ pub struct IntegerMean {
 pub struct Job {
     /// The client''s unique identifier of the job, re-used across retried attempts. If this field is set, the service will ensure its uniqueness. The request to create a job will fail if the service has knowledge of a previously submitted job with the same client''s ID and job name. The caller may use this field to ensure idempotence of job creation across retried attempts to create a job. By default, the field is empty and, in that case, the service ignores it.
     #[serde(default, rename = "clientRequestId")]
-    pub client_request_id: Option<String>,
+    pub client_request_id: ::core::option::Option<String>,
     /// The timestamp when the job was initially created. Immutable and set by the Cloud Dataflow service.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// If this is specified, the job''s initial state is populated from the given snapshot.
     #[serde(default, rename = "createdFromSnapshotId")]
-    pub created_from_snapshot_id: Option<String>,
+    pub created_from_snapshot_id: ::core::option::Option<String>,
     /// The current state of the job. Jobs are created in the JOB_STATE_STOPPED state unless otherwise specified. A job in the JOB_STATE_RUNNING state may asynchronously enter a terminal state. After a job has reached a terminal state, no further state updates may be made. This field might be mutated by the Dataflow service; callers cannot mutate it. // TODO: enum values: ["JOB_STATE_UNKNOWN", "JOB_STATE_STOPPED", "JOB_STATE_RUNNING", "JOB_STATE_DONE", "JOB_STATE_FAILED", "JOB_STATE_CANCELLED", "JOB_STATE_UPDATED", "JOB_STATE_DRAINING", "JOB_STATE_DRAINED", "JOB_STATE_PENDING", "JOB_STATE_CANCELLING", "JOB_STATE_QUEUED", "JOB_STATE_RESOURCE_CLEANING_UP", "JOB_STATE_PAUSING", "JOB_STATE_PAUSED"]
     #[serde(default, rename = "currentState")]
-    pub current_state: Option<String>,
+    pub current_state: ::core::option::Option<String>,
     /// The timestamp associated with the current state.
     #[serde(default, rename = "currentStateTime")]
-    pub current_state_time: Option<String>,
+    pub current_state_time: ::core::option::Option<String>,
     /// Optional. The environment for the job.
     #[serde(default)]
-    pub environment: Option<Environment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<Environment>>,
     /// Deprecated.
     #[serde(default, rename = "executionInfo")]
-    pub execution_info: Option<JobExecutionInfo>,
+    pub execution_info: ::core::option::Option<::std::boxed::Box<JobExecutionInfo>>,
     /// The unique ID of this job. This field is set by the Dataflow service when the job is created, and is immutable for the life of the job.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// This field is populated by the Dataflow service to support filtering jobs by the metadata values provided here. Populated for ListJobs and all GetJob views SUMMARY and higher.
     #[serde(default, rename = "jobMetadata")]
-    pub job_metadata: Option<JobMetadata>,
+    pub job_metadata: ::core::option::Option<::std::boxed::Box<JobMetadata>>,
     /// User-defined labels for this job. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \p{Ll}\p{Lo}{0,62} * Values must conform to regexp: [\p{Ll}\p{Lo}\p{N}_-]{0,63} * Both keys and values are additionally constrained to be &lt;= 128 bytes in size.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that contains this job.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. The user-specified Dataflow job name. Only one active job with a given name can exist in a project within one region at any given time. Jobs in different regions can have the same name. If a caller attempts to create a job with the same name as an active job that already exists, the attempt returns the existing job. The name must match the regular expression [a-z]([-a-z0-9]{0,1022}[a-z0-9])?
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Indicates whether the job can be paused.
     #[serde(default)]
-    pub pausable: Option<bool>,
+    pub pausable: ::core::option::Option<bool>,
     /// Preliminary field: The format of this data may change at any time. A description of the user pipeline and stages through which it is executed. Created by Cloud Dataflow service. Only retrieved with JOB_VIEW_DESCRIPTION or JOB_VIEW_ALL.
     #[serde(default, rename = "pipelineDescription")]
-    pub pipeline_description: Option<PipelineDescription>,
+    pub pipeline_description: ::core::option::Option<::std::boxed::Box<PipelineDescription>>,
     /// The ID of the Google Cloud project that the job belongs to.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// If this job is an update of an existing job, this field is the job ID of the job it replaced. When sending a CreateJobRequest, you can update a job by specifying it here. The job named here is stopped, and its intermediate state is transferred to this job.
     #[serde(default, rename = "replaceJobId")]
-    pub replace_job_id: Option<String>,
+    pub replace_job_id: ::core::option::Option<String>,
     /// If another job is an update of this job (and thus, this job is in JOB_STATE_UPDATED), this field contains the ID of that job.
     #[serde(default, rename = "replacedByJobId")]
-    pub replaced_by_job_id: Option<String>,
+    pub replaced_by_job_id: ::core::option::Option<String>,
     /// The job''s requested state. Applies to UpdateJob requests. Set requested_state with UpdateJob requests to switch between the states JOB_STATE_STOPPED and JOB_STATE_RUNNING. You can also use UpdateJob requests to change a job''s state from JOB_STATE_RUNNING to JOB_STATE_CANCELLED, JOB_STATE_DONE, or JOB_STATE_DRAINED. These states irrevocably terminate the job if it hasn''t already reached a terminal state. This field has no effect on CreateJob requests. // TODO: enum values: ["JOB_STATE_UNKNOWN", "JOB_STATE_STOPPED", "JOB_STATE_RUNNING", "JOB_STATE_DONE", "JOB_STATE_FAILED", "JOB_STATE_CANCELLED", "JOB_STATE_UPDATED", "JOB_STATE_DRAINING", "JOB_STATE_DRAINED", "JOB_STATE_PENDING", "JOB_STATE_CANCELLING", "JOB_STATE_QUEUED", "JOB_STATE_RESOURCE_CLEANING_UP", "JOB_STATE_PAUSING", "JOB_STATE_PAUSED"]
     #[serde(default, rename = "requestedState")]
-    pub requested_state: Option<String>,
+    pub requested_state: ::core::option::Option<String>,
     /// This field may ONLY be modified at runtime using the projects.jobs.update method to adjust job behavior. This field has no effect when specified at job creation.
     #[serde(default, rename = "runtimeUpdatableParams")]
-    pub runtime_updatable_params: Option<RuntimeUpdatableParams>,
+    pub runtime_updatable_params: ::core::option::Option<::std::boxed::Box<RuntimeUpdatableParams>>,
     /// Output only. Reserved for future use. This field is set only in responses from the server; it is ignored if it is set in any requests.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Reserved for future use. This field is set only in responses from the server; it is ignored if it is set in any requests.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. Resources used by the Dataflow Service to run the job.
     #[serde(default, rename = "serviceResources")]
-    pub service_resources: Option<ServiceResources>,
+    pub service_resources: ::core::option::Option<::std::boxed::Box<ServiceResources>>,
     /// This field may be mutated by the Cloud Dataflow service; callers cannot mutate it.
     #[serde(default, rename = "stageStates")]
-    pub stage_states: Option<Vec<ExecutionStageState>>,
+    pub stage_states:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExecutionStageState>>>,
     /// The timestamp when the job was started (transitioned to JOB_STATE_PENDING). Flexible resource scheduling jobs are started with some delay after job creation, so start_time is unset before start and is updated when the job is started by the Cloud Dataflow service. For other jobs, start_time always equals to create_time and is immutable and set by the Cloud Dataflow service.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Exactly one of step or steps_location should be specified. The top-level steps that constitute the entire job. Only retrieved with JOB_VIEW_ALL.
     #[serde(default)]
-    pub steps: Option<Vec<Step>>,
+    pub steps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Step>>>,
     /// The Cloud Storage location where the steps are stored.
     #[serde(default, rename = "stepsLocation")]
-    pub steps_location: Option<String>,
+    pub steps_location: ::core::option::Option<String>,
     /// A set of files the system should be aware of that are used for temporary storage. These temporary files will be removed on job completion. No duplicates are allowed. No file patterns are supported. The supported files are: Google Cloud Storage: storage.googleapis.com/{bucket}/{object} bucket.storage.googleapis.com/{object}
     #[serde(default, rename = "tempFiles")]
-    pub temp_files: Option<Vec<String>>,
+    pub temp_files: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The map of transform name prefixes of the job to be replaced to the corresponding name prefixes of the new job.
     #[serde(default, rename = "transformNameMapping")]
-    pub transform_name_mapping: Option<serde_json::Value>,
+    pub transform_name_mapping: ::core::option::Option<serde_json::Value>,
     /// Optional. The type of Dataflow job. // TODO: enum values: ["JOB_TYPE_UNKNOWN", "JOB_TYPE_BATCH", "JOB_TYPE_STREAMING"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about the execution of a job.
@@ -1122,10 +1128,10 @@ pub struct Job {
 pub struct JobExecutionDetails {
     /// If present, this response does not contain all requested tasks. To obtain the next page of results, repeat the request with page_token set to this value.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The stages of the job execution.
     #[serde(default)]
-    pub stages: Option<Vec<StageSummary>>,
+    pub stages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StageSummary>>>,
 }
 
 /// Contains information about how a particular google.dataflow.v1beta3.Step will be executed.
@@ -1133,7 +1139,7 @@ pub struct JobExecutionDetails {
 pub struct JobExecutionStageInfo {
     /// The steps associated with the execution stage. Note that stages may have several steps, and that a given step might be run by more than one stage.
     #[serde(default, rename = "stepName")]
-    pub step_name: Option<Vec<String>>,
+    pub step_name: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A particular message pertaining to a Dataflow job.
@@ -1141,16 +1147,16 @@ pub struct JobExecutionStageInfo {
 pub struct JobMessage {
     /// Deprecated.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Importance level of the message. // TODO: enum values: ["JOB_MESSAGE_IMPORTANCE_UNKNOWN", "JOB_MESSAGE_DEBUG", "JOB_MESSAGE_DETAILED", "JOB_MESSAGE_BASIC", "JOB_MESSAGE_WARNING", "JOB_MESSAGE_ERROR"]
     #[serde(default, rename = "messageImportance")]
-    pub message_importance: Option<String>,
+    pub message_importance: ::core::option::Option<String>,
     /// The text of the message.
     #[serde(default, rename = "messageText")]
-    pub message_text: Option<String>,
+    pub message_text: ::core::option::Option<String>,
     /// The timestamp of the message.
     #[serde(default)]
-    pub time: Option<String>,
+    pub time: ::core::option::Option<String>,
 }
 
 /// Metadata available primarily for filtering jobs. Will be included in the ListJob response and Job SUMMARY view.
@@ -1158,28 +1164,32 @@ pub struct JobMessage {
 pub struct JobMetadata {
     /// Identification of a Cloud Bigtable source used in the Dataflow job.
     #[serde(default, rename = "bigTableDetails")]
-    pub big_table_details: Option<Vec<BigTableIODetails>>,
+    pub big_table_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BigTableIODetails>>>,
     /// Identification of a BigQuery source used in the Dataflow job.
     #[serde(default, rename = "bigqueryDetails")]
-    pub bigquery_details: Option<Vec<BigQueryIODetails>>,
+    pub bigquery_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BigQueryIODetails>>>,
     /// Identification of a Datastore source used in the Dataflow job.
     #[serde(default, rename = "datastoreDetails")]
-    pub datastore_details: Option<Vec<DatastoreIODetails>>,
+    pub datastore_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatastoreIODetails>>>,
     /// Identification of a File source used in the Dataflow job.
     #[serde(default, rename = "fileDetails")]
-    pub file_details: Option<Vec<FileIODetails>>,
+    pub file_details: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FileIODetails>>>,
     /// Identification of a Pub/Sub source used in the Dataflow job.
     #[serde(default, rename = "pubsubDetails")]
-    pub pubsub_details: Option<Vec<PubSubIODetails>>,
+    pub pubsub_details: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PubSubIODetails>>>,
     /// The SDK version used to run the job.
     #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: Option<SdkVersion>,
+    pub sdk_version: ::core::option::Option<::std::boxed::Box<SdkVersion>>,
     /// Identification of a Spanner source used in the Dataflow job.
     #[serde(default, rename = "spannerDetails")]
-    pub spanner_details: Option<Vec<SpannerIODetails>>,
+    pub spanner_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SpannerIODetails>>>,
     /// List of display properties to help UI filter jobs.
     #[serde(default, rename = "userDisplayProperties")]
-    pub user_display_properties: Option<serde_json::Value>,
+    pub user_display_properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// JobMetrics contains a collection of metrics describing the detailed progress of a Dataflow job. Metrics correspond to user-defined and system-defined metrics in the job. For more information, see [Dataflow job metrics] (https://cloud.google.com/dataflow/docs/guides/using-monitoring-intf). This resource captures only the most recent values of each metric; time-series data can be queried for them (under the same metric names) from Cloud Monitoring.
@@ -1187,10 +1197,10 @@ pub struct JobMetadata {
 pub struct JobMetrics {
     /// Timestamp as of which metric values are current.
     #[serde(default, rename = "metricTime")]
-    pub metric_time: Option<String>,
+    pub metric_time: ::core::option::Option<String>,
     /// All metrics for this job.
     #[serde(default)]
-    pub metrics: Option<Vec<MetricUpdate>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricUpdate>>>,
 }
 
 /// Data disk assignment information for a specific key-range of a sharded computation. Currently we only support UTF-8 character splits to simplify encoding into JSON.
@@ -1198,13 +1208,13 @@ pub struct JobMetrics {
 pub struct KeyRangeDataDiskAssignment {
     /// The name of the data disk where data for this range is stored. This name is local to the Google Cloud Platform project and uniquely identifies the disk within that project, for example "myproject-1014-104817-4c2-harness-0-disk-1".
     #[serde(default, rename = "dataDisk")]
-    pub data_disk: Option<String>,
+    pub data_disk: ::core::option::Option<String>,
     /// The end (exclusive) of the key range.
     #[serde(default)]
-    pub end: Option<String>,
+    pub end: ::core::option::Option<String>,
     /// The start (inclusive) of the key range.
     #[serde(default)]
-    pub start: Option<String>,
+    pub start: ::core::option::Option<String>,
 }
 
 /// Location information for a specific key-range of a sharded computation. Currently we only support UTF-8 character splits to simplify encoding into JSON.
@@ -1212,19 +1222,19 @@ pub struct KeyRangeDataDiskAssignment {
 pub struct KeyRangeLocation {
     /// The name of the data disk where data for this range is stored. This name is local to the Google Cloud Platform project and uniquely identifies the disk within that project, for example "myproject-1014-104817-4c2-harness-0-disk-1".
     #[serde(default, rename = "dataDisk")]
-    pub data_disk: Option<String>,
+    pub data_disk: ::core::option::Option<String>,
     /// The physical location of this range assignment to be used for streaming computation cross-worker message delivery.
     #[serde(default, rename = "deliveryEndpoint")]
-    pub delivery_endpoint: Option<String>,
+    pub delivery_endpoint: ::core::option::Option<String>,
     /// DEPRECATED. The location of the persistent state for this range, as a persistent directory in the worker local filesystem.
     #[serde(default, rename = "deprecatedPersistentDirectory")]
-    pub deprecated_persistent_directory: Option<String>,
+    pub deprecated_persistent_directory: ::core::option::Option<String>,
     /// The end (exclusive) of the key range.
     #[serde(default)]
-    pub end: Option<String>,
+    pub end: ::core::option::Option<String>,
     /// The start (inclusive) of the key range.
     #[serde(default)]
-    pub start: Option<String>,
+    pub start: ::core::option::Option<String>,
 }
 
 /// Launch FlexTemplate Parameter.
@@ -1232,28 +1242,28 @@ pub struct KeyRangeLocation {
 pub struct LaunchFlexTemplateParameter {
     /// Spec about the container image to launch.
     #[serde(default, rename = "containerSpec")]
-    pub container_spec: Option<ContainerSpec>,
+    pub container_spec: ::core::option::Option<::std::boxed::Box<ContainerSpec>>,
     /// Cloud Storage path to a file with json serialized ContainerSpec as content.
     #[serde(default, rename = "containerSpecGcsPath")]
-    pub container_spec_gcs_path: Option<String>,
+    pub container_spec_gcs_path: ::core::option::Option<String>,
     /// The runtime environment for the FlexTemplate job
     #[serde(default)]
-    pub environment: Option<FlexTemplateRuntimeEnvironment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<FlexTemplateRuntimeEnvironment>>,
     /// Required. The job name to use for the created job. For update job request, job name should be same as the existing running job.
     #[serde(default, rename = "jobName")]
-    pub job_name: Option<String>,
+    pub job_name: ::core::option::Option<String>,
     /// Launch options for this flex template job. This is a common set of options across languages and templates. This should not be used to pass job parameters.
     #[serde(default, rename = "launchOptions")]
-    pub launch_options: Option<serde_json::Value>,
+    pub launch_options: ::core::option::Option<serde_json::Value>,
     /// The parameters for FlexTemplate. Ex. {"num_workers":"5"}
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Use this to pass transform_name_mappings for streaming update jobs. Ex:{"oldTransformName":"newTransformName",...}''
     #[serde(default, rename = "transformNameMappings")]
-    pub transform_name_mappings: Option<serde_json::Value>,
+    pub transform_name_mappings: ::core::option::Option<serde_json::Value>,
     /// Set this to true if you are sending a request to update a running streaming job. When set, the job name should be the same as the running job.
     #[serde(default)]
-    pub update: Option<bool>,
+    pub update: ::core::option::Option<bool>,
 }
 
 /// A request to launch a Cloud Dataflow job from a FlexTemplate.
@@ -1261,10 +1271,10 @@ pub struct LaunchFlexTemplateParameter {
 pub struct LaunchFlexTemplateRequest {
     /// Required. Parameter to launch a job form Flex Template.
     #[serde(default, rename = "launchParameter")]
-    pub launch_parameter: Option<LaunchFlexTemplateParameter>,
+    pub launch_parameter: ::core::option::Option<::std::boxed::Box<LaunchFlexTemplateParameter>>,
     /// If true, the request is validated but not actually executed. Defaults to false.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Response to the request to launch a job from Flex Template.
@@ -1272,7 +1282,7 @@ pub struct LaunchFlexTemplateRequest {
 pub struct LaunchFlexTemplateResponse {
     /// The job that was launched, if the request was not a dry run and the job was successfully launched.
     #[serde(default)]
-    pub job: Option<Job>,
+    pub job: ::core::option::Option<::std::boxed::Box<Job>>,
 }
 
 /// Parameters to provide to the template being launched. Note that the [metadata in the pipeline code] (https://cloud.google.com/dataflow/docs/guides/templates/creating-templates#metadata) determines which runtime parameters are valid.
@@ -1280,19 +1290,19 @@ pub struct LaunchFlexTemplateResponse {
 pub struct LaunchTemplateParameters {
     /// The runtime environment for the job.
     #[serde(default)]
-    pub environment: Option<RuntimeEnvironment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<RuntimeEnvironment>>,
     /// Required. The job name to use for the created job. The name must match the regular expression [a-z]([-a-z0-9]{0,1022}[a-z0-9])?
     #[serde(default, rename = "jobName")]
-    pub job_name: Option<String>,
+    pub job_name: ::core::option::Option<String>,
     /// The runtime parameters to pass to the job.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Only applicable when updating a pipeline. Map of transform name prefixes of the job to be replaced to the corresponding name prefixes of the new job.
     #[serde(default, rename = "transformNameMapping")]
-    pub transform_name_mapping: Option<serde_json::Value>,
+    pub transform_name_mapping: ::core::option::Option<serde_json::Value>,
     /// If set, replace the existing pipeline with the name specified by jobName with this pipeline, preserving state.
     #[serde(default)]
-    pub update: Option<bool>,
+    pub update: ::core::option::Option<bool>,
 }
 
 /// Response to the request to launch a template.
@@ -1300,7 +1310,7 @@ pub struct LaunchTemplateParameters {
 pub struct LaunchTemplateResponse {
     /// The job that was launched, if the request was not a dry run and the job was successfully launched.
     #[serde(default)]
-    pub job: Option<Job>,
+    pub job: ::core::option::Option<::std::boxed::Box<Job>>,
 }
 
 /// Request to lease WorkItems.
@@ -1308,28 +1318,28 @@ pub struct LaunchTemplateResponse {
 pub struct LeaseWorkItemRequest {
     /// The current timestamp at the worker.
     #[serde(default, rename = "currentWorkerTime")]
-    pub current_worker_time: Option<String>,
+    pub current_worker_time: ::core::option::Option<String>,
     /// The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that contains the WorkItem''s job.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. The project number of the project this worker belongs to.
     #[serde(default, rename = "projectNumber")]
-    pub project_number: Option<String>,
+    pub project_number: ::core::option::Option<String>,
     /// The initial lease period.
     #[serde(default, rename = "requestedLeaseDuration")]
-    pub requested_lease_duration: Option<String>,
+    pub requested_lease_duration: ::core::option::Option<String>,
     /// Untranslated bag-of-bytes WorkRequest from UnifiedWorker.
     #[serde(default, rename = "unifiedWorkerRequest")]
-    pub unified_worker_request: Option<serde_json::Value>,
+    pub unified_worker_request: ::core::option::Option<serde_json::Value>,
     /// Filter for WorkItem type.
     #[serde(default, rename = "workItemTypes")]
-    pub work_item_types: Option<Vec<String>>,
+    pub work_item_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Worker capabilities. WorkItems might be limited to workers with specific capabilities.
     #[serde(default, rename = "workerCapabilities")]
-    pub worker_capabilities: Option<Vec<String>>,
+    pub worker_capabilities: ::core::option::Option<::std::vec::Vec<String>>,
     /// Identifies the worker leasing work -- typically the ID of the virtual machine running the worker.
     #[serde(default, rename = "workerId")]
-    pub worker_id: Option<String>,
+    pub worker_id: ::core::option::Option<String>,
 }
 
 /// Response to a request to lease WorkItems.
@@ -1337,10 +1347,10 @@ pub struct LeaseWorkItemRequest {
 pub struct LeaseWorkItemResponse {
     /// Untranslated bag-of-bytes WorkResponse for UnifiedWorker.
     #[serde(default, rename = "unifiedWorkerResponse")]
-    pub unified_worker_response: Option<serde_json::Value>,
+    pub unified_worker_response: ::core::option::Option<serde_json::Value>,
     /// A list of the leased WorkItems.
     #[serde(default, rename = "workItems")]
-    pub work_items: Option<Vec<WorkItem>>,
+    pub work_items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkItem>>>,
 }
 
 /// Linear buckets with the following boundaries for indices in 0 to n-1. - i in [0, n-1]: [start + (i)*width, start + (i+1)*width)
@@ -1348,13 +1358,13 @@ pub struct LeaseWorkItemResponse {
 pub struct Linear {
     /// Must be greater than 0.
     #[serde(default, rename = "numberOfBuckets")]
-    pub number_of_buckets: Option<i32>,
+    pub number_of_buckets: ::core::option::Option<i32>,
     /// Lower bound of the first bucket.
     #[serde(default)]
-    pub start: Option<f64>,
+    pub start: ::core::option::Option<f64>,
     /// Distance between bucket boundaries. Must be greater than 0.
     #[serde(default)]
-    pub width: Option<f64>,
+    pub width: ::core::option::Option<f64>,
 }
 
 /// Response to a request to list job messages.
@@ -1362,13 +1372,14 @@ pub struct Linear {
 pub struct ListJobMessagesResponse {
     /// Autoscaling events in ascending timestamp order.
     #[serde(default, rename = "autoscalingEvents")]
-    pub autoscaling_events: Option<Vec<AutoscalingEvent>>,
+    pub autoscaling_events:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutoscalingEvent>>>,
     /// Messages in ascending timestamp order.
     #[serde(default, rename = "jobMessages")]
-    pub job_messages: Option<Vec<JobMessage>>,
+    pub job_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<JobMessage>>>,
     /// The token to obtain the next page of results if there are more.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response to a request to list Cloud Dataflow jobs in a project. This might be a partial response, depending on the page size in the ListJobsRequest. However, if the project does not have any jobs, an instance of ListJobsResponse is not returned and the requests''s response body is empty {}.
@@ -1376,13 +1387,13 @@ pub struct ListJobMessagesResponse {
 pub struct ListJobsResponse {
     /// Zero or more messages describing the [regional endpoints] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that failed to respond.
     #[serde(default, rename = "failedLocation")]
-    pub failed_location: Option<Vec<FailedLocation>>,
+    pub failed_location: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FailedLocation>>>,
     /// A subset of the requested job information.
     #[serde(default)]
-    pub jobs: Option<Vec<Job>>,
+    pub jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Job>>>,
     /// Set if there may be more results than fit in this response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// List of snapshots.
@@ -1390,7 +1401,7 @@ pub struct ListJobsResponse {
 pub struct ListSnapshotsResponse {
     /// Returned snapshots.
     #[serde(default)]
-    pub snapshots: Option<Vec<Snapshot>>,
+    pub snapshots: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Snapshot>>>,
 }
 
 /// MapTask consists of an ordered set of instructions, each of which describes one particular low-level operation for the worker to perform in order to accomplish the MapTask''s WorkItem. Each instruction must appear in the list before any instructions which depends on its output.
@@ -1398,16 +1409,17 @@ pub struct ListSnapshotsResponse {
 pub struct MapTask {
     /// Counter prefix that can be used to prefix counters. Not currently used in Dataflow.
     #[serde(default, rename = "counterPrefix")]
-    pub counter_prefix: Option<String>,
+    pub counter_prefix: ::core::option::Option<String>,
     /// The instructions in the MapTask.
     #[serde(default)]
-    pub instructions: Option<Vec<ParallelInstruction>>,
+    pub instructions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ParallelInstruction>>>,
     /// System-defined name of the stage containing this MapTask. Unique across the workflow.
     #[serde(default, rename = "stageName")]
-    pub stage_name: Option<String>,
+    pub stage_name: ::core::option::Option<String>,
     /// System-defined name of this MapTask. Unique across the workflow.
     #[serde(default, rename = "systemName")]
-    pub system_name: Option<String>,
+    pub system_name: ::core::option::Option<String>,
 }
 
 /// Information about the memory usage of a worker or a container within a worker.
@@ -1415,19 +1427,19 @@ pub struct MapTask {
 pub struct MemInfo {
     /// Instantenous memory limit in bytes.
     #[serde(default, rename = "currentLimitBytes")]
-    pub current_limit_bytes: Option<String>,
+    pub current_limit_bytes: ::core::option::Option<String>,
     /// Number of Out of Memory (OOM) events recorded since the previous measurement.
     #[serde(default, rename = "currentOoms")]
-    pub current_ooms: Option<String>,
+    pub current_ooms: ::core::option::Option<String>,
     /// Instantenous memory (RSS) size in bytes.
     #[serde(default, rename = "currentRssBytes")]
-    pub current_rss_bytes: Option<String>,
+    pub current_rss_bytes: ::core::option::Option<String>,
     /// Timestamp of the measurement.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
     /// Total memory (RSS) usage since start up in GB * ms.
     #[serde(default, rename = "totalGbMs")]
-    pub total_gb_ms: Option<String>,
+    pub total_gb_ms: ::core::option::Option<String>,
 }
 
 /// The metric short id is returned to the user alongside an offset into ReportWorkItemStatusRequest
@@ -1435,10 +1447,10 @@ pub struct MemInfo {
 pub struct MetricShortId {
     /// The index of the corresponding metric in the ReportWorkItemStatusRequest. Required.
     #[serde(default, rename = "metricIndex")]
-    pub metric_index: Option<i32>,
+    pub metric_index: ::core::option::Option<i32>,
     /// The service-generated short identifier for the metric.
     #[serde(default, rename = "shortId")]
-    pub short_id: Option<String>,
+    pub short_id: ::core::option::Option<String>,
 }
 
 /// Identifies a metric, by describing the source which generated the metric.
@@ -1446,13 +1458,13 @@ pub struct MetricShortId {
 pub struct MetricStructuredName {
     /// Zero or more labeled fields which identify the part of the job this metric is associated with, such as the name of a step or collection. For example, built-in counters associated with steps will have context[''step''] = . Counters associated with PCollections in the SDK will have context[''pcollection''] = .
     #[serde(default)]
-    pub context: Option<serde_json::Value>,
+    pub context: ::core::option::Option<serde_json::Value>,
     /// Worker-defined metric name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Origin (namespace) of metric name. May be blank for user-define metrics; will be "dataflow" for metrics defined by the Dataflow service or SDK.
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
 }
 
 /// Describes the state of a metric.
@@ -1460,43 +1472,43 @@ pub struct MetricStructuredName {
 pub struct MetricUpdate {
     /// Worker-computed aggregate value for the "Trie" aggregation kind. The only possible value type is a BoundedTrieNode. Introduced this field to avoid breaking older SDKs when Dataflow service starts to populate the bounded_trie field.
     #[serde(default, rename = "boundedTrie")]
-    pub bounded_trie: Option<serde_json::Value>,
+    pub bounded_trie: ::core::option::Option<serde_json::Value>,
     /// True if this metric is reported as the total cumulative aggregate value accumulated since the worker started working on this WorkItem. By default this is false, indicating that this metric is reported as a delta that is not associated with any WorkItem.
     #[serde(default)]
-    pub cumulative: Option<bool>,
+    pub cumulative: ::core::option::Option<bool>,
     /// A struct value describing properties of a distribution of numeric values.
     #[serde(default)]
-    pub distribution: Option<serde_json::Value>,
+    pub distribution: ::core::option::Option<serde_json::Value>,
     /// A struct value describing properties of a Gauge. Metrics of gauge type show the value of a metric across time, and is aggregated based on the newest value.
     #[serde(default)]
-    pub gauge: Option<serde_json::Value>,
+    pub gauge: ::core::option::Option<serde_json::Value>,
     /// Worker-computed aggregate value for internal use by the Dataflow service.
     #[serde(default)]
-    pub internal: Option<serde_json::Value>,
+    pub internal: ::core::option::Option<serde_json::Value>,
     /// Metric aggregation kind. The possible metric aggregation kinds are "Sum", "Max", "Min", "Mean", "Set", "And", "Or", and "Distribution". The specified aggregation kind is case-insensitive. If omitted, this is not an aggregated value but instead a single metric sample value.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Worker-computed aggregate value for the "Mean" aggregation kind. This holds the count of the aggregated values and is used in combination with mean_sum above to obtain the actual mean aggregate value. The only possible value type is Long.
     #[serde(default, rename = "meanCount")]
-    pub mean_count: Option<serde_json::Value>,
+    pub mean_count: ::core::option::Option<serde_json::Value>,
     /// Worker-computed aggregate value for the "Mean" aggregation kind. This holds the sum of the aggregated values and is used in combination with mean_count below to obtain the actual mean aggregate value. The only possible value types are Long and Double.
     #[serde(default, rename = "meanSum")]
-    pub mean_sum: Option<serde_json::Value>,
+    pub mean_sum: ::core::option::Option<serde_json::Value>,
     /// Name of the metric.
     #[serde(default)]
-    pub name: Option<MetricStructuredName>,
+    pub name: ::core::option::Option<::std::boxed::Box<MetricStructuredName>>,
     /// Worker-computed aggregate value for aggregation kinds "Sum", "Max", "Min", "And", and "Or". The possible value types are Long, Double, and Boolean.
     #[serde(default)]
-    pub scalar: Option<serde_json::Value>,
+    pub scalar: ::core::option::Option<serde_json::Value>,
     /// Worker-computed aggregate value for the "Set" aggregation kind. The only possible value type is a list of Values whose type can be Long, Double, String, or BoundedTrie according to the metric''s type. All Values in the list must be of the same type.
     #[serde(default)]
-    pub set: Option<serde_json::Value>,
+    pub set: ::core::option::Option<serde_json::Value>,
     /// Worker-computed aggregate value for the "Trie" aggregation kind. The only possible value type is a BoundedTrieNode.
     #[serde(default)]
-    pub trie: Option<serde_json::Value>,
+    pub trie: ::core::option::Option<serde_json::Value>,
     /// Timestamp associated with the metric value. Optional when workers are reporting work progress; it will be filled in responses from the metrics API.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The value of a metric along with its name and labels.
@@ -1504,19 +1516,19 @@ pub struct MetricUpdate {
 pub struct MetricValue {
     /// Base name for this metric.
     #[serde(default)]
-    pub metric: Option<String>,
+    pub metric: ::core::option::Option<String>,
     /// Optional. Set of metric labels for this metric.
     #[serde(default, rename = "metricLabels")]
-    pub metric_labels: Option<serde_json::Value>,
+    pub metric_labels: ::core::option::Option<serde_json::Value>,
     /// Non-cumulative int64 value of this metric.
     #[serde(default, rename = "valueGauge64")]
-    pub value_gauge64: Option<DataflowGaugeValue>,
+    pub value_gauge64: ::core::option::Option<::std::boxed::Box<DataflowGaugeValue>>,
     /// Histogram value of this metric.
     #[serde(default, rename = "valueHistogram")]
-    pub value_histogram: Option<DataflowHistogramValue>,
+    pub value_histogram: ::core::option::Option<::std::boxed::Box<DataflowHistogramValue>>,
     /// Integer value of this metric.
     #[serde(default, rename = "valueInt64")]
-    pub value_int64: Option<String>,
+    pub value_int64: ::core::option::Option<String>,
 }
 
 /// Describes mounted data disk.
@@ -1524,7 +1536,7 @@ pub struct MetricValue {
 pub struct MountedDataDisk {
     /// The name of the data disk. This name is local to the Google Cloud Platform project and uniquely identifies the disk within that project, for example "myproject-1014-104817-4c2-harness-0-disk-1".
     #[serde(default, rename = "dataDisk")]
-    pub data_disk: Option<String>,
+    pub data_disk: ::core::option::Option<String>,
 }
 
 /// Information about an output of a multi-output DoFn.
@@ -1532,7 +1544,7 @@ pub struct MountedDataDisk {
 pub struct MultiOutputInfo {
     /// The id of the tag the user code will emit to this output by; this should correspond to the tag of some SideInputInfo.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// Basic metadata about a counter.
@@ -1540,10 +1552,10 @@ pub struct MultiOutputInfo {
 pub struct NameAndKind {
     /// Counter aggregation kind. // TODO: enum values: ["INVALID", "SUM", "MAX", "MIN", "MEAN", "OR", "AND", "SET", "DISTRIBUTION", "LATEST_VALUE"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Name of the counter.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Statistics for the underflow and overflow bucket.
@@ -1551,16 +1563,16 @@ pub struct NameAndKind {
 pub struct OutlierStats {
     /// Number of values that are larger than the upper bound of the largest bucket.
     #[serde(default, rename = "overflowCount")]
-    pub overflow_count: Option<String>,
+    pub overflow_count: ::core::option::Option<String>,
     /// Mean of values in the overflow bucket.
     #[serde(default, rename = "overflowMean")]
-    pub overflow_mean: Option<f64>,
+    pub overflow_mean: ::core::option::Option<f64>,
     /// Number of values that are smaller than the lower bound of the smallest bucket.
     #[serde(default, rename = "underflowCount")]
-    pub underflow_count: Option<String>,
+    pub underflow_count: ::core::option::Option<String>,
     /// Mean of values in the undeflow bucket.
     #[serde(default, rename = "underflowMean")]
-    pub underflow_mean: Option<f64>,
+    pub underflow_mean: ::core::option::Option<f64>,
 }
 
 /// The packages that must be installed in order for a worker to run the steps of the Cloud Dataflow job that will be assigned to its worker pool. This is the mechanism by which the Cloud Dataflow SDK causes code to be loaded onto the workers. For example, the Cloud Dataflow Java SDK might use this to install jars containing the user''s code and all of the various dependencies (libraries, data files, etc.) required in order for that code to run.
@@ -1568,10 +1580,10 @@ pub struct OutlierStats {
 pub struct Package {
     /// The resource to read the package from. The supported resource type is: Google Cloud Storage: storage.googleapis.com/{bucket} bucket.storage.googleapis.com/
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The name of the package.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// An instruction that does a ParDo operation. Takes one main input and zero or more side inputs, and produces zero or more outputs. Runs user code.
@@ -1579,19 +1591,20 @@ pub struct Package {
 pub struct ParDoInstruction {
     /// The input.
     #[serde(default)]
-    pub input: Option<InstructionInput>,
+    pub input: ::core::option::Option<::std::boxed::Box<InstructionInput>>,
     /// Information about each of the outputs, if user_fn is a MultiDoFn.
     #[serde(default, rename = "multiOutputInfos")]
-    pub multi_output_infos: Option<Vec<MultiOutputInfo>>,
+    pub multi_output_infos:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MultiOutputInfo>>>,
     /// The number of outputs.
     #[serde(default, rename = "numOutputs")]
-    pub num_outputs: Option<i32>,
+    pub num_outputs: ::core::option::Option<i32>,
     /// Zero or more side inputs.
     #[serde(default, rename = "sideInputs")]
-    pub side_inputs: Option<Vec<SideInputInfo>>,
+    pub side_inputs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SideInputInfo>>>,
     /// The user function to invoke.
     #[serde(default, rename = "userFn")]
-    pub user_fn: Option<serde_json::Value>,
+    pub user_fn: ::core::option::Option<serde_json::Value>,
 }
 
 /// Describes a particular operation comprising a MapTask.
@@ -1599,31 +1612,32 @@ pub struct ParDoInstruction {
 pub struct ParallelInstruction {
     /// Additional information for Flatten instructions.
     #[serde(default)]
-    pub flatten: Option<FlattenInstruction>,
+    pub flatten: ::core::option::Option<::std::boxed::Box<FlattenInstruction>>,
     /// User-provided name of this operation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// System-defined name for the operation in the original workflow graph.
     #[serde(default, rename = "originalName")]
-    pub original_name: Option<String>,
+    pub original_name: ::core::option::Option<String>,
     /// Describes the outputs of the instruction.
     #[serde(default)]
-    pub outputs: Option<Vec<InstructionOutput>>,
+    pub outputs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstructionOutput>>>,
     /// Additional information for ParDo instructions.
     #[serde(default, rename = "parDo")]
-    pub par_do: Option<ParDoInstruction>,
+    pub par_do: ::core::option::Option<::std::boxed::Box<ParDoInstruction>>,
     /// Additional information for PartialGroupByKey instructions.
     #[serde(default, rename = "partialGroupByKey")]
-    pub partial_group_by_key: Option<PartialGroupByKeyInstruction>,
+    pub partial_group_by_key:
+        ::core::option::Option<::std::boxed::Box<PartialGroupByKeyInstruction>>,
     /// Additional information for Read instructions.
     #[serde(default)]
-    pub read: Option<ReadInstruction>,
+    pub read: ::core::option::Option<::std::boxed::Box<ReadInstruction>>,
     /// System-defined name of this operation. Unique across the workflow.
     #[serde(default, rename = "systemName")]
-    pub system_name: Option<String>,
+    pub system_name: ::core::option::Option<String>,
     /// Additional information for Write instructions.
     #[serde(default)]
-    pub write: Option<WriteInstruction>,
+    pub write: ::core::option::Option<::std::boxed::Box<WriteInstruction>>,
 }
 
 /// Structured data associated with this message.
@@ -1631,10 +1645,10 @@ pub struct ParallelInstruction {
 pub struct Parameter {
     /// Key or name for this parameter.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Value for this parameter.
     #[serde(default)]
-    pub value: Option<serde_json::Value>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata for a specific parameter.
@@ -1642,43 +1656,44 @@ pub struct Parameter {
 pub struct ParameterMetadata {
     /// Optional. Additional metadata for describing this parameter.
     #[serde(default, rename = "customMetadata")]
-    pub custom_metadata: Option<serde_json::Value>,
+    pub custom_metadata: ::core::option::Option<serde_json::Value>,
     /// Optional. The default values will pre-populate the parameter with the given value from the proto. If default_value is left empty, the parameter will be populated with a default of the relevant type, e.g. false for a boolean.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<String>,
+    pub default_value: ::core::option::Option<String>,
     /// Optional. The options shown when ENUM ParameterType is specified.
     #[serde(default, rename = "enumOptions")]
-    pub enum_options: Option<Vec<ParameterMetadataEnumOption>>,
+    pub enum_options:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ParameterMetadataEnumOption>>>,
     /// Optional. Specifies a group name for this parameter to be rendered under. Group header text will be rendered exactly as specified in this field. Only considered when parent_name is NOT provided.
     #[serde(default, rename = "groupName")]
-    pub group_name: Option<String>,
+    pub group_name: ::core::option::Option<String>,
     /// Required. The help text to display for the parameter.
     #[serde(default, rename = "helpText")]
-    pub help_text: Option<String>,
+    pub help_text: ::core::option::Option<String>,
     /// Optional. Whether the parameter should be hidden in the UI.
     #[serde(default, rename = "hiddenUi")]
-    pub hidden_ui: Option<bool>,
+    pub hidden_ui: ::core::option::Option<bool>,
     /// Optional. Whether the parameter is optional. Defaults to false.
     #[serde(default, rename = "isOptional")]
-    pub is_optional: Option<bool>,
+    pub is_optional: ::core::option::Option<bool>,
     /// Required. The label to display for the parameter.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Required. The name of the parameter.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The type of the parameter. Used for selecting input picker. // TODO: enum values: ["DEFAULT", "TEXT", "GCS_READ_BUCKET", "GCS_WRITE_BUCKET", "GCS_READ_FILE", "GCS_WRITE_FILE", "GCS_READ_FOLDER", "GCS_WRITE_FOLDER", "PUBSUB_TOPIC", "PUBSUB_SUBSCRIPTION", "BIGQUERY_TABLE", "JAVASCRIPT_UDF_FILE", "SERVICE_ACCOUNT", "MACHINE_TYPE", "KMS_KEY_NAME", "WORKER_REGION", "WORKER_ZONE", "BOOLEAN", "ENUM", "NUMBER", "KAFKA_TOPIC", "KAFKA_READ_TOPIC", "KAFKA_WRITE_TOPIC"]
     #[serde(default, rename = "paramType")]
-    pub param_type: Option<String>,
+    pub param_type: ::core::option::Option<String>,
     /// Optional. Specifies the name of the parent parameter. Used in conjunction with ''parent_trigger_values'' to make this parameter conditional (will only be rendered conditionally). Should be mappable to a ParameterMetadata.name field.
     #[serde(default, rename = "parentName")]
-    pub parent_name: Option<String>,
+    pub parent_name: ::core::option::Option<String>,
     /// Optional. The value(s) of the ''parent_name'' parameter which will trigger this parameter to be shown. If left empty, ANY non-empty value in parent_name will trigger this parameter to be shown. Only considered when this parameter is conditional (when ''parent_name'' has been provided).
     #[serde(default, rename = "parentTriggerValues")]
-    pub parent_trigger_values: Option<Vec<String>>,
+    pub parent_trigger_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Regexes that the parameter must match.
     #[serde(default)]
-    pub regexes: Option<Vec<String>>,
+    pub regexes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ParameterMetadataEnumOption specifies the option shown in the enum form.
@@ -1686,13 +1701,13 @@ pub struct ParameterMetadata {
 pub struct ParameterMetadataEnumOption {
     /// Optional. The description to display for the enum option.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. The label to display for the enum option.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Required. The value of the enum option.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// An instruction that does a partial group-by-key. One input and one output.
@@ -1700,22 +1715,22 @@ pub struct ParameterMetadataEnumOption {
 pub struct PartialGroupByKeyInstruction {
     /// Describes the input to the partial group-by-key instruction.
     #[serde(default)]
-    pub input: Option<InstructionInput>,
+    pub input: ::core::option::Option<::std::boxed::Box<InstructionInput>>,
     /// The codec to use for interpreting an element in the input PTable.
     #[serde(default, rename = "inputElementCodec")]
-    pub input_element_codec: Option<serde_json::Value>,
+    pub input_element_codec: ::core::option::Option<serde_json::Value>,
     /// If this instruction includes a combining function this is the name of the intermediate store between the GBK and the CombineValues.
     #[serde(default, rename = "originalCombineValuesInputStoreName")]
-    pub original_combine_values_input_store_name: Option<String>,
+    pub original_combine_values_input_store_name: ::core::option::Option<String>,
     /// If this instruction includes a combining function, this is the name of the CombineValues instruction lifted into this instruction.
     #[serde(default, rename = "originalCombineValuesStepName")]
-    pub original_combine_values_step_name: Option<String>,
+    pub original_combine_values_step_name: ::core::option::Option<String>,
     /// Zero or more side inputs.
     #[serde(default, rename = "sideInputs")]
-    pub side_inputs: Option<Vec<SideInputInfo>>,
+    pub side_inputs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SideInputInfo>>>,
     /// The value combining function to invoke.
     #[serde(default, rename = "valueCombiningFn")]
-    pub value_combining_fn: Option<serde_json::Value>,
+    pub value_combining_fn: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metrics for a particular unfused step and namespace. A metric is uniquely identified by the metrics_namespace, original_step, metric name and metric_labels.
@@ -1723,13 +1738,13 @@ pub struct PartialGroupByKeyInstruction {
 pub struct PerStepNamespaceMetrics {
     /// Optional. Metrics that are recorded for this namespace and unfused step.
     #[serde(default, rename = "metricValues")]
-    pub metric_values: Option<Vec<MetricValue>>,
+    pub metric_values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricValue>>>,
     /// The namespace of these metrics on the worker.
     #[serde(default, rename = "metricsNamespace")]
-    pub metrics_namespace: Option<String>,
+    pub metrics_namespace: ::core::option::Option<String>,
     /// The original system name of the unfused step that these metrics are reported from.
     #[serde(default, rename = "originalStep")]
-    pub original_step: Option<String>,
+    pub original_step: ::core::option::Option<String>,
 }
 
 /// Per worker metrics.
@@ -1737,7 +1752,8 @@ pub struct PerStepNamespaceMetrics {
 pub struct PerWorkerMetrics {
     /// Optional. Metrics for a particular unfused step and namespace.
     #[serde(default, rename = "perStepNamespaceMetrics")]
-    pub per_step_namespace_metrics: Option<Vec<PerStepNamespaceMetrics>>,
+    pub per_step_namespace_metrics:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PerStepNamespaceMetrics>>>,
 }
 
 /// A descriptive representation of submitted pipeline as well as the executed form. This data is provided by the Dataflow service for ease of visualizing the pipeline and interpreting Dataflow provided metrics.
@@ -1745,16 +1761,18 @@ pub struct PerWorkerMetrics {
 pub struct PipelineDescription {
     /// Pipeline level display data.
     #[serde(default, rename = "displayData")]
-    pub display_data: Option<Vec<DisplayData>>,
+    pub display_data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DisplayData>>>,
     /// Description of each stage of execution of the pipeline.
     #[serde(default, rename = "executionPipelineStage")]
-    pub execution_pipeline_stage: Option<Vec<ExecutionStageSummary>>,
+    pub execution_pipeline_stage:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExecutionStageSummary>>>,
     /// Description of each transform in the pipeline and collections between them.
     #[serde(default, rename = "originalPipelineTransform")]
-    pub original_pipeline_transform: Option<Vec<TransformSummary>>,
+    pub original_pipeline_transform:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransformSummary>>>,
     /// A hash value of the submitted pipeline portable graph step names if exists.
     #[serde(default, rename = "stepNamesHash")]
-    pub step_names_hash: Option<String>,
+    pub step_names_hash: ::core::option::Option<String>,
 }
 
 /// A point in the timeseries.
@@ -1762,10 +1780,10 @@ pub struct PipelineDescription {
 pub struct Point {
     /// The timestamp of the point.
     #[serde(default)]
-    pub time: Option<String>,
+    pub time: ::core::option::Option<String>,
     /// The value of the point.
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// Position defines a position within a collection of data. The value can be either the end position, a key (used with ordered collections), a byte offset, or a record index.
@@ -1773,22 +1791,22 @@ pub struct Point {
 pub struct Position {
     /// Position is a byte offset.
     #[serde(default, rename = "byteOffset")]
-    pub byte_offset: Option<String>,
+    pub byte_offset: ::core::option::Option<String>,
     /// CloudPosition is a concat position.
     #[serde(default, rename = "concatPosition")]
-    pub concat_position: Option<ConcatPosition>,
+    pub concat_position: ::core::option::Option<::std::boxed::Box<ConcatPosition>>,
     /// Position is past all other positions. Also useful for the end position of an unbounded range.
     #[serde(default)]
-    pub end: Option<bool>,
+    pub end: ::core::option::Option<bool>,
     /// Position is a string key, ordered lexicographically.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Position is a record index.
     #[serde(default, rename = "recordIndex")]
-    pub record_index: Option<String>,
+    pub record_index: ::core::option::Option<String>,
     /// CloudPosition is a base64 encoded BatchShufflePosition (with FIXED sharding).
     #[serde(default, rename = "shufflePosition")]
-    pub shuffle_position: Option<String>,
+    pub shuffle_position: ::core::option::Option<String>,
 }
 
 /// Information about the progress of some component of job execution.
@@ -1796,10 +1814,10 @@ pub struct Position {
 pub struct ProgressTimeseries {
     /// The current progress of the component, in the range [0,1].
     #[serde(default, rename = "currentProgress")]
-    pub current_progress: Option<f64>,
+    pub current_progress: ::core::option::Option<f64>,
     /// History of progress for the component. Points are sorted by time.
     #[serde(default, rename = "dataPoints")]
-    pub data_points: Option<Vec<Point>>,
+    pub data_points: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Point>>>,
 }
 
 /// Metadata for a Pub/Sub connector used by the job.
@@ -1807,10 +1825,10 @@ pub struct ProgressTimeseries {
 pub struct PubSubIODetails {
     /// Subscription used in the connection.
     #[serde(default)]
-    pub subscription: Option<String>,
+    pub subscription: ::core::option::Option<String>,
     /// Topic accessed in the connection.
     #[serde(default)]
-    pub topic: Option<String>,
+    pub topic: ::core::option::Option<String>,
 }
 
 /// Identifies a pubsub location to use for transferring data into or out of a streaming Dataflow job.
@@ -1818,28 +1836,28 @@ pub struct PubSubIODetails {
 pub struct PubsubLocation {
     /// Indicates whether the pipeline allows late-arriving data.
     #[serde(default, rename = "dropLateData")]
-    pub drop_late_data: Option<bool>,
+    pub drop_late_data: ::core::option::Option<bool>,
     /// If true, then this location represents dynamic topics.
     #[serde(default, rename = "dynamicDestinations")]
-    pub dynamic_destinations: Option<bool>,
+    pub dynamic_destinations: ::core::option::Option<bool>,
     /// If set, contains a pubsub label from which to extract record ids. If left empty, record deduplication will be strictly best effort.
     #[serde(default, rename = "idLabel")]
-    pub id_label: Option<String>,
+    pub id_label: ::core::option::Option<String>,
     /// A pubsub subscription, in the form of "pubsub.googleapis.com/subscriptions//"
     #[serde(default)]
-    pub subscription: Option<String>,
+    pub subscription: ::core::option::Option<String>,
     /// If set, contains a pubsub label from which to extract record timestamps. If left empty, record timestamps will be generated upon arrival.
     #[serde(default, rename = "timestampLabel")]
-    pub timestamp_label: Option<String>,
+    pub timestamp_label: ::core::option::Option<String>,
     /// A pubsub topic, in the form of "pubsub.googleapis.com/topics//"
     #[serde(default)]
-    pub topic: Option<String>,
+    pub topic: ::core::option::Option<String>,
     /// If set, specifies the pubsub subscription that will be used for tracking custom time timestamps for watermark estimation.
     #[serde(default, rename = "trackingSubscription")]
-    pub tracking_subscription: Option<String>,
+    pub tracking_subscription: ::core::option::Option<String>,
     /// If true, then the client has requested to get pubsub attributes.
     #[serde(default, rename = "withAttributes")]
-    pub with_attributes: Option<bool>,
+    pub with_attributes: ::core::option::Option<bool>,
 }
 
 /// Represents a Pubsub snapshot.
@@ -1847,13 +1865,13 @@ pub struct PubsubLocation {
 pub struct PubsubSnapshotMetadata {
     /// The expire time of the Pubsub snapshot.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// The name of the Pubsub snapshot.
     #[serde(default, rename = "snapshotName")]
-    pub snapshot_name: Option<String>,
+    pub snapshot_name: ::core::option::Option<String>,
     /// The name of the Pubsub topic.
     #[serde(default, rename = "topicName")]
-    pub topic_name: Option<String>,
+    pub topic_name: ::core::option::Option<String>,
 }
 
 /// An instruction that reads records. Takes no inputs, produces one output.
@@ -1861,7 +1879,7 @@ pub struct PubsubSnapshotMetadata {
 pub struct ReadInstruction {
     /// The source to read from.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// Request to report the status of WorkItems.
@@ -1869,22 +1887,23 @@ pub struct ReadInstruction {
 pub struct ReportWorkItemStatusRequest {
     /// The current timestamp at the worker.
     #[serde(default, rename = "currentWorkerTime")]
-    pub current_worker_time: Option<String>,
+    pub current_worker_time: ::core::option::Option<String>,
     /// The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that contains the WorkItem''s job.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. The project number of the project which owns the WorkItem''s job.
     #[serde(default, rename = "projectNumber")]
-    pub project_number: Option<String>,
+    pub project_number: ::core::option::Option<String>,
     /// Untranslated bag-of-bytes WorkProgressUpdateRequest from UnifiedWorker.
     #[serde(default, rename = "unifiedWorkerRequest")]
-    pub unified_worker_request: Option<serde_json::Value>,
+    pub unified_worker_request: ::core::option::Option<serde_json::Value>,
     /// The order is unimportant, except that the order of the WorkItemServiceState messages in the ReportWorkItemStatusResponse corresponds to the order of WorkItemStatus messages here.
     #[serde(default, rename = "workItemStatuses")]
-    pub work_item_statuses: Option<Vec<WorkItemStatus>>,
+    pub work_item_statuses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkItemStatus>>>,
     /// The ID of the worker reporting the WorkItem status. If this does not match the ID of the worker which the Dataflow service believes currently has the lease on the WorkItem, the report will be dropped (with an error response).
     #[serde(default, rename = "workerId")]
-    pub worker_id: Option<String>,
+    pub worker_id: ::core::option::Option<String>,
 }
 
 /// Response from a request to report the status of WorkItems.
@@ -1892,10 +1911,11 @@ pub struct ReportWorkItemStatusRequest {
 pub struct ReportWorkItemStatusResponse {
     /// Untranslated bag-of-bytes WorkProgressUpdateResponse for UnifiedWorker.
     #[serde(default, rename = "unifiedWorkerResponse")]
-    pub unified_worker_response: Option<serde_json::Value>,
+    pub unified_worker_response: ::core::option::Option<serde_json::Value>,
     /// A set of messages indicating the service-side state for each WorkItem whose status was reported, in the same order as the WorkItemStatus messages in the ReportWorkItemStatusRequest which resulting in this response.
     #[serde(default, rename = "workItemServiceStates")]
-    pub work_item_service_states: Option<Vec<WorkItemServiceState>>,
+    pub work_item_service_states:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkItemServiceState>>>,
 }
 
 /// Represents the level of parallelism in a WorkItem''s input, reported by the worker.
@@ -1903,10 +1923,10 @@ pub struct ReportWorkItemStatusResponse {
 pub struct ReportedParallelism {
     /// Specifies whether the parallelism is infinite. If true, "value" is ignored. Infinite parallelism means the service will assume that the work item can always be split into more non-empty work items by dynamic splitting. This is a work-around for lack of support for infinity by the current JSON-based Java RPC stack.
     #[serde(default, rename = "isInfinite")]
-    pub is_infinite: Option<bool>,
+    pub is_infinite: ::core::option::Option<bool>,
     /// Specifies the level of parallelism in case it is finite.
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// Worker metrics exported from workers. This contains resource utilization metrics accumulated from a variety of sources. For more information, see go/df-resource-signals.
@@ -1914,16 +1934,16 @@ pub struct ReportedParallelism {
 pub struct ResourceUtilizationReport {
     /// Per container information. Key: container name.
     #[serde(default)]
-    pub containers: Option<serde_json::Value>,
+    pub containers: ::core::option::Option<serde_json::Value>,
     /// CPU utilization samples.
     #[serde(default, rename = "cpuTime")]
-    pub cpu_time: Option<Vec<CPUTime>>,
+    pub cpu_time: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CPUTime>>>,
     /// Optional. GPU usage samples.
     #[serde(default, rename = "gpuUsage")]
-    pub gpu_usage: Option<Vec<GPUUsage>>,
+    pub gpu_usage: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GPUUsage>>>,
     /// Memory utilization samples.
     #[serde(default, rename = "memoryInfo")]
-    pub memory_info: Option<Vec<MemInfo>>,
+    pub memory_info: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MemInfo>>>,
 }
 
 /// The environment values to set at runtime.
@@ -1931,61 +1951,61 @@ pub struct ResourceUtilizationReport {
 pub struct RuntimeEnvironment {
     /// Optional. Additional experiment flags for the job, specified with the --experiments option.
     #[serde(default, rename = "additionalExperiments")]
-    pub additional_experiments: Option<Vec<String>>,
+    pub additional_experiments: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Additional pipeline option flags for the job.
     #[serde(default, rename = "additionalPipelineOptions")]
-    pub additional_pipeline_options: Option<Vec<String>>,
+    pub additional_pipeline_options: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Additional user labels to be specified for the job. Keys and values should follow the restrictions specified in the [labeling restrictions](https://cloud.google.com/compute/docs/labeling-resources#restrictions) page. An object containing a list of "key": value pairs. Example: { "name": "wrench", "mass": "1kg", "count": "3" }.
     #[serde(default, rename = "additionalUserLabels")]
-    pub additional_user_labels: Option<serde_json::Value>,
+    pub additional_user_labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Whether to bypass the safety checks for the job''s temporary directory. Use with caution.
     #[serde(default, rename = "bypassTempDirValidation")]
-    pub bypass_temp_dir_validation: Option<bool>,
+    pub bypass_temp_dir_validation: ::core::option::Option<bool>,
     /// Optional. The disk size, in gigabytes, to use on each remote Compute Engine worker instance.
     #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: Option<i32>,
+    pub disk_size_gb: ::core::option::Option<i32>,
     /// Optional. Whether to enable Streaming Engine for the job.
     #[serde(default, rename = "enableStreamingEngine")]
-    pub enable_streaming_engine: Option<bool>,
+    pub enable_streaming_engine: ::core::option::Option<bool>,
     /// Optional. Configuration for VM IPs. // TODO: enum values: ["WORKER_IP_UNSPECIFIED", "WORKER_IP_PUBLIC", "WORKER_IP_PRIVATE"]
     #[serde(default, rename = "ipConfiguration")]
-    pub ip_configuration: Option<String>,
+    pub ip_configuration: ::core::option::Option<String>,
     /// Optional. Name for the Cloud KMS key for the job. Key format is: projects//locations//keyRings//cryptoKeys/
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
     /// Optional. The machine type to use for the job. Defaults to the value from the template if not specified.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Optional. The maximum number of Google Compute Engine instances to be made available to your pipeline during execution, from 1 to 1000. The default value is 1.
     #[serde(default, rename = "maxWorkers")]
-    pub max_workers: Option<i32>,
+    pub max_workers: ::core::option::Option<i32>,
     /// Optional. Network to which VMs will be assigned. If empty or unspecified, the service will use the network "default".
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Optional. The initial number of Google Compute Engine instances for the job. The default value is 11.
     #[serde(default, rename = "numWorkers")]
-    pub num_workers: Option<i32>,
+    pub num_workers: ::core::option::Option<i32>,
     /// Optional. The email address of the service account to run the job as.
     #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: Option<String>,
+    pub service_account_email: ::core::option::Option<String>,
     /// Optional. Specifies the Streaming Engine message processing guarantees. Reduces cost and latency but might result in duplicate messages committed to storage. Designed to run simple mapping streaming ETL jobs at the lowest cost. For example, Change Data Capture (CDC) to BigQuery is a canonical use case. For more information, see [Set the pipeline streaming mode](https://cloud.google.com/dataflow/docs/guides/streaming-modes). // TODO: enum values: ["STREAMING_MODE_UNSPECIFIED", "STREAMING_MODE_EXACTLY_ONCE", "STREAMING_MODE_AT_LEAST_ONCE"]
     #[serde(default, rename = "streamingMode")]
-    pub streaming_mode: Option<String>,
+    pub streaming_mode: ::core::option::Option<String>,
     /// Optional. Subnetwork to which VMs will be assigned, if desired. You can specify a subnetwork using either a complete URL or an abbreviated path. Expected to be of the form "https://www.googleapis.com/compute/v1/projects/HOST_PROJECT_ID/regions/REGION/subnetworks/SUBNETWORK" or "regions/REGION/subnetworks/SUBNETWORK". If the subnetwork is located in a Shared VPC network, you must use the complete URL.
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
     /// Required. The Cloud Storage path to use for temporary files. Must be a valid Cloud Storage URL, beginning with gs://.
     #[serde(default, rename = "tempLocation")]
-    pub temp_location: Option<String>,
+    pub temp_location: ::core::option::Option<String>,
     /// Required. The Compute Engine region (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1". Mutually exclusive with worker_zone. If neither worker_region nor worker_zone is specified, default to the control plane''s region.
     #[serde(default, rename = "workerRegion")]
-    pub worker_region: Option<String>,
+    pub worker_region: ::core::option::Option<String>,
     /// Optional. The Compute Engine zone (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1-a". Mutually exclusive with worker_region. If neither worker_region nor worker_zone is specified, a zone in the control plane''s region is chosen based on available capacity. If both worker_zone and zone are set, worker_zone takes precedence.
     #[serde(default, rename = "workerZone")]
-    pub worker_zone: Option<String>,
+    pub worker_zone: ::core::option::Option<String>,
     /// Optional. The Compute Engine [availability zone](https://cloud.google.com/compute/docs/regions-zones/regions-zones) for launching worker instances to run your pipeline. In the future, worker_zone will take precedence.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// RuntimeMetadata describing a runtime environment.
@@ -1993,10 +2013,10 @@ pub struct RuntimeEnvironment {
 pub struct RuntimeMetadata {
     /// The parameters for the template.
     #[serde(default)]
-    pub parameters: Option<Vec<ParameterMetadata>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ParameterMetadata>>>,
     /// SDK Info for the template.
     #[serde(default, rename = "sdkInfo")]
-    pub sdk_info: Option<SDKInfo>,
+    pub sdk_info: ::core::option::Option<::std::boxed::Box<SDKInfo>>,
 }
 
 /// Additional job parameters that can only be updated during runtime using the projects.jobs.update method. These fields have no effect when specified during job creation.
@@ -2004,19 +2024,19 @@ pub struct RuntimeMetadata {
 pub struct RuntimeUpdatableParams {
     /// Optional. Deprecated: Use autoscaling_tier instead. The backlog threshold duration in seconds for autoscaling. Value must be non-negative.
     #[serde(default, rename = "acceptableBacklogDuration")]
-    pub acceptable_backlog_duration: Option<String>,
+    pub acceptable_backlog_duration: ::core::option::Option<String>,
     /// Optional. The backlog threshold tier for autoscaling. Value must be one of "low-latency", "medium-latency", or "high-latency".
     #[serde(default, rename = "autoscalingTier")]
-    pub autoscaling_tier: Option<String>,
+    pub autoscaling_tier: ::core::option::Option<String>,
     /// The maximum number of workers to cap autoscaling at. This field is currently only supported for Streaming Engine jobs.
     #[serde(default, rename = "maxNumWorkers")]
-    pub max_num_workers: Option<i32>,
+    pub max_num_workers: ::core::option::Option<i32>,
     /// The minimum number of workers to scale down to. This field is currently only supported for Streaming Engine jobs.
     #[serde(default, rename = "minNumWorkers")]
-    pub min_num_workers: Option<i32>,
+    pub min_num_workers: ::core::option::Option<i32>,
     /// Target worker utilization, compared against the aggregate utilization of the worker pool by autoscaler, to determine upscaling and downscaling when absent other constraints such as backlog. For more information, see [Update an existing pipeline](https://cloud.google.com/dataflow/docs/guides/updating-a-pipeline).
     #[serde(default, rename = "workerUtilizationHint")]
-    pub worker_utilization_hint: Option<f64>,
+    pub worker_utilization_hint: ::core::option::Option<f64>,
 }
 
 /// SDK Information.
@@ -2024,10 +2044,10 @@ pub struct RuntimeUpdatableParams {
 pub struct SDKInfo {
     /// Required. The SDK Language. // TODO: enum values: ["UNKNOWN", "JAVA", "PYTHON", "GO", "YAML"]
     #[serde(default)]
-    pub language: Option<String>,
+    pub language: ::core::option::Option<String>,
     /// Optional. The SDK version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// A structured representation of an SDK.
@@ -2035,10 +2055,10 @@ pub struct SDKInfo {
 pub struct Sdk {
     /// The SDK harness id.
     #[serde(default, rename = "sdkId")]
-    pub sdk_id: Option<String>,
+    pub sdk_id: ::core::option::Option<String>,
     /// The stacktraces for the processes running on the SDK harness.
     #[serde(default)]
-    pub stacks: Option<Vec<Stack>>,
+    pub stacks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Stack>>>,
 }
 
 /// A bug found in the Dataflow SDK.
@@ -2046,13 +2066,13 @@ pub struct Sdk {
 pub struct SdkBug {
     /// Output only. How severe the SDK bug is. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "NOTICE", "WARNING", "SEVERE"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// Output only. Describes the impact of this SDK bug. // TODO: enum values: ["TYPE_UNSPECIFIED", "GENERAL", "PERFORMANCE", "DATALOSS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Link to more information on the bug.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Defines an SDK harness container for executing Dataflow pipelines.
@@ -2060,16 +2080,16 @@ pub struct SdkBug {
 pub struct SdkHarnessContainerImage {
     /// The set of capabilities enumerated in the above Environment proto. See also [beam_runner_api.proto](https://github.com/apache/beam/blob/master/model/pipeline/src/main/proto/org/apache/beam/model/pipeline/v1/beam_runner_api.proto)
     #[serde(default)]
-    pub capabilities: Option<Vec<String>>,
+    pub capabilities: ::core::option::Option<::std::vec::Vec<String>>,
     /// A docker container image that resides in Google Container Registry.
     #[serde(default, rename = "containerImage")]
-    pub container_image: Option<String>,
+    pub container_image: ::core::option::Option<String>,
     /// Environment ID for the Beam runner API proto Environment that corresponds to the current SDK Harness.
     #[serde(default, rename = "environmentId")]
-    pub environment_id: Option<String>,
+    pub environment_id: ::core::option::Option<String>,
     /// If true, recommends the Dataflow service to use only one core per SDK container instance with this image. If false (or unset) recommends using more than one core per SDK container instance with this image for efficiency. Note that Dataflow service may choose to override this property if needed.
     #[serde(default, rename = "useSingleCorePerContainer")]
-    pub use_single_core_per_container: Option<bool>,
+    pub use_single_core_per_container: ::core::option::Option<bool>,
 }
 
 /// The version of the SDK used to run the job.
@@ -2077,16 +2097,16 @@ pub struct SdkHarnessContainerImage {
 pub struct SdkVersion {
     /// Output only. Known bugs found in this SDK version.
     #[serde(default)]
-    pub bugs: Option<Vec<SdkBug>>,
+    pub bugs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SdkBug>>>,
     /// The support status for this SDK version. // TODO: enum values: ["UNKNOWN", "SUPPORTED", "STALE", "DEPRECATED", "UNSUPPORTED"]
     #[serde(default, rename = "sdkSupportStatus")]
-    pub sdk_support_status: Option<String>,
+    pub sdk_support_status: ::core::option::Option<String>,
     /// The version of the SDK used to run the job.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// A readable string describing the version of the SDK.
     #[serde(default, rename = "versionDisplayName")]
-    pub version_display_name: Option<String>,
+    pub version_display_name: ::core::option::Option<String>,
 }
 
 /// Request to send encoded debug information. Next ID: 8
@@ -2094,19 +2114,19 @@ pub struct SdkVersion {
 pub struct SendDebugCaptureRequest {
     /// The internal component id for which debug information is sent.
     #[serde(default, rename = "componentId")]
-    pub component_id: Option<String>,
+    pub component_id: ::core::option::Option<String>,
     /// The encoded debug information.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// Format for the data field above (id=5). // TODO: enum values: ["DATA_FORMAT_UNSPECIFIED", "RAW", "JSON", "ZLIB", "BROTLI"]
     #[serde(default, rename = "dataFormat")]
-    pub data_format: Option<String>,
+    pub data_format: ::core::option::Option<String>,
     /// The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that contains the job specified by job_id.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The worker id, i.e., VM hostname.
     #[serde(default, rename = "workerId")]
-    pub worker_id: Option<String>,
+    pub worker_id: ::core::option::Option<String>,
 }
 
 /// A request for sending worker messages to the service.
@@ -2114,10 +2134,10 @@ pub struct SendDebugCaptureRequest {
 pub struct SendWorkerMessagesRequest {
     /// The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that contains the job.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The WorkerMessages to send.
     #[serde(default, rename = "workerMessages")]
-    pub worker_messages: Option<Vec<WorkerMessage>>,
+    pub worker_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkerMessage>>>,
 }
 
 /// The response to the worker messages.
@@ -2125,7 +2145,8 @@ pub struct SendWorkerMessagesRequest {
 pub struct SendWorkerMessagesResponse {
     /// The servers response to the worker messages.
     #[serde(default, rename = "workerMessageResponses")]
-    pub worker_message_responses: Option<Vec<WorkerMessageResponse>>,
+    pub worker_message_responses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkerMessageResponse>>>,
 }
 
 /// Describes a particular function to invoke.
@@ -2133,22 +2154,23 @@ pub struct SendWorkerMessagesResponse {
 pub struct SeqMapTask {
     /// Information about each of the inputs.
     #[serde(default)]
-    pub inputs: Option<Vec<SideInputInfo>>,
+    pub inputs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SideInputInfo>>>,
     /// The user-provided name of the SeqDo operation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Information about each of the outputs.
     #[serde(default, rename = "outputInfos")]
-    pub output_infos: Option<Vec<SeqMapTaskOutputInfo>>,
+    pub output_infos:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SeqMapTaskOutputInfo>>>,
     /// System-defined name of the stage containing the SeqDo operation. Unique across the workflow.
     #[serde(default, rename = "stageName")]
-    pub stage_name: Option<String>,
+    pub stage_name: ::core::option::Option<String>,
     /// System-defined name of the SeqDo operation. Unique across the workflow.
     #[serde(default, rename = "systemName")]
-    pub system_name: Option<String>,
+    pub system_name: ::core::option::Option<String>,
     /// The user function to invoke.
     #[serde(default, rename = "userFn")]
-    pub user_fn: Option<serde_json::Value>,
+    pub user_fn: ::core::option::Option<serde_json::Value>,
 }
 
 /// Information about an output of a SeqMapTask.
@@ -2156,10 +2178,10 @@ pub struct SeqMapTask {
 pub struct SeqMapTaskOutputInfo {
     /// The sink to write the output value to.
     #[serde(default)]
-    pub sink: Option<Sink>,
+    pub sink: ::core::option::Option<::std::boxed::Box<Sink>>,
     /// The id of the TupleTag the user code will tag the output value by.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// Resources used by the Dataflow Service to run the job.
@@ -2167,7 +2189,7 @@ pub struct SeqMapTaskOutputInfo {
 pub struct ServiceResources {
     /// Output only. List of Cloud Zones being used by the Dataflow Service for this job. Example: us-central1-c
     #[serde(default)]
-    pub zones: Option<Vec<String>>,
+    pub zones: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A task which consists of a shell command for the worker to execute.
@@ -2175,10 +2197,10 @@ pub struct ServiceResources {
 pub struct ShellTask {
     /// The shell command to run.
     #[serde(default)]
-    pub command: Option<String>,
+    pub command: ::core::option::Option<String>,
     /// Exit code for the task.
     #[serde(default, rename = "exitCode")]
-    pub exit_code: Option<i32>,
+    pub exit_code: ::core::option::Option<i32>,
 }
 
 /// Information about a side input of a DoFn or an input of a SeqDoFn.
@@ -2186,13 +2208,13 @@ pub struct ShellTask {
 pub struct SideInputInfo {
     /// How to interpret the source element(s) as a side input value.
     #[serde(default)]
-    pub kind: Option<serde_json::Value>,
+    pub kind: ::core::option::Option<serde_json::Value>,
     /// The source(s) to read element(s) from to get the value of this side input. If more than one source, then the elements are taken from the sources, in the specified order if order matters. At least one source is required.
     #[serde(default)]
-    pub sources: Option<Vec<Source>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Source>>>,
     /// The id of the tag the user code will access this side input by; this should correspond to the tag of some MultiOutputInfo.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// A sink that records can be encoded and written to.
@@ -2200,10 +2222,10 @@ pub struct SideInputInfo {
 pub struct Sink {
     /// The codec to use to encode data written to the sink.
     #[serde(default)]
-    pub codec: Option<serde_json::Value>,
+    pub codec: ::core::option::Option<serde_json::Value>,
     /// The sink to write to, plus its parameters.
     #[serde(default)]
-    pub spec: Option<serde_json::Value>,
+    pub spec: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents a snapshot of a job.
@@ -2211,34 +2233,35 @@ pub struct Sink {
 pub struct Snapshot {
     /// The time this snapshot was created.
     #[serde(default, rename = "creationTime")]
-    pub creation_time: Option<String>,
+    pub creation_time: ::core::option::Option<String>,
     /// User specified description of the snapshot. Maybe empty.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The disk byte size of the snapshot. Only available for snapshots in READY state.
     #[serde(default, rename = "diskSizeBytes")]
-    pub disk_size_bytes: Option<String>,
+    pub disk_size_bytes: ::core::option::Option<String>,
     /// The unique ID of this snapshot.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The project this snapshot belongs to.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Pub/Sub snapshot metadata.
     #[serde(default, rename = "pubsubMetadata")]
-    pub pubsub_metadata: Option<Vec<PubsubSnapshotMetadata>>,
+    pub pubsub_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PubsubSnapshotMetadata>>>,
     /// Cloud region where this snapshot lives in, e.g., "us-central1".
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
     /// The job this snapshot was created from.
     #[serde(default, rename = "sourceJobId")]
-    pub source_job_id: Option<String>,
+    pub source_job_id: ::core::option::Option<String>,
     /// State of the snapshot. // TODO: enum values: ["UNKNOWN_SNAPSHOT_STATE", "PENDING", "RUNNING", "READY", "FAILED", "DELETED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time after which this snapshot will be automatically deleted.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// Request to create a snapshot of a job.
@@ -2246,16 +2269,16 @@ pub struct Snapshot {
 pub struct SnapshotJobRequest {
     /// User specified description of the snapshot. Maybe empty.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The location that contains this job.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// If true, perform snapshots for sources which support this.
     #[serde(default, rename = "snapshotSources")]
-    pub snapshot_sources: Option<bool>,
+    pub snapshot_sources: ::core::option::Option<bool>,
     /// TTL for the snapshot.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// A source that records can be read and decoded from.
@@ -2263,19 +2286,19 @@ pub struct SnapshotJobRequest {
 pub struct Source {
     /// While splitting, sources may specify the produced bundles as differences against another source, in order to save backend-side memory and allow bigger jobs. For details, see SourceSplitRequest. To support this use case, the full set of parameters of the source is logically obtained by taking the latest explicitly specified value of each parameter in the order: base_specs (later items win), spec (overrides anything in base_specs).
     #[serde(default, rename = "baseSpecs")]
-    pub base_specs: Option<Vec<serde_json::Value>>,
+    pub base_specs: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// The codec to use to decode data read from the source.
     #[serde(default)]
-    pub codec: Option<serde_json::Value>,
+    pub codec: ::core::option::Option<serde_json::Value>,
     /// Setting this value to true hints to the framework that the source doesn''t need splitting, and using SourceSplitRequest on it would yield SOURCE_SPLIT_OUTCOME_USE_CURRENT. E.g. a file splitter may set this to true when splitting a single file into a set of byte ranges of appropriate size, and set this to false when splitting a filepattern into individual files. However, for efficiency, a file splitter may decide to produce file subranges directly from the filepattern to avoid a splitting round-trip. See SourceSplitRequest for an overview of the splitting process. This field is meaningful only in the Source objects populated by the user (e.g. when filling in a DerivedSource). Source objects supplied by the framework to the user don''t have this field populated.
     #[serde(default, rename = "doesNotNeedSplitting")]
-    pub does_not_need_splitting: Option<bool>,
+    pub does_not_need_splitting: ::core::option::Option<bool>,
     /// Optionally, metadata for this source can be supplied right away, avoiding a SourceGetMetadataOperation roundtrip (see SourceOperationRequest). This field is meaningful only in the Source objects populated by the user (e.g. when filling in a DerivedSource). Source objects supplied by the framework to the user don''t have this field populated.
     #[serde(default)]
-    pub metadata: Option<SourceMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<SourceMetadata>>,
     /// The source to read from, plus its parameters.
     #[serde(default)]
-    pub spec: Option<serde_json::Value>,
+    pub spec: ::core::option::Option<serde_json::Value>,
 }
 
 /// DEPRECATED in favor of DynamicSourceSplit.
@@ -2283,16 +2306,16 @@ pub struct Source {
 pub struct SourceFork {
     /// DEPRECATED
     #[serde(default)]
-    pub primary: Option<SourceSplitShard>,
+    pub primary: ::core::option::Option<::std::boxed::Box<SourceSplitShard>>,
     /// DEPRECATED
     #[serde(default, rename = "primarySource")]
-    pub primary_source: Option<DerivedSource>,
+    pub primary_source: ::core::option::Option<::std::boxed::Box<DerivedSource>>,
     /// DEPRECATED
     #[serde(default)]
-    pub residual: Option<SourceSplitShard>,
+    pub residual: ::core::option::Option<::std::boxed::Box<SourceSplitShard>>,
     /// DEPRECATED
     #[serde(default, rename = "residualSource")]
-    pub residual_source: Option<DerivedSource>,
+    pub residual_source: ::core::option::Option<::std::boxed::Box<DerivedSource>>,
 }
 
 /// A request to compute the SourceMetadata of a Source.
@@ -2300,7 +2323,7 @@ pub struct SourceFork {
 pub struct SourceGetMetadataRequest {
     /// Specification of the source whose metadata should be computed.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// The result of a SourceGetMetadataOperation.
@@ -2308,7 +2331,7 @@ pub struct SourceGetMetadataRequest {
 pub struct SourceGetMetadataResponse {
     /// The computed metadata.
     #[serde(default)]
-    pub metadata: Option<SourceMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<SourceMetadata>>,
 }
 
 /// Metadata about a Source useful for automatically optimizing and tuning the pipeline, etc.
@@ -2316,13 +2339,13 @@ pub struct SourceGetMetadataResponse {
 pub struct SourceMetadata {
     /// An estimate of the total size (in bytes) of the data that would be read from this source. This estimate is in terms of external storage size, before any decompression or other processing done by the reader.
     #[serde(default, rename = "estimatedSizeBytes")]
-    pub estimated_size_bytes: Option<String>,
+    pub estimated_size_bytes: ::core::option::Option<String>,
     /// Specifies that the size of this source is known to be infinite (this is a streaming source).
     #[serde(default)]
-    pub infinite: Option<bool>,
+    pub infinite: ::core::option::Option<bool>,
     /// Whether this source is known to produce key/value pairs with the (encoded) keys in lexicographically sorted order.
     #[serde(default, rename = "producesSortedKeys")]
-    pub produces_sorted_keys: Option<bool>,
+    pub produces_sorted_keys: ::core::option::Option<bool>,
 }
 
 /// A work item that represents the different operations that can be performed on a user-defined Source specification.
@@ -2330,22 +2353,22 @@ pub struct SourceMetadata {
 pub struct SourceOperationRequest {
     /// Information about a request to get metadata about a source.
     #[serde(default, rename = "getMetadata")]
-    pub get_metadata: Option<SourceGetMetadataRequest>,
+    pub get_metadata: ::core::option::Option<::std::boxed::Box<SourceGetMetadataRequest>>,
     /// User-provided name of the Read instruction for this source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// System-defined name for the Read instruction for this source in the original workflow graph.
     #[serde(default, rename = "originalName")]
-    pub original_name: Option<String>,
+    pub original_name: ::core::option::Option<String>,
     /// Information about a request to split a source.
     #[serde(default)]
-    pub split: Option<SourceSplitRequest>,
+    pub split: ::core::option::Option<::std::boxed::Box<SourceSplitRequest>>,
     /// System-defined name of the stage containing the source operation. Unique across the workflow.
     #[serde(default, rename = "stageName")]
-    pub stage_name: Option<String>,
+    pub stage_name: ::core::option::Option<String>,
     /// System-defined name of the Read instruction for this source. Unique across the workflow.
     #[serde(default, rename = "systemName")]
-    pub system_name: Option<String>,
+    pub system_name: ::core::option::Option<String>,
 }
 
 /// The result of a SourceOperationRequest, specified in ReportWorkItemStatusRequest.source_operation when the work item is completed.
@@ -2353,10 +2376,10 @@ pub struct SourceOperationRequest {
 pub struct SourceOperationResponse {
     /// A response to a request to get metadata about a source.
     #[serde(default, rename = "getMetadata")]
-    pub get_metadata: Option<SourceGetMetadataResponse>,
+    pub get_metadata: ::core::option::Option<::std::boxed::Box<SourceGetMetadataResponse>>,
     /// A response to a request to split a source.
     #[serde(default)]
-    pub split: Option<SourceSplitResponse>,
+    pub split: ::core::option::Option<::std::boxed::Box<SourceSplitResponse>>,
 }
 
 /// Hints for splitting a Source into bundles (parts for parallel processing) using SourceSplitRequest.
@@ -2364,10 +2387,10 @@ pub struct SourceOperationResponse {
 pub struct SourceSplitOptions {
     /// The source should be split into a set of bundles where the estimated size of each is approximately this many bytes.
     #[serde(default, rename = "desiredBundleSizeBytes")]
-    pub desired_bundle_size_bytes: Option<String>,
+    pub desired_bundle_size_bytes: ::core::option::Option<String>,
     /// DEPRECATED in favor of desired_bundle_size_bytes.
     #[serde(default, rename = "desiredShardSizeBytes")]
-    pub desired_shard_size_bytes: Option<String>,
+    pub desired_shard_size_bytes: ::core::option::Option<String>,
 }
 
 /// Represents the operation to split a high-level Source specification into bundles (parts for parallel processing). At a high level, splitting of a source into bundles happens as follows: SourceSplitRequest is applied to the source. If it returns SOURCE_SPLIT_OUTCOME_USE_CURRENT, no further splitting happens and the source is used "as is". Otherwise, splitting is applied recursively to each produced DerivedSource. As an optimization, for any Source, if its does_not_need_splitting is true, the framework assumes that splitting this source would return SOURCE_SPLIT_OUTCOME_USE_CURRENT, and doesn''t initiate a SourceSplitRequest. This applies both to the initial source being split and to bundles produced from it.
@@ -2375,10 +2398,10 @@ pub struct SourceSplitOptions {
 pub struct SourceSplitRequest {
     /// Hints for tuning the splitting process.
     #[serde(default)]
-    pub options: Option<SourceSplitOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<SourceSplitOptions>>,
     /// Specification of the source to be split.
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// The response to a SourceSplitRequest.
@@ -2386,13 +2409,13 @@ pub struct SourceSplitRequest {
 pub struct SourceSplitResponse {
     /// If outcome is SPLITTING_HAPPENED, then this is a list of bundles into which the source was split. Otherwise this field is ignored. This list can be empty, which means the source represents an empty input.
     #[serde(default)]
-    pub bundles: Option<Vec<DerivedSource>>,
+    pub bundles: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DerivedSource>>>,
     /// Indicates whether splitting happened and produced a list of bundles. If this is USE_CURRENT_SOURCE_AS_IS, the current source should be processed "as is" without splitting. "bundles" is ignored in this case. If this is SPLITTING_HAPPENED, then "bundles" contains a list of bundles into which the source was split. // TODO: enum values: ["SOURCE_SPLIT_OUTCOME_UNKNOWN", "SOURCE_SPLIT_OUTCOME_USE_CURRENT", "SOURCE_SPLIT_OUTCOME_SPLITTING_HAPPENED"]
     #[serde(default)]
-    pub outcome: Option<String>,
+    pub outcome: ::core::option::Option<String>,
     /// DEPRECATED in favor of bundles.
     #[serde(default)]
-    pub shards: Option<Vec<SourceSplitShard>>,
+    pub shards: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SourceSplitShard>>>,
 }
 
 /// DEPRECATED in favor of DerivedSource.
@@ -2400,10 +2423,10 @@ pub struct SourceSplitResponse {
 pub struct SourceSplitShard {
     /// DEPRECATED // TODO: enum values: ["SOURCE_DERIVATION_MODE_UNKNOWN", "SOURCE_DERIVATION_MODE_INDEPENDENT", "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT", "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT"]
     #[serde(default, rename = "derivationMode")]
-    pub derivation_mode: Option<String>,
+    pub derivation_mode: ::core::option::Option<String>,
     /// DEPRECATED
     #[serde(default)]
-    pub source: Option<Source>,
+    pub source: ::core::option::Option<::std::boxed::Box<Source>>,
 }
 
 /// Metadata for a Spanner connector used by the job.
@@ -2411,13 +2434,13 @@ pub struct SourceSplitShard {
 pub struct SpannerIODetails {
     /// DatabaseId accessed in the connection.
     #[serde(default, rename = "databaseId")]
-    pub database_id: Option<String>,
+    pub database_id: ::core::option::Option<String>,
     /// InstanceId accessed in the connection.
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
     /// ProjectId accessed in the connection.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
 }
 
 /// A representation of an int64, n, that is immune to precision loss when encoded in JSON.
@@ -2425,10 +2448,10 @@ pub struct SpannerIODetails {
 pub struct SplitInt64 {
     /// The high order bits, including the sign: n &gt;&gt; 32.
     #[serde(default, rename = "highBits")]
-    pub high_bits: Option<i32>,
+    pub high_bits: ::core::option::Option<i32>,
     /// The low order bits: n & 0xffffffff.
     #[serde(default, rename = "lowBits")]
-    pub low_bits: Option<i64>,
+    pub low_bits: ::core::option::Option<i64>,
 }
 
 /// A structuredstacktrace for a process running on the worker.
@@ -2436,19 +2459,19 @@ pub struct SplitInt64 {
 pub struct Stack {
     /// The raw stack trace.
     #[serde(default, rename = "stackContent")]
-    pub stack_content: Option<String>,
+    pub stack_content: ::core::option::Option<String>,
     /// With java thread dumps we may get collapsed stacks e.g., N threads in stack "". Instead of having to copy over the same stack trace N times, this int field captures this.
     #[serde(default, rename = "threadCount")]
-    pub thread_count: Option<i32>,
+    pub thread_count: ::core::option::Option<i32>,
     /// Thread name. For example, "CommitThread-0,10,main"
     #[serde(default, rename = "threadName")]
-    pub thread_name: Option<String>,
+    pub thread_name: ::core::option::Option<String>,
     /// The state of the thread. For example, "WAITING".
     #[serde(default, rename = "threadState")]
-    pub thread_state: Option<String>,
+    pub thread_state: ::core::option::Option<String>,
     /// Timestamp at which the stack was captured.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
 }
 
 /// Information about the workers and work items within a stage.
@@ -2456,10 +2479,10 @@ pub struct Stack {
 pub struct StageExecutionDetails {
     /// If present, this response does not contain all requested tasks. To obtain the next page of results, repeat the request with page_token set to this value.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Workers that have done work on the stage.
     #[serde(default)]
-    pub workers: Option<Vec<WorkerDetails>>,
+    pub workers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkerDetails>>>,
 }
 
 /// Description of an input or output of an execution stage.
@@ -2467,16 +2490,16 @@ pub struct StageExecutionDetails {
 pub struct StageSource {
     /// Dataflow service generated name for this source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User name for the original user transform or collection with which this source is most closely associated.
     #[serde(default, rename = "originalTransformOrCollection")]
-    pub original_transform_or_collection: Option<String>,
+    pub original_transform_or_collection: ::core::option::Option<String>,
     /// Size of the source, if measurable.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
     /// Human-readable name for this source; may be user or system generated.
     #[serde(default, rename = "userName")]
-    pub user_name: Option<String>,
+    pub user_name: ::core::option::Option<String>,
 }
 
 /// Information about a particular execution stage of a job.
@@ -2484,25 +2507,25 @@ pub struct StageSource {
 pub struct StageSummary {
     /// End time of this stage. If the work item is completed, this is the actual end time of the stage. Otherwise, it is the predicted end time.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Metrics for this stage.
     #[serde(default)]
-    pub metrics: Option<Vec<MetricUpdate>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricUpdate>>>,
     /// Progress for this stage. Only applicable to Batch jobs.
     #[serde(default)]
-    pub progress: Option<ProgressTimeseries>,
+    pub progress: ::core::option::Option<::std::boxed::Box<ProgressTimeseries>>,
     /// ID of this stage
     #[serde(default, rename = "stageId")]
-    pub stage_id: Option<String>,
+    pub stage_id: ::core::option::Option<String>,
     /// Start time of this stage.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// State of this stage. // TODO: enum values: ["EXECUTION_STATE_UNKNOWN", "EXECUTION_STATE_NOT_STARTED", "EXECUTION_STATE_RUNNING", "EXECUTION_STATE_SUCCEEDED", "EXECUTION_STATE_FAILED", "EXECUTION_STATE_CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Straggler summary for this stage.
     #[serde(default, rename = "stragglerSummary")]
-    pub straggler_summary: Option<StragglerSummary>,
+    pub straggler_summary: ::core::option::Option<::std::boxed::Box<StragglerSummary>>,
 }
 
 /// State family configuration.
@@ -2510,10 +2533,10 @@ pub struct StageSummary {
 pub struct StateFamilyConfig {
     /// If true, this family corresponds to a read operation.
     #[serde(default, rename = "isRead")]
-    pub is_read: Option<bool>,
+    pub is_read: ::core::option::Option<bool>,
     /// The state family value.
     #[serde(default, rename = "stateFamily")]
-    pub state_family: Option<String>,
+    pub state_family: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2521,13 +2544,13 @@ pub struct StateFamilyConfig {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Defines a particular step within a Cloud Dataflow job. A job consists of multiple steps, each of which performs some specific operation as part of the overall job. Data is typically passed from one step to another as part of the job. **Note:** The properties of this object are not stable and might change. Here''s an example of a sequence of steps which together implement a Map-Reduce job: * Read a collection of data from some source, parsing the collection''s elements. * Validate the elements. * Apply a user-defined function to map each element to some value and extract an element-specific key value. * Group elements with the same key into a single element with that key, transforming a multiply-keyed collection into a uniquely-keyed collection. * Write the elements out to some data sink. Note that the Cloud Dataflow service may be used to run many different types of jobs, not just Map-Reduce.
@@ -2535,13 +2558,13 @@ pub struct Status {
 pub struct Step {
     /// The kind of step in the Cloud Dataflow job.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name that identifies the step. This must be unique for each step with respect to all other steps in the Cloud Dataflow job.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Named properties associated with the step. Each kind of predefined step has its own required set of properties. Must be provided on Create. Only retrieved with JOB_VIEW_ALL.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// Information for a straggler.
@@ -2549,10 +2572,10 @@ pub struct Step {
 pub struct Straggler {
     /// Batch straggler identification and debugging information.
     #[serde(default, rename = "batchStraggler")]
-    pub batch_straggler: Option<StragglerInfo>,
+    pub batch_straggler: ::core::option::Option<::std::boxed::Box<StragglerInfo>>,
     /// Streaming straggler identification and debugging information.
     #[serde(default, rename = "streamingStraggler")]
-    pub streaming_straggler: Option<StreamingStragglerInfo>,
+    pub streaming_straggler: ::core::option::Option<::std::boxed::Box<StreamingStragglerInfo>>,
 }
 
 /// Information useful for debugging a straggler. Each type will provide specialized debugging information relevant for a particular cause. The StragglerDebuggingInfo will be 1:1 mapping to the StragglerCause enum.
@@ -2560,7 +2583,7 @@ pub struct Straggler {
 pub struct StragglerDebuggingInfo {
     /// Hot key debugging details.
     #[serde(default, rename = "hotKey")]
-    pub hot_key: Option<HotKeyDebuggingInfo>,
+    pub hot_key: ::core::option::Option<::std::boxed::Box<HotKeyDebuggingInfo>>,
 }
 
 /// Information useful for straggler identification and debugging.
@@ -2568,10 +2591,10 @@ pub struct StragglerDebuggingInfo {
 pub struct StragglerInfo {
     /// The straggler causes, keyed by the string representation of the StragglerCause enum and contains specialized debugging information for each straggler cause.
     #[serde(default)]
-    pub causes: Option<serde_json::Value>,
+    pub causes: ::core::option::Option<serde_json::Value>,
     /// The time when the work item attempt became a straggler.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Summarized straggler identification details.
@@ -2579,13 +2602,13 @@ pub struct StragglerInfo {
 pub struct StragglerSummary {
     /// The most recent stragglers.
     #[serde(default, rename = "recentStragglers")]
-    pub recent_stragglers: Option<Vec<Straggler>>,
+    pub recent_stragglers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Straggler>>>,
     /// Aggregated counts of straggler causes, keyed by the string representation of the StragglerCause enum.
     #[serde(default, rename = "stragglerCauseCount")]
-    pub straggler_cause_count: Option<serde_json::Value>,
+    pub straggler_cause_count: ::core::option::Option<serde_json::Value>,
     /// The total count of stragglers.
     #[serde(default, rename = "totalStragglerCount")]
-    pub total_straggler_count: Option<String>,
+    pub total_straggler_count: ::core::option::Option<String>,
 }
 
 /// Describes a stream of data, either as input to be processed or as output of a streaming Dataflow job.
@@ -2593,16 +2616,16 @@ pub struct StragglerSummary {
 pub struct StreamLocation {
     /// The stream is a custom source.
     #[serde(default, rename = "customSourceLocation")]
-    pub custom_source_location: Option<CustomSourceLocation>,
+    pub custom_source_location: ::core::option::Option<::std::boxed::Box<CustomSourceLocation>>,
     /// The stream is a pubsub stream.
     #[serde(default, rename = "pubsubLocation")]
-    pub pubsub_location: Option<PubsubLocation>,
+    pub pubsub_location: ::core::option::Option<::std::boxed::Box<PubsubLocation>>,
     /// The stream is a streaming side input.
     #[serde(default, rename = "sideInputLocation")]
-    pub side_input_location: Option<StreamingSideInputLocation>,
+    pub side_input_location: ::core::option::Option<::std::boxed::Box<StreamingSideInputLocation>>,
     /// The stream is part of another computation within the current streaming Dataflow job.
     #[serde(default, rename = "streamingStageLocation")]
-    pub streaming_stage_location: Option<StreamingStageLocation>,
+    pub streaming_stage_location: ::core::option::Option<::std::boxed::Box<StreamingStageLocation>>,
 }
 
 /// Streaming appliance snapshot configuration.
@@ -2610,10 +2633,10 @@ pub struct StreamLocation {
 pub struct StreamingApplianceSnapshotConfig {
     /// Indicates which endpoint is used to import appliance state.
     #[serde(default, rename = "importStateEndpoint")]
-    pub import_state_endpoint: Option<String>,
+    pub import_state_endpoint: ::core::option::Option<String>,
     /// If set, indicates the snapshot id for the snapshot being performed.
     #[serde(default, rename = "snapshotId")]
-    pub snapshot_id: Option<String>,
+    pub snapshot_id: ::core::option::Option<String>,
 }
 
 /// Configuration information for a single streaming computation.
@@ -2621,19 +2644,20 @@ pub struct StreamingApplianceSnapshotConfig {
 pub struct StreamingComputationConfig {
     /// Unique identifier for this computation.
     #[serde(default, rename = "computationId")]
-    pub computation_id: Option<String>,
+    pub computation_id: ::core::option::Option<String>,
     /// Instructions that comprise the computation.
     #[serde(default)]
-    pub instructions: Option<Vec<ParallelInstruction>>,
+    pub instructions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ParallelInstruction>>>,
     /// Stage name of this computation.
     #[serde(default, rename = "stageName")]
-    pub stage_name: Option<String>,
+    pub stage_name: ::core::option::Option<String>,
     /// System defined name for this computation.
     #[serde(default, rename = "systemName")]
-    pub system_name: Option<String>,
+    pub system_name: ::core::option::Option<String>,
     /// Map from user name of stateful transforms in this stage to their state family.
     #[serde(default, rename = "transformUserNameToStateFamily")]
-    pub transform_user_name_to_state_family: Option<serde_json::Value>,
+    pub transform_user_name_to_state_family: ::core::option::Option<serde_json::Value>,
 }
 
 /// Describes full or partial data disk assignment information of the computation ranges.
@@ -2641,10 +2665,11 @@ pub struct StreamingComputationConfig {
 pub struct StreamingComputationRanges {
     /// The ID of the computation.
     #[serde(default, rename = "computationId")]
-    pub computation_id: Option<String>,
+    pub computation_id: ::core::option::Option<String>,
     /// Data disk assignments for ranges from this computation.
     #[serde(default, rename = "rangeAssignments")]
-    pub range_assignments: Option<Vec<KeyRangeDataDiskAssignment>>,
+    pub range_assignments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<KeyRangeDataDiskAssignment>>>,
 }
 
 /// A task which describes what action should be performed for the specified streaming computation ranges.
@@ -2652,13 +2677,14 @@ pub struct StreamingComputationRanges {
 pub struct StreamingComputationTask {
     /// Contains ranges of a streaming computation this task should apply to.
     #[serde(default, rename = "computationRanges")]
-    pub computation_ranges: Option<Vec<StreamingComputationRanges>>,
+    pub computation_ranges:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StreamingComputationRanges>>>,
     /// Describes the set of data disks this task should apply to.
     #[serde(default, rename = "dataDisks")]
-    pub data_disks: Option<Vec<MountedDataDisk>>,
+    pub data_disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MountedDataDisk>>>,
     /// A type of streaming computation task. // TODO: enum values: ["STREAMING_COMPUTATION_TASK_UNKNOWN", "STREAMING_COMPUTATION_TASK_STOP", "STREAMING_COMPUTATION_TASK_START"]
     #[serde(default, rename = "taskType")]
-    pub task_type: Option<String>,
+    pub task_type: ::core::option::Option<String>,
 }
 
 /// A task that carries configuration information for streaming computations.
@@ -2666,37 +2692,38 @@ pub struct StreamingComputationTask {
 pub struct StreamingConfigTask {
     /// Chunk size for commit streams from the harness to windmill.
     #[serde(default, rename = "commitStreamChunkSizeBytes")]
-    pub commit_stream_chunk_size_bytes: Option<String>,
+    pub commit_stream_chunk_size_bytes: ::core::option::Option<String>,
     /// Chunk size for get data streams from the harness to windmill.
     #[serde(default, rename = "getDataStreamChunkSizeBytes")]
-    pub get_data_stream_chunk_size_bytes: Option<String>,
+    pub get_data_stream_chunk_size_bytes: ::core::option::Option<String>,
     /// Maximum size for work item commit supported windmill storage layer.
     #[serde(default, rename = "maxWorkItemCommitBytes")]
-    pub max_work_item_commit_bytes: Option<String>,
+    pub max_work_item_commit_bytes: ::core::option::Option<String>,
     /// Operational limits for the streaming job. Can be used by the worker to validate outputs sent to the backend.
     #[serde(default, rename = "operationalLimits")]
-    pub operational_limits: Option<StreamingOperationalLimits>,
+    pub operational_limits: ::core::option::Option<::std::boxed::Box<StreamingOperationalLimits>>,
     /// Set of computation configuration information.
     #[serde(default, rename = "streamingComputationConfigs")]
-    pub streaming_computation_configs: Option<Vec<StreamingComputationConfig>>,
+    pub streaming_computation_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StreamingComputationConfig>>>,
     /// Optional. The state tag encoding format version for streaming engine jobs.
     #[serde(default, rename = "streamingEngineStateTagEncodingVersion")]
-    pub streaming_engine_state_tag_encoding_version: Option<i32>,
+    pub streaming_engine_state_tag_encoding_version: ::core::option::Option<i32>,
     /// Map from user step names to state families.
     #[serde(default, rename = "userStepToStateFamilyNameMap")]
-    pub user_step_to_state_family_name_map: Option<serde_json::Value>,
+    pub user_step_to_state_family_name_map: ::core::option::Option<serde_json::Value>,
     /// Binary encoded proto to control runtime behavior of the java runner v1 user worker.
     #[serde(default, rename = "userWorkerRunnerV1Settings")]
-    pub user_worker_runner_v1_settings: Option<String>,
+    pub user_worker_runner_v1_settings: ::core::option::Option<String>,
     /// Binary encoded proto to control runtime behavior of the runner v2 user worker.
     #[serde(default, rename = "userWorkerRunnerV2Settings")]
-    pub user_worker_runner_v2_settings: Option<String>,
+    pub user_worker_runner_v2_settings: ::core::option::Option<String>,
     /// If present, the worker must use this endpoint to communicate with Windmill Service dispatchers, otherwise the worker must continue to use whatever endpoint it had been using.
     #[serde(default, rename = "windmillServiceEndpoint")]
-    pub windmill_service_endpoint: Option<String>,
+    pub windmill_service_endpoint: ::core::option::Option<String>,
     /// If present, the worker must use this port to communicate with Windmill Service dispatchers. Only applicable when windmill_service_endpoint is specified.
     #[serde(default, rename = "windmillServicePort")]
-    pub windmill_service_port: Option<String>,
+    pub windmill_service_port: ::core::option::Option<String>,
 }
 
 /// Operational limits imposed on streaming jobs by the backend.
@@ -2704,57 +2731,57 @@ pub struct StreamingConfigTask {
 pub struct StreamingOperationalLimits {
     /// The maximum size for an element in bag state.
     #[serde(default, rename = "maxBagElementBytes")]
-    pub max_bag_element_bytes: Option<String>,
+    pub max_bag_element_bytes: ::core::option::Option<String>,
     /// The maximum size for an element in global data.
     #[serde(default, rename = "maxGlobalDataBytes")]
-    pub max_global_data_bytes: Option<String>,
+    pub max_global_data_bytes: ::core::option::Option<String>,
     /// The maximum size allowed for a key.
     #[serde(default, rename = "maxKeyBytes")]
-    pub max_key_bytes: Option<String>,
+    pub max_key_bytes: ::core::option::Option<String>,
     /// The maximum size for a single output element.
     #[serde(default, rename = "maxProductionOutputBytes")]
-    pub max_production_output_bytes: Option<String>,
+    pub max_production_output_bytes: ::core::option::Option<String>,
     /// The maximum size for an element in sorted list state.
     #[serde(default, rename = "maxSortedListElementBytes")]
-    pub max_sorted_list_element_bytes: Option<String>,
+    pub max_sorted_list_element_bytes: ::core::option::Option<String>,
     /// The maximum size for a source state update.
     #[serde(default, rename = "maxSourceStateBytes")]
-    pub max_source_state_bytes: Option<String>,
+    pub max_source_state_bytes: ::core::option::Option<String>,
     /// The maximum size for a state tag.
     #[serde(default, rename = "maxTagBytes")]
-    pub max_tag_bytes: Option<String>,
+    pub max_tag_bytes: ::core::option::Option<String>,
     /// The maximum size for a value state field.
     #[serde(default, rename = "maxValueBytes")]
-    pub max_value_bytes: Option<String>,
+    pub max_value_bytes: ::core::option::Option<String>,
 }
 
 /// Contains per-user worker telemetry used in streaming autoscaling.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamingScalingReport {
     #[serde(default, rename = "activeBundleCount")]
-    pub active_bundle_count: Option<i32>,
+    pub active_bundle_count: ::core::option::Option<i32>,
     /// Current acive thread count.
     #[serde(default, rename = "activeThreadCount")]
-    pub active_thread_count: Option<i32>,
+    pub active_thread_count: ::core::option::Option<i32>,
     /// Maximum bundle count.
     #[serde(default, rename = "maximumBundleCount")]
-    pub maximum_bundle_count: Option<i32>,
+    pub maximum_bundle_count: ::core::option::Option<i32>,
     /// Maximum bytes.
     #[serde(default, rename = "maximumBytes")]
-    pub maximum_bytes: Option<String>,
+    pub maximum_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "maximumBytesCount")]
-    pub maximum_bytes_count: Option<i32>,
+    pub maximum_bytes_count: ::core::option::Option<i32>,
     /// Maximum thread count limit.
     #[serde(default, rename = "maximumThreadCount")]
-    pub maximum_thread_count: Option<i32>,
+    pub maximum_thread_count: ::core::option::Option<i32>,
     /// Current outstanding bundle count.
     #[serde(default, rename = "outstandingBundleCount")]
-    pub outstanding_bundle_count: Option<i32>,
+    pub outstanding_bundle_count: ::core::option::Option<i32>,
     /// Current outstanding bytes.
     #[serde(default, rename = "outstandingBytes")]
-    pub outstanding_bytes: Option<String>,
+    pub outstanding_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "outstandingBytesCount")]
-    pub outstanding_bytes_count: Option<i32>,
+    pub outstanding_bytes_count: ::core::option::Option<i32>,
 }
 
 /// Contains per-user-worker streaming scaling recommendation from the backend.
@@ -2762,7 +2789,7 @@ pub struct StreamingScalingReport {
 pub struct StreamingScalingReportResponse {
     /// Maximum thread count limit;
     #[serde(default, rename = "maximumThreadCount")]
-    pub maximum_thread_count: Option<i32>,
+    pub maximum_thread_count: ::core::option::Option<i32>,
 }
 
 /// A task which initializes part of a streaming Dataflow job.
@@ -2770,19 +2797,20 @@ pub struct StreamingScalingReportResponse {
 pub struct StreamingSetupTask {
     /// The user has requested drain.
     #[serde(default)]
-    pub drain: Option<bool>,
+    pub drain: ::core::option::Option<bool>,
     /// The TCP port on which the worker should listen for messages from other streaming computation workers.
     #[serde(default, rename = "receiveWorkPort")]
-    pub receive_work_port: Option<i32>,
+    pub receive_work_port: ::core::option::Option<i32>,
     /// Configures streaming appliance snapshot.
     #[serde(default, rename = "snapshotConfig")]
-    pub snapshot_config: Option<StreamingApplianceSnapshotConfig>,
+    pub snapshot_config:
+        ::core::option::Option<::std::boxed::Box<StreamingApplianceSnapshotConfig>>,
     /// The global topology of the streaming Dataflow job.
     #[serde(default, rename = "streamingComputationTopology")]
-    pub streaming_computation_topology: Option<TopologyConfig>,
+    pub streaming_computation_topology: ::core::option::Option<::std::boxed::Box<TopologyConfig>>,
     /// The TCP port used by the worker to communicate with the Dataflow worker harness.
     #[serde(default, rename = "workerHarnessPort")]
-    pub worker_harness_port: Option<i32>,
+    pub worker_harness_port: ::core::option::Option<i32>,
 }
 
 /// Identifies the location of a streaming side input.
@@ -2790,10 +2818,10 @@ pub struct StreamingSetupTask {
 pub struct StreamingSideInputLocation {
     /// Identifies the state family where this side input is stored.
     #[serde(default, rename = "stateFamily")]
-    pub state_family: Option<String>,
+    pub state_family: ::core::option::Option<String>,
     /// Identifies the particular side input within the streaming Dataflow job.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// Identifies the location of a streaming computation stage, for stage-to-stage communication.
@@ -2801,7 +2829,7 @@ pub struct StreamingSideInputLocation {
 pub struct StreamingStageLocation {
     /// Identifies the particular stream within the streaming Dataflow job.
     #[serde(default, rename = "streamId")]
-    pub stream_id: Option<String>,
+    pub stream_id: ::core::option::Option<String>,
 }
 
 /// Information useful for streaming straggler identification and debugging.
@@ -2809,19 +2837,19 @@ pub struct StreamingStageLocation {
 pub struct StreamingStragglerInfo {
     /// The event-time watermark lag at the time of the straggler detection.
     #[serde(default, rename = "dataWatermarkLag")]
-    pub data_watermark_lag: Option<String>,
+    pub data_watermark_lag: ::core::option::Option<String>,
     /// End time of this straggler.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Start time of this straggler.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The system watermark lag at the time of the straggler detection.
     #[serde(default, rename = "systemWatermarkLag")]
-    pub system_watermark_lag: Option<String>,
+    pub system_watermark_lag: ::core::option::Option<String>,
     /// Name of the worker where the straggler was detected.
     #[serde(default, rename = "workerName")]
-    pub worker_name: Option<String>,
+    pub worker_name: ::core::option::Option<String>,
 }
 
 /// A metric value representing a list of strings.
@@ -2829,7 +2857,7 @@ pub struct StreamingStragglerInfo {
 pub struct StringList {
     /// Elements of the list.
     #[serde(default)]
-    pub elements: Option<Vec<String>>,
+    pub elements: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A rich message format, including a human readable string, a key for identifying the message, and structured data associated with the message for programmatic consumption.
@@ -2837,13 +2865,13 @@ pub struct StringList {
 pub struct StructuredMessage {
     /// Identifier for this message type. Used by external systems to internationalize or personalize message.
     #[serde(default, rename = "messageKey")]
-    pub message_key: Option<String>,
+    pub message_key: ::core::option::Option<String>,
     /// Human-readable version of message.
     #[serde(default, rename = "messageText")]
-    pub message_text: Option<String>,
+    pub message_text: ::core::option::Option<String>,
     /// The structured data associated with this message.
     #[serde(default)]
-    pub parameters: Option<Vec<Parameter>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Parameter>>>,
 }
 
 /// Taskrunner configuration settings.
@@ -2851,61 +2879,61 @@ pub struct StructuredMessage {
 pub struct TaskRunnerSettings {
     /// Whether to also send taskrunner log info to stderr.
     #[serde(default)]
-    pub alsologtostderr: Option<bool>,
+    pub alsologtostderr: ::core::option::Option<bool>,
     /// The location on the worker for task-specific subdirectories.
     #[serde(default, rename = "baseTaskDir")]
-    pub base_task_dir: Option<String>,
+    pub base_task_dir: ::core::option::Option<String>,
     /// The base URL for the taskrunner to use when accessing Google Cloud APIs. When workers access Google Cloud APIs, they logically do so via relative URLs. If this field is specified, it supplies the base URL to use for resolving these relative URLs. The normative algorithm used is defined by RFC 1808, "Relative Uniform Resource Locators". If not specified, the default value is "http://www.googleapis.com/"
     #[serde(default, rename = "baseUrl")]
-    pub base_url: Option<String>,
+    pub base_url: ::core::option::Option<String>,
     /// The file to store preprocessing commands in.
     #[serde(default, rename = "commandlinesFileName")]
-    pub commandlines_file_name: Option<String>,
+    pub commandlines_file_name: ::core::option::Option<String>,
     /// Whether to continue taskrunner if an exception is hit.
     #[serde(default, rename = "continueOnException")]
-    pub continue_on_exception: Option<bool>,
+    pub continue_on_exception: ::core::option::Option<bool>,
     /// The API version of endpoint, e.g. "v1b3"
     #[serde(default, rename = "dataflowApiVersion")]
-    pub dataflow_api_version: Option<String>,
+    pub dataflow_api_version: ::core::option::Option<String>,
     /// The command to launch the worker harness.
     #[serde(default, rename = "harnessCommand")]
-    pub harness_command: Option<String>,
+    pub harness_command: ::core::option::Option<String>,
     /// The suggested backend language.
     #[serde(default, rename = "languageHint")]
-    pub language_hint: Option<String>,
+    pub language_hint: ::core::option::Option<String>,
     /// The directory on the VM to store logs.
     #[serde(default, rename = "logDir")]
-    pub log_dir: Option<String>,
+    pub log_dir: ::core::option::Option<String>,
     /// Whether to send taskrunner log info to Google Compute Engine VM serial console.
     #[serde(default, rename = "logToSerialconsole")]
-    pub log_to_serialconsole: Option<bool>,
+    pub log_to_serialconsole: ::core::option::Option<bool>,
     /// Indicates where to put logs. If this is not specified, the logs will not be uploaded. The supported resource type is: Google Cloud Storage: storage.googleapis.com/{bucket}/{object} bucket.storage.googleapis.com/{object}
     #[serde(default, rename = "logUploadLocation")]
-    pub log_upload_location: Option<String>,
+    pub log_upload_location: ::core::option::Option<String>,
     /// The OAuth2 scopes to be requested by the taskrunner in order to access the Cloud Dataflow API.
     #[serde(default, rename = "oauthScopes")]
-    pub oauth_scopes: Option<Vec<String>>,
+    pub oauth_scopes: ::core::option::Option<::std::vec::Vec<String>>,
     /// The settings to pass to the parallel worker harness.
     #[serde(default, rename = "parallelWorkerSettings")]
-    pub parallel_worker_settings: Option<WorkerSettings>,
+    pub parallel_worker_settings: ::core::option::Option<::std::boxed::Box<WorkerSettings>>,
     /// The streaming worker main class name.
     #[serde(default, rename = "streamingWorkerMainClass")]
-    pub streaming_worker_main_class: Option<String>,
+    pub streaming_worker_main_class: ::core::option::Option<String>,
     /// The UNIX group ID on the worker VM to use for tasks launched by taskrunner; e.g. "wheel".
     #[serde(default, rename = "taskGroup")]
-    pub task_group: Option<String>,
+    pub task_group: ::core::option::Option<String>,
     /// The UNIX user ID on the worker VM to use for tasks launched by taskrunner; e.g. "root".
     #[serde(default, rename = "taskUser")]
-    pub task_user: Option<String>,
+    pub task_user: ::core::option::Option<String>,
     /// The prefix of the resources the taskrunner should use for temporary storage. The supported resource type is: Google Cloud Storage: storage.googleapis.com/{bucket}/{object} bucket.storage.googleapis.com/{object}
     #[serde(default, rename = "tempStoragePrefix")]
-    pub temp_storage_prefix: Option<String>,
+    pub temp_storage_prefix: ::core::option::Option<String>,
     /// The ID string of the VM.
     #[serde(default, rename = "vmId")]
-    pub vm_id: Option<String>,
+    pub vm_id: ::core::option::Option<String>,
     /// The file to store the workflow in.
     #[serde(default, rename = "workflowFileName")]
-    pub workflow_file_name: Option<String>,
+    pub workflow_file_name: ::core::option::Option<String>,
 }
 
 /// Metadata describing a template.
@@ -2913,28 +2941,28 @@ pub struct TaskRunnerSettings {
 pub struct TemplateMetadata {
     /// Optional. Indicates the default streaming mode for a streaming template. Only valid if both supports_at_least_once and supports_exactly_once are true. Possible values: UNSPECIFIED, EXACTLY_ONCE and AT_LEAST_ONCE
     #[serde(default, rename = "defaultStreamingMode")]
-    pub default_streaming_mode: Option<String>,
+    pub default_streaming_mode: ::core::option::Option<String>,
     /// Optional. A description of the template.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The name of the template.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The parameters for the template.
     #[serde(default)]
-    pub parameters: Option<Vec<ParameterMetadata>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ParameterMetadata>>>,
     /// Optional. Indicates if the template is streaming or not.
     #[serde(default)]
-    pub streaming: Option<bool>,
+    pub streaming: ::core::option::Option<bool>,
     /// Optional. Indicates if the streaming template supports at least once mode.
     #[serde(default, rename = "supportsAtLeastOnce")]
-    pub supports_at_least_once: Option<bool>,
+    pub supports_at_least_once: ::core::option::Option<bool>,
     /// Optional. Indicates if the streaming template supports exactly once mode.
     #[serde(default, rename = "supportsExactlyOnce")]
-    pub supports_exactly_once: Option<bool>,
+    pub supports_exactly_once: ::core::option::Option<bool>,
     /// Optional. For future use.
     #[serde(default, rename = "yamlDefinition")]
-    pub yaml_definition: Option<String>,
+    pub yaml_definition: ::core::option::Option<String>,
 }
 
 /// Global topology of the streaming Dataflow job, including all computations and their sharded locations.
@@ -2942,19 +2970,21 @@ pub struct TemplateMetadata {
 pub struct TopologyConfig {
     /// The computations associated with a streaming Dataflow job.
     #[serde(default)]
-    pub computations: Option<Vec<ComputationTopology>>,
+    pub computations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ComputationTopology>>>,
     /// The disks assigned to a streaming Dataflow job.
     #[serde(default, rename = "dataDiskAssignments")]
-    pub data_disk_assignments: Option<Vec<DataDiskAssignment>>,
+    pub data_disk_assignments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataDiskAssignment>>>,
     /// The size (in bits) of keys that will be assigned to source messages.
     #[serde(default, rename = "forwardingKeyBits")]
-    pub forwarding_key_bits: Option<i32>,
+    pub forwarding_key_bits: ::core::option::Option<i32>,
     /// Version number for persistent state.
     #[serde(default, rename = "persistentStateVersion")]
-    pub persistent_state_version: Option<i32>,
+    pub persistent_state_version: ::core::option::Option<i32>,
     /// Maps user stage names to stable computation names.
     #[serde(default, rename = "userStageToComputationNameMap")]
-    pub user_stage_to_computation_name_map: Option<serde_json::Value>,
+    pub user_stage_to_computation_name_map: ::core::option::Option<serde_json::Value>,
 }
 
 /// Description of the type, names/ids, and input/outputs for a transform.
@@ -2962,22 +2992,22 @@ pub struct TopologyConfig {
 pub struct TransformSummary {
     /// Transform-specific display data.
     #[serde(default, rename = "displayData")]
-    pub display_data: Option<Vec<DisplayData>>,
+    pub display_data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DisplayData>>>,
     /// SDK generated id of this transform instance.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// User names for all collection inputs to this transform.
     #[serde(default, rename = "inputCollectionName")]
-    pub input_collection_name: Option<Vec<String>>,
+    pub input_collection_name: ::core::option::Option<::std::vec::Vec<String>>,
     /// Type of transform. // TODO: enum values: ["UNKNOWN_KIND", "PAR_DO_KIND", "GROUP_BY_KEY_KIND", "FLATTEN_KIND", "READ_KIND", "WRITE_KIND", "CONSTANT_KIND", "SINGLETON_KIND", "SHUFFLE_KIND"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// User provided name for this transform instance.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// User names for all collection outputs to this transform.
     #[serde(default, rename = "outputCollectionName")]
-    pub output_collection_name: Option<Vec<String>>,
+    pub output_collection_name: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// WorkItem represents basic information about a WorkItem to be executed in the cloud.
@@ -2985,49 +3015,50 @@ pub struct TransformSummary {
 pub struct WorkItem {
     /// Work item-specific configuration as an opaque blob.
     #[serde(default)]
-    pub configuration: Option<String>,
+    pub configuration: ::core::option::Option<String>,
     /// Identifies this WorkItem.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The initial index to use when reporting the status of the WorkItem.
     #[serde(default, rename = "initialReportIndex")]
-    pub initial_report_index: Option<String>,
+    pub initial_report_index: ::core::option::Option<String>,
     /// Identifies the workflow job this WorkItem belongs to.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// Time when the lease on this Work will expire.
     #[serde(default, rename = "leaseExpireTime")]
-    pub lease_expire_time: Option<String>,
+    pub lease_expire_time: ::core::option::Option<String>,
     /// Additional information for MapTask WorkItems.
     #[serde(default, rename = "mapTask")]
-    pub map_task: Option<MapTask>,
+    pub map_task: ::core::option::Option<::std::boxed::Box<MapTask>>,
     /// Any required packages that need to be fetched in order to execute this WorkItem.
     #[serde(default)]
-    pub packages: Option<Vec<Package>>,
+    pub packages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Package>>>,
     /// Identifies the cloud project this WorkItem belongs to.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Recommended reporting interval.
     #[serde(default, rename = "reportStatusInterval")]
-    pub report_status_interval: Option<String>,
+    pub report_status_interval: ::core::option::Option<String>,
     /// Additional information for SeqMapTask WorkItems.
     #[serde(default, rename = "seqMapTask")]
-    pub seq_map_task: Option<SeqMapTask>,
+    pub seq_map_task: ::core::option::Option<::std::boxed::Box<SeqMapTask>>,
     /// Additional information for ShellTask WorkItems.
     #[serde(default, rename = "shellTask")]
-    pub shell_task: Option<ShellTask>,
+    pub shell_task: ::core::option::Option<::std::boxed::Box<ShellTask>>,
     /// Additional information for source operation WorkItems.
     #[serde(default, rename = "sourceOperationTask")]
-    pub source_operation_task: Option<SourceOperationRequest>,
+    pub source_operation_task: ::core::option::Option<::std::boxed::Box<SourceOperationRequest>>,
     /// Additional information for StreamingComputationTask WorkItems.
     #[serde(default, rename = "streamingComputationTask")]
-    pub streaming_computation_task: Option<StreamingComputationTask>,
+    pub streaming_computation_task:
+        ::core::option::Option<::std::boxed::Box<StreamingComputationTask>>,
     /// Additional information for StreamingConfigTask WorkItems.
     #[serde(default, rename = "streamingConfigTask")]
-    pub streaming_config_task: Option<StreamingConfigTask>,
+    pub streaming_config_task: ::core::option::Option<::std::boxed::Box<StreamingConfigTask>>,
     /// Additional information for StreamingSetupTask WorkItems.
     #[serde(default, rename = "streamingSetupTask")]
-    pub streaming_setup_task: Option<StreamingSetupTask>,
+    pub streaming_setup_task: ::core::option::Option<::std::boxed::Box<StreamingSetupTask>>,
 }
 
 /// Information about an individual work item execution.
@@ -3035,28 +3066,28 @@ pub struct WorkItem {
 pub struct WorkItemDetails {
     /// Attempt ID of this work item
     #[serde(default, rename = "attemptId")]
-    pub attempt_id: Option<String>,
+    pub attempt_id: ::core::option::Option<String>,
     /// End time of this work item attempt. If the work item is completed, this is the actual end time of the work item. Otherwise, it is the predicted end time.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Metrics for this work item.
     #[serde(default)]
-    pub metrics: Option<Vec<MetricUpdate>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricUpdate>>>,
     /// Progress of this work item.
     #[serde(default)]
-    pub progress: Option<ProgressTimeseries>,
+    pub progress: ::core::option::Option<::std::boxed::Box<ProgressTimeseries>>,
     /// Start time of this work item attempt.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// State of this work item. // TODO: enum values: ["EXECUTION_STATE_UNKNOWN", "EXECUTION_STATE_NOT_STARTED", "EXECUTION_STATE_RUNNING", "EXECUTION_STATE_SUCCEEDED", "EXECUTION_STATE_FAILED", "EXECUTION_STATE_CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Information about straggler detections for this work item.
     #[serde(default, rename = "stragglerInfo")]
-    pub straggler_info: Option<StragglerInfo>,
+    pub straggler_info: ::core::option::Option<::std::boxed::Box<StragglerInfo>>,
     /// Name of this work item.
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
 }
 
 /// The Dataflow service''s idea of the current state of a WorkItem being processed by a worker.
@@ -3064,34 +3095,34 @@ pub struct WorkItemDetails {
 pub struct WorkItemServiceState {
     /// If set, a request to complete the work item with the given status. This will not be set to OK, unless supported by the specific kind of WorkItem. It can be used for the backend to indicate a WorkItem must terminate, e.g., for aborting work.
     #[serde(default, rename = "completeWorkStatus")]
-    pub complete_work_status: Option<Status>,
+    pub complete_work_status: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Other data returned by the service, specific to the particular worker harness.
     #[serde(default, rename = "harnessData")]
-    pub harness_data: Option<serde_json::Value>,
+    pub harness_data: ::core::option::Option<serde_json::Value>,
     /// A hot key is a symptom of poor data distribution in which there are enough elements mapped to a single key to impact pipeline performance. When present, this field includes metadata associated with any hot key.
     #[serde(default, rename = "hotKeyDetection")]
-    pub hot_key_detection: Option<HotKeyDetection>,
+    pub hot_key_detection: ::core::option::Option<::std::boxed::Box<HotKeyDetection>>,
     /// Time at which the current lease will expire.
     #[serde(default, rename = "leaseExpireTime")]
-    pub lease_expire_time: Option<String>,
+    pub lease_expire_time: ::core::option::Option<String>,
     /// The short ids that workers should use in subsequent metric updates. Workers should strive to use short ids whenever possible, but it is ok to request the short_id again if a worker lost track of it (e.g. if the worker is recovering from a crash). NOTE: it is possible that the response may have short ids for a subset of the metrics.
     #[serde(default, rename = "metricShortId")]
-    pub metric_short_id: Option<Vec<MetricShortId>>,
+    pub metric_short_id: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricShortId>>>,
     /// The index value to use for the next report sent by the worker. Note: If the report call fails for whatever reason, the worker should reuse this index for subsequent report attempts.
     #[serde(default, rename = "nextReportIndex")]
-    pub next_report_index: Option<String>,
+    pub next_report_index: ::core::option::Option<String>,
     /// New recommended reporting interval.
     #[serde(default, rename = "reportStatusInterval")]
-    pub report_status_interval: Option<String>,
+    pub report_status_interval: ::core::option::Option<String>,
     /// The progress point in the WorkItem where the Dataflow service suggests that the worker truncate the task.
     #[serde(default, rename = "splitRequest")]
-    pub split_request: Option<ApproximateSplitRequest>,
+    pub split_request: ::core::option::Option<::std::boxed::Box<ApproximateSplitRequest>>,
     /// DEPRECATED in favor of split_request.
     #[serde(default, rename = "suggestedStopPoint")]
-    pub suggested_stop_point: Option<ApproximateProgress>,
+    pub suggested_stop_point: ::core::option::Option<::std::boxed::Box<ApproximateProgress>>,
     /// Obsolete, always empty.
     #[serde(default, rename = "suggestedStopPosition")]
-    pub suggested_stop_position: Option<Position>,
+    pub suggested_stop_position: ::core::option::Option<::std::boxed::Box<Position>>,
 }
 
 /// Conveys a worker''s progress through the work described by a WorkItem.
@@ -3099,46 +3130,47 @@ pub struct WorkItemServiceState {
 pub struct WorkItemStatus {
     /// True if the WorkItem was completed (successfully or unsuccessfully).
     #[serde(default)]
-    pub completed: Option<bool>,
+    pub completed: ::core::option::Option<bool>,
     /// Worker output counters for this WorkItem.
     #[serde(default, rename = "counterUpdates")]
-    pub counter_updates: Option<Vec<CounterUpdate>>,
+    pub counter_updates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CounterUpdate>>>,
     /// See documentation of stop_position.
     #[serde(default, rename = "dynamicSourceSplit")]
-    pub dynamic_source_split: Option<DynamicSourceSplit>,
+    pub dynamic_source_split: ::core::option::Option<::std::boxed::Box<DynamicSourceSplit>>,
     /// Specifies errors which occurred during processing. If errors are provided, and completed = true, then the WorkItem is considered to have failed.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// DEPRECATED in favor of counter_updates.
     #[serde(default, rename = "metricUpdates")]
-    pub metric_updates: Option<Vec<MetricUpdate>>,
+    pub metric_updates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricUpdate>>>,
     /// DEPRECATED in favor of reported_progress.
     #[serde(default)]
-    pub progress: Option<ApproximateProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<ApproximateProgress>>,
     /// The report index. When a WorkItem is leased, the lease will contain an initial report index. When a WorkItem''s status is reported to the system, the report should be sent with that report index, and the response will contain the index the worker should use for the next report. Reports received with unexpected index values will be rejected by the service. In order to preserve idempotency, the worker should not alter the contents of a report, even if the worker must submit the same report multiple times before getting back a response. The worker should not submit a subsequent report until the response for the previous report had been received from the service.
     #[serde(default, rename = "reportIndex")]
-    pub report_index: Option<String>,
+    pub report_index: ::core::option::Option<String>,
     /// The worker''s progress through this WorkItem.
     #[serde(default, rename = "reportedProgress")]
-    pub reported_progress: Option<ApproximateReportedProgress>,
+    pub reported_progress: ::core::option::Option<::std::boxed::Box<ApproximateReportedProgress>>,
     /// Amount of time the worker requests for its lease.
     #[serde(default, rename = "requestedLeaseDuration")]
-    pub requested_lease_duration: Option<String>,
+    pub requested_lease_duration: ::core::option::Option<String>,
     /// DEPRECATED in favor of dynamic_source_split.
     #[serde(default, rename = "sourceFork")]
-    pub source_fork: Option<SourceFork>,
+    pub source_fork: ::core::option::Option<::std::boxed::Box<SourceFork>>,
     /// If the work item represented a SourceOperationRequest, and the work is completed, contains the result of the operation.
     #[serde(default, rename = "sourceOperationResponse")]
-    pub source_operation_response: Option<SourceOperationResponse>,
+    pub source_operation_response:
+        ::core::option::Option<::std::boxed::Box<SourceOperationResponse>>,
     /// A worker may split an active map task in two parts, "primary" and "residual", continuing to process the primary part and returning the residual part into the pool of available work. This event is called a "dynamic split" and is critical to the dynamic work rebalancing feature. The two obtained sub-tasks are called "parts" of the split. The parts, if concatenated, must represent the same input as would be read by the current task if the split did not happen. The exact way in which the original task is decomposed into the two parts is specified either as a position demarcating them (stop_position), or explicitly as two DerivedSources, if this task consumes a user-defined source type (dynamic_source_split). The "current" task is adjusted as a result of the split: after a task with range [A, B) sends a stop_position update at C, its range is considered to be [A, C), e.g.: * Progress should be interpreted relative to the new range, e.g. "75% completed" means "75% of [A, C) completed" * The worker should interpret proposed_stop_position relative to the new range, e.g. "split at 68%" should be interpreted as "split at 68% of [A, C)". * If the worker chooses to split again using stop_position, only stop_positions in [A, C) will be accepted. * Etc. dynamic_source_split has similar semantics: e.g., if a task with source S splits using dynamic_source_split into {P, R} (where P and R must be together equivalent to S), then subsequent progress and proposed_stop_position should be interpreted relative to P, and in a potential subsequent dynamic_source_split into {P'', R''}, P'' and R'' must be together equivalent to P, etc.
     #[serde(default, rename = "stopPosition")]
-    pub stop_position: Option<Position>,
+    pub stop_position: ::core::option::Option<::std::boxed::Box<Position>>,
     /// Total time the worker spent being throttled by external systems.
     #[serde(default, rename = "totalThrottlerWaitTimeSeconds")]
-    pub total_throttler_wait_time_seconds: Option<f64>,
+    pub total_throttler_wait_time_seconds: ::core::option::Option<f64>,
     /// Identifies the WorkItem.
     #[serde(default, rename = "workItemId")]
-    pub work_item_id: Option<String>,
+    pub work_item_id: ::core::option::Option<String>,
 }
 
 /// Information about a worker
@@ -3146,10 +3178,10 @@ pub struct WorkItemStatus {
 pub struct WorkerDetails {
     /// Work items processed by this worker, sorted by time.
     #[serde(default, rename = "workItems")]
-    pub work_items: Option<Vec<WorkItemDetails>>,
+    pub work_items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkItemDetails>>>,
     /// Name of this worker
     #[serde(default, rename = "workerName")]
-    pub worker_name: Option<String>,
+    pub worker_name: ::core::option::Option<String>,
 }
 
 /// WorkerHealthReport contains information about the health of a worker. The VM should be identified by the labels attached to the WorkerMessage that this health ping belongs to.
@@ -3157,25 +3189,25 @@ pub struct WorkerDetails {
 pub struct WorkerHealthReport {
     /// Message describing any unusual health reports.
     #[serde(default)]
-    pub msg: Option<String>,
+    pub msg: ::core::option::Option<String>,
     /// The pods running on the worker. See: http://kubernetes.io/v1.1/docs/api-reference/v1/definitions.html#_v1_pod This field is used by the worker to send the status of the indvidual containers running on each worker.
     #[serde(default)]
-    pub pods: Option<Vec<serde_json::Value>>,
+    pub pods: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// The interval at which the worker is sending health reports. The default value of 0 should be interpreted as the field is not being explicitly set by the worker.
     #[serde(default, rename = "reportInterval")]
-    pub report_interval: Option<String>,
+    pub report_interval: ::core::option::Option<String>,
     /// Code to describe a specific reason, if known, that a VM has reported broken state.
     #[serde(default, rename = "vmBrokenCode")]
-    pub vm_broken_code: Option<String>,
+    pub vm_broken_code: ::core::option::Option<String>,
     /// Whether the VM is in a permanently broken state. Broken VMs should be abandoned or deleted ASAP to avoid assigning or completing any work.
     #[serde(default, rename = "vmIsBroken")]
-    pub vm_is_broken: Option<bool>,
+    pub vm_is_broken: ::core::option::Option<bool>,
     /// Whether the VM is currently healthy.
     #[serde(default, rename = "vmIsHealthy")]
-    pub vm_is_healthy: Option<bool>,
+    pub vm_is_healthy: ::core::option::Option<bool>,
     /// The time the VM was booted.
     #[serde(default, rename = "vmStartupTime")]
-    pub vm_startup_time: Option<String>,
+    pub vm_startup_time: ::core::option::Option<String>,
 }
 
 /// WorkerHealthReportResponse contains information returned to the worker in response to a health ping.
@@ -3183,7 +3215,7 @@ pub struct WorkerHealthReport {
 pub struct WorkerHealthReportResponse {
     /// A positive value indicates the worker should change its reporting interval to the specified value. The default value of zero means no change in report rate is requested by the server.
     #[serde(default, rename = "reportInterval")]
-    pub report_interval: Option<String>,
+    pub report_interval: ::core::option::Option<String>,
 }
 
 /// A report of an event in a worker''s lifecycle. The proto contains one event, because the worker is expected to asynchronously send each message immediately after the event. Due to this asynchrony, messages may arrive out of order (or missing), and it is up to the consumer to interpret. The timestamp of the event is in the enclosing WorkerMessage proto.
@@ -3191,13 +3223,13 @@ pub struct WorkerHealthReportResponse {
 pub struct WorkerLifecycleEvent {
     /// The start time of this container. All events will report this so that events can be grouped together across container/VM restarts.
     #[serde(default, rename = "containerStartTime")]
-    pub container_start_time: Option<String>,
+    pub container_start_time: ::core::option::Option<String>,
     /// The event being reported. // TODO: enum values: ["UNKNOWN_EVENT", "OS_START", "CONTAINER_START", "NETWORK_UP", "STAGING_FILES_DOWNLOAD_START", "STAGING_FILES_DOWNLOAD_FINISH", "SDK_INSTALL_START", "SDK_INSTALL_FINISH"]
     #[serde(default)]
-    pub event: Option<String>,
+    pub event: ::core::option::Option<String>,
     /// Other stats that can accompany an event. E.g. { "downloaded_bytes" : "123456" }
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
 }
 
 /// WorkerMessage provides information to the backend about a worker.
@@ -3205,37 +3237,38 @@ pub struct WorkerLifecycleEvent {
 pub struct WorkerMessage {
     /// Optional. Contains metrics related to go/dataflow-data-sampling-telemetry.
     #[serde(default, rename = "dataSamplingReport")]
-    pub data_sampling_report: Option<DataSamplingReport>,
+    pub data_sampling_report: ::core::option::Option<::std::boxed::Box<DataSamplingReport>>,
     /// Labels are used to group WorkerMessages. For example, a worker_message about a particular container might have the labels: { "JOB_ID": "2015-04-22", "WORKER_ID": "wordcount-vm-2015…" "CONTAINER_TYPE": "worker", "CONTAINER_ID": "ac1234def"} Label tags typically correspond to Label enum values. However, for ease of development other strings can be used as tags. LABEL_UNSPECIFIED should not be used here.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// System defined metrics for this worker.
     #[serde(default, rename = "perWorkerMetrics")]
-    pub per_worker_metrics: Option<PerWorkerMetrics>,
+    pub per_worker_metrics: ::core::option::Option<::std::boxed::Box<PerWorkerMetrics>>,
     /// Contains per-user worker telemetry used in streaming autoscaling.
     #[serde(default, rename = "streamingScalingReport")]
-    pub streaming_scaling_report: Option<StreamingScalingReport>,
+    pub streaming_scaling_report: ::core::option::Option<::std::boxed::Box<StreamingScalingReport>>,
     /// The timestamp of the worker_message.
     #[serde(default)]
-    pub time: Option<String>,
+    pub time: ::core::option::Option<String>,
     /// The health of a worker.
     #[serde(default, rename = "workerHealthReport")]
-    pub worker_health_report: Option<WorkerHealthReport>,
+    pub worker_health_report: ::core::option::Option<::std::boxed::Box<WorkerHealthReport>>,
     /// Record of worker lifecycle events.
     #[serde(default, rename = "workerLifecycleEvent")]
-    pub worker_lifecycle_event: Option<WorkerLifecycleEvent>,
+    pub worker_lifecycle_event: ::core::option::Option<::std::boxed::Box<WorkerLifecycleEvent>>,
     /// A worker message code.
     #[serde(default, rename = "workerMessageCode")]
-    pub worker_message_code: Option<WorkerMessageCode>,
+    pub worker_message_code: ::core::option::Option<::std::boxed::Box<WorkerMessageCode>>,
     /// Resource metrics reported by workers.
     #[serde(default, rename = "workerMetrics")]
-    pub worker_metrics: Option<ResourceUtilizationReport>,
+    pub worker_metrics: ::core::option::Option<::std::boxed::Box<ResourceUtilizationReport>>,
     /// Shutdown notice by workers.
     #[serde(default, rename = "workerShutdownNotice")]
-    pub worker_shutdown_notice: Option<WorkerShutdownNotice>,
+    pub worker_shutdown_notice: ::core::option::Option<::std::boxed::Box<WorkerShutdownNotice>>,
     /// Thread scaling information reported by workers.
     #[serde(default, rename = "workerThreadScalingReport")]
-    pub worker_thread_scaling_report: Option<WorkerThreadScalingReport>,
+    pub worker_thread_scaling_report:
+        ::core::option::Option<::std::boxed::Box<WorkerThreadScalingReport>>,
 }
 
 /// A message code is used to report status and error messages to the service. The message codes are intended to be machine readable. The service will take care of translating these into user understandable messages if necessary. Example use cases: 1. Worker processes reporting successful startup. 2. Worker processes reporting specific errors (e.g. package staging failure).
@@ -3243,10 +3276,10 @@ pub struct WorkerMessage {
 pub struct WorkerMessageCode {
     /// The code is a string intended for consumption by a machine that identifies the type of message being sent. Examples: 1. "HARNESS_STARTED" might be used to indicate the worker harness has started. 2. "GCS_DOWNLOAD_ERROR" might be used to indicate an error downloading a Cloud Storage file as part of the boot process of one of the worker containers. This is a string and not an enum to make it easy to add new codes without waiting for an API change.
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// Parameters contains specific information about the code. This is a struct to allow parameters of different types. Examples: 1. For a "HARNESS_STARTED" message parameters might provide the name of the worker and additional data like timing information. 2. For a "GCS_DOWNLOAD_ERROR" parameters might contain fields listing the Cloud Storage objects being downloaded and fields containing errors. In general complex data structures should be avoided. If a worker needs to send a specific and complicated data structure then please consider defining a new proto and adding it to the data oneof in WorkerMessageResponse. Conventions: Parameters should only be used for information that isn''t typically passed as a label. hostname and other worker identifiers should almost always be passed as labels since they will be included on most messages.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// A worker_message response allows the server to pass information to the sender.
@@ -3254,19 +3287,22 @@ pub struct WorkerMessageCode {
 pub struct WorkerMessageResponse {
     /// Service''s streaming scaling response for workers.
     #[serde(default, rename = "streamingScalingReportResponse")]
-    pub streaming_scaling_report_response: Option<StreamingScalingReportResponse>,
+    pub streaming_scaling_report_response:
+        ::core::option::Option<::std::boxed::Box<StreamingScalingReportResponse>>,
     /// The service''s response to a worker''s health report.
     #[serde(default, rename = "workerHealthReportResponse")]
-    pub worker_health_report_response: Option<WorkerHealthReportResponse>,
+    pub worker_health_report_response:
+        ::core::option::Option<::std::boxed::Box<WorkerHealthReportResponse>>,
     /// Service''s response to reporting worker metrics (currently empty).
     #[serde(default, rename = "workerMetricsResponse")]
-    pub worker_metrics_response: Option<serde_json::Value>,
+    pub worker_metrics_response: ::core::option::Option<serde_json::Value>,
     /// Service''s response to shutdown notice (currently empty).
     #[serde(default, rename = "workerShutdownNoticeResponse")]
-    pub worker_shutdown_notice_response: Option<serde_json::Value>,
+    pub worker_shutdown_notice_response: ::core::option::Option<serde_json::Value>,
     /// Service''s thread scaling recommendation for workers.
     #[serde(default, rename = "workerThreadScalingReportResponse")]
-    pub worker_thread_scaling_report_response: Option<WorkerThreadScalingReportResponse>,
+    pub worker_thread_scaling_report_response:
+        ::core::option::Option<::std::boxed::Box<WorkerThreadScalingReportResponse>>,
 }
 
 /// Describes one particular pool of Cloud Dataflow workers to be instantiated by the Cloud Dataflow service in order to perform the computations required by a job. Note that a workflow job may use multiple pools, in order to match the various computational requirements of the various stages of the job.
@@ -3274,76 +3310,77 @@ pub struct WorkerMessageResponse {
 pub struct WorkerPool {
     /// Settings for autoscaling of this WorkerPool.
     #[serde(default, rename = "autoscalingSettings")]
-    pub autoscaling_settings: Option<AutoscalingSettings>,
+    pub autoscaling_settings: ::core::option::Option<::std::boxed::Box<AutoscalingSettings>>,
     /// Data disks that are used by a VM in this workflow.
     #[serde(default, rename = "dataDisks")]
-    pub data_disks: Option<Vec<Disk>>,
+    pub data_disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Disk>>>,
     /// The default package set to install. This allows the service to select a default set of packages which are useful to worker harnesses written in a particular language. // TODO: enum values: ["DEFAULT_PACKAGE_SET_UNKNOWN", "DEFAULT_PACKAGE_SET_NONE", "DEFAULT_PACKAGE_SET_JAVA", "DEFAULT_PACKAGE_SET_PYTHON"]
     #[serde(default, rename = "defaultPackageSet")]
-    pub default_package_set: Option<String>,
+    pub default_package_set: ::core::option::Option<String>,
     /// Optional. IOPS provisioned for the root disk for VMs.
     #[serde(default, rename = "diskProvisionedIops")]
-    pub disk_provisioned_iops: Option<String>,
+    pub disk_provisioned_iops: ::core::option::Option<String>,
     /// Optional. Throughput provisioned for the root disk for VMs.
     #[serde(default, rename = "diskProvisionedThroughputMibps")]
-    pub disk_provisioned_throughput_mibps: Option<String>,
+    pub disk_provisioned_throughput_mibps: ::core::option::Option<String>,
     /// Size of root disk for VMs, in GB. If zero or unspecified, the service will attempt to choose a reasonable default.
     #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: Option<i32>,
+    pub disk_size_gb: ::core::option::Option<i32>,
     /// Fully qualified source image for disks.
     #[serde(default, rename = "diskSourceImage")]
-    pub disk_source_image: Option<String>,
+    pub disk_source_image: ::core::option::Option<String>,
     /// Type of root disk for VMs. If empty or unspecified, the service will attempt to choose a reasonable default.
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Configuration for VM IPs. // TODO: enum values: ["WORKER_IP_UNSPECIFIED", "WORKER_IP_PUBLIC", "WORKER_IP_PRIVATE"]
     #[serde(default, rename = "ipConfiguration")]
-    pub ip_configuration: Option<String>,
+    pub ip_configuration: ::core::option::Option<String>,
     /// The kind of the worker pool; currently only harness and shuffle are supported.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Machine type (e.g. "n1-standard-1"). If empty or unspecified, the service will attempt to choose a reasonable default.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Metadata to set on the Google Compute Engine VMs.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Network to which VMs will be assigned. If empty or unspecified, the service will use the network "default".
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// The number of threads per worker harness. If empty or unspecified, the service will choose a number of threads (according to the number of cores on the selected machine type for batch, or 1 by convention for streaming).
     #[serde(default, rename = "numThreadsPerWorker")]
-    pub num_threads_per_worker: Option<i32>,
+    pub num_threads_per_worker: ::core::option::Option<i32>,
     /// Number of Google Compute Engine workers in this pool needed to execute the job. If zero or unspecified, the service will attempt to choose a reasonable default.
     #[serde(default, rename = "numWorkers")]
-    pub num_workers: Option<i32>,
+    pub num_workers: ::core::option::Option<i32>,
     /// The action to take on host maintenance, as defined by the Google Compute Engine API.
     #[serde(default, rename = "onHostMaintenance")]
-    pub on_host_maintenance: Option<String>,
+    pub on_host_maintenance: ::core::option::Option<String>,
     /// Packages to be installed on workers.
     #[serde(default)]
-    pub packages: Option<Vec<Package>>,
+    pub packages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Package>>>,
     /// Extra arguments for this worker pool.
     #[serde(default, rename = "poolArgs")]
-    pub pool_args: Option<serde_json::Value>,
+    pub pool_args: ::core::option::Option<serde_json::Value>,
     /// Set of SDK harness containers needed to execute this pipeline. This will only be set in the Fn API path. For non-cross-language pipelines this should have only one entry. Cross-language pipelines will have two or more entries.
     #[serde(default, rename = "sdkHarnessContainerImages")]
-    pub sdk_harness_container_images: Option<Vec<SdkHarnessContainerImage>>,
+    pub sdk_harness_container_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SdkHarnessContainerImage>>>,
     /// Subnetwork to which VMs will be assigned, if desired. Expected to be of the form "regions/REGION/subnetworks/SUBNETWORK".
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
     /// Settings passed through to Google Compute Engine workers when using the standard Dataflow task runner. Users should ignore this field.
     #[serde(default, rename = "taskrunnerSettings")]
-    pub taskrunner_settings: Option<TaskRunnerSettings>,
+    pub taskrunner_settings: ::core::option::Option<::std::boxed::Box<TaskRunnerSettings>>,
     /// Sets the policy for determining when to turndown worker pool. Allowed values are: TEARDOWN_ALWAYS, TEARDOWN_ON_SUCCESS, and TEARDOWN_NEVER. TEARDOWN_ALWAYS means workers are always torn down regardless of whether the job succeeds. TEARDOWN_ON_SUCCESS means workers are torn down if the job succeeds. TEARDOWN_NEVER means the workers are never torn down. If the workers are not torn down by the service, they will continue to run and use Google Compute Engine VM resources in the user''s project until they are explicitly terminated by the user. Because of this, Google recommends using the TEARDOWN_ALWAYS policy except for small, manually supervised test jobs. If unknown or unspecified, the service will attempt to choose a reasonable default. // TODO: enum values: ["TEARDOWN_POLICY_UNKNOWN", "TEARDOWN_ALWAYS", "TEARDOWN_ON_SUCCESS", "TEARDOWN_NEVER"]
     #[serde(default, rename = "teardownPolicy")]
-    pub teardown_policy: Option<String>,
+    pub teardown_policy: ::core::option::Option<String>,
     /// Required. Docker container image that executes the Cloud Dataflow worker harness, residing in Google Container Registry. Deprecated for the Fn API path. Use sdk_harness_container_images instead.
     #[serde(default, rename = "workerHarnessContainerImage")]
-    pub worker_harness_container_image: Option<String>,
+    pub worker_harness_container_image: ::core::option::Option<String>,
     /// Zone to run the worker pools in. If empty or unspecified, the service will attempt to choose a reasonable default.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Provides data to pass through to the worker harness.
@@ -3351,22 +3388,22 @@ pub struct WorkerPool {
 pub struct WorkerSettings {
     /// The base URL for accessing Google Cloud APIs. When workers access Google Cloud APIs, they logically do so via relative URLs. If this field is specified, it supplies the base URL to use for resolving these relative URLs. The normative algorithm used is defined by RFC 1808, "Relative Uniform Resource Locators". If not specified, the default value is "http://www.googleapis.com/"
     #[serde(default, rename = "baseUrl")]
-    pub base_url: Option<String>,
+    pub base_url: ::core::option::Option<String>,
     /// Whether to send work progress updates to the service.
     #[serde(default, rename = "reportingEnabled")]
-    pub reporting_enabled: Option<bool>,
+    pub reporting_enabled: ::core::option::Option<bool>,
     /// The Cloud Dataflow service path relative to the root URL, for example, "dataflow/v1b3/projects".
     #[serde(default, rename = "servicePath")]
-    pub service_path: Option<String>,
+    pub service_path: ::core::option::Option<String>,
     /// The Shuffle service path relative to the root URL, for example, "shuffle/v1beta1".
     #[serde(default, rename = "shuffleServicePath")]
-    pub shuffle_service_path: Option<String>,
+    pub shuffle_service_path: ::core::option::Option<String>,
     /// The prefix of the resources the system should use for temporary storage. The supported resource type is: Google Cloud Storage: storage.googleapis.com/{bucket}/{object} bucket.storage.googleapis.com/{object}
     #[serde(default, rename = "tempStoragePrefix")]
-    pub temp_storage_prefix: Option<String>,
+    pub temp_storage_prefix: ::core::option::Option<String>,
     /// The ID of the worker running this pipeline.
     #[serde(default, rename = "workerId")]
-    pub worker_id: Option<String>,
+    pub worker_id: ::core::option::Option<String>,
 }
 
 /// Shutdown notification from workers. This is to be sent by the shutdown script of the worker VM so that the backend knows that the VM is being shut down.
@@ -3374,7 +3411,7 @@ pub struct WorkerSettings {
 pub struct WorkerShutdownNotice {
     /// The reason for the worker shutdown. Current possible values are: "UNKNOWN": shutdown reason is unknown. "PREEMPTION": shutdown reason is preemption. Other possible reasons may be added in the future.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Contains information about the thread scaling information of a worker.
@@ -3382,7 +3419,7 @@ pub struct WorkerShutdownNotice {
 pub struct WorkerThreadScalingReport {
     /// Current number of active threads in a worker.
     #[serde(default, rename = "currentThreadCount")]
-    pub current_thread_count: Option<i32>,
+    pub current_thread_count: ::core::option::Option<i32>,
 }
 
 /// Contains the thread scaling recommendation for a worker from the backend.
@@ -3390,7 +3427,7 @@ pub struct WorkerThreadScalingReport {
 pub struct WorkerThreadScalingReportResponse {
     /// Recommended number of threads for a worker.
     #[serde(default, rename = "recommendedThreadCount")]
-    pub recommended_thread_count: Option<i32>,
+    pub recommended_thread_count: ::core::option::Option<i32>,
 }
 
 /// An instruction that writes records. Takes one input, produces no outputs.
@@ -3398,8 +3435,8 @@ pub struct WorkerThreadScalingReportResponse {
 pub struct WriteInstruction {
     /// The input.
     #[serde(default)]
-    pub input: Option<InstructionInput>,
+    pub input: ::core::option::Option<::std::boxed::Box<InstructionInput>>,
     /// The sink to write to.
     #[serde(default)]
-    pub sink: Option<Sink>,
+    pub sink: ::core::option::Option<::std::boxed::Box<Sink>>,
 }

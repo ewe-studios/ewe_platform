@@ -10,36 +10,38 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A configuration object describing how Cloud Bigtable should treat traffic from a particular end user application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppProfile {
     /// Specifies that this app profile is intended for read-only usage via the Data Boost feature.
     #[serde(default, rename = "dataBoostIsolationReadOnly")]
-    pub data_boost_isolation_read_only: Option<DataBoostIsolationReadOnly>,
+    pub data_boost_isolation_read_only:
+        ::core::option::Option<::std::boxed::Box<DataBoostIsolationReadOnly>>,
     /// Long form description of the use case for this AppProfile.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Strongly validated etag for optimistic concurrency control. Preserve the value returned from GetAppProfile when calling UpdateAppProfile to fail the request if there has been a modification in the meantime. The update_mask of the request need not include etag for this protection to apply. See [Wikipedia](https://en.wikipedia.org/wiki/HTTP_ETag) and [RFC 7232](https://tools.ietf.org/html/rfc7232#section-2.3) for more details.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Use a multi-cluster routing policy.
     #[serde(default, rename = "multiClusterRoutingUseAny")]
-    pub multi_cluster_routing_use_any: Option<MultiClusterRoutingUseAny>,
+    pub multi_cluster_routing_use_any:
+        ::core::option::Option<::std::boxed::Box<MultiClusterRoutingUseAny>>,
     /// The unique name of the app profile, up to 50 characters long. Values are of the form projects/{project}/instances/{instance}/appProfiles/_a-zA-Z0-9*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// This field has been deprecated in favor of standard_isolation.priority. If you set this field, standard_isolation.priority will be set instead. The priority of requests sent using this app profile. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "PRIORITY_LOW", "PRIORITY_MEDIUM", "PRIORITY_HIGH"]
     #[serde(default)]
-    pub priority: Option<String>,
+    pub priority: ::core::option::Option<String>,
     /// Use a single-cluster routing policy.
     #[serde(default, rename = "singleClusterRouting")]
-    pub single_cluster_routing: Option<SingleClusterRouting>,
+    pub single_cluster_routing: ::core::option::Option<::std::boxed::Box<SingleClusterRouting>>,
     /// The standard options used for isolating this app profile''s traffic from other use cases.
     #[serde(default, rename = "standardIsolation")]
-    pub standard_isolation: Option<StandardIsolation>,
+    pub standard_isolation: ::core::option::Option<::std::boxed::Box<StandardIsolation>>,
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
@@ -47,10 +49,11 @@ pub struct AppProfile {
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: Option<Vec<AuditLogConfig>>,
+    pub audit_log_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditLogConfig>>>,
     /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -58,10 +61,10 @@ pub struct AuditConfig {
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: Option<Vec<String>>,
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
-    pub log_type: Option<String>,
+    pub log_type: ::core::option::Option<String>,
 }
 
 /// An Authorized View of a Cloud Bigtable Table.
@@ -69,16 +72,17 @@ pub struct AuditLogConfig {
 pub struct AuthorizedView {
     /// Set to true to make the AuthorizedView protected against deletion. The parent Table and containing Instance cannot be deleted if an AuthorizedView has this bit set.
     #[serde(default, rename = "deletionProtection")]
-    pub deletion_protection: Option<bool>,
+    pub deletion_protection: ::core::option::Option<bool>,
     /// The etag for this AuthorizedView. If this is provided on update, it must match the server''s etag. The server returns ABORTED error on a mismatched etag.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier. The name of this AuthorizedView. Values are of the form projects/{project}/instances/{instance}/tables/{table}/authorizedViews/{authorized_view}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// An AuthorizedView permitting access to an explicit subset of a Table.
     #[serde(default, rename = "subsetView")]
-    pub subset_view: Option<GoogleBigtableAdminV2AuthorizedViewSubsetView>,
+    pub subset_view:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2AuthorizedViewSubsetView>>,
 }
 
 /// Defines an automated backup policy for a table
@@ -86,10 +90,10 @@ pub struct AuthorizedView {
 pub struct AutomatedBackupPolicy {
     /// How frequently automated backups should occur. The only supported value at this time is 24 hours. An undefined frequency is treated as 24 hours.
     #[serde(default)]
-    pub frequency: Option<String>,
+    pub frequency: ::core::option::Option<String>,
     /// Required. How long the automated backups should be retained. Values must be at least 3 days and at most 90 days.
     #[serde(default, rename = "retentionPeriod")]
-    pub retention_period: Option<String>,
+    pub retention_period: ::core::option::Option<String>,
 }
 
 /// Limits for the number of nodes a Cluster can autoscale up/down to.
@@ -97,10 +101,10 @@ pub struct AutomatedBackupPolicy {
 pub struct AutoscalingLimits {
     /// Required. Maximum number of nodes to scale up to.
     #[serde(default, rename = "maxServeNodes")]
-    pub max_serve_nodes: Option<i32>,
+    pub max_serve_nodes: ::core::option::Option<i32>,
     /// Required. Minimum number of nodes to scale down to.
     #[serde(default, rename = "minServeNodes")]
-    pub min_serve_nodes: Option<i32>,
+    pub min_serve_nodes: ::core::option::Option<i32>,
 }
 
 /// The Autoscaling targets for a Cluster. These determine the recommended nodes.
@@ -108,10 +112,10 @@ pub struct AutoscalingLimits {
 pub struct AutoscalingTargets {
     /// The cpu utilization that the Autoscaler should be trying to achieve. This number is on a scale from 0 (no utilization) to 100 (total utilization), and is limited between 10 and 80, otherwise it will return INVALID_ARGUMENT error.
     #[serde(default, rename = "cpuUtilizationPercent")]
-    pub cpu_utilization_percent: Option<i32>,
+    pub cpu_utilization_percent: ::core::option::Option<i32>,
     /// The storage utilization that the Autoscaler should be trying to achieve. This number is limited between 2560 (2.5TiB) and 5120 (5TiB) for a SSD cluster and between 8192 (8TiB) and 16384 (16TiB) for an HDD cluster, otherwise it will return INVALID_ARGUMENT error. If this value is set to 0, it will be treated as if it were set to the default value: 2560 for SSD, 8192 for HDD.
     #[serde(default, rename = "storageUtilizationGibPerNode")]
-    pub storage_utilization_gib_per_node: Option<i32>,
+    pub storage_utilization_gib_per_node: ::core::option::Option<i32>,
 }
 
 /// A backup of a Cloud Bigtable table.
@@ -119,37 +123,37 @@ pub struct AutoscalingTargets {
 pub struct Backup {
     /// Indicates the backup type of the backup. // TODO: enum values: ["BACKUP_TYPE_UNSPECIFIED", "STANDARD", "HOT"]
     #[serde(default, rename = "backupType")]
-    pub backup_type: Option<String>,
+    pub backup_type: ::core::option::Option<String>,
     /// Output only. The encryption information for the backup.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Output only. end_time is the time that the backup was finished. The row data in the backup will be no newer than this timestamp.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Required. The expiration time of the backup. When creating a backup or updating its expire_time, the value must be greater than the backup creation time by: - At least 6 hours - At most 90 days Once the expire_time has passed, Cloud Bigtable will delete the backup.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// The time at which the hot backup will be converted to a standard backup. Once the hot_to_standard_time has passed, Cloud Bigtable will convert the hot backup to a standard backup. This value must be greater than the backup creation time by: - At least 24 hours This field only applies for hot backups. When creating or updating a standard backup, attempting to set this field will fail the request.
     #[serde(default, rename = "hotToStandardTime")]
-    pub hot_to_standard_time: Option<String>,
+    pub hot_to_standard_time: ::core::option::Option<String>,
     /// A globally unique identifier for the backup which cannot be changed. Values are of the form projects/{project}/instances/{instance}/clusters/{cluster}/ backups/_a-zA-Z0-9* The final segment of the name must be between 1 and 50 characters in length. The backup is stored in the cluster identified by the prefix of the backup name of the form projects/{project}/instances/{instance}/clusters/{cluster}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Size of the backup in bytes.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
     /// Output only. Name of the backup from which this backup was copied. If a backup is not created by copying a backup, this field will be empty. Values are of the form: projects//instances//clusters//backups/
     #[serde(default, rename = "sourceBackup")]
-    pub source_backup: Option<String>,
+    pub source_backup: ::core::option::Option<String>,
     /// Required. Immutable. Name of the table from which this backup was created. This needs to be in the same instance as the backup. Values are of the form projects/{project}/instances/{instance}/tables/{source_table}.
     #[serde(default, rename = "sourceTable")]
-    pub source_table: Option<String>,
+    pub source_table: ::core::option::Option<String>,
     /// Output only. start_time is the time that the backup was started (i.e. approximately the time the CreateBackup request is received). The row data in this backup will be no older than this timestamp.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Information about a backup.
@@ -157,19 +161,19 @@ pub struct Backup {
 pub struct BackupInfo {
     /// Output only. Name of the backup.
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
     /// Output only. This time that the backup was finished. Row data in the backup will be no newer than this timestamp.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Name of the backup from which this backup was copied. If a backup is not created by copying a backup, this field will be empty. Values are of the form: projects//instances//clusters//backups/
     #[serde(default, rename = "sourceBackup")]
-    pub source_backup: Option<String>,
+    pub source_backup: ::core::option::Option<String>,
     /// Output only. Name of the table the backup was created from.
     #[serde(default, rename = "sourceTable")]
-    pub source_table: Option<String>,
+    pub source_table: ::core::option::Option<String>,
     /// Output only. The time that the backup was started. Row data in the backup will be no older than this timestamp.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -177,13 +181,13 @@ pub struct BackupInfo {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Change stream configuration.
@@ -191,7 +195,7 @@ pub struct Binding {
 pub struct ChangeStreamConfig {
     /// How long the change stream should be retained. Change stream data older than the retention period will not be returned when reading the change stream from the table. Values must be at least 1 day and at most 7 days, and will be truncated to microsecond granularity.
     #[serde(default, rename = "retentionPeriod")]
-    pub retention_period: Option<String>,
+    pub retention_period: ::core::option::Option<String>,
 }
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency
@@ -199,13 +203,13 @@ pub struct ChangeStreamConfig {
 pub struct CheckConsistencyRequest {
     /// Required. The token created using GenerateConsistencyToken for the Table.
     #[serde(default, rename = "consistencyToken")]
-    pub consistency_token: Option<String>,
+    pub consistency_token: ::core::option::Option<String>,
     /// Checks that reads using an app profile with DataBoostIsolationReadOnly can see all writes committed before the token was created, but only if the read and write target the same cluster.
     #[serde(default, rename = "dataBoostReadLocalWrites")]
-    pub data_boost_read_local_writes: Option<serde_json::Value>,
+    pub data_boost_read_local_writes: ::core::option::Option<serde_json::Value>,
     /// Checks that reads using an app profile with StandardIsolation can see all writes committed before the token was created, even if the read and write target different clusters.
     #[serde(default, rename = "standardReadRemoteWrites")]
-    pub standard_read_remote_writes: Option<serde_json::Value>,
+    pub standard_read_remote_writes: ::core::option::Option<serde_json::Value>,
 }
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency
@@ -213,7 +217,7 @@ pub struct CheckConsistencyRequest {
 pub struct CheckConsistencyResponse {
     /// True only if the token is consistent. A token is consistent if replication has caught up with the restrictions specified in the request.
     #[serde(default)]
-    pub consistent: Option<bool>,
+    pub consistent: ::core::option::Option<bool>,
 }
 
 /// A resizable group of nodes in a particular cloud location, capable of serving all Tables in the parent Instance.
@@ -221,28 +225,28 @@ pub struct CheckConsistencyResponse {
 pub struct Cluster {
     /// Configuration for this cluster.
     #[serde(default, rename = "clusterConfig")]
-    pub cluster_config: Option<ClusterConfig>,
+    pub cluster_config: ::core::option::Option<::std::boxed::Box<ClusterConfig>>,
     /// Immutable. The type of storage used by this cluster to serve its parent instance''s tables, unless explicitly overridden. // TODO: enum values: ["STORAGE_TYPE_UNSPECIFIED", "SSD", "HDD"]
     #[serde(default, rename = "defaultStorageType")]
-    pub default_storage_type: Option<String>,
+    pub default_storage_type: ::core::option::Option<String>,
     /// Immutable. The encryption configuration for CMEK-protected clusters.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<EncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<EncryptionConfig>>,
     /// Immutable. The location where this cluster''s nodes and storage reside. For best performance, clients should be located as close as possible to this cluster. Currently only zones are supported, so values should be of the form projects/{project}/locations/{zone}.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The unique name of the cluster. Values are of the form projects/{project}/instances/{instance}/clusters/a-z*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The node scaling factor of this cluster. // TODO: enum values: ["NODE_SCALING_FACTOR_UNSPECIFIED", "NODE_SCALING_FACTOR_1X", "NODE_SCALING_FACTOR_2X"]
     #[serde(default, rename = "nodeScalingFactor")]
-    pub node_scaling_factor: Option<String>,
+    pub node_scaling_factor: ::core::option::Option<String>,
     /// The number of nodes in the cluster. If no value is set, Cloud Bigtable automatically allocates nodes based on your data footprint and optimized for 50% storage utilization.
     #[serde(default, rename = "serveNodes")]
-    pub serve_nodes: Option<i32>,
+    pub serve_nodes: ::core::option::Option<i32>,
     /// Output only. The current state of the cluster. // TODO: enum values: ["STATE_NOT_KNOWN", "READY", "CREATING", "RESIZING", "DISABLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Autoscaling config for a cluster.
@@ -250,10 +254,10 @@ pub struct Cluster {
 pub struct ClusterAutoscalingConfig {
     /// Required. Autoscaling limits for this cluster.
     #[serde(default, rename = "autoscalingLimits")]
-    pub autoscaling_limits: Option<AutoscalingLimits>,
+    pub autoscaling_limits: ::core::option::Option<::std::boxed::Box<AutoscalingLimits>>,
     /// Required. Autoscaling targets for this cluster.
     #[serde(default, rename = "autoscalingTargets")]
-    pub autoscaling_targets: Option<AutoscalingTargets>,
+    pub autoscaling_targets: ::core::option::Option<::std::boxed::Box<AutoscalingTargets>>,
 }
 
 /// Configuration for a cluster.
@@ -261,7 +265,8 @@ pub struct ClusterAutoscalingConfig {
 pub struct ClusterConfig {
     /// Autoscaling configuration for this cluster.
     #[serde(default, rename = "clusterAutoscalingConfig")]
-    pub cluster_autoscaling_config: Option<ClusterAutoscalingConfig>,
+    pub cluster_autoscaling_config:
+        ::core::option::Option<::std::boxed::Box<ClusterAutoscalingConfig>>,
 }
 
 /// The state of a table''s data in a particular cluster.
@@ -269,10 +274,10 @@ pub struct ClusterConfig {
 pub struct ClusterState {
     /// Output only. The encryption information for the table in this cluster. If the encryption key protecting this resource is customer managed, then its version can be rotated in Cloud Key Management Service (Cloud KMS). The primary version of the key and its status will be reflected here when changes propagate from Cloud KMS.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<Vec<EncryptionInfo>>,
+    pub encryption_info: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EncryptionInfo>>>,
     /// Output only. The state of replication for the table in this cluster. // TODO: enum values: ["STATE_NOT_KNOWN", "INITIALIZING", "PLANNED_MAINTENANCE", "UNPLANNED_MAINTENANCE", "READY", "READY_OPTIMIZING"]
     #[serde(default, rename = "replicationState")]
-    pub replication_state: Option<String>,
+    pub replication_state: ::core::option::Option<String>,
 }
 
 /// A set of columns within a table which share a common configuration.
@@ -280,13 +285,13 @@ pub struct ClusterState {
 pub struct ColumnFamily {
     /// Garbage collection rule specified as a protobuf. Must serialize to at most 500 bytes. NOTE: Garbage collection executes opportunistically in the background, and so it''s possible for reads to return a cell even if it matches the active GC expression for its family.
     #[serde(default, rename = "gcRule")]
-    pub gc_rule: Option<GcRule>,
+    pub gc_rule: ::core::option::Option<::std::boxed::Box<GcRule>>,
     /// Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.
     #[serde(default)]
-    pub stats: Option<ColumnFamilyStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<ColumnFamilyStats>>,
     /// The type of data stored in each of this family''s cell values, including its full encoding. If omitted, the family only serves raw untyped bytes. For now, only the Aggregate type is supported. Aggregate can only be set at family creation and is immutable afterwards. This field is mutually exclusive with sql_type. If value_type is Aggregate, written data must be compatible with: * value_type.input_type for AddInput mutations
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<Type>,
+    pub value_type: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// Approximate statistics related to a single column family within a table. This information may change rapidly, interpreting these values at a point in time may already preset out-of-date information. Everything below is approximate, unless otherwise specified.
@@ -294,13 +299,13 @@ pub struct ColumnFamily {
 pub struct ColumnFamilyStats {
     /// How many cells are present per column qualifier in this column family, averaged over all rows containing any column in the column family. e.g. For column family "family" in a table with 3 rows: * A row with 3 cells in "family:col" and 1 cell in "other:col" (3 cells / 1 column in "family") * A row with 1 cell in "family:col", 7 cells in "family:other_col", and 7 cells in "other:data" (8 cells / 2 columns in "family") * A row with 3 cells in "other:col" (0 columns in "family", "family" not present) would report (3 + 8 + 0)/(1 + 2 + 0) = 3.66 in this field.
     #[serde(default, rename = "averageCellsPerColumn")]
-    pub average_cells_per_column: Option<f64>,
+    pub average_cells_per_column: ::core::option::Option<f64>,
     /// How many column qualifiers are present in this column family, averaged over all rows in the table. e.g. For column family "family" in a table with 3 rows: * A row with cells in "family:col" and "other:col" (1 column in "family") * A row with cells in "family:col", "family:other_col", and "other:data" (2 columns in "family") * A row with cells in "other:col" (0 columns in "family", "family" not present) would report (1 + 2 + 0)/3 = 1.5 in this field.
     #[serde(default, rename = "averageColumnsPerRow")]
-    pub average_columns_per_row: Option<f64>,
+    pub average_columns_per_row: ::core::option::Option<f64>,
     /// How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).
     #[serde(default, rename = "logicalDataBytes")]
-    pub logical_data_bytes: Option<String>,
+    pub logical_data_bytes: ::core::option::Option<String>,
 }
 
 /// Metadata type for the google.longrunning.Operation returned by CopyBackup.
@@ -308,13 +313,13 @@ pub struct ColumnFamilyStats {
 pub struct CopyBackupMetadata {
     /// The name of the backup being created through the copy operation. Values are of the form projects//instances//clusters//backups/.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The progress of the CopyBackup operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
     /// Information about the source backup that is being copied from.
     #[serde(default, rename = "sourceBackupInfo")]
-    pub source_backup_info: Option<BackupInfo>,
+    pub source_backup_info: ::core::option::Option<::std::boxed::Box<BackupInfo>>,
 }
 
 /// The request for CopyBackup.
@@ -322,13 +327,13 @@ pub struct CopyBackupMetadata {
 pub struct CopyBackupRequest {
     /// Required. The id of the new backup. The backup_id along with parent are combined as {parent}/backups/{backup_id} to create the full backup name, of the form: projects/{project}/instances/{instance}/clusters/{cluster}/backups/{backup_id}. This string must be between 1 and 50 characters in length and match the regex _a-zA-Z0-9*.
     #[serde(default, rename = "backupId")]
-    pub backup_id: Option<String>,
+    pub backup_id: ::core::option::Option<String>,
     /// Required. Required. The expiration time of the copied backup with microsecond granularity that must be at least 6 hours and at most 30 days from the time the request is received. Once the expire_time has passed, Cloud Bigtable will delete the backup and free the resources used by the backup.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Required. The source backup to be copied from. The source backup needs to be in READY state for it to be copied. Copying a copied backup is not allowed. Once CopyBackup is in progress, the source backup cannot be deleted or cleaned up on expiration until CopyBackup is finished. Values are of the form: projects//instances//clusters//backups/.
     #[serde(default, rename = "sourceBackup")]
-    pub source_backup: Option<String>,
+    pub source_backup: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by CreateAuthorizedView.
@@ -336,13 +341,13 @@ pub struct CopyBackupRequest {
 pub struct CreateAuthorizedViewMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this CreateAuthorizedView operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<CreateAuthorizedViewRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<CreateAuthorizedViewRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// The request for CreateAuthorizedView
@@ -350,13 +355,13 @@ pub struct CreateAuthorizedViewMetadata {
 pub struct CreateAuthorizedViewRequest {
     /// Required. The AuthorizedView to create.
     #[serde(default, rename = "authorizedView")]
-    pub authorized_view: Option<AuthorizedView>,
+    pub authorized_view: ::core::option::Option<::std::boxed::Box<AuthorizedView>>,
     /// Required. The id of the AuthorizedView to create. This AuthorizedView must not already exist. The authorized_view_id appended to parent forms the full AuthorizedView name of the form projects/{project}/instances/{instance}/tables/{table}/authorizedView/{authorized_view}.
     #[serde(default, rename = "authorizedViewId")]
-    pub authorized_view_id: Option<String>,
+    pub authorized_view_id: ::core::option::Option<String>,
     /// Required. This is the name of the table the AuthorizedView belongs to. Values are of the form projects/{project}/instances/{instance}/tables/{table}.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Metadata type for the operation returned by CreateBackup.
@@ -364,22 +369,22 @@ pub struct CreateAuthorizedViewRequest {
 pub struct CreateBackupMetadata {
     /// If set, the time at which this operation finished or was cancelled. DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The name of the backup being created.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// The name of the table the backup is created from.
     #[serde(default, rename = "sourceTable")]
-    pub source_table: Option<String>,
+    pub source_table: ::core::option::Option<String>,
     /// The time at which this operation started. DEPRECATED: Use request_time instead.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by CreateCluster.
@@ -387,16 +392,16 @@ pub struct CreateBackupMetadata {
 pub struct CreateClusterMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this CreateCluster operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<CreateClusterRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<CreateClusterRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// Keys: the full name of each table that existed in the instance when CreateCluster was first called, i.e. projects//instances//tables/. Any table added to the instance by a later API call will be created in the new cluster by that API call, not this one. Values: information on how much of a table''s data has been copied to the newly-created cluster so far.
     #[serde(default)]
-    pub tables: Option<serde_json::Value>,
+    pub tables: ::core::option::Option<serde_json::Value>,
 }
 
 /// Request message for BigtableInstanceAdmin.CreateCluster.
@@ -404,13 +409,13 @@ pub struct CreateClusterMetadata {
 pub struct CreateClusterRequest {
     /// Required. The cluster to be created. Fields marked OutputOnly must be left blank.
     #[serde(default)]
-    pub cluster: Option<Cluster>,
+    pub cluster: ::core::option::Option<::std::boxed::Box<Cluster>>,
     /// Required. The ID to be used when referring to the new cluster within its instance, e.g., just mycluster rather than projects/myproject/instances/myinstance/clusters/mycluster.
     #[serde(default, rename = "clusterId")]
-    pub cluster_id: Option<String>,
+    pub cluster_id: ::core::option::Option<String>,
     /// Required. The unique name of the instance in which to create the new cluster. Values are of the form projects/{project}/instances/{instance}.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by CreateInstance.
@@ -418,13 +423,13 @@ pub struct CreateClusterRequest {
 pub struct CreateInstanceMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this CreateInstance operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<CreateInstanceRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<CreateInstanceRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// Request message for BigtableInstanceAdmin.CreateInstance.
@@ -432,16 +437,16 @@ pub struct CreateInstanceMetadata {
 pub struct CreateInstanceRequest {
     /// Required. The clusters to be created within the instance, mapped by desired cluster ID, e.g., just mycluster rather than projects/myproject/instances/myinstance/clusters/mycluster. Fields marked OutputOnly must be left blank.
     #[serde(default)]
-    pub clusters: Option<serde_json::Value>,
+    pub clusters: ::core::option::Option<serde_json::Value>,
     /// Required. The instance to create. Fields marked OutputOnly must be left blank.
     #[serde(default)]
-    pub instance: Option<Instance>,
+    pub instance: ::core::option::Option<::std::boxed::Box<Instance>>,
     /// Required. The ID to be used when referring to the new instance within its project, e.g., just myinstance rather than projects/myproject/instances/myinstance.
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
     /// Required. The unique name of the project in which to create the new instance. Values are of the form projects/{project}.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by CreateLogicalView.
@@ -449,19 +454,19 @@ pub struct CreateInstanceRequest {
 pub struct CreateLogicalViewMetadata {
     /// DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this CreateLogicalView operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<CreateLogicalViewRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<CreateLogicalViewRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// DEPRECATED: Use request_time instead.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Request message for BigtableInstanceAdmin.CreateLogicalView.
@@ -469,13 +474,13 @@ pub struct CreateLogicalViewMetadata {
 pub struct CreateLogicalViewRequest {
     /// Required. The logical view to create.
     #[serde(default, rename = "logicalView")]
-    pub logical_view: Option<LogicalView>,
+    pub logical_view: ::core::option::Option<::std::boxed::Box<LogicalView>>,
     /// Required. The ID to use for the logical view, which will become the final component of the logical view''s resource name.
     #[serde(default, rename = "logicalViewId")]
-    pub logical_view_id: Option<String>,
+    pub logical_view_id: ::core::option::Option<String>,
     /// Required. The parent instance where this logical view will be created. Format: projects/{project}/instances/{instance}.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by CreateMaterializedView.
@@ -483,19 +488,19 @@ pub struct CreateLogicalViewRequest {
 pub struct CreateMaterializedViewMetadata {
     /// If set, the time at which this operation finished or was canceled. DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this CreateMaterializedView operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<CreateMaterializedViewRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<CreateMaterializedViewRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// The time at which this operation started. DEPRECATED: Use request_time instead.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Request message for BigtableInstanceAdmin.CreateMaterializedView.
@@ -503,13 +508,13 @@ pub struct CreateMaterializedViewMetadata {
 pub struct CreateMaterializedViewRequest {
     /// Required. The materialized view to create.
     #[serde(default, rename = "materializedView")]
-    pub materialized_view: Option<MaterializedView>,
+    pub materialized_view: ::core::option::Option<::std::boxed::Box<MaterializedView>>,
     /// Required. The ID to use for the materialized view, which will become the final component of the materialized view''s resource name.
     #[serde(default, rename = "materializedViewId")]
-    pub materialized_view_id: Option<String>,
+    pub materialized_view_id: ::core::option::Option<String>,
     /// Required. The parent instance where this materialized view will be created. Format: projects/{project}/instances/{instance}.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by CreateSchemaBundle.
@@ -517,13 +522,13 @@ pub struct CreateMaterializedViewRequest {
 pub struct CreateSchemaBundleMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The unique name identifying this schema bundle. Values are of the form projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.CreateTable
@@ -531,13 +536,13 @@ pub struct CreateSchemaBundleMetadata {
 pub struct CreateTableRequest {
     /// The optional list of row keys that will be used to initially split the table into several tablets (tablets are similar to HBase regions). Given two split keys, s1 and s2, three tablets will be created, spanning the key ranges: [, s1), [s1, s2), [s2, ). Example: * Row keys := ["a", "apple", "custom", "customer_1", "customer_2", "other", "zz"] * initial_split_keys := ["apple", "customer_1", "customer_2", "other"] * Key assignment: - Tablet 1 [, apple) =&gt; {"a"}. - Tablet 2 [apple, customer_1) =&gt; {"apple", "custom"}. - Tablet 3 [customer_1, customer_2) =&gt; {"customer_1"}. - Tablet 4 [customer_2, other) =&gt; {"customer_2"}. - Tablet 5 [other, ) =&gt; {"other", "zz"}.
     #[serde(default, rename = "initialSplits")]
-    pub initial_splits: Option<Vec<Split>>,
+    pub initial_splits: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Split>>>,
     /// Required. The Table to create.
     #[serde(default)]
-    pub table: Option<Table>,
+    pub table: ::core::option::Option<::std::boxed::Box<Table>>,
     /// Required. The name by which the new table should be referred to within the parent instance, e.g., foobar rather than {parent}/tables/foobar. Maximum 50 characters.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// Data Boost is a serverless compute capability that lets you run high-throughput read jobs and queries on your Bigtable data, without impacting the performance of the clusters that handle your application traffic. Data Boost supports read-only use cases with single-cluster routing.
@@ -545,7 +550,7 @@ pub struct CreateTableRequest {
 pub struct DataBoostIsolationReadOnly {
     /// The Compute Billing Owner for this Data Boost App Profile. // TODO: enum values: ["COMPUTE_BILLING_OWNER_UNSPECIFIED", "HOST_PAYS"]
     #[serde(default, rename = "computeBillingOwner")]
-    pub compute_billing_owner: Option<String>,
+    pub compute_billing_owner: ::core::option::Option<String>,
 }
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.DropRowRange
@@ -553,10 +558,10 @@ pub struct DataBoostIsolationReadOnly {
 pub struct DropRowRangeRequest {
     /// Delete all rows in the table. Setting this to false is a no-op.
     #[serde(default, rename = "deleteAllDataFromTable")]
-    pub delete_all_data_from_table: Option<bool>,
+    pub delete_all_data_from_table: ::core::option::Option<bool>,
     /// Delete all rows that start with this row key prefix. Prefix cannot be zero length.
     #[serde(default, rename = "rowKeyPrefix")]
-    pub row_key_prefix: Option<String>,
+    pub row_key_prefix: ::core::option::Option<String>,
 }
 
 /// Cloud Key Management Service (Cloud KMS) settings for a CMEK-protected cluster.
@@ -564,7 +569,7 @@ pub struct DropRowRangeRequest {
 pub struct EncryptionConfig {
     /// Describes the Cloud KMS encryption key that will be used to protect the destination Bigtable cluster. The requirements for this key are: 1) The Cloud Bigtable service account associated with the project that contains this cluster must be granted the cloudkms.cryptoKeyEncrypterDecrypter role on the CMEK key. 2) Only regional keys can be used and the region of the CMEK key must match the region of the cluster. Values are of the form projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// Encryption information for a given resource. If this resource is protected with customer managed encryption, the in-use Cloud Key Management Service (Cloud KMS) key version is specified along with its status.
@@ -572,13 +577,13 @@ pub struct EncryptionConfig {
 pub struct EncryptionInfo {
     /// Output only. The status of encrypt/decrypt calls on underlying data for this resource. Regardless of status, the existing data is always encrypted at rest.
     #[serde(default, rename = "encryptionStatus")]
-    pub encryption_status: Option<Status>,
+    pub encryption_status: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The type of encryption used to protect this resource. // TODO: enum values: ["ENCRYPTION_TYPE_UNSPECIFIED", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
-    pub encryption_type: Option<String>,
+    pub encryption_type: ::core::option::Option<String>,
     /// Output only. The version of the Cloud KMS key specified in the parent cluster that is in use for the data underlying this table.
     #[serde(default, rename = "kmsKeyVersion")]
-    pub kms_key_version: Option<String>,
+    pub kms_key_version: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -586,16 +591,16 @@ pub struct EncryptionInfo {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Rule for determining which cells to delete during garbage collection.
@@ -603,16 +608,16 @@ pub struct Expr {
 pub struct GcRule {
     /// Delete cells that would be deleted by every nested rule.
     #[serde(default)]
-    pub intersection: Option<Intersection>,
+    pub intersection: ::core::option::Option<::std::boxed::Box<Intersection>>,
     /// Delete cells in a column older than the given age. Values must be at least one millisecond, and will be truncated to microsecond granularity.
     #[serde(default, rename = "maxAge")]
-    pub max_age: Option<String>,
+    pub max_age: ::core::option::Option<String>,
     /// Delete all cells in a column except the most recent N.
     #[serde(default, rename = "maxNumVersions")]
-    pub max_num_versions: Option<i32>,
+    pub max_num_versions: ::core::option::Option<i32>,
     /// Delete cells that would be deleted by any nested rule.
     #[serde(default)]
-    pub union: Option<Union>,
+    pub union: ::core::option::Option<::std::boxed::Box<Union>>,
 }
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken
@@ -620,7 +625,7 @@ pub struct GcRule {
 pub struct GenerateConsistencyTokenResponse {
     /// The generated consistency token.
     #[serde(default, rename = "consistencyToken")]
-    pub consistency_token: Option<String>,
+    pub consistency_token: ::core::option::Option<String>,
 }
 
 /// Request message for GetIamPolicy method.
@@ -628,7 +633,7 @@ pub struct GenerateConsistencyTokenResponse {
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
-    pub options: Option<GetPolicyOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<GetPolicyOptions>>,
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
@@ -636,7 +641,7 @@ pub struct GetIamPolicyRequest {
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
-    pub requested_policy_version: Option<i32>,
+    pub requested_policy_version: ::core::option::Option<i32>,
 }
 
 /// Subsets of a column family that are included in this AuthorizedView.
@@ -644,10 +649,10 @@ pub struct GetPolicyOptions {
 pub struct GoogleBigtableAdminV2AuthorizedViewFamilySubsets {
     /// Prefixes for qualifiers to be included in the AuthorizedView. Every qualifier starting with one of these prefixes is included in the AuthorizedView. To provide access to all qualifiers, include the empty string as a prefix ("").
     #[serde(default, rename = "qualifierPrefixes")]
-    pub qualifier_prefixes: Option<Vec<String>>,
+    pub qualifier_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Individual exact column qualifiers to be included in the AuthorizedView.
     #[serde(default)]
-    pub qualifiers: Option<Vec<String>>,
+    pub qualifiers: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Defines a simple AuthorizedView that is a subset of the underlying Table.
@@ -655,10 +660,10 @@ pub struct GoogleBigtableAdminV2AuthorizedViewFamilySubsets {
 pub struct GoogleBigtableAdminV2AuthorizedViewSubsetView {
     /// Map from column family name to the columns in this family to be included in the AuthorizedView.
     #[serde(default, rename = "familySubsets")]
-    pub family_subsets: Option<serde_json::Value>,
+    pub family_subsets: ::core::option::Option<serde_json::Value>,
     /// Row prefixes to be included in the AuthorizedView. To provide access to all rows, include the empty string as a prefix ("").
     #[serde(default, rename = "rowPrefixes")]
-    pub row_prefixes: Option<Vec<String>>,
+    pub row_prefixes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The state of a materialized view''s data in a particular cluster.
@@ -666,7 +671,7 @@ pub struct GoogleBigtableAdminV2AuthorizedViewSubsetView {
 pub struct GoogleBigtableAdminV2MaterializedViewClusterState {
     /// Output only. The state of the materialized view in this cluster. // TODO: enum values: ["STATE_NOT_KNOWN", "INITIALIZING", "READY"]
     #[serde(default, rename = "replicationState")]
-    pub replication_state: Option<String>,
+    pub replication_state: ::core::option::Option<String>,
 }
 
 /// A value that combines incremental updates into a summarized value. Data is never directly written or read using type Aggregate. Writes provide either the input_type or state_type, and reads always return the state_type .
@@ -674,22 +679,22 @@ pub struct GoogleBigtableAdminV2MaterializedViewClusterState {
 pub struct GoogleBigtableAdminV2TypeAggregate {
     /// HyperLogLogPlusPlusUniqueCount aggregator.
     #[serde(default, rename = "hllppUniqueCount")]
-    pub hllpp_unique_count: Option<serde_json::Value>,
+    pub hllpp_unique_count: ::core::option::Option<serde_json::Value>,
     /// Type of the inputs that are accumulated by this Aggregate. Use AddInput mutations to accumulate new inputs.
     #[serde(default, rename = "inputType")]
-    pub input_type: Option<Type>,
+    pub input_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// Max aggregator.
     #[serde(default)]
-    pub max: Option<serde_json::Value>,
+    pub max: ::core::option::Option<serde_json::Value>,
     /// Min aggregator.
     #[serde(default)]
-    pub min: Option<serde_json::Value>,
+    pub min: ::core::option::Option<serde_json::Value>,
     /// Output only. Type that holds the internal accumulator state for the Aggregate. This is a function of the input_type and aggregator chosen.
     #[serde(default, rename = "stateType")]
-    pub state_type: Option<Type>,
+    pub state_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// Sum aggregator.
     #[serde(default)]
-    pub sum: Option<serde_json::Value>,
+    pub sum: ::core::option::Option<serde_json::Value>,
 }
 
 /// An ordered list of elements of a given type. Values of type Array are stored in Value.array_value.
@@ -697,7 +702,7 @@ pub struct GoogleBigtableAdminV2TypeAggregate {
 pub struct GoogleBigtableAdminV2TypeArray {
     /// The type of the elements in the array. This must not be Array.
     #[serde(default, rename = "elementType")]
-    pub element_type: Option<Type>,
+    pub element_type: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// Bytes Values of type Bytes are stored in Value.bytes_value.
@@ -705,7 +710,7 @@ pub struct GoogleBigtableAdminV2TypeArray {
 pub struct GoogleBigtableAdminV2TypeBytes {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: Option<GoogleBigtableAdminV2TypeBytesEncoding>,
+    pub encoding: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytesEncoding>>,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -713,7 +718,7 @@ pub struct GoogleBigtableAdminV2TypeBytes {
 pub struct GoogleBigtableAdminV2TypeBytesEncoding {
     /// Use Raw encoding.
     #[serde(default)]
-    pub raw: Option<GoogleBigtableAdminV2TypeBytesEncodingRaw>,
+    pub raw: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytesEncodingRaw>>,
 }
 
 /// Leaves the value as-is. Sorted mode: all values are supported. Distinct mode: all values are supported.
@@ -721,7 +726,7 @@ pub struct GoogleBigtableAdminV2TypeBytesEncoding {
 pub struct GoogleBigtableAdminV2TypeBytesEncodingRaw {
     /// If set, allows NULL values to be encoded as the empty string "". The actual empty string, or any value which only contains the null byte 0x00, has one more null byte appended.
     #[serde(default, rename = "escapeNulls")]
-    pub escape_nulls: Option<bool>,
+    pub escape_nulls: ::core::option::Option<bool>,
 }
 
 /// A protobuf enum type. Values of type Enum are stored in Value.int_value.
@@ -729,10 +734,10 @@ pub struct GoogleBigtableAdminV2TypeBytesEncodingRaw {
 pub struct GoogleBigtableAdminV2TypeEnum {
     /// The fully qualified name of the protobuf enum message, including package. In the format of "foo.bar.EnumMessage".
     #[serde(default, rename = "enumName")]
-    pub enum_name: Option<String>,
+    pub enum_name: ::core::option::Option<String>,
     /// The ID of the schema bundle that this enum is defined in.
     #[serde(default, rename = "schemaBundleId")]
-    pub schema_bundle_id: Option<String>,
+    pub schema_bundle_id: ::core::option::Option<String>,
 }
 
 /// Int64 Values of type Int64 are stored in Value.int_value.
@@ -740,7 +745,7 @@ pub struct GoogleBigtableAdminV2TypeEnum {
 pub struct GoogleBigtableAdminV2TypeInt64 {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: Option<GoogleBigtableAdminV2TypeInt64Encoding>,
+    pub encoding: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt64Encoding>>,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -748,10 +753,12 @@ pub struct GoogleBigtableAdminV2TypeInt64 {
 pub struct GoogleBigtableAdminV2TypeInt64Encoding {
     /// Use BigEndianBytes encoding.
     #[serde(default, rename = "bigEndianBytes")]
-    pub big_endian_bytes: Option<GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes>,
+    pub big_endian_bytes: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes>,
+    >,
     /// Use OrderedCodeBytes encoding.
     #[serde(default, rename = "orderedCodeBytes")]
-    pub ordered_code_bytes: Option<serde_json::Value>,
+    pub ordered_code_bytes: ::core::option::Option<serde_json::Value>,
 }
 
 /// Encodes the value as an 8-byte big-endian two''s complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery BINARY encoding - HBase Bytes.toBytes - Java ByteBuffer.putLong() with ByteOrder.BIG_ENDIAN
@@ -759,7 +766,7 @@ pub struct GoogleBigtableAdminV2TypeInt64Encoding {
 pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
     /// Deprecated: ignored if set.
     #[serde(default, rename = "bytesType")]
-    pub bytes_type: Option<GoogleBigtableAdminV2TypeBytes>,
+    pub bytes_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytes>>,
 }
 
 /// A mapping of keys to values of a given type. Values of type Map are stored in a Value.array_value where each entry is another Value.array_value with two elements (the key and the value, in that order). Normally encoded Map values won''t have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.
@@ -767,10 +774,10 @@ pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
 pub struct GoogleBigtableAdminV2TypeMap {
     /// The type of a map key. Only Bytes, String, and Int64 are allowed as key types.
     #[serde(default, rename = "keyType")]
-    pub key_type: Option<Type>,
+    pub key_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// The type of the values in a map.
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<Type>,
+    pub value_type: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// A protobuf message type. Values of type Proto are stored in Value.bytes_value.
@@ -778,10 +785,10 @@ pub struct GoogleBigtableAdminV2TypeMap {
 pub struct GoogleBigtableAdminV2TypeProto {
     /// The fully qualified name of the protobuf message, including package. In the format of "foo.bar.Message".
     #[serde(default, rename = "messageName")]
-    pub message_name: Option<String>,
+    pub message_name: ::core::option::Option<String>,
     /// The ID of the schema bundle that this proto is defined in.
     #[serde(default, rename = "schemaBundleId")]
-    pub schema_bundle_id: Option<String>,
+    pub schema_bundle_id: ::core::option::Option<String>,
 }
 
 /// String Values of type String are stored in Value.string_value.
@@ -789,7 +796,8 @@ pub struct GoogleBigtableAdminV2TypeProto {
 pub struct GoogleBigtableAdminV2TypeString {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: Option<GoogleBigtableAdminV2TypeStringEncoding>,
+    pub encoding:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStringEncoding>>,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -797,10 +805,11 @@ pub struct GoogleBigtableAdminV2TypeString {
 pub struct GoogleBigtableAdminV2TypeStringEncoding {
     /// Use Utf8Bytes encoding.
     #[serde(default, rename = "utf8Bytes")]
-    pub utf8_bytes: Option<GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes>,
+    pub utf8_bytes:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes>>,
     /// Deprecated: if set, converts to an empty utf8_bytes.
     #[serde(default, rename = "utf8Raw")]
-    pub utf8_raw: Option<serde_json::Value>,
+    pub utf8_raw: ::core::option::Option<serde_json::Value>,
 }
 
 /// UTF-8 encoding. Sorted mode: - All values are supported. - Code point order is preserved. Distinct mode: all values are supported. Compatible with: - BigQuery TEXT encoding - HBase Bytes.toBytes - Java String#getBytes(StandardCharsets.UTF_8)
@@ -808,7 +817,7 @@ pub struct GoogleBigtableAdminV2TypeStringEncoding {
 pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes {
     /// Single-character escape sequence used to support NULL values. If set, allows NULL values to be encoded as the empty string "". The actual empty string, or any value where every character equals null_escape_char, has one more null_escape_char appended. If null_escape_char is set and does not equal the ASCII null character 0x00, then the encoding will not support sorted mode. .
     #[serde(default, rename = "nullEscapeChar")]
-    pub null_escape_char: Option<String>,
+    pub null_escape_char: ::core::option::Option<String>,
 }
 
 /// A structured data value, consisting of fields which map to dynamically typed values. Values of type Struct are stored in Value.array_value where entries are in the same order and number as field_types.
@@ -816,10 +825,13 @@ pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes {
 pub struct GoogleBigtableAdminV2TypeStruct {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: Option<GoogleBigtableAdminV2TypeStructEncoding>,
+    pub encoding:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStructEncoding>>,
     /// The names and types of the fields in this struct.
     #[serde(default)]
-    pub fields: Option<Vec<GoogleBigtableAdminV2TypeStructField>>,
+    pub fields: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleBigtableAdminV2TypeStructField>>,
+    >,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -827,13 +839,15 @@ pub struct GoogleBigtableAdminV2TypeStruct {
 pub struct GoogleBigtableAdminV2TypeStructEncoding {
     /// Use DelimitedBytes encoding.
     #[serde(default, rename = "delimitedBytes")]
-    pub delimited_bytes: Option<GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes>,
+    pub delimited_bytes: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes>,
+    >,
     /// User OrderedCodeBytes encoding.
     #[serde(default, rename = "orderedCodeBytes")]
-    pub ordered_code_bytes: Option<serde_json::Value>,
+    pub ordered_code_bytes: ::core::option::Option<serde_json::Value>,
     /// Use Singleton encoding.
     #[serde(default)]
-    pub singleton: Option<serde_json::Value>,
+    pub singleton: ::core::option::Option<serde_json::Value>,
 }
 
 /// Fields are encoded independently and concatenated with a configurable delimiter in between. A struct with no fields defined is encoded as a single delimiter. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes &lt;= delimiter[0] - Element-wise order is preserved: A &lt; B if A[0] &lt; B[0], or if A[0] == B[0] && A[1] &lt; B[1], etc. Strict prefixes sort first. - This encoding does not support DESC field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain delimiter[0].
@@ -841,7 +855,7 @@ pub struct GoogleBigtableAdminV2TypeStructEncoding {
 pub struct GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes {
     /// Byte sequence used to delimit concatenated fields. The delimiter must contain at least 1 character and at most 50 characters.
     #[serde(default)]
-    pub delimiter: Option<String>,
+    pub delimiter: ::core::option::Option<String>,
 }
 
 /// A struct field and its type.
@@ -849,10 +863,10 @@ pub struct GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes {
 pub struct GoogleBigtableAdminV2TypeStructField {
     /// The field name (optional). Fields without a field_name are considered anonymous and cannot be referenced by name.
     #[serde(default, rename = "fieldName")]
-    pub field_name: Option<String>,
+    pub field_name: ::core::option::Option<String>,
     /// The type of values in this field.
     #[serde(default, rename = "type")]
-    pub type_: Option<Type>,
+    pub type_: ::core::option::Option<::std::boxed::Box<Type>>,
 }
 
 /// Timestamp Values of type Timestamp are stored in Value.timestamp_value.
@@ -860,7 +874,8 @@ pub struct GoogleBigtableAdminV2TypeStructField {
 pub struct GoogleBigtableAdminV2TypeTimestamp {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: Option<GoogleBigtableAdminV2TypeTimestampEncoding>,
+    pub encoding:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeTimestampEncoding>>,
 }
 
 /// Rules used to convert to or from lower level types.
@@ -868,7 +883,8 @@ pub struct GoogleBigtableAdminV2TypeTimestamp {
 pub struct GoogleBigtableAdminV2TypeTimestampEncoding {
     /// Encodes the number of microseconds since the Unix epoch using the given Int64 encoding. Values must be microsecond-aligned. Compatible with: - Java Instant.truncatedTo() with ChronoUnit.MICROS
     #[serde(default, rename = "unixMicrosInt64")]
-    pub unix_micros_int64: Option<GoogleBigtableAdminV2TypeInt64Encoding>,
+    pub unix_micros_int64:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt64Encoding>>,
 }
 
 /// A tablet is a defined by a start and end key and is explained in https://cloud.google.com/bigtable/docs/overview#architecture and https://cloud.google.com/bigtable/docs/performance#optimization. A Hot tablet is a tablet that exhibits high average cpu usage during the time interval from start time to end time.
@@ -876,25 +892,25 @@ pub struct GoogleBigtableAdminV2TypeTimestampEncoding {
 pub struct HotTablet {
     /// Tablet End Key (inclusive).
     #[serde(default, rename = "endKey")]
-    pub end_key: Option<String>,
+    pub end_key: ::core::option::Option<String>,
     /// Output only. The end time of the hot tablet.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The unique name of the hot tablet. Values are of the form projects/{project}/instances/{instance}/clusters/{cluster}/hotTablets/[a-zA-Z0-9_-]*.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The average CPU usage spent by a node on this tablet over the start_time to end_time time range. The percentage is the amount of CPU used by the node to serve the tablet, from 0% (tablet was not interacted with) to 100% (the node spent all cycles serving the hot tablet).
     #[serde(default, rename = "nodeCpuUsagePercent")]
-    pub node_cpu_usage_percent: Option<f32>,
+    pub node_cpu_usage_percent: ::core::option::Option<f32>,
     /// Tablet Start Key (inclusive).
     #[serde(default, rename = "startKey")]
-    pub start_key: Option<String>,
+    pub start_key: ::core::option::Option<String>,
     /// Output only. The start time of the hot tablet.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Name of the table that contains the tablet. Values are of the form projects/{project}/instances/{instance}/tables/_a-zA-Z0-9*.
     #[serde(default, rename = "tableName")]
-    pub table_name: Option<String>,
+    pub table_name: ::core::option::Option<String>,
 }
 
 /// A collection of Bigtable Tables and the resources that serve them. All tables in an instance are served from all Clusters in the instance.
@@ -902,34 +918,34 @@ pub struct HotTablet {
 pub struct Instance {
     /// Output only. A commit timestamp representing when this Instance was created. For instances created before this field was added (August 2021), this value is seconds: 0, nanos: 1.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. The descriptive name for this instance as it appears in UIs. Can be changed at any time, but should be kept globally unique to avoid confusion.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. The edition of the instance. See Edition for details. // TODO: enum values: ["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"]
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// Labels are a flexible and lightweight mechanism for organizing cloud resources into groups that reflect a customer''s organizational needs and deployment strategies. They can be used to filter resources and aggregate metrics. * Label keys must be between 1 and 63 characters long and must conform to the regular expression: \p{Ll}\p{Lo}{0,62}. * Label values must be between 0 and 63 characters long and must conform to the regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63}. * No more than 64 labels can be associated with a given resource. * Keys and values must both be under 128 bytes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The unique name of the instance. Values are of the form projects/{project}/instances/a-z+[a-z0-9].
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. The current state of the instance. // TODO: enum values: ["STATE_NOT_KNOWN", "READY", "CREATING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: - "123/environment": "production", - "123/costCenter": "marketing" Tags and Labels (above) are both used to bind metadata to resources, with different use-cases. See https://cloud.google.com/resource-manager/docs/tags/tags-overview for an in-depth overview on the difference between tags and labels.
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
     /// The type of the instance. Defaults to PRODUCTION. // TODO: enum values: ["TYPE_UNSPECIFIED", "PRODUCTION", "DEVELOPMENT"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A GcRule which deletes cells matching all of the given rules.
@@ -937,7 +953,7 @@ pub struct Instance {
 pub struct Intersection {
     /// Only delete cells which would be deleted by every element of rules.
     #[serde(default)]
-    pub rules: Option<Vec<GcRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GcRule>>>,
 }
 
 /// Response message for BigtableInstanceAdmin.ListAppProfiles.
@@ -945,13 +961,13 @@ pub struct Intersection {
 pub struct ListAppProfilesResponse {
     /// The list of requested app profiles.
     #[serde(default, rename = "appProfiles")]
-    pub app_profiles: Option<Vec<AppProfile>>,
+    pub app_profiles: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AppProfile>>>,
     /// Locations from which AppProfile information could not be retrieved, due to an outage or some other transient condition. AppProfiles from these locations may be missing from app_profiles. Values are of the form projects//locations/
     #[serde(default, rename = "failedLocations")]
-    pub failed_locations: Option<Vec<String>>,
+    pub failed_locations: ::core::option::Option<::std::vec::Vec<String>>,
     /// Set if not all app profiles could be returned in a single response. Pass this value to page_token in another request to get the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.ListAuthorizedViews
@@ -959,10 +975,11 @@ pub struct ListAppProfilesResponse {
 pub struct ListAuthorizedViewsResponse {
     /// The AuthorizedViews present in the requested table.
     #[serde(default, rename = "authorizedViews")]
-    pub authorized_views: Option<Vec<AuthorizedView>>,
+    pub authorized_views:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthorizedView>>>,
     /// Set if not all tables could be returned in a single response. Pass this value to page_token in another request to get the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for ListBackups.
@@ -970,10 +987,10 @@ pub struct ListAuthorizedViewsResponse {
 pub struct ListBackupsResponse {
     /// The list of matching backups.
     #[serde(default)]
-    pub backups: Option<Vec<Backup>>,
+    pub backups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Backup>>>,
     /// next_page_token can be sent in a subsequent ListBackups call to fetch more of the matching backups.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for BigtableInstanceAdmin.ListClusters.
@@ -981,13 +998,13 @@ pub struct ListBackupsResponse {
 pub struct ListClustersResponse {
     /// The list of requested clusters.
     #[serde(default)]
-    pub clusters: Option<Vec<Cluster>>,
+    pub clusters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Cluster>>>,
     /// Locations from which Cluster information could not be retrieved, due to an outage or some other transient condition. Clusters from these locations may be missing from clusters, or may only have partial information returned. Values are of the form projects//locations/
     #[serde(default, rename = "failedLocations")]
-    pub failed_locations: Option<Vec<String>>,
+    pub failed_locations: ::core::option::Option<::std::vec::Vec<String>>,
     /// DEPRECATED: This field is unused and ignored.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for BigtableInstanceAdmin.ListHotTablets.
@@ -995,10 +1012,10 @@ pub struct ListClustersResponse {
 pub struct ListHotTabletsResponse {
     /// List of hot tablets in the tables of the requested cluster that fall within the requested time range. Hot tablets are ordered by node cpu usage percent. If there are multiple hot tablets that correspond to the same tablet within a 15-minute interval, only the hot tablet with the highest node cpu usage will be included in the response.
     #[serde(default, rename = "hotTablets")]
-    pub hot_tablets: Option<Vec<HotTablet>>,
+    pub hot_tablets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<HotTablet>>>,
     /// Set if not all hot tablets could be returned in a single response. Pass this value to page_token in another request to get the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for BigtableInstanceAdmin.ListInstances.
@@ -1006,13 +1023,13 @@ pub struct ListHotTabletsResponse {
 pub struct ListInstancesResponse {
     /// Locations from which Instance information could not be retrieved, due to an outage or some other transient condition. Instances whose Clusters are all in one of the failed locations may be missing from instances, and Instances with at least one Cluster in a failed location may only have partial information returned. Values are of the form projects//locations/
     #[serde(default, rename = "failedLocations")]
-    pub failed_locations: Option<Vec<String>>,
+    pub failed_locations: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of requested instances.
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// DEPRECATED: This field is unused and ignored.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1020,10 +1037,10 @@ pub struct ListInstancesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for BigtableInstanceAdmin.ListLogicalViews.
@@ -1031,10 +1048,10 @@ pub struct ListLocationsResponse {
 pub struct ListLogicalViewsResponse {
     /// The list of requested logical views.
     #[serde(default, rename = "logicalViews")]
-    pub logical_views: Option<Vec<LogicalView>>,
+    pub logical_views: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LogicalView>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for BigtableInstanceAdmin.ListMaterializedViews.
@@ -1042,10 +1059,11 @@ pub struct ListLogicalViewsResponse {
 pub struct ListMaterializedViewsResponse {
     /// The list of requested materialized views.
     #[serde(default, rename = "materializedViews")]
-    pub materialized_views: Option<Vec<MaterializedView>>,
+    pub materialized_views:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MaterializedView>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1053,13 +1071,13 @@ pub struct ListMaterializedViewsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response for ListSchemaBundles.
@@ -1067,10 +1085,10 @@ pub struct ListOperationsResponse {
 pub struct ListSchemaBundlesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The schema bundles from the specified table.
     #[serde(default, rename = "schemaBundles")]
-    pub schema_bundles: Option<Vec<SchemaBundle>>,
+    pub schema_bundles: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SchemaBundle>>>,
 }
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.ListTables
@@ -1078,10 +1096,10 @@ pub struct ListSchemaBundlesResponse {
 pub struct ListTablesResponse {
     /// Set if not all tables could be returned in a single response. Pass this value to page_token in another request to get the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The tables present in the requested instance.
     #[serde(default)]
-    pub tables: Option<Vec<Table>>,
+    pub tables: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Table>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1089,19 +1107,19 @@ pub struct ListTablesResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A SQL logical view object that can be referenced in SQL queries.
@@ -1109,16 +1127,16 @@ pub struct Location {
 pub struct LogicalView {
     /// Optional. Set to true to make the LogicalView protected against deletion.
     #[serde(default, rename = "deletionProtection")]
-    pub deletion_protection: Option<bool>,
+    pub deletion_protection: ::core::option::Option<bool>,
     /// Optional. The etag for this logical view. This may be sent on update requests to ensure that the client has an up-to-date value before proceeding. The server returns an ABORTED error on a mismatched etag.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier. The unique name of the logical view. Format: projects/{project}/instances/{instance}/logicalViews/{logical_view}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The logical view''s select query.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
 }
 
 /// A materialized view object that can be referenced in SQL queries.
@@ -1126,19 +1144,19 @@ pub struct LogicalView {
 pub struct MaterializedView {
     /// Output only. Map from cluster ID to per-cluster materialized view state. If it could not be determined whether or not the materialized view has data in a particular cluster (for example, if its zone is unavailable), then there will be an entry for the cluster with STATE_NOT_KNOWN state. Views: REPLICATION_VIEW, FULL.
     #[serde(default, rename = "clusterStates")]
-    pub cluster_states: Option<serde_json::Value>,
+    pub cluster_states: ::core::option::Option<serde_json::Value>,
     /// Set to true to make the MaterializedView protected against deletion. Views: SCHEMA_VIEW, REPLICATION_VIEW, FULL.
     #[serde(default, rename = "deletionProtection")]
-    pub deletion_protection: Option<bool>,
+    pub deletion_protection: ::core::option::Option<bool>,
     /// Optional. The etag for this materialized view. This may be sent on update requests to ensure that the client has an up-to-date value before proceeding. The server returns an ABORTED error on a mismatched etag. Views: SCHEMA_VIEW, REPLICATION_VIEW, FULL.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier. The unique name of the materialized view. Format: projects/{project}/instances/{instance}/materializedViews/{materialized_view} Views: SCHEMA_VIEW, REPLICATION_VIEW, FULL.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Immutable. The materialized view''s select query. Views: SCHEMA_VIEW, FULL.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
 }
 
 /// A create, update, or delete of a particular column family.
@@ -1146,19 +1164,19 @@ pub struct MaterializedView {
 pub struct Modification {
     /// Create a new column family with the specified schema, or fail if one already exists with the given ID.
     #[serde(default)]
-    pub create: Option<ColumnFamily>,
+    pub create: ::core::option::Option<::std::boxed::Box<ColumnFamily>>,
     /// Drop (delete) the column family with the given ID, or fail if no such family exists.
     #[serde(default)]
-    pub drop: Option<bool>,
+    pub drop: ::core::option::Option<bool>,
     /// The ID of the column family to be modified.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Update an existing column family to the specified schema, or fail if no column family exists with the given ID.
     #[serde(default)]
-    pub update: Option<ColumnFamily>,
+    pub update: ::core::option::Option<::std::boxed::Box<ColumnFamily>>,
     /// Optional. A mask specifying which fields (e.g. gc_rule) in the update mod should be updated, ignored for other modification types. If unset or empty, we treat it as updating gc_rule to be backward compatible.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.ModifyColumnFamilies
@@ -1166,10 +1184,10 @@ pub struct Modification {
 pub struct ModifyColumnFamiliesRequest {
     /// Optional. If true, ignore safety checks when modifying the column families.
     #[serde(default, rename = "ignoreWarnings")]
-    pub ignore_warnings: Option<bool>,
+    pub ignore_warnings: ::core::option::Option<bool>,
     /// Required. Modifications to be atomically applied to the specified table''s families. Entries are applied in order, meaning that earlier modifications can be masked by later ones (in the case of repeated updates to the same family, for example).
     #[serde(default)]
-    pub modifications: Option<Vec<Modification>>,
+    pub modifications: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Modification>>>,
 }
 
 /// Read/write requests are routed to the nearest cluster in the instance, and will fail over to the nearest cluster that is available in the event of transient errors or delays. Clusters in a region are considered equidistant. Choosing this option sacrifices read-your-writes consistency to improve availability.
@@ -1177,10 +1195,10 @@ pub struct ModifyColumnFamiliesRequest {
 pub struct MultiClusterRoutingUseAny {
     /// The set of clusters to route to. The order is ignored; clusters will be tried in order of distance. If left empty, all clusters are eligible.
     #[serde(default, rename = "clusterIds")]
-    pub cluster_ids: Option<Vec<String>>,
+    pub cluster_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Row affinity sticky routing based on the row key of the request. Requests that span multiple rows are routed non-deterministically.
     #[serde(default, rename = "rowAffinity")]
-    pub row_affinity: Option<serde_json::Value>,
+    pub row_affinity: ::core::option::Option<serde_json::Value>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1188,19 +1206,19 @@ pub struct MultiClusterRoutingUseAny {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Encapsulates progress related information for a Cloud Bigtable long running operation.
@@ -1208,13 +1226,13 @@ pub struct Operation {
 pub struct OperationProgress {
     /// If set, the time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Percent completion of the operation. Values are between 0 and 100 inclusive.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Time the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Metadata type for the long-running operation used to track the progress of optimizations performed on a newly restored table. This long-running operation is automatically created by the system after the successful completion of a table restore, and cannot be cancelled.
@@ -1222,10 +1240,10 @@ pub struct OperationProgress {
 pub struct OptimizeRestoredTableMetadata {
     /// Name of the restored table being optimized.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The progress of the post-restore optimizations.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
 }
 
 /// The metadata for the Operation returned by PartialUpdateCluster.
@@ -1233,13 +1251,13 @@ pub struct OptimizeRestoredTableMetadata {
 pub struct PartialUpdateClusterMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The original request for PartialUpdateCluster.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<PartialUpdateClusterRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<PartialUpdateClusterRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// Request message for BigtableInstanceAdmin.PartialUpdateCluster.
@@ -1247,10 +1265,10 @@ pub struct PartialUpdateClusterMetadata {
 pub struct PartialUpdateClusterRequest {
     /// Required. The Cluster which contains the partial updates to be applied, subject to the update_mask.
     #[serde(default)]
-    pub cluster: Option<Cluster>,
+    pub cluster: ::core::option::Option<::std::boxed::Box<Cluster>>,
     /// Required. The subset of Cluster fields which should be replaced.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Request message for BigtableInstanceAdmin.PartialUpdateInstance.
@@ -1258,10 +1276,10 @@ pub struct PartialUpdateClusterRequest {
 pub struct PartialUpdateInstanceRequest {
     /// Required. The Instance which will (partially) replace the current value.
     #[serde(default)]
-    pub instance: Option<Instance>,
+    pub instance: ::core::option::Option<::std::boxed::Box<Instance>>,
     /// Required. The subset of Instance fields which should be replaced. Must be explicitly set.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -1269,16 +1287,16 @@ pub struct PartialUpdateInstanceRequest {
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: Option<Vec<AuditConfig>>,
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuditConfig>>>,
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Represents a protobuf schema.
@@ -1286,7 +1304,7 @@ pub struct Policy {
 pub struct ProtoSchema {
     /// Required. Contains a protobuf-serialized [google.protobuf.FileDescriptorSet](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto), which could include multiple proto files. To generate it, [install](https://grpc.io/docs/protoc-installation/) and run protoc with --include_imports and --descriptor_set_out. For example, to generate for moon/shot/app.proto, run  $protoc --proto_path=/app_path --proto_path=/lib_path \ --include_imports \ --descriptor_set_out=descriptors.pb \ moon/shot/app.proto  For more details, see protobuffer [self description](https://developers.google.com/protocol-buffers/docs/techniques#self-description).
     #[serde(default, rename = "protoDescriptors")]
-    pub proto_descriptors: Option<String>,
+    pub proto_descriptors: ::core::option::Option<String>,
 }
 
 /// Information about a table restore.
@@ -1294,29 +1312,29 @@ pub struct ProtoSchema {
 pub struct RestoreInfo {
     /// Information about the backup used to restore the table. The backup may no longer exist.
     #[serde(default, rename = "backupInfo")]
-    pub backup_info: Option<BackupInfo>,
+    pub backup_info: ::core::option::Option<::std::boxed::Box<BackupInfo>>,
     /// The type of the restore source. // TODO: enum values: ["RESTORE_SOURCE_TYPE_UNSPECIFIED", "BACKUP"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// Metadata type for the long-running operation returned by RestoreTable.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestoreTableMetadata {
     #[serde(default, rename = "backupInfo")]
-    pub backup_info: Option<BackupInfo>,
+    pub backup_info: ::core::option::Option<::std::boxed::Box<BackupInfo>>,
     /// Name of the table being created and restored to.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// If exists, the name of the long-running operation that will be used to track the post-restore optimization process to optimize the performance of the restored table. The metadata type of the long-running operation is OptimizeRestoredTableMetadata. The response type is Empty. This long-running operation may be automatically created by the system if applicable after the RestoreTable long-running operation completes successfully. This operation may not be created if the table is already optimized or the restore was not successful.
     #[serde(default, rename = "optimizeTableOperationName")]
-    pub optimize_table_operation_name: Option<String>,
+    pub optimize_table_operation_name: ::core::option::Option<String>,
     /// The progress of the RestoreTable operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
     /// The type of the restore source. // TODO: enum values: ["RESTORE_SOURCE_TYPE_UNSPECIFIED", "BACKUP"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// The request for RestoreTable.
@@ -1324,10 +1342,10 @@ pub struct RestoreTableMetadata {
 pub struct RestoreTableRequest {
     /// Name of the backup from which to restore. Values are of the form projects//instances//clusters//backups/.
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
     /// Required. The id of the table to create and restore to. This table must not already exist. The table_id appended to parent forms the full table name of the form projects//instances//tables/.
     #[serde(default, rename = "tableId")]
-    pub table_id: Option<String>,
+    pub table_id: ::core::option::Option<String>,
 }
 
 /// A named collection of related schemas.
@@ -1335,13 +1353,13 @@ pub struct RestoreTableRequest {
 pub struct SchemaBundle {
     /// Optional. The etag for this schema bundle. This may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. The server returns an ABORTED error on a mismatched etag.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier. The unique name identifying this schema bundle. Values are of the form projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Schema for Protobufs.
     #[serde(default, rename = "protoSchema")]
-    pub proto_schema: Option<ProtoSchema>,
+    pub proto_schema: ::core::option::Option<::std::boxed::Box<ProtoSchema>>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -1349,10 +1367,10 @@ pub struct SchemaBundle {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
     /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Unconditionally routes all read/write requests to a specific cluster. This option preserves read-your-writes consistency but does not improve availability.
@@ -1360,10 +1378,10 @@ pub struct SetIamPolicyRequest {
 pub struct SingleClusterRouting {
     /// Whether or not CheckAndMutateRow and ReadModifyWriteRow requests are allowed by this app profile. It is unsafe to send these requests to the same table/row/column in multiple clusters.
     #[serde(default, rename = "allowTransactionalWrites")]
-    pub allow_transactional_writes: Option<bool>,
+    pub allow_transactional_writes: ::core::option::Option<bool>,
     /// The cluster to which read/write requests should be routed.
     #[serde(default, rename = "clusterId")]
-    pub cluster_id: Option<String>,
+    pub cluster_id: ::core::option::Option<String>,
 }
 
 /// An initial split point for a newly created table.
@@ -1371,7 +1389,7 @@ pub struct SingleClusterRouting {
 pub struct Split {
     /// Row key to use as an initial tablet boundary.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
 }
 
 /// Standard options for isolating this app profile''s traffic from other use cases.
@@ -1379,7 +1397,7 @@ pub struct Split {
 pub struct StandardIsolation {
     /// The priority of requests sent using this app profile. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "PRIORITY_LOW", "PRIORITY_MEDIUM", "PRIORITY_HIGH"]
     #[serde(default)]
-    pub priority: Option<String>,
+    pub priority: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1387,13 +1405,13 @@ pub struct StandardIsolation {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A collection of user data indexed by row, column, and timestamp. Each table is served using the resources of its parent cluster.
@@ -1401,37 +1419,37 @@ pub struct Status {
 pub struct Table {
     /// If specified, automated backups are enabled for this table. Otherwise, automated backups are disabled.
     #[serde(default, rename = "automatedBackupPolicy")]
-    pub automated_backup_policy: Option<AutomatedBackupPolicy>,
+    pub automated_backup_policy: ::core::option::Option<::std::boxed::Box<AutomatedBackupPolicy>>,
     /// If specified, enable the change stream on this table. Otherwise, the change stream is disabled and the change stream is not retained.
     #[serde(default, rename = "changeStreamConfig")]
-    pub change_stream_config: Option<ChangeStreamConfig>,
+    pub change_stream_config: ::core::option::Option<::std::boxed::Box<ChangeStreamConfig>>,
     /// Output only. Map from cluster ID to per-cluster table state. If it could not be determined whether or not the table has data in a particular cluster (for example, if its zone is unavailable), then there will be an entry for the cluster with UNKNOWN replication_status. Views: REPLICATION_VIEW, ENCRYPTION_VIEW, FULL
     #[serde(default, rename = "clusterStates")]
-    pub cluster_states: Option<serde_json::Value>,
+    pub cluster_states: ::core::option::Option<serde_json::Value>,
     /// The column families configured for this table, mapped by column family ID. Views: SCHEMA_VIEW, STATS_VIEW, FULL
     #[serde(default, rename = "columnFamilies")]
-    pub column_families: Option<serde_json::Value>,
+    pub column_families: ::core::option::Option<serde_json::Value>,
     /// Set to true to make the table protected against data loss. i.e. deleting the following resources through Admin APIs are prohibited: * The table. * The column families in the table. * The instance containing the table. Note one can still delete the data stored in the table through Data APIs.
     #[serde(default, rename = "deletionProtection")]
-    pub deletion_protection: Option<bool>,
+    pub deletion_protection: ::core::option::Option<bool>,
     /// Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to MILLIS. Views: SCHEMA_VIEW, FULL. // TODO: enum values: ["TIMESTAMP_GRANULARITY_UNSPECIFIED", "MILLIS"]
     #[serde(default)]
-    pub granularity: Option<String>,
+    pub granularity: ::core::option::Option<String>,
     /// The unique name of the table. Values are of the form projects/{project}/instances/{instance}/tables/_a-zA-Z0-9*. Views: NAME_ONLY, SCHEMA_VIEW, REPLICATION_VIEW, STATS_VIEW, FULL
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. If this table was restored from another data source (e.g. a backup), this field will be populated with information about the restore.
     #[serde(default, rename = "restoreInfo")]
-    pub restore_info: Option<RestoreInfo>,
+    pub restore_info: ::core::option::Option<::std::boxed::Box<RestoreInfo>>,
     /// The row key schema for this table. The schema is used to decode the raw row key bytes into a structured format. The order of field declarations in this schema is important, as it reflects how the raw row key bytes are structured. Currently, this only affects how the key is read via a GoogleSQL query from the ExecuteQuery API. For a SQL query, the _key column is still read as raw bytes. But queries can reference the key fields by name, which will be decoded from _key using provided type and encoding. Queries that reference key fields will fail if they encounter an invalid row key. For example, if _key = "some_id#2024-04-30#\x00\x13\x00\xf3" with the following schema: { fields { field_name: "id" type { string { encoding: utf8_bytes {} } } } fields { field_name: "date" type { string { encoding: utf8_bytes {} } } } fields { field_name: "product_code" type { int64 { encoding: big_endian_bytes {} } } } encoding { delimited_bytes { delimiter: "#" } } } The decoded key parts would be: id = "some_id", date = "2024-04-30", product_code = 1245427 The query "SELECT _key, product_code FROM table" will return two columns: /------------------------------------------------------\ | _key | product_code | | --------------------------------------|--------------| | "some_id#2024-04-30#\x00\x13\x00\xf3" | 1245427 | \------------------------------------------------------/ The schema has the following invariants: (1) The decoded field values are order-preserved. For read, the field values will be decoded in sorted mode from the raw bytes. (2) Every field in the schema must specify a non-empty name. (3) Every field must specify a type with an associated encoding. The type is limited to scalar types only: Array, Map, Aggregate, and Struct are not allowed. (4) The field names must not collide with existing column family names and reserved keywords "_key" and "_timestamp". The following update operations are allowed for row_key_schema: - Update from an empty schema to a new schema. - Remove the existing schema. This operation requires setting the ignore_warnings flag to true, since it might be a backward incompatible change. Without the flag, the update request will fail with an INVALID_ARGUMENT error. Any other row key schema update operation (e.g. update existing schema columns names or types) is currently unsupported.
     #[serde(default, rename = "rowKeySchema")]
-    pub row_key_schema: Option<GoogleBigtableAdminV2TypeStruct>,
+    pub row_key_schema: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStruct>>,
     /// Output only. Only available with STATS_VIEW, this includes summary statistics about the entire table contents. For statistics about a specific column family, see ColumnFamilyStats in the mapped ColumnFamily collection above.
     #[serde(default)]
-    pub stats: Option<TableStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<TableStats>>,
     /// Rules to specify what data is stored in each storage tier. Different tiers store data differently, providing different trade-offs between cost and performance. Different parts of a table can be stored separately on different tiers. If a config is specified, tiered storage is enabled for this table. Otherwise, tiered storage is disabled. Only SSD instances can configure tiered storage.
     #[serde(default, rename = "tieredStorageConfig")]
-    pub tiered_storage_config: Option<TieredStorageConfig>,
+    pub tiered_storage_config: ::core::option::Option<::std::boxed::Box<TieredStorageConfig>>,
 }
 
 /// Progress info for copying a table''s data to the new cluster.
@@ -1439,13 +1457,13 @@ pub struct Table {
 pub struct TableProgress {
     /// Estimate of the number of bytes copied so far for this table. This will eventually reach ''estimated_size_bytes'' unless the table copy is CANCELLED.
     #[serde(default, rename = "estimatedCopiedBytes")]
-    pub estimated_copied_bytes: Option<String>,
+    pub estimated_copied_bytes: ::core::option::Option<String>,
     /// Estimate of the size of the table to be copied.
     #[serde(default, rename = "estimatedSizeBytes")]
-    pub estimated_size_bytes: Option<String>,
+    pub estimated_size_bytes: ::core::option::Option<String>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "COPYING", "COMPLETED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Approximate statistics related to a table. These statistics are calculated infrequently, while simultaneously, data in the table can change rapidly. Thus the values reported here (e.g. row count) are very likely out-of date, even the instant they are received in this API. Thus, only treat these values as approximate. IMPORTANT: Everything below is approximate, unless otherwise specified.
@@ -1453,16 +1471,16 @@ pub struct TableProgress {
 pub struct TableStats {
     /// How many cells are present per column (column family, column qualifier) combinations, averaged over all columns in all rows in the table. e.g. A table with 2 rows: * A row with 3 cells in "family:col" and 1 cell in "other:col" (4 cells / 2 columns) * A row with 1 cell in "family:col", 7 cells in "family:other_col", and 7 cells in "other:data" (15 cells / 3 columns) would report (4 + 15)/(2 + 3) = 3.8 in this field.
     #[serde(default, rename = "averageCellsPerColumn")]
-    pub average_cells_per_column: Option<f64>,
+    pub average_cells_per_column: ::core::option::Option<f64>,
     /// How many (column family, column qualifier) combinations are present per row in the table, averaged over all rows in the table. e.g. A table with 2 rows: * A row with cells in "family:col" and "other:col" (2 distinct columns) * A row with cells in "family:col", "family:other_col", and "other:data" (3 distinct columns) would report (2 + 3)/2 = 2.5 in this field.
     #[serde(default, rename = "averageColumnsPerRow")]
-    pub average_columns_per_row: Option<f64>,
+    pub average_columns_per_row: ::core::option::Option<f64>,
     /// This is roughly how many bytes would be needed to read the entire table (e.g. by streaming all contents out).
     #[serde(default, rename = "logicalDataBytes")]
-    pub logical_data_bytes: Option<String>,
+    pub logical_data_bytes: ::core::option::Option<String>,
     /// How many rows are in the table.
     #[serde(default, rename = "rowCount")]
-    pub row_count: Option<String>,
+    pub row_count: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -1470,7 +1488,7 @@ pub struct TableStats {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -1478,7 +1496,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Config for tiered storage. A valid config must have a valid TieredStorageRule. Otherwise the whole TieredStorageConfig must be unset. By default all data is stored in the SSD tier (only SSD instances can configure tiered storage).
@@ -1486,7 +1504,7 @@ pub struct TestIamPermissionsResponse {
 pub struct TieredStorageConfig {
     /// Rule to specify what data is stored in the infrequent access(IA) tier. The IA tier allows storing more data per node with reduced performance.
     #[serde(default, rename = "infrequentAccess")]
-    pub infrequent_access: Option<TieredStorageRule>,
+    pub infrequent_access: ::core::option::Option<::std::boxed::Box<TieredStorageRule>>,
 }
 
 /// Rule to specify what data is stored in a storage tier.
@@ -1494,7 +1512,7 @@ pub struct TieredStorageConfig {
 pub struct TieredStorageRule {
     /// Include cells older than the given age. For the infrequent access tier, this value must be at least 30 days.
     #[serde(default, rename = "includeIfOlderThan")]
-    pub include_if_older_than: Option<String>,
+    pub include_if_older_than: ::core::option::Option<String>,
 }
 
 /// Type represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable''s existing untyped APIs, each Type includes an Encoding which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that Encode(X) &lt;= Encode(Y) if and only if X &lt;= Y. This is useful anywhere sort order is important, for example when encoding keys. - Distinct: In this mode, Bigtable guarantees that if X != Y then Encode(X) != Encode(Y). However, the converse is not guaranteed. For example, both {''foo'': ''1'', ''bar'': ''2''} and {''bar'': ''2'', ''foo'': ''1''} are valid encodings of the same JSON value. The API clearly documents which mode is used wherever an encoding can be configured. Each encoding also documents which values are supported in which modes. For example, when encoding INT64 as a numeric STRING, negative numbers cannot be encoded in sorted mode. This is because INT64(1) &gt; INT64(-1), but STRING("-00001") &gt; STRING("00001").
@@ -1502,49 +1520,51 @@ pub struct TieredStorageRule {
 pub struct Type {
     /// Aggregate
     #[serde(default, rename = "aggregateType")]
-    pub aggregate_type: Option<GoogleBigtableAdminV2TypeAggregate>,
+    pub aggregate_type:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeAggregate>>,
     /// Array
     #[serde(default, rename = "arrayType")]
-    pub array_type: Option<GoogleBigtableAdminV2TypeArray>,
+    pub array_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeArray>>,
     /// Bool
     #[serde(default, rename = "boolType")]
-    pub bool_type: Option<GoogleBigtableAdminV2TypeBool>,
+    pub bool_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBool>>,
     /// Bytes
     #[serde(default, rename = "bytesType")]
-    pub bytes_type: Option<GoogleBigtableAdminV2TypeBytes>,
+    pub bytes_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytes>>,
     /// Date
     #[serde(default, rename = "dateType")]
-    pub date_type: Option<serde_json::Value>,
+    pub date_type: ::core::option::Option<serde_json::Value>,
     /// Enum
     #[serde(default, rename = "enumType")]
-    pub enum_type: Option<GoogleBigtableAdminV2TypeEnum>,
+    pub enum_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeEnum>>,
     /// Float32
     #[serde(default, rename = "float32Type")]
-    pub float32_type: Option<serde_json::Value>,
+    pub float32_type: ::core::option::Option<serde_json::Value>,
     /// Float64
     #[serde(default, rename = "float64Type")]
-    pub float64_type: Option<serde_json::Value>,
+    pub float64_type: ::core::option::Option<serde_json::Value>,
     /// Geography
     #[serde(default, rename = "geographyType")]
-    pub geography_type: Option<serde_json::Value>,
+    pub geography_type: ::core::option::Option<serde_json::Value>,
     /// Int64
     #[serde(default, rename = "int64Type")]
-    pub int64_type: Option<GoogleBigtableAdminV2TypeInt64>,
+    pub int64_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt64>>,
     /// Map
     #[serde(default, rename = "mapType")]
-    pub map_type: Option<GoogleBigtableAdminV2TypeMap>,
+    pub map_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeMap>>,
     /// Proto
     #[serde(default, rename = "protoType")]
-    pub proto_type: Option<GoogleBigtableAdminV2TypeProto>,
+    pub proto_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeProto>>,
     /// String
     #[serde(default, rename = "stringType")]
-    pub string_type: Option<GoogleBigtableAdminV2TypeString>,
+    pub string_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeString>>,
     /// Struct
     #[serde(default, rename = "structType")]
-    pub struct_type: Option<GoogleBigtableAdminV2TypeStruct>,
+    pub struct_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStruct>>,
     /// Timestamp
     #[serde(default, rename = "timestampType")]
-    pub timestamp_type: Option<GoogleBigtableAdminV2TypeTimestamp>,
+    pub timestamp_type:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeTimestamp>>,
 }
 
 /// Metadata type for the operation returned by google.bigtable.admin.v2.BigtableTableAdmin.UndeleteTable.
@@ -1552,19 +1572,19 @@ pub struct Type {
 pub struct UndeleteTableMetadata {
     /// If set, the time at which this operation finished or was cancelled. DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The name of the table being restored.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// The time at which this operation started. DEPRECATED: Use request_time instead.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// A GcRule which deletes cells matching any of the given rules.
@@ -1572,7 +1592,7 @@ pub struct UndeleteTableMetadata {
 pub struct Union {
     /// Delete cells which would be deleted by any element of rules.
     #[serde(default)]
-    pub rules: Option<Vec<GcRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GcRule>>>,
 }
 
 /// Metadata for the google.longrunning.Operation returned by UpdateAuthorizedView.
@@ -1580,13 +1600,13 @@ pub struct Union {
 pub struct UpdateAuthorizedViewMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this UpdateAuthorizedView operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<UpdateAuthorizedViewRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<UpdateAuthorizedViewRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// The request for UpdateAuthorizedView.
@@ -1594,13 +1614,13 @@ pub struct UpdateAuthorizedViewMetadata {
 pub struct UpdateAuthorizedViewRequest {
     /// Required. The AuthorizedView to update. The name in authorized_view is used to identify the AuthorizedView. AuthorizedView name must in this format: projects/{project}/instances/{instance}/tables/{table}/authorizedViews/{authorized_view}.
     #[serde(default, rename = "authorizedView")]
-    pub authorized_view: Option<AuthorizedView>,
+    pub authorized_view: ::core::option::Option<::std::boxed::Box<AuthorizedView>>,
     /// Optional. If true, ignore the safety checks when updating the AuthorizedView.
     #[serde(default, rename = "ignoreWarnings")]
-    pub ignore_warnings: Option<bool>,
+    pub ignore_warnings: ::core::option::Option<bool>,
     /// Optional. The list of fields to update. A mask specifying which fields in the AuthorizedView resource should be updated. This mask is relative to the AuthorizedView resource, not to the request message. A field will be overwritten if it is in the mask. If empty, all fields set in the request will be overwritten. A special value * means to overwrite all fields (including fields not set in the request).
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by UpdateCluster.
@@ -1608,13 +1628,13 @@ pub struct UpdateAuthorizedViewRequest {
 pub struct UpdateClusterMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this UpdateCluster operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<Cluster>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<Cluster>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by UpdateInstance.
@@ -1622,13 +1642,13 @@ pub struct UpdateClusterMetadata {
 pub struct UpdateInstanceMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this UpdateInstance operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<PartialUpdateInstanceRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<PartialUpdateInstanceRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by UpdateLogicalView.
@@ -1636,19 +1656,19 @@ pub struct UpdateInstanceMetadata {
 pub struct UpdateLogicalViewMetadata {
     /// DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The request that prompted the initiation of this UpdateLogicalView operation.
     #[serde(default, rename = "originalRequest")]
-    pub original_request: Option<UpdateLogicalViewRequest>,
+    pub original_request: ::core::option::Option<::std::boxed::Box<UpdateLogicalViewRequest>>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// DEPRECATED: Use request_time instead.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Request message for BigtableInstanceAdmin.UpdateLogicalView.
@@ -1656,10 +1676,10 @@ pub struct UpdateLogicalViewMetadata {
 pub struct UpdateLogicalViewRequest {
     /// Required. The logical view to update. The logical view''s name field is used to identify the view to update. Format: projects/{project}/instances/{instance}/logicalViews/{logical_view}.
     #[serde(default, rename = "logicalView")]
-    pub logical_view: Option<LogicalView>,
+    pub logical_view: ::core::option::Option<::std::boxed::Box<LogicalView>>,
     /// Optional. The list of fields to update.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// The metadata for the Operation returned by UpdateSchemaBundle.
@@ -1667,13 +1687,13 @@ pub struct UpdateLogicalViewRequest {
 pub struct UpdateSchemaBundleMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The unique name identifying this schema bundle. Values are of the form projects/{project}/instances/{instance}/tables/{table}/schemaBundles/{schema_bundle}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// Metadata type for the operation returned by UpdateTable.
@@ -1681,17 +1701,17 @@ pub struct UpdateSchemaBundleMetadata {
 pub struct UpdateTableMetadata {
     /// If set, the time at which this operation finished or was canceled. DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The name of the table being updated.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time at which the original request was received.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// The time at which this operation started. DEPRECATED: Use request_time instead.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }

@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents a single datapoint, where each datapoint is a DailyMetric-DailySubEntityType-TimeSeries tuple.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DailyMetricTimeSeries {
     /// The DailyMetric that the TimeSeries represents. // TODO: enum values: ["DAILY_METRIC_UNKNOWN", "BUSINESS_IMPRESSIONS_DESKTOP_MAPS", "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH", "BUSINESS_IMPRESSIONS_MOBILE_MAPS", "BUSINESS_IMPRESSIONS_MOBILE_SEARCH", "BUSINESS_CONVERSATIONS", "BUSINESS_DIRECTION_REQUESTS", "CALL_CLICKS", "WEBSITE_CLICKS", "BUSINESS_BOOKINGS", "BUSINESS_FOOD_ORDERS", "BUSINESS_FOOD_MENU_CLICKS"]
     #[serde(default, rename = "dailyMetric")]
-    pub daily_metric: Option<String>,
+    pub daily_metric: ::core::option::Option<String>,
     /// The DailySubEntityType that the TimeSeries represents. Will not be present when breakdown does not exist.
     #[serde(default, rename = "dailySubEntityType")]
-    pub daily_sub_entity_type: Option<DailySubEntityType>,
+    pub daily_sub_entity_type: ::core::option::Option<::std::boxed::Box<DailySubEntityType>>,
     /// List of datapoints where each datapoint is a date-value pair.
     #[serde(default, rename = "timeSeries")]
-    pub time_series: Option<TimeSeries>,
+    pub time_series: ::core::option::Option<::std::boxed::Box<TimeSeries>>,
 }
 
 /// Represents all possible subentity types that are associated with DailyMetrics.
@@ -32,10 +32,10 @@ pub struct DailyMetricTimeSeries {
 pub struct DailySubEntityType {
     /// Represents the day of the week. Eg: MONDAY. Currently supported DailyMetrics = NONE. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: Option<String>,
+    pub day_of_week: ::core::option::Option<String>,
     /// Represents the time of the day in 24 hour format. Eg: 13:34:20 Currently supported DailyMetrics = NONE.
     #[serde(default, rename = "timeOfDay")]
-    pub time_of_day: Option<TimeOfDay>,
+    pub time_of_day: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -43,13 +43,13 @@ pub struct DailySubEntityType {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Represents a single datapoint in the timeseries, where each datapoint is a date-value pair.
@@ -57,10 +57,10 @@ pub struct Date {
 pub struct DatedValue {
     /// The date that the datapoint corresponds to. This represents a month value if the day field is not set.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The value of the datapoint. This will not be present when the value is zero.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Represents the response for FetchMultiDailyMetricsTimeSeries.
@@ -68,7 +68,8 @@ pub struct DatedValue {
 pub struct FetchMultiDailyMetricsTimeSeriesResponse {
     /// DailyMetrics and their corresponding time series.
     #[serde(default, rename = "multiDailyMetricTimeSeries")]
-    pub multi_daily_metric_time_series: Option<Vec<MultiDailyMetricTimeSeries>>,
+    pub multi_daily_metric_time_series:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MultiDailyMetricTimeSeries>>>,
 }
 
 /// Represents the response for GetDailyMetricsTimeSeries.
@@ -76,7 +77,7 @@ pub struct FetchMultiDailyMetricsTimeSeriesResponse {
 pub struct GetDailyMetricsTimeSeriesResponse {
     /// The daily time series.
     #[serde(default, rename = "timeSeries")]
-    pub time_series: Option<TimeSeries>,
+    pub time_series: ::core::option::Option<::std::boxed::Box<TimeSeries>>,
 }
 
 /// Represents an insights value.
@@ -84,10 +85,10 @@ pub struct GetDailyMetricsTimeSeriesResponse {
 pub struct InsightsValue {
     /// Represents the threshold below which the actual value falls.
     #[serde(default)]
-    pub threshold: Option<String>,
+    pub threshold: ::core::option::Option<String>,
     /// Represents the actual value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Represents the response for ListSearchKeywordImpressionsMonthly.
@@ -95,10 +96,11 @@ pub struct InsightsValue {
 pub struct ListSearchKeywordImpressionsMonthlyResponse {
     /// A token indicating the last paginated result returned. This can be used by succeeding requests to get the next "page" of keywords. It will only be present when there are more results to be returned.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Search terms which have been used to find a business.
     #[serde(default, rename = "searchKeywordsCounts")]
-    pub search_keywords_counts: Option<Vec<SearchKeywordCount>>,
+    pub search_keywords_counts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SearchKeywordCount>>>,
 }
 
 /// Represents a list of tuples of DailyMetric-DailySubEntityType-TimeSeries.
@@ -106,7 +108,8 @@ pub struct ListSearchKeywordImpressionsMonthlyResponse {
 pub struct MultiDailyMetricTimeSeries {
     /// List of DailyMetric-TimeSeries pairs.
     #[serde(default, rename = "dailyMetricTimeSeries")]
-    pub daily_metric_time_series: Option<Vec<DailyMetricTimeSeries>>,
+    pub daily_metric_time_series:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DailyMetricTimeSeries>>>,
 }
 
 /// Represents a single search keyword and its value.
@@ -114,10 +117,10 @@ pub struct MultiDailyMetricTimeSeries {
 pub struct SearchKeywordCount {
     /// One of either: 1) The sum of the number of unique users that used the keyword in a month, aggregated for each month requested. 2) A threshold that indicates that the actual value is below this threshold.
     #[serde(default, rename = "insightsValue")]
-    pub insights_value: Option<InsightsValue>,
+    pub insights_value: ::core::option::Option<::std::boxed::Box<InsightsValue>>,
     /// The lower-cased string that the user entered.
     #[serde(default, rename = "searchKeyword")]
-    pub search_keyword: Option<String>,
+    pub search_keyword: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -125,16 +128,16 @@ pub struct SearchKeywordCount {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// Represents a timeseries.
@@ -142,5 +145,5 @@ pub struct TimeOfDay {
 pub struct TimeSeries {
     /// List of datapoints in the timeseries, where each datapoint is a date-value pair.
     #[serde(default, rename = "datedValues")]
-    pub dated_values: Option<Vec<DatedValue>>,
+    pub dated_values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatedValue>>>,
 }

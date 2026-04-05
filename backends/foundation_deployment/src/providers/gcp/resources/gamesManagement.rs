@@ -10,18 +10,19 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Achievement reset all response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AchievementResetAllResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#achievementResetAllResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The achievement reset results.
     #[serde(default)]
-    pub results: Option<Vec<AchievementResetResponse>>,
+    pub results:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AchievementResetResponse>>>,
 }
 
 /// AchievementResetMultipleForAllRequest resource type.
@@ -29,10 +30,10 @@ pub struct AchievementResetAllResponse {
 pub struct AchievementResetMultipleForAllRequest {
     /// The IDs of achievements to reset.
     #[serde(default)]
-    pub achievement_ids: Option<Vec<String>>,
+    pub achievement_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#achievementResetMultipleForAllRequest.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// An achievement reset response.
@@ -40,16 +41,16 @@ pub struct AchievementResetMultipleForAllRequest {
 pub struct AchievementResetResponse {
     /// The current state of the achievement. This is the same as the initial state of the achievement. Possible values are: - "HIDDEN"- Achievement is hidden. - "REVEALED" - Achievement is revealed. - "UNLOCKED" - Achievement is unlocked.
     #[serde(default, rename = "currentState")]
-    pub current_state: Option<String>,
+    pub current_state: ::core::option::Option<String>,
     /// The ID of an achievement for which player state has been updated.
     #[serde(default, rename = "definitionId")]
-    pub definition_id: Option<String>,
+    pub definition_id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#achievementResetResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Flag to indicate if the requested update actually occurred.
     #[serde(default, rename = "updateOccurred")]
-    pub update_occurred: Option<bool>,
+    pub update_occurred: ::core::option::Option<bool>,
 }
 
 /// Multiple events reset all request.
@@ -57,10 +58,10 @@ pub struct AchievementResetResponse {
 pub struct EventsResetMultipleForAllRequest {
     /// The IDs of events to reset.
     #[serde(default)]
-    pub event_ids: Option<Vec<String>>,
+    pub event_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#eventsResetMultipleForAllRequest.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// 1P/3P metadata about the player''s experience.
@@ -68,16 +69,16 @@ pub struct EventsResetMultipleForAllRequest {
 pub struct GamesPlayerExperienceInfoResource {
     /// The current number of experience points for the player.
     #[serde(default, rename = "currentExperiencePoints")]
-    pub current_experience_points: Option<String>,
+    pub current_experience_points: ::core::option::Option<String>,
     /// The current level of the player.
     #[serde(default, rename = "currentLevel")]
-    pub current_level: Option<GamesPlayerLevelResource>,
+    pub current_level: ::core::option::Option<::std::boxed::Box<GamesPlayerLevelResource>>,
     /// The timestamp when the player was leveled up, in millis since Unix epoch UTC.
     #[serde(default, rename = "lastLevelUpTimestampMillis")]
-    pub last_level_up_timestamp_millis: Option<String>,
+    pub last_level_up_timestamp_millis: ::core::option::Option<String>,
     /// The next level of the player. If the current level is the maximum level, this should be same as the current level.
     #[serde(default, rename = "nextLevel")]
-    pub next_level: Option<GamesPlayerLevelResource>,
+    pub next_level: ::core::option::Option<::std::boxed::Box<GamesPlayerLevelResource>>,
 }
 
 /// 1P/3P metadata about a user''s level.
@@ -85,13 +86,13 @@ pub struct GamesPlayerExperienceInfoResource {
 pub struct GamesPlayerLevelResource {
     /// The level for the user.
     #[serde(default)]
-    pub level: Option<i32>,
+    pub level: ::core::option::Option<i32>,
     /// The maximum experience points for this level.
     #[serde(default, rename = "maxExperiencePoints")]
-    pub max_experience_points: Option<String>,
+    pub max_experience_points: ::core::option::Option<String>,
     /// The minimum experience points for this level.
     #[serde(default, rename = "minExperiencePoints")]
-    pub min_experience_points: Option<String>,
+    pub min_experience_points: ::core::option::Option<String>,
 }
 
 /// The HiddenPlayer resource.
@@ -99,13 +100,13 @@ pub struct GamesPlayerLevelResource {
 pub struct HiddenPlayer {
     /// Output only. The time this player was hidden.
     #[serde(default, rename = "hiddenTimeMillis")]
-    pub hidden_time_millis: Option<String>,
+    pub hidden_time_millis: ::core::option::Option<String>,
     /// Output only. Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#hiddenPlayer.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Output only. The player information.
     #[serde(default)]
-    pub player: Option<Player>,
+    pub player: ::core::option::Option<::std::boxed::Box<Player>>,
 }
 
 /// A list of hidden players.
@@ -113,13 +114,13 @@ pub struct HiddenPlayer {
 pub struct HiddenPlayerList {
     /// The players.
     #[serde(default)]
-    pub items: Option<Vec<HiddenPlayer>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<HiddenPlayer>>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#hiddenPlayerList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A Player resource.
@@ -127,37 +128,38 @@ pub struct HiddenPlayerList {
 pub struct Player {
     /// The base URL for the image that represents the player.
     #[serde(default, rename = "avatarImageUrl")]
-    pub avatar_image_url: Option<String>,
+    pub avatar_image_url: ::core::option::Option<String>,
     /// The url to the landscape mode player banner image.
     #[serde(default, rename = "bannerUrlLandscape")]
-    pub banner_url_landscape: Option<String>,
+    pub banner_url_landscape: ::core::option::Option<String>,
     /// The url to the portrait mode player banner image.
     #[serde(default, rename = "bannerUrlPortrait")]
-    pub banner_url_portrait: Option<String>,
+    pub banner_url_portrait: ::core::option::Option<String>,
     /// The name to display for the player.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// An object to represent Play Game experience information for the player.
     #[serde(default, rename = "experienceInfo")]
-    pub experience_info: Option<GamesPlayerExperienceInfoResource>,
+    pub experience_info:
+        ::core::option::Option<::std::boxed::Box<GamesPlayerExperienceInfoResource>>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#player.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// An object representation of the individual components of the player''s name. For some players, these fields may not be present.
     #[serde(default)]
-    pub name: Option<serde_json::Value>,
+    pub name: ::core::option::Option<serde_json::Value>,
     /// The player ID that was used for this player the first time they signed into the game in question. This is only populated for calls to player.get for the requesting player, only if the player ID has subsequently changed, and only to clients that support remapping player IDs.
     #[serde(default, rename = "originalPlayerId")]
-    pub original_player_id: Option<String>,
+    pub original_player_id: ::core::option::Option<String>,
     /// The ID of the player.
     #[serde(default, rename = "playerId")]
-    pub player_id: Option<String>,
+    pub player_id: ::core::option::Option<String>,
     /// The player''s profile settings. Controls whether or not the player''s profile is visible to other players.
     #[serde(default, rename = "profileSettings")]
-    pub profile_settings: Option<ProfileSettings>,
+    pub profile_settings: ::core::option::Option<::std::boxed::Box<ProfileSettings>>,
     /// The player''s title rewarded for their game activities.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A list of leaderboard reset resources.
@@ -165,10 +167,11 @@ pub struct Player {
 pub struct PlayerScoreResetAllResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#playerScoreResetAllResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The leaderboard reset results.
     #[serde(default)]
-    pub results: Option<Vec<PlayerScoreResetResponse>>,
+    pub results:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PlayerScoreResetResponse>>>,
 }
 
 /// A list of reset leaderboard entry resources.
@@ -176,13 +179,13 @@ pub struct PlayerScoreResetAllResponse {
 pub struct PlayerScoreResetResponse {
     /// The ID of an leaderboard for which player state has been updated.
     #[serde(default, rename = "definitionId")]
-    pub definition_id: Option<String>,
+    pub definition_id: ::core::option::Option<String>,
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#playerScoreResetResponse.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The time spans of the updated score. Possible values are: - "ALL_TIME" - The score is an all-time score. - "WEEKLY" - The score is a weekly score. - "DAILY" - The score is a daily score.
     #[serde(default, rename = "resetScoreTimeSpans")]
-    pub reset_score_time_spans: Option<Vec<String>>,
+    pub reset_score_time_spans: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Profile settings
@@ -190,9 +193,9 @@ pub struct PlayerScoreResetResponse {
 pub struct ProfileSettings {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#profileSettings.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     #[serde(default, rename = "profileVisible")]
-    pub profile_visible: Option<bool>,
+    pub profile_visible: ::core::option::Option<bool>,
 }
 
 /// ScoresResetMultipleForAllRequest resource type.
@@ -200,8 +203,8 @@ pub struct ProfileSettings {
 pub struct ScoresResetMultipleForAllRequest {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#scoresResetMultipleForAllRequest.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The IDs of leaderboards to reset.
     #[serde(default)]
-    pub leaderboard_ids: Option<Vec<String>>,
+    pub leaderboard_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }

@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Configuration of the AOF based persistence.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AOFConfig {
     /// Optional. fsync configuration. // TODO: enum values: ["APPEND_FSYNC_UNSPECIFIED", "NO", "EVERYSEC", "ALWAYS"]
     #[serde(default, rename = "appendFsync")]
-    pub append_fsync: Option<String>,
+    pub append_fsync: ::core::option::Option<String>,
 }
 
 /// The ACL policy resource.
@@ -26,19 +26,19 @@ pub struct AOFConfig {
 pub struct AclPolicy {
     /// Output only. Etag for the ACL policy.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Identifier. Full resource path of the ACL policy.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The ACL rules within the ACL policy.
     #[serde(default)]
-    pub rules: Option<Vec<AclRule>>,
+    pub rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AclRule>>>,
     /// Output only. The state of the ACL policy. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "UPDATING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The version of the ACL policy. Used in drift resolution.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// A single ACL rule which defines the policy for a user.
@@ -46,10 +46,10 @@ pub struct AclPolicy {
 pub struct AclRule {
     /// Required. The rule to be applied to the username. Ex: "on &gt;password123 ~* +@all" The format of the rule is defined by Redis OSS: https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/
     #[serde(default)]
-    pub rule: Option<String>,
+    pub rule: ::core::option::Option<String>,
     /// Required. Specifies the IAM user or service account to be added to the ACL policy. This username will be directly set on the Redis OSS.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// Request message for AddAuthToken.
@@ -57,7 +57,7 @@ pub struct AclRule {
 pub struct AddAuthTokenRequest {
     /// Required. The auth token to add.
     #[serde(default, rename = "authToken")]
-    pub auth_token: Option<AuthToken>,
+    pub auth_token: ::core::option::Option<::std::boxed::Box<AuthToken>>,
 }
 
 /// Request message for AddTokenAuthUser.
@@ -65,7 +65,7 @@ pub struct AddAuthTokenRequest {
 pub struct AddTokenAuthUserRequest {
     /// Required. The id of the token auth user to add.
     #[serde(default, rename = "tokenAuthUser")]
-    pub token_auth_user: Option<String>,
+    pub token_auth_user: ::core::option::Option<String>,
 }
 
 /// Auth token for the cluster.
@@ -73,16 +73,16 @@ pub struct AddTokenAuthUserRequest {
 pub struct AuthToken {
     /// Output only. Create time of the auth token.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. Name of the auth token. Format: projects/{project}/locations/{location}/clusters/{cluster}/tokenAuthUsers/{token_auth_user}/authTokens/{auth_token}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. State of the auth token. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The service generated authentication token used to connect to the Redis cluster.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// The automated backup config for a cluster.
@@ -90,13 +90,13 @@ pub struct AuthToken {
 pub struct AutomatedBackupConfig {
     /// Optional. The automated backup mode. If the mode is disabled, the other fields will be ignored. // TODO: enum values: ["AUTOMATED_BACKUP_MODE_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default, rename = "automatedBackupMode")]
-    pub automated_backup_mode: Option<String>,
+    pub automated_backup_mode: ::core::option::Option<String>,
     /// Optional. Trigger automated backups at a fixed frequency.
     #[serde(default, rename = "fixedFrequencySchedule")]
-    pub fixed_frequency_schedule: Option<FixedFrequencySchedule>,
+    pub fixed_frequency_schedule: ::core::option::Option<::std::boxed::Box<FixedFrequencySchedule>>,
     /// Optional. How long to keep automated backups before the backups are deleted. The value should be between 1 day and 365 days. If not specified, the default value is 35 days.
     #[serde(default)]
-    pub retention: Option<String>,
+    pub retention: ::core::option::Option<String>,
 }
 
 /// Configuration for availability of database instance
@@ -104,17 +104,17 @@ pub struct AutomatedBackupConfig {
 pub struct AvailabilityConfiguration {
     /// Checks for existence of (multi-cluster) routing configuration that allows automatic failover to a different zone/region in case of an outage. Applicable to Bigtable resources.
     #[serde(default, rename = "automaticFailoverRoutingConfigured")]
-    pub automatic_failover_routing_configured: Option<bool>,
+    pub automatic_failover_routing_configured: ::core::option::Option<bool>,
     /// Availability type. Potential values: * ZONAL: The instance serves data from only one zone. Outages in that zone affect data accessibility. * REGIONAL: The instance can serve data from more than one zone in a region (it is highly available). // TODO: enum values: ["AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL", "MULTI_REGIONAL", "AVAILABILITY_TYPE_OTHER"]
     #[serde(default, rename = "availabilityType")]
-    pub availability_type: Option<String>,
+    pub availability_type: ::core::option::Option<String>,
     /// Checks for resources that are configured to have redundancy, and ongoing replication across regions
     #[serde(default, rename = "crossRegionReplicaConfigured")]
-    pub cross_region_replica_configured: Option<bool>,
+    pub cross_region_replica_configured: ::core::option::Option<bool>,
     #[serde(default, rename = "externalReplicaConfigured")]
-    pub external_replica_configured: Option<bool>,
+    pub external_replica_configured: ::core::option::Option<bool>,
     #[serde(default, rename = "promotableReplicaConfigured")]
-    pub promotable_replica_configured: Option<bool>,
+    pub promotable_replica_configured: ::core::option::Option<bool>,
 }
 
 /// Backup of a cluster.
@@ -122,49 +122,49 @@ pub struct AvailabilityConfiguration {
 pub struct Backup {
     /// Output only. List of backup files of the backup.
     #[serde(default, rename = "backupFiles")]
-    pub backup_files: Option<Vec<BackupFile>>,
+    pub backup_files: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BackupFile>>>,
     /// Output only. Type of the backup. // TODO: enum values: ["BACKUP_TYPE_UNSPECIFIED", "ON_DEMAND", "AUTOMATED"]
     #[serde(default, rename = "backupType")]
-    pub backup_type: Option<String>,
+    pub backup_type: ::core::option::Option<String>,
     /// Output only. Cluster resource path of this backup.
     #[serde(default)]
-    pub cluster: Option<String>,
+    pub cluster: ::core::option::Option<String>,
     /// Output only. Cluster uid of this backup.
     #[serde(default, rename = "clusterUid")]
-    pub cluster_uid: Option<String>,
+    pub cluster_uid: ::core::option::Option<String>,
     /// Output only. The time when the backup was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Encryption information of the backup.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Output only. redis-7.2, valkey-7.5
     #[serde(default, rename = "engineVersion")]
-    pub engine_version: Option<String>,
+    pub engine_version: ::core::option::Option<String>,
     /// Output only. The time when the backup will expire.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Identifier. Full resource path of the backup. the last part of the name is the backup id with the following format: [YYYYMMDDHHMMSS]_[Shorted Cluster UID] OR customer specified while backup cluster. Example: 20240515123000_1234
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Node type of the cluster. // TODO: enum values: ["NODE_TYPE_UNSPECIFIED", "REDIS_SHARED_CORE_NANO", "REDIS_HIGHMEM_MEDIUM", "REDIS_HIGHMEM_XLARGE", "REDIS_STANDARD_SMALL"]
     #[serde(default, rename = "nodeType")]
-    pub node_type: Option<String>,
+    pub node_type: ::core::option::Option<String>,
     /// Output only. Number of replicas for the cluster.
     #[serde(default, rename = "replicaCount")]
-    pub replica_count: Option<i32>,
+    pub replica_count: ::core::option::Option<i32>,
     /// Output only. Number of shards for the cluster.
     #[serde(default, rename = "shardCount")]
-    pub shard_count: Option<i32>,
+    pub shard_count: ::core::option::Option<i32>,
     /// Output only. State of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "SUSPENDED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Total size of the backup in bytes.
     #[serde(default, rename = "totalSizeBytes")]
-    pub total_size_bytes: Option<String>,
+    pub total_size_bytes: ::core::option::Option<String>,
     /// Output only. System assigned unique identifier of the backup.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }
 
 /// Request for [BackupCluster].
@@ -172,10 +172,10 @@ pub struct Backup {
 pub struct BackupClusterRequest {
     /// Optional. The id of the backup to be created. If not specified, the default value ([YYYYMMDDHHMMSS]_[Shortened Cluster UID] is used.
     #[serde(default, rename = "backupId")]
-    pub backup_id: Option<String>,
+    pub backup_id: ::core::option::Option<String>,
     /// Optional. TTL for the backup to expire. Value range is 1 day to 100 years. If not specified, the default value is 100 years.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// BackupCollection of a cluster.
@@ -183,31 +183,31 @@ pub struct BackupClusterRequest {
 pub struct BackupCollection {
     /// Output only. The full resource path of the cluster the backup collection belongs to. Example: projects/{project}/locations/{location}/clusters/{cluster}
     #[serde(default)]
-    pub cluster: Option<String>,
+    pub cluster: ::core::option::Option<String>,
     /// Output only. The cluster uid of the backup collection.
     #[serde(default, rename = "clusterUid")]
-    pub cluster_uid: Option<String>,
+    pub cluster_uid: ::core::option::Option<String>,
     /// Output only. The time when the backup collection was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The KMS key used to encrypt the backups under this backup collection.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Output only. The last time a backup was created in the backup collection.
     #[serde(default, rename = "lastBackupTime")]
-    pub last_backup_time: Option<String>,
+    pub last_backup_time: ::core::option::Option<String>,
     /// Identifier. Full resource path of the backup collection.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Total number of backups in the backup collection.
     #[serde(default, rename = "totalBackupCount")]
-    pub total_backup_count: Option<String>,
+    pub total_backup_count: ::core::option::Option<String>,
     /// Output only. Total size of all backups in the backup collection.
     #[serde(default, rename = "totalBackupSizeBytes")]
-    pub total_backup_size_bytes: Option<String>,
+    pub total_backup_size_bytes: ::core::option::Option<String>,
     /// Output only. System assigned unique identifier of the backup collection.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }
 
 /// Configuration for automatic backups
@@ -215,13 +215,13 @@ pub struct BackupCollection {
 pub struct BackupConfiguration {
     /// Whether customer visible automated backups are enabled on the instance.
     #[serde(default, rename = "automatedBackupEnabled")]
-    pub automated_backup_enabled: Option<bool>,
+    pub automated_backup_enabled: ::core::option::Option<bool>,
     /// Backup retention settings.
     #[serde(default, rename = "backupRetentionSettings")]
-    pub backup_retention_settings: Option<RetentionSettings>,
+    pub backup_retention_settings: ::core::option::Option<::std::boxed::Box<RetentionSettings>>,
     /// Whether point-in-time recovery is enabled. This is optional field, if the database service does not have this feature or metadata is not available in control plane, this can be omitted.
     #[serde(default, rename = "pointInTimeRecoveryEnabled")]
-    pub point_in_time_recovery_enabled: Option<bool>,
+    pub point_in_time_recovery_enabled: ::core::option::Option<bool>,
 }
 
 /// BackupDRConfiguration to capture the backup and disaster recovery details of database resource.
@@ -229,7 +229,7 @@ pub struct BackupConfiguration {
 pub struct BackupDRConfiguration {
     /// Indicates if the resource is managed by BackupDR.
     #[serde(default, rename = "backupdrManaged")]
-    pub backupdr_managed: Option<bool>,
+    pub backupdr_managed: ::core::option::Option<bool>,
 }
 
 /// BackupDRMetadata contains information about the backup and disaster recovery metadata of a database resource.
@@ -237,22 +237,22 @@ pub struct BackupDRConfiguration {
 pub struct BackupDRMetadata {
     /// Backup configuration for this instance.
     #[serde(default, rename = "backupConfiguration")]
-    pub backup_configuration: Option<BackupConfiguration>,
+    pub backup_configuration: ::core::option::Option<::std::boxed::Box<BackupConfiguration>>,
     /// Latest backup run information for this instance.
     #[serde(default, rename = "backupRun")]
-    pub backup_run: Option<BackupRun>,
+    pub backup_run: ::core::option::Option<::std::boxed::Box<BackupRun>>,
     /// BackupDR configuration for this instance.
     #[serde(default, rename = "backupdrConfiguration")]
-    pub backupdr_configuration: Option<BackupDRConfiguration>,
+    pub backupdr_configuration: ::core::option::Option<::std::boxed::Box<BackupDRConfiguration>>,
     /// Required. Full resource name of this instance.
     #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: Option<String>,
+    pub full_resource_name: ::core::option::Option<String>,
     /// Required. Last time backup configuration was refreshed.
     #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: Option<String>,
+    pub last_refresh_time: ::core::option::Option<String>,
     /// Required. Database resource id.
     #[serde(default, rename = "resourceId")]
-    pub resource_id: Option<DatabaseResourceId>,
+    pub resource_id: ::core::option::Option<::std::boxed::Box<DatabaseResourceId>>,
 }
 
 /// Backup is consisted of multiple backup files.
@@ -260,13 +260,13 @@ pub struct BackupDRMetadata {
 pub struct BackupFile {
     /// Output only. The time when the backup file was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. e.g: .rdb
     #[serde(default, rename = "fileName")]
-    pub file_name: Option<String>,
+    pub file_name: ::core::option::Option<String>,
     /// Output only. Size of the backup file in bytes.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
 }
 
 /// A backup run.
@@ -274,16 +274,16 @@ pub struct BackupFile {
 pub struct BackupRun {
     /// The time the backup operation completed. REQUIRED
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Information about why the backup operation failed. This is only present if the run has the FAILED status. OPTIONAL
     #[serde(default)]
-    pub error: Option<OperationError>,
+    pub error: ::core::option::Option<::std::boxed::Box<OperationError>>,
     /// The time the backup operation started. REQUIRED
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The status of this run. REQUIRED // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESSFUL", "FAILED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// CertChain resource type.
@@ -291,17 +291,17 @@ pub struct BackupRun {
 pub struct CertChain {
     /// The certificates that form the CA chain, from leaf to root order.
     #[serde(default)]
-    pub certificates: Option<Vec<String>>,
+    pub certificates: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Redis cluster certificate authority
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CertificateAuthority {
     #[serde(default, rename = "managedServerCa")]
-    pub managed_server_ca: Option<ManagedCertificateAuthority>,
+    pub managed_server_ca: ::core::option::Option<::std::boxed::Box<ManagedCertificateAuthority>>,
     /// Identifier. Unique name of the resource in this scope including project, location and cluster using the form: projects/{project}/locations/{location}/clusters/{cluster}/certificateAuthority
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A cluster instance.
@@ -309,139 +309,143 @@ pub struct CertificateAuthority {
 pub struct Cluster {
     /// Optional. The ACL policy to be applied to the cluster.
     #[serde(default, rename = "aclPolicy")]
-    pub acl_policy: Option<String>,
+    pub acl_policy: ::core::option::Option<String>,
     /// Optional. Output only. Indicates whether the ACL rules applied to the cluster are in sync with the latest ACL policy rules. This field is only applicable if the ACL policy is set for the cluster.
     #[serde(default, rename = "aclPolicyInSync")]
-    pub acl_policy_in_sync: Option<bool>,
+    pub acl_policy_in_sync: ::core::option::Option<bool>,
     /// Optional. Immutable. Deprecated, do not use.
     #[serde(default, rename = "allowFewerZonesDeployment")]
-    pub allow_fewer_zones_deployment: Option<bool>,
+    pub allow_fewer_zones_deployment: ::core::option::Option<bool>,
     /// Optional. If true, cluster endpoints that are created and registered by customers can be deleted asynchronously. That is, such a cluster endpoint can be de-registered before the forwarding rules in the cluster endpoint are deleted.
     #[serde(default, rename = "asyncClusterEndpointsDeletionEnabled")]
-    pub async_cluster_endpoints_deletion_enabled: Option<bool>,
+    pub async_cluster_endpoints_deletion_enabled: ::core::option::Option<bool>,
     /// Optional. The authorization mode of the Redis cluster. If not provided, auth feature is disabled for the cluster. // TODO: enum values: ["AUTH_MODE_UNSPECIFIED", "AUTH_MODE_IAM_AUTH", "AUTH_MODE_DISABLED", "AUTH_MODE_TOKEN_AUTH"]
     #[serde(default, rename = "authorizationMode")]
-    pub authorization_mode: Option<String>,
+    pub authorization_mode: ::core::option::Option<String>,
     /// Optional. The automated backup config for the cluster.
     #[serde(default, rename = "automatedBackupConfig")]
-    pub automated_backup_config: Option<AutomatedBackupConfig>,
+    pub automated_backup_config: ::core::option::Option<::std::boxed::Box<AutomatedBackupConfig>>,
     /// Output only. This field is used to determine the available maintenance versions for the self service update.
     #[serde(default, rename = "availableMaintenanceVersions")]
-    pub available_maintenance_versions: Option<Vec<String>>,
+    pub available_maintenance_versions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Output only. The backup collection full resource name. Example: projects/{project}/locations/{location}/backupCollections/{collection}
     #[serde(default, rename = "backupCollection")]
-    pub backup_collection: Option<String>,
+    pub backup_collection: ::core::option::Option<String>,
     /// Optional. A list of cluster endpoints.
     #[serde(default, rename = "clusterEndpoints")]
-    pub cluster_endpoints: Option<Vec<ClusterEndpoint>>,
+    pub cluster_endpoints:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClusterEndpoint>>>,
     /// Output only. The timestamp associated with the cluster creation request.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Cross cluster replication config.
     #[serde(default, rename = "crossClusterReplicationConfig")]
-    pub cross_cluster_replication_config: Option<CrossClusterReplicationConfig>,
+    pub cross_cluster_replication_config:
+        ::core::option::Option<::std::boxed::Box<CrossClusterReplicationConfig>>,
     /// Optional. The delete operation will fail when the value is set to true.
     #[serde(default, rename = "deletionProtectionEnabled")]
-    pub deletion_protection_enabled: Option<bool>,
+    pub deletion_protection_enabled: ::core::option::Option<bool>,
     /// Output only. Endpoints created on each given network, for Redis clients to connect to the cluster. Currently only one discovery endpoint is supported.
     #[serde(default, rename = "discoveryEndpoints")]
-    pub discovery_endpoints: Option<Vec<DiscoveryEndpoint>>,
+    pub discovery_endpoints:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DiscoveryEndpoint>>>,
     /// Output only. This field represents the actual maintenance version of the cluster.
     #[serde(default, rename = "effectiveMaintenanceVersion")]
-    pub effective_maintenance_version: Option<String>,
+    pub effective_maintenance_version: ::core::option::Option<String>,
     /// Output only. Encryption information of the data at rest of the cluster.
     #[serde(default, rename = "encryptionInfo")]
-    pub encryption_info: Option<EncryptionInfo>,
+    pub encryption_info: ::core::option::Option<::std::boxed::Box<EncryptionInfo>>,
     /// Optional. Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters. Read permission is required to import from the provided Cloud Storage objects.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsBackupSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsBackupSource>>,
     /// Optional. The KMS key used to encrypt the at-rest data of the cluster.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Optional. Labels to represent user-provided metadata.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. ClusterMaintenancePolicy determines when to allow or deny updates.
     #[serde(default, rename = "maintenancePolicy")]
-    pub maintenance_policy: Option<ClusterMaintenancePolicy>,
+    pub maintenance_policy: ::core::option::Option<::std::boxed::Box<ClusterMaintenancePolicy>>,
     /// Output only. ClusterMaintenanceSchedule Output only Published maintenance schedule.
     #[serde(default, rename = "maintenanceSchedule")]
-    pub maintenance_schedule: Option<ClusterMaintenanceSchedule>,
+    pub maintenance_schedule: ::core::option::Option<::std::boxed::Box<ClusterMaintenanceSchedule>>,
     /// Optional. This field can be used to trigger self service update to indicate the desired maintenance version. The input to this field can be determined by the available_maintenance_versions field.
     #[serde(default, rename = "maintenanceVersion")]
-    pub maintenance_version: Option<String>,
+    pub maintenance_version: ::core::option::Option<String>,
     /// Optional. Backups generated and managed by memorystore service.
     #[serde(default, rename = "managedBackupSource")]
-    pub managed_backup_source: Option<ManagedBackupSource>,
+    pub managed_backup_source: ::core::option::Option<::std::boxed::Box<ManagedBackupSource>>,
     /// Required. Identifier. Unique name of the resource in this scope including project and location using the form: projects/{project_id}/locations/{location_id}/clusters/{cluster_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The type of a redis node in the cluster. NodeType determines the underlying machine-type of a redis node. // TODO: enum values: ["NODE_TYPE_UNSPECIFIED", "REDIS_SHARED_CORE_NANO", "REDIS_HIGHMEM_MEDIUM", "REDIS_HIGHMEM_XLARGE", "REDIS_STANDARD_SMALL"]
     #[serde(default, rename = "nodeType")]
-    pub node_type: Option<String>,
+    pub node_type: ::core::option::Option<String>,
     /// Optional. Input only. Ondemand maintenance for the cluster. This field can be used to trigger ondemand critical update on the cluster.
     #[serde(default, rename = "ondemandMaintenance")]
-    pub ondemand_maintenance: Option<bool>,
+    pub ondemand_maintenance: ::core::option::Option<bool>,
     /// Optional. Persistence config (RDB, AOF) for the cluster.
     #[serde(default, rename = "persistenceConfig")]
-    pub persistence_config: Option<ClusterPersistenceConfig>,
+    pub persistence_config: ::core::option::Option<::std::boxed::Box<ClusterPersistenceConfig>>,
     /// Output only. Precise value of redis memory size in GB for the entire cluster.
     #[serde(default, rename = "preciseSizeGb")]
-    pub precise_size_gb: Option<f64>,
+    pub precise_size_gb: ::core::option::Option<f64>,
     /// Optional. Each PscConfig configures the consumer network where IPs will be designated to the cluster for client access through Private Service Connect Automation. Currently, only one PscConfig is supported.
     #[serde(default, rename = "pscConfigs")]
-    pub psc_configs: Option<Vec<PscConfig>>,
+    pub psc_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PscConfig>>>,
     /// Output only. The list of PSC connections that are auto-created through service connectivity automation.
     #[serde(default, rename = "pscConnections")]
-    pub psc_connections: Option<Vec<PscConnection>>,
+    pub psc_connections: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PscConnection>>>,
     /// Output only. Service attachment details to configure Psc connections
     #[serde(default, rename = "pscServiceAttachments")]
-    pub psc_service_attachments: Option<Vec<PscServiceAttachment>>,
+    pub psc_service_attachments:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PscServiceAttachment>>>,
     /// Optional. Key/Value pairs of customer overrides for mutable Redis Configs
     #[serde(default, rename = "redisConfigs")]
-    pub redis_configs: Option<serde_json::Value>,
+    pub redis_configs: ::core::option::Option<serde_json::Value>,
     /// Optional. The number of replica nodes per shard.
     #[serde(default, rename = "replicaCount")]
-    pub replica_count: Option<i32>,
+    pub replica_count: ::core::option::Option<i32>,
     /// Optional. Input only. Rotate the server certificates.
     #[serde(default, rename = "rotateServerCertificate")]
-    pub rotate_server_certificate: Option<bool>,
+    pub rotate_server_certificate: ::core::option::Option<bool>,
     /// Optional. Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Optional. Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Optional. Server CA mode for the cluster. // TODO: enum values: ["SERVER_CA_MODE_UNSPECIFIED", "SERVER_CA_MODE_GOOGLE_MANAGED_PER_INSTANCE_CA", "SERVER_CA_MODE_GOOGLE_MANAGED_SHARED_CA", "SERVER_CA_MODE_CUSTOMER_MANAGED_CAS_CA"]
     #[serde(default, rename = "serverCaMode")]
-    pub server_ca_mode: Option<String>,
+    pub server_ca_mode: ::core::option::Option<String>,
     /// Optional. Customer-managed CA pool for the cluster. Only applicable for BYOCA i.e. if server_ca_mode is SERVER_CA_MODE_CUSTOMER_MANAGED_CAS_CA. Format: "projects/{project}/locations/{region}/caPools/{ca_pool}".
     #[serde(default, rename = "serverCaPool")]
-    pub server_ca_pool: Option<String>,
+    pub server_ca_pool: ::core::option::Option<String>,
     /// Optional. Number of shards for the Redis cluster.
     #[serde(default, rename = "shardCount")]
-    pub shard_count: Option<i32>,
+    pub shard_count: ::core::option::Option<i32>,
     /// Optional. Input only. Simulate a maintenance event.
     #[serde(default, rename = "simulateMaintenanceEvent")]
-    pub simulate_maintenance_event: Option<bool>,
+    pub simulate_maintenance_event: ::core::option::Option<bool>,
     /// Output only. Redis memory size in GB for the entire cluster rounded up to the next integer.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<i32>,
+    pub size_gb: ::core::option::Option<i32>,
     /// Output only. The current state of this cluster. Can be CREATING, READY, UPDATING, DELETING and SUSPENDED // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "UPDATING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Additional information about the current state of the cluster.
     #[serde(default, rename = "stateInfo")]
-    pub state_info: Option<StateInfo>,
+    pub state_info: ::core::option::Option<::std::boxed::Box<StateInfo>>,
     /// Optional. The in-transit encryption for the Redis cluster. If not provided, encryption is disabled for the cluster. // TODO: enum values: ["TRANSIT_ENCRYPTION_MODE_UNSPECIFIED", "TRANSIT_ENCRYPTION_MODE_DISABLED", "TRANSIT_ENCRYPTION_MODE_SERVER_AUTHENTICATION"]
     #[serde(default, rename = "transitEncryptionMode")]
-    pub transit_encryption_mode: Option<String>,
+    pub transit_encryption_mode: ::core::option::Option<String>,
     /// Output only. System assigned, unique identifier for the cluster.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Optional. This config will be used to determine how the customer wants us to distribute cluster resources within the region.
     #[serde(default, rename = "zoneDistributionConfig")]
-    pub zone_distribution_config: Option<ZoneDistributionConfig>,
+    pub zone_distribution_config: ::core::option::Option<::std::boxed::Box<ZoneDistributionConfig>>,
 }
 
 /// ClusterEndpoint consists of PSC connections that are created as a group in each VPC network for accessing the cluster. In each group, there shall be one connection for each service attachment in the cluster.
@@ -449,7 +453,7 @@ pub struct Cluster {
 pub struct ClusterEndpoint {
     /// Required. A group of PSC connections. They are created in the same VPC network, one for each service attachment in the cluster.
     #[serde(default)]
-    pub connections: Option<Vec<ConnectionDetail>>,
+    pub connections: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ConnectionDetail>>>,
 }
 
 /// Maintenance policy per cluster.
@@ -457,13 +461,14 @@ pub struct ClusterEndpoint {
 pub struct ClusterMaintenancePolicy {
     /// Output only. The time when the policy was created i.e. Maintenance Window or Deny Period was assigned.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time when the policy was updated i.e. Maintenance Window or Deny Period was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_maintenance_window is expected to be one.
     #[serde(default, rename = "weeklyMaintenanceWindow")]
-    pub weekly_maintenance_window: Option<Vec<ClusterWeeklyMaintenanceWindow>>,
+    pub weekly_maintenance_window:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClusterWeeklyMaintenanceWindow>>>,
 }
 
 /// Upcoming maintenance schedule.
@@ -471,10 +476,10 @@ pub struct ClusterMaintenancePolicy {
 pub struct ClusterMaintenanceSchedule {
     /// Output only. The end time of any upcoming scheduled maintenance for this instance.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The start time of any upcoming scheduled maintenance for this instance.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Configuration of the persistence functionality.
@@ -482,13 +487,13 @@ pub struct ClusterMaintenanceSchedule {
 pub struct ClusterPersistenceConfig {
     /// Optional. AOF configuration. This field will be ignored if mode is not AOF.
     #[serde(default, rename = "aofConfig")]
-    pub aof_config: Option<AOFConfig>,
+    pub aof_config: ::core::option::Option<::std::boxed::Box<AOFConfig>>,
     /// Optional. The mode of persistence. // TODO: enum values: ["PERSISTENCE_MODE_UNSPECIFIED", "DISABLED", "RDB", "AOF"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// Optional. RDB configuration. This field will be ignored if mode is not RDB.
     #[serde(default, rename = "rdbConfig")]
-    pub rdb_config: Option<RDBConfig>,
+    pub rdb_config: ::core::option::Option<::std::boxed::Box<RDBConfig>>,
 }
 
 /// Time window specified for weekly operations.
@@ -496,10 +501,10 @@ pub struct ClusterPersistenceConfig {
 pub struct ClusterWeeklyMaintenanceWindow {
     /// Optional. Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
-    pub day: Option<String>,
+    pub day: ::core::option::Option<String>,
     /// Optional. Start time of the window in UTC.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Contains compliance information about a security standard indicating unmet recommendations.
@@ -507,10 +512,10 @@ pub struct ClusterWeeklyMaintenanceWindow {
 pub struct Compliance {
     /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
     #[serde(default)]
-    pub standard: Option<String>,
+    pub standard: ::core::option::Option<String>,
     /// Version of the standard or benchmark, for example, 1.1
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Config based signal data. This is used to send signals to Condor which are based on the DB level configurations. These will be used to send signals for self managed databases.
@@ -518,19 +523,19 @@ pub struct Compliance {
 pub struct ConfigBasedSignalData {
     /// Required. Full Resource name of the source resource.
     #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: Option<String>,
+    pub full_resource_name: ::core::option::Option<String>,
     /// Required. Last time signal was refreshed
     #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: Option<String>,
+    pub last_refresh_time: ::core::option::Option<String>,
     /// Database resource id.
     #[serde(default, rename = "resourceId")]
-    pub resource_id: Option<DatabaseResourceId>,
+    pub resource_id: ::core::option::Option<::std::boxed::Box<DatabaseResourceId>>,
     /// Signal data for boolean signals.
     #[serde(default, rename = "signalBoolValue")]
-    pub signal_bool_value: Option<bool>,
+    pub signal_bool_value: ::core::option::Option<bool>,
     /// Required. Signal type of the signal // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER"]
     #[serde(default, rename = "signalType")]
-    pub signal_type: Option<String>,
+    pub signal_type: ::core::option::Option<String>,
 }
 
 /// Detailed information of each PSC connection.
@@ -538,10 +543,10 @@ pub struct ConfigBasedSignalData {
 pub struct ConnectionDetail {
     /// Detailed information of a PSC connection that is created through service connectivity automation.
     #[serde(default, rename = "pscAutoConnection")]
-    pub psc_auto_connection: Option<PscAutoConnection>,
+    pub psc_auto_connection: ::core::option::Option<::std::boxed::Box<PscAutoConnection>>,
     /// Detailed information of a PSC connection that is created by the customer who owns the cluster.
     #[serde(default, rename = "pscConnection")]
-    pub psc_connection: Option<PscConnection>,
+    pub psc_connection: ::core::option::Option<::std::boxed::Box<PscConnection>>,
 }
 
 /// Cross cluster replication config.
@@ -549,19 +554,20 @@ pub struct ConnectionDetail {
 pub struct CrossClusterReplicationConfig {
     /// Output only. The role of the cluster in cross cluster replication. // TODO: enum values: ["CLUSTER_ROLE_UNSPECIFIED", "NONE", "PRIMARY", "SECONDARY"]
     #[serde(default, rename = "clusterRole")]
-    pub cluster_role: Option<String>,
+    pub cluster_role: ::core::option::Option<String>,
     /// Output only. An output only view of all the member clusters participating in the cross cluster replication. This view will be provided by every member cluster irrespective of its cluster role(primary or secondary). A primary cluster can provide information about all the secondary clusters replicating from it. However, a secondary cluster only knows about the primary cluster from which it is replicating. However, for scenarios, where the primary cluster is unavailable(e.g. regional outage), a GetCluster request can be sent to any other member cluster and this field will list all the member clusters participating in cross cluster replication.
     #[serde(default)]
-    pub membership: Option<Membership>,
+    pub membership: ::core::option::Option<::std::boxed::Box<Membership>>,
     /// Details of the primary cluster that is used as the replication source for this secondary cluster. This field is only set for a secondary cluster.
     #[serde(default, rename = "primaryCluster")]
-    pub primary_cluster: Option<RemoteCluster>,
+    pub primary_cluster: ::core::option::Option<::std::boxed::Box<RemoteCluster>>,
     /// List of secondary clusters that are replicating from this primary cluster. This field is only set for a primary cluster.
     #[serde(default, rename = "secondaryClusters")]
-    pub secondary_clusters: Option<Vec<RemoteCluster>>,
+    pub secondary_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RemoteCluster>>>,
     /// Output only. The last time cross cluster replication config was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Any custom metadata associated with the resource. e.g. A spanner instance can have multiple databases with its own unique metadata. Information for these individual databases can be captured in custom metadata data
@@ -569,7 +575,8 @@ pub struct CrossClusterReplicationConfig {
 pub struct CustomMetadataData {
     /// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration.
     #[serde(default, rename = "internalResourceMetadata")]
-    pub internal_resource_metadata: Option<Vec<InternalResourceMetadata>>,
+    pub internal_resource_metadata:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InternalResourceMetadata>>>,
 }
 
 /// DatabaseResourceFeed is the top level proto to be used to ingest different database resource level events into Condor platform. Next ID: 13
@@ -577,33 +584,37 @@ pub struct CustomMetadataData {
 pub struct DatabaseResourceFeed {
     /// BackupDR metadata is used to ingest metadata from BackupDR.
     #[serde(default, rename = "backupdrMetadata")]
-    pub backupdr_metadata: Option<BackupDRMetadata>,
+    pub backupdr_metadata: ::core::option::Option<::std::boxed::Box<BackupDRMetadata>>,
     /// Config based signal data is used to ingest signals that are generated based on the configuration of the database resource.
     #[serde(default, rename = "configBasedSignalData")]
-    pub config_based_signal_data: Option<ConfigBasedSignalData>,
+    pub config_based_signal_data: ::core::option::Option<::std::boxed::Box<ConfigBasedSignalData>>,
     /// Database resource signal data is used to ingest signals from database resource signal feeds.
     #[serde(default, rename = "databaseResourceSignalData")]
-    pub database_resource_signal_data: Option<DatabaseResourceSignalData>,
+    pub database_resource_signal_data:
+        ::core::option::Option<::std::boxed::Box<DatabaseResourceSignalData>>,
     /// Required. Timestamp when feed is generated.
     #[serde(default, rename = "feedTimestamp")]
-    pub feed_timestamp: Option<String>,
+    pub feed_timestamp: ::core::option::Option<String>,
     /// Required. Type feed to be ingested into condor // TODO: enum values: ["FEEDTYPE_UNSPECIFIED", "RESOURCE_METADATA", "OBSERVABILITY_DATA", "SECURITY_FINDING_DATA", "RECOMMENDATION_SIGNAL_DATA", "CONFIG_BASED_SIGNAL_DATA", "BACKUPDR_METADATA", "DATABASE_RESOURCE_SIGNAL_DATA"]
     #[serde(default, rename = "feedType")]
-    pub feed_type: Option<String>,
+    pub feed_type: ::core::option::Option<String>,
     #[serde(default, rename = "observabilityMetricData")]
-    pub observability_metric_data: Option<ObservabilityMetricData>,
+    pub observability_metric_data:
+        ::core::option::Option<::std::boxed::Box<ObservabilityMetricData>>,
     #[serde(default, rename = "recommendationSignalData")]
-    pub recommendation_signal_data: Option<DatabaseResourceRecommendationSignalData>,
+    pub recommendation_signal_data:
+        ::core::option::Option<::std::boxed::Box<DatabaseResourceRecommendationSignalData>>,
     #[serde(default, rename = "resourceHealthSignalData")]
-    pub resource_health_signal_data: Option<DatabaseResourceHealthSignalData>,
+    pub resource_health_signal_data:
+        ::core::option::Option<::std::boxed::Box<DatabaseResourceHealthSignalData>>,
     /// Primary key associated with the Resource. resource_id is available in individual feed level as well.
     #[serde(default, rename = "resourceId")]
-    pub resource_id: Option<DatabaseResourceId>,
+    pub resource_id: ::core::option::Option<::std::boxed::Box<DatabaseResourceId>>,
     #[serde(default, rename = "resourceMetadata")]
-    pub resource_metadata: Option<DatabaseResourceMetadata>,
+    pub resource_metadata: ::core::option::Option<::std::boxed::Box<DatabaseResourceMetadata>>,
     /// Optional. If true, the feed won''t be ingested by DB Center. This indicates that the feed is intentionally skipped. For example, BackupDR feeds are only needed for resources integrated with DB Center (e.g., CloudSQL, AlloyDB). Feeds for non-integrated resources (e.g., Compute Engine, Persistent Disk) can be skipped.
     #[serde(default, rename = "skipIngestion")]
-    pub skip_ingestion: Option<bool>,
+    pub skip_ingestion: ::core::option::Option<bool>,
 }
 
 /// Common model for database resource health signal data.
@@ -611,49 +622,49 @@ pub struct DatabaseResourceFeed {
 pub struct DatabaseResourceHealthSignalData {
     /// Any other additional metadata
     #[serde(default, rename = "additionalMetadata")]
-    pub additional_metadata: Option<serde_json::Value>,
+    pub additional_metadata: ::core::option::Option<serde_json::Value>,
     /// Industry standards associated with this signal; if this signal is an issue, that could be a violation of the associated industry standard(s). For example, AUTO_BACKUP_DISABLED signal is associated with CIS GCP 1.1, CIS GCP 1.2, CIS GCP 1.3, NIST 800-53 and ISO-27001 compliance standards. If a database resource does not have automated backup enable, it will violate these following industry standards.
     #[serde(default)]
-    pub compliance: Option<Vec<Compliance>>,
+    pub compliance: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Compliance>>>,
     /// Description associated with signal
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The last time at which the event described by this signal took place
     #[serde(default, rename = "eventTime")]
-    pub event_time: Option<String>,
+    pub event_time: ::core::option::Option<String>,
     /// The external-uri of the signal, using which more information about this signal can be obtained. In GCP, this will take user to SCC page to get more details about signals.
     #[serde(default, rename = "externalUri")]
-    pub external_uri: Option<String>,
+    pub external_uri: ::core::option::Option<String>,
     /// This is used to identify the location of the resource. Example: "us-central1"
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Required. The name of the signal, ex: PUBLIC_SQL_INSTANCE, SQL_LOG_ERROR_VERBOSITY etc.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Cloud provider name. Ex: GCP/AWS/Azure/OnPrem/SelfManaged // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GCP", "AWS", "AZURE", "ONPREM", "SELFMANAGED", "PROVIDER_OTHER"]
     #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: ::core::option::Option<String>,
     /// Closest parent container of this resource. In GCP, ''container'' refers to a Cloud Resource Manager project. It must be resource name of a Cloud Resource Manager project with the format of "provider//", such as "projects/123". For GCP provided resources, number should be project number.
     #[serde(default, rename = "resourceContainer")]
-    pub resource_container: Option<String>,
+    pub resource_container: ::core::option::Option<String>,
     /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     /// Required. The class of the signal, such as if it''s a THREAT or VULNERABILITY. // TODO: enum values: ["CLASS_UNSPECIFIED", "THREAT", "VULNERABILITY", "MISCONFIGURATION", "OBSERVATION", "ERROR"]
     #[serde(default, rename = "signalClass")]
-    pub signal_class: Option<String>,
+    pub signal_class: ::core::option::Option<String>,
     /// Required. Unique identifier for the signal. This is an unique id which would be mainatined by partner to identify a signal.
     #[serde(default, rename = "signalId")]
-    pub signal_id: Option<String>,
+    pub signal_id: ::core::option::Option<String>,
     /// The severity of the signal, such as if it''s a HIGH or LOW severity. // TODO: enum values: ["SIGNAL_SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
     #[serde(default, rename = "signalSeverity")]
-    pub signal_severity: Option<String>,
+    pub signal_severity: ::core::option::Option<String>,
     /// Required. Type of signal, for example, AVAILABLE_IN_MULTIPLE_ZONES, LOGGING_MOST_ERRORS, etc. // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER", "SIGNAL_TYPE_GROUP_NOT_REPLICATING_ACROSS_REGIONS", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_ZONES", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_REGIONS", "SIGNAL_TYPE_NO_PROMOTABLE_REPLICA", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_SHORT_BACKUP_RETENTION", "SIGNAL_TYPE_LAST_BACKUP_FAILED", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_2_0", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_3", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_2", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_1", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_0", "SIGNAL_TYPE_VIOLATES_CIS_CONTROLS_V8_0", "SIGNAL_TYPE_VIOLATES_NIST_800_53", "SIGNAL_TYPE_VIOLATES_NIST_800_53_R5", "SIGNAL_TYPE_VIOLATES_NIST_CYBERSECURITY_FRAMEWORK_V1_0", "SIGNAL_TYPE_VIOLATES_ISO_27001", "SIGNAL_TYPE_VIOLATES_ISO_27001_V2022", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V3_2_1", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V4_0", "SIGNAL_TYPE_VIOLATES_CLOUD_CONTROLS_MATRIX_V4", "SIGNAL_TYPE_VIOLATES_HIPAA", "SIGNAL_TYPE_VIOLATES_SOC2_V2017", "SIGNAL_TYPE_LOGS_NOT_OPTIMIZED_FOR_TROUBLESHOOTING", "SIGNAL_TYPE_QUERY_DURATIONS_NOT_LOGGED", "SIGNAL_TYPE_VERBOSE_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_LOCK_WAITS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_MOST_ERRORS", "SIGNAL_TYPE_LOGGING_ONLY_CRITICAL_ERRORS", "SIGNAL_TYPE_MINIMAL_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_STATISTICS_LOGGED", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_CLIENT_HOSTNAME", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PARSER_STATISTICS", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PLANNER_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_ONLY_DDL_STATEMENTS", "SIGNAL_TYPE_LOGGING_QUERY_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_TEMPORARY_FILES", "SIGNAL_TYPE_CONNECTION_MAX_NOT_CONFIGURED", "SIGNAL_TYPE_USER_OPTIONS_CONFIGURED", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_WEAK_ROOT_PASSWORD", "SIGNAL_TYPE_ENCRYPTION_KEY_NOT_CUSTOMER_MANAGED", "SIGNAL_TYPE_SERVER_AUTHENTICATION_NOT_REQUIRED", "SIGNAL_TYPE_EXPOSED_BY_OWNERSHIP_CHAINING", "SIGNAL_TYPE_EXPOSED_TO_EXTERNAL_SCRIPTS", "SIGNAL_TYPE_EXPOSED_TO_LOCAL_DATA_LOADS", "SIGNAL_TYPE_CONNECTION_ATTEMPTS_NOT_LOGGED", "SIGNAL_TYPE_DISCONNECTIONS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_EXCESSIVE_STATEMENT_INFO", "SIGNAL_TYPE_EXPOSED_TO_REMOTE_ACCESS", "SIGNAL_TYPE_DATABASE_NAMES_EXPOSED", "SIGNAL_TYPE_SENSITIVE_TRACE_INFO_NOT_MASKED", "SIGNAL_TYPE_PUBLIC_IP_ENABLED", "SIGNAL_TYPE_IDLE", "SIGNAL_TYPE_OVERPROVISIONED", "SIGNAL_TYPE_HIGH_NUMBER_OF_OPEN_TABLES", "SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES", "SIGNAL_TYPE_HIGH_TRANSACTION_ID_UTILIZATION", "SIGNAL_TYPE_UNDERPROVISIONED", "SIGNAL_TYPE_OUT_OF_DISK", "SIGNAL_TYPE_SERVER_CERTIFICATE_NEAR_EXPIRY", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_RESTRICT_AUTHORIZED_NETWORKS", "SIGNAL_TYPE_VIOLATE_POLICY_RESTRICT_PUBLIC_IP", "SIGNAL_TYPE_QUOTA_LIMIT", "SIGNAL_TYPE_NO_PASSWORD_POLICY", "SIGNAL_TYPE_CONNECTIONS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TMP_TABLES_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TRANS_LOGS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_HIGH_JOINS_WITHOUT_INDEXES", "SIGNAL_TYPE_SUPERUSER_WRITING_TO_USER_TABLES", "SIGNAL_TYPE_USER_GRANTED_ALL_PERMISSIONS", "SIGNAL_TYPE_DATA_EXPORT_TO_EXTERNAL_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_DATA_EXPORT_TO_PUBLIC_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_WEAK_PASSWORD_HASH_ALGORITHM", "SIGNAL_TYPE_NO_USER_PASSWORD_POLICY", "SIGNAL_TYPE_HOT_NODE", "SIGNAL_TYPE_NO_POINT_IN_TIME_RECOVERY", "SIGNAL_TYPE_RESOURCE_SUSPENDED", "SIGNAL_TYPE_EXPENSIVE_COMMANDS", "SIGNAL_TYPE_NO_MAINTENANCE_POLICY_CONFIGURED", "SIGNAL_TYPE_NO_DELETION_PROTECTION", "SIGNAL_TYPE_INEFFICIENT_QUERY", "SIGNAL_TYPE_READ_INTENSIVE_WORKLOAD", "SIGNAL_TYPE_MEMORY_LIMIT", "SIGNAL_TYPE_MAX_SERVER_MEMORY", "SIGNAL_TYPE_LARGE_ROWS", "SIGNAL_TYPE_HIGH_WRITE_PRESSURE", "SIGNAL_TYPE_HIGH_READ_PRESSURE", "SIGNAL_TYPE_ENCRYPTION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_LOCATION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_SCHEMA_NOT_OPTIMIZED", "SIGNAL_TYPE_MANY_IDLE_CONNECTIONS", "SIGNAL_TYPE_REPLICATION_LAG", "SIGNAL_TYPE_OUTDATED_VERSION", "SIGNAL_TYPE_OUTDATED_CLIENT", "SIGNAL_TYPE_DATABOOST_DISABLED", "SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE"]
     #[serde(default, rename = "signalType")]
-    pub signal_type: Option<String>,
+    pub signal_type: ::core::option::Option<String>,
     /// TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "RESOLVED", "MUTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// DatabaseResourceId will serve as primary key for any resource ingestion event.
@@ -661,16 +672,16 @@ pub struct DatabaseResourceHealthSignalData {
 pub struct DatabaseResourceId {
     /// Required. Cloud provider name. Ex: GCP/AWS/Azure/OnPrem/SelfManaged // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GCP", "AWS", "AZURE", "ONPREM", "SELFMANAGED", "PROVIDER_OTHER"]
     #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: ::core::option::Option<String>,
     /// Optional. Needs to be used only when the provider is PROVIDER_OTHER.
     #[serde(default, rename = "providerDescription")]
-    pub provider_description: Option<String>,
+    pub provider_description: ::core::option::Option<String>,
     /// Required. The type of resource this ID is identifying. Ex go/keep-sorted start alloydb.googleapis.com/Cluster, alloydb.googleapis.com/Instance, bigtableadmin.googleapis.com/Cluster, bigtableadmin.googleapis.com/Instance compute.googleapis.com/Instance firestore.googleapis.com/Database, redis.googleapis.com/Instance, redis.googleapis.com/Cluster, oracledatabase.googleapis.com/CloudExadataInfrastructure oracledatabase.googleapis.com/CloudVmCluster oracledatabase.googleapis.com/AutonomousDatabase spanner.googleapis.com/Instance, spanner.googleapis.com/Database, sqladmin.googleapis.com/Instance, go/keep-sorted end REQUIRED Please refer go/condor-common-datamodel
     #[serde(default, rename = "resourceType")]
-    pub resource_type: Option<String>,
+    pub resource_type: ::core::option::Option<String>,
     /// Required. A service-local token that distinguishes this resource from other resources within the same service.
     #[serde(default, rename = "uniqueId")]
-    pub unique_id: Option<String>,
+    pub unique_id: ::core::option::Option<String>,
 }
 
 /// Common model for database resource instance metadata. Next ID: 32
@@ -678,91 +689,92 @@ pub struct DatabaseResourceId {
 pub struct DatabaseResourceMetadata {
     /// Availability configuration for this instance
     #[serde(default, rename = "availabilityConfiguration")]
-    pub availability_configuration: Option<AvailabilityConfiguration>,
+    pub availability_configuration:
+        ::core::option::Option<::std::boxed::Box<AvailabilityConfiguration>>,
     /// Backup configuration for this instance
     #[serde(default, rename = "backupConfiguration")]
-    pub backup_configuration: Option<BackupConfiguration>,
+    pub backup_configuration: ::core::option::Option<::std::boxed::Box<BackupConfiguration>>,
     /// Latest backup run information for this instance
     #[serde(default, rename = "backupRun")]
-    pub backup_run: Option<BackupRun>,
+    pub backup_run: ::core::option::Option<::std::boxed::Box<BackupRun>>,
     /// Optional. BackupDR Configuration for the resource.
     #[serde(default, rename = "backupdrConfiguration")]
-    pub backupdr_configuration: Option<BackupDRConfiguration>,
+    pub backupdr_configuration: ::core::option::Option<::std::boxed::Box<BackupDRConfiguration>>,
     /// The creation time of the resource, i.e. the time when resource is created and recorded in partner service.
     #[serde(default, rename = "creationTime")]
-    pub creation_time: Option<String>,
+    pub creation_time: ::core::option::Option<String>,
     /// Current state of the instance. // TODO: enum values: ["STATE_UNSPECIFIED", "HEALTHY", "UNHEALTHY", "SUSPENDED", "DELETED", "STATE_OTHER", "STOPPED"]
     #[serde(default, rename = "currentState")]
-    pub current_state: Option<String>,
+    pub current_state: ::core::option::Option<String>,
     /// Any custom metadata associated with the resource
     #[serde(default, rename = "customMetadata")]
-    pub custom_metadata: Option<CustomMetadataData>,
+    pub custom_metadata: ::core::option::Option<::std::boxed::Box<CustomMetadataData>>,
     /// Optional. Edition represents whether the instance is ENTERPRISE or ENTERPRISE_PLUS. This information is core to Cloud SQL only and is used to identify the edition of the instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "EDITION_ENTERPRISE", "EDITION_ENTERPRISE_PLUS", "EDITION_STANDARD"]
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// Entitlements associated with the resource
     #[serde(default)]
-    pub entitlements: Option<Vec<Entitlement>>,
+    pub entitlements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entitlement>>>,
     /// The state that the instance is expected to be in. For example, an instance state can transition to UNHEALTHY due to wrong patch update, while the expected state will remain at the HEALTHY. // TODO: enum values: ["STATE_UNSPECIFIED", "HEALTHY", "UNHEALTHY", "SUSPENDED", "DELETED", "STATE_OTHER", "STOPPED"]
     #[serde(default, rename = "expectedState")]
-    pub expected_state: Option<String>,
+    pub expected_state: ::core::option::Option<String>,
     /// GCBDR configuration for the resource.
     #[serde(default, rename = "gcbdrConfiguration")]
-    pub gcbdr_configuration: Option<GCBDRConfiguration>,
+    pub gcbdr_configuration: ::core::option::Option<::std::boxed::Box<GCBDRConfiguration>>,
     /// Required. Unique identifier for a Database resource
     #[serde(default)]
-    pub id: Option<DatabaseResourceId>,
+    pub id: ::core::option::Option<::std::boxed::Box<DatabaseResourceId>>,
     /// The type of the instance. Specified at creation time. // TODO: enum values: ["INSTANCE_TYPE_UNSPECIFIED", "SUB_RESOURCE_TYPE_UNSPECIFIED", "PRIMARY", "SECONDARY", "READ_REPLICA", "OTHER", "SUB_RESOURCE_TYPE_PRIMARY", "SUB_RESOURCE_TYPE_SECONDARY", "SUB_RESOURCE_TYPE_READ_REPLICA", "SUB_RESOURCE_TYPE_EXTERNAL_PRIMARY", "SUB_RESOURCE_TYPE_READ_POOL", "SUB_RESOURCE_TYPE_RESERVATION", "SUB_RESOURCE_TYPE_DATASET", "SUB_RESOURCE_TYPE_OTHER"]
     #[serde(default, rename = "instanceType")]
-    pub instance_type: Option<String>,
+    pub instance_type: ::core::option::Option<String>,
     /// Optional. Whether deletion protection is enabled for this resource.
     #[serde(default, rename = "isDeletionProtectionEnabled")]
-    pub is_deletion_protection_enabled: Option<bool>,
+    pub is_deletion_protection_enabled: ::core::option::Option<bool>,
     /// The resource location. REQUIRED
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Machine configuration for this resource.
     #[serde(default, rename = "machineConfiguration")]
-    pub machine_configuration: Option<MachineConfiguration>,
+    pub machine_configuration: ::core::option::Option<::std::boxed::Box<MachineConfiguration>>,
     /// Optional. Maintenance info for the resource.
     #[serde(default, rename = "maintenanceInfo")]
-    pub maintenance_info: Option<ResourceMaintenanceInfo>,
+    pub maintenance_info: ::core::option::Option<::std::boxed::Box<ResourceMaintenanceInfo>>,
     /// Optional. The modes of the database resource.
     #[serde(default)]
-    pub modes: Option<Vec<String>>,
+    pub modes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Identifier for this resource''s immediate parent/primary resource if the current resource is a replica or derived form of another Database resource. Else it would be NULL. REQUIRED if the immediate parent exists when first time resource is getting ingested, otherwise optional.
     #[serde(default, rename = "primaryResourceId")]
-    pub primary_resource_id: Option<DatabaseResourceId>,
+    pub primary_resource_id: ::core::option::Option<::std::boxed::Box<DatabaseResourceId>>,
     /// Primary resource location. REQUIRED if the immediate parent exists when first time resource is getting ingested, otherwise optional.
     #[serde(default, rename = "primaryResourceLocation")]
-    pub primary_resource_location: Option<String>,
+    pub primary_resource_location: ::core::option::Option<String>,
     /// The product this resource represents.
     #[serde(default)]
-    pub product: Option<Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<Product>>,
     /// Closest parent Cloud Resource Manager container of this resource. It must be resource name of a Cloud Resource Manager project with the format of "/", such as "projects/123". For GCP provided resources, number should be project number.
     #[serde(default, rename = "resourceContainer")]
-    pub resource_container: Option<String>,
+    pub resource_container: ::core::option::Option<String>,
     /// Optional. List of resource flags for the database resource.
     #[serde(default, rename = "resourceFlags")]
-    pub resource_flags: Option<Vec<ResourceFlags>>,
+    pub resource_flags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceFlags>>>,
     /// Required. Different from DatabaseResourceId.unique_id, a resource name can be reused over time. That is, after a resource named "ABC" is deleted, the name "ABC" can be used to to create a new resource within the same source. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     /// Optional. Suspension reason for the resource. // TODO: enum values: ["SUSPENSION_REASON_UNSPECIFIED", "WIPEOUT_HIDE_EVENT", "WIPEOUT_PURGE_EVENT", "BILLING_DISABLED", "ABUSER_DETECTED", "ENCRYPTION_KEY_INACCESSIBLE", "REPLICATED_CLUSTER_ENCRYPTION_KEY_INACCESSIBLE"]
     #[serde(default, rename = "suspensionReason")]
-    pub suspension_reason: Option<String>,
+    pub suspension_reason: ::core::option::Option<String>,
     /// Optional. Tags associated with this resources.
     #[serde(default, rename = "tagsSet")]
-    pub tags_set: Option<Tags>,
+    pub tags_set: ::core::option::Option<::std::boxed::Box<Tags>>,
     /// The time at which the resource was updated and recorded at partner service.
     #[serde(default, rename = "updationTime")]
-    pub updation_time: Option<String>,
+    pub updation_time: ::core::option::Option<String>,
     /// User-provided labels associated with the resource
     #[serde(default, rename = "userLabelSet")]
-    pub user_label_set: Option<UserLabels>,
+    pub user_label_set: ::core::option::Option<::std::boxed::Box<UserLabels>>,
     /// The resource zone. This is only applicable for zonal resources and will be empty for regional and multi-regional resources.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Common model for database resource recommendation signal data.
@@ -770,28 +782,28 @@ pub struct DatabaseResourceMetadata {
 pub struct DatabaseResourceRecommendationSignalData {
     /// Optional. Any other additional metadata specific to recommendation
     #[serde(default, rename = "additionalMetadata")]
-    pub additional_metadata: Option<serde_json::Value>,
+    pub additional_metadata: ::core::option::Option<serde_json::Value>,
     /// Required. last time recommendationw as refreshed
     #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: Option<String>,
+    pub last_refresh_time: ::core::option::Option<String>,
     /// Required. Recommendation state // TODO: enum values: ["UNSPECIFIED", "ACTIVE", "CLAIMED", "SUCCEEDED", "FAILED", "DISMISSED"]
     #[serde(default, rename = "recommendationState")]
-    pub recommendation_state: Option<String>,
+    pub recommendation_state: ::core::option::Option<String>,
     /// Required. Name of recommendation. Examples: organizations/1234/locations/us-central1/recommenders/google.cloudsql.instance.PerformanceRecommender/recommendations/9876
     #[serde(default)]
-    pub recommender: Option<String>,
+    pub recommender: ::core::option::Option<String>,
     /// Required. ID of recommender. Examples: "google.cloudsql.instance.PerformanceRecommender"
     #[serde(default, rename = "recommenderId")]
-    pub recommender_id: Option<String>,
+    pub recommender_id: ::core::option::Option<String>,
     /// Required. Contains an identifier for a subtype of recommendations produced for the same recommender. Subtype is a function of content and impact, meaning a new subtype might be added when significant changes to content or primary_impact.category are introduced. See the Recommenders section to see a list of subtypes for a given Recommender. Examples: For recommender = "google.cloudsql.instance.PerformanceRecommender", recommender_subtype can be "MYSQL_HIGH_NUMBER_OF_OPEN_TABLES_BEST_PRACTICE"/"POSTGRES_HIGH_TRANSACTION_ID_UTILIZATION_BEST_PRACTICE"
     #[serde(default, rename = "recommenderSubtype")]
-    pub recommender_subtype: Option<String>,
+    pub recommender_subtype: ::core::option::Option<String>,
     /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     /// Required. Type of signal, for example, SIGNAL_TYPE_IDLE, SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES, etc. // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER", "SIGNAL_TYPE_GROUP_NOT_REPLICATING_ACROSS_REGIONS", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_ZONES", "SIGNAL_TYPE_NOT_AVAILABLE_IN_MULTIPLE_REGIONS", "SIGNAL_TYPE_NO_PROMOTABLE_REPLICA", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_SHORT_BACKUP_RETENTION", "SIGNAL_TYPE_LAST_BACKUP_FAILED", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_2_0", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_3", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_2", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_1", "SIGNAL_TYPE_VIOLATES_CIS_GCP_FOUNDATION_1_0", "SIGNAL_TYPE_VIOLATES_CIS_CONTROLS_V8_0", "SIGNAL_TYPE_VIOLATES_NIST_800_53", "SIGNAL_TYPE_VIOLATES_NIST_800_53_R5", "SIGNAL_TYPE_VIOLATES_NIST_CYBERSECURITY_FRAMEWORK_V1_0", "SIGNAL_TYPE_VIOLATES_ISO_27001", "SIGNAL_TYPE_VIOLATES_ISO_27001_V2022", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V3_2_1", "SIGNAL_TYPE_VIOLATES_PCI_DSS_V4_0", "SIGNAL_TYPE_VIOLATES_CLOUD_CONTROLS_MATRIX_V4", "SIGNAL_TYPE_VIOLATES_HIPAA", "SIGNAL_TYPE_VIOLATES_SOC2_V2017", "SIGNAL_TYPE_LOGS_NOT_OPTIMIZED_FOR_TROUBLESHOOTING", "SIGNAL_TYPE_QUERY_DURATIONS_NOT_LOGGED", "SIGNAL_TYPE_VERBOSE_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_LOCK_WAITS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_MOST_ERRORS", "SIGNAL_TYPE_LOGGING_ONLY_CRITICAL_ERRORS", "SIGNAL_TYPE_MINIMAL_ERROR_LOGGING", "SIGNAL_TYPE_QUERY_STATISTICS_LOGGED", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_CLIENT_HOSTNAME", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PARSER_STATISTICS", "SIGNAL_TYPE_EXCESSIVE_LOGGING_OF_PLANNER_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_ONLY_DDL_STATEMENTS", "SIGNAL_TYPE_LOGGING_QUERY_STATISTICS", "SIGNAL_TYPE_NOT_LOGGING_TEMPORARY_FILES", "SIGNAL_TYPE_CONNECTION_MAX_NOT_CONFIGURED", "SIGNAL_TYPE_USER_OPTIONS_CONFIGURED", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_WEAK_ROOT_PASSWORD", "SIGNAL_TYPE_ENCRYPTION_KEY_NOT_CUSTOMER_MANAGED", "SIGNAL_TYPE_SERVER_AUTHENTICATION_NOT_REQUIRED", "SIGNAL_TYPE_EXPOSED_BY_OWNERSHIP_CHAINING", "SIGNAL_TYPE_EXPOSED_TO_EXTERNAL_SCRIPTS", "SIGNAL_TYPE_EXPOSED_TO_LOCAL_DATA_LOADS", "SIGNAL_TYPE_CONNECTION_ATTEMPTS_NOT_LOGGED", "SIGNAL_TYPE_DISCONNECTIONS_NOT_LOGGED", "SIGNAL_TYPE_LOGGING_EXCESSIVE_STATEMENT_INFO", "SIGNAL_TYPE_EXPOSED_TO_REMOTE_ACCESS", "SIGNAL_TYPE_DATABASE_NAMES_EXPOSED", "SIGNAL_TYPE_SENSITIVE_TRACE_INFO_NOT_MASKED", "SIGNAL_TYPE_PUBLIC_IP_ENABLED", "SIGNAL_TYPE_IDLE", "SIGNAL_TYPE_OVERPROVISIONED", "SIGNAL_TYPE_HIGH_NUMBER_OF_OPEN_TABLES", "SIGNAL_TYPE_HIGH_NUMBER_OF_TABLES", "SIGNAL_TYPE_HIGH_TRANSACTION_ID_UTILIZATION", "SIGNAL_TYPE_UNDERPROVISIONED", "SIGNAL_TYPE_OUT_OF_DISK", "SIGNAL_TYPE_SERVER_CERTIFICATE_NEAR_EXPIRY", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_RESTRICT_AUTHORIZED_NETWORKS", "SIGNAL_TYPE_VIOLATE_POLICY_RESTRICT_PUBLIC_IP", "SIGNAL_TYPE_QUOTA_LIMIT", "SIGNAL_TYPE_NO_PASSWORD_POLICY", "SIGNAL_TYPE_CONNECTIONS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TMP_TABLES_PERFORMANCE_IMPACT", "SIGNAL_TYPE_TRANS_LOGS_PERFORMANCE_IMPACT", "SIGNAL_TYPE_HIGH_JOINS_WITHOUT_INDEXES", "SIGNAL_TYPE_SUPERUSER_WRITING_TO_USER_TABLES", "SIGNAL_TYPE_USER_GRANTED_ALL_PERMISSIONS", "SIGNAL_TYPE_DATA_EXPORT_TO_EXTERNAL_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_DATA_EXPORT_TO_PUBLIC_CLOUD_STORAGE_BUCKET", "SIGNAL_TYPE_WEAK_PASSWORD_HASH_ALGORITHM", "SIGNAL_TYPE_NO_USER_PASSWORD_POLICY", "SIGNAL_TYPE_HOT_NODE", "SIGNAL_TYPE_NO_POINT_IN_TIME_RECOVERY", "SIGNAL_TYPE_RESOURCE_SUSPENDED", "SIGNAL_TYPE_EXPENSIVE_COMMANDS", "SIGNAL_TYPE_NO_MAINTENANCE_POLICY_CONFIGURED", "SIGNAL_TYPE_NO_DELETION_PROTECTION", "SIGNAL_TYPE_INEFFICIENT_QUERY", "SIGNAL_TYPE_READ_INTENSIVE_WORKLOAD", "SIGNAL_TYPE_MEMORY_LIMIT", "SIGNAL_TYPE_MAX_SERVER_MEMORY", "SIGNAL_TYPE_LARGE_ROWS", "SIGNAL_TYPE_HIGH_WRITE_PRESSURE", "SIGNAL_TYPE_HIGH_READ_PRESSURE", "SIGNAL_TYPE_ENCRYPTION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_LOCATION_ORG_POLICY_NOT_SATISFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_SCHEMA_NOT_OPTIMIZED", "SIGNAL_TYPE_MANY_IDLE_CONNECTIONS", "SIGNAL_TYPE_REPLICATION_LAG", "SIGNAL_TYPE_OUTDATED_VERSION", "SIGNAL_TYPE_OUTDATED_CLIENT", "SIGNAL_TYPE_DATABOOST_DISABLED", "SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE"]
     #[serde(default, rename = "signalType")]
-    pub signal_type: Option<String>,
+    pub signal_type: ::core::option::Option<String>,
 }
 
 /// Database resource signal data. This is used to send signals to Condor which are based on the DB/Instance/Fleet level configurations. These will be used to send signals for all inventory types. Next ID: 10
@@ -799,31 +811,32 @@ pub struct DatabaseResourceRecommendationSignalData {
 pub struct DatabaseResourceSignalData {
     /// Deprecated: Use signal_metadata_list instead.
     #[serde(default, rename = "backupRun")]
-    pub backup_run: Option<BackupRun>,
+    pub backup_run: ::core::option::Option<::std::boxed::Box<BackupRun>>,
     /// Required. Full Resource name of the source resource.
     #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: Option<String>,
+    pub full_resource_name: ::core::option::Option<String>,
     /// Required. Last time signal was refreshed
     #[serde(default, rename = "lastRefreshTime")]
-    pub last_refresh_time: Option<String>,
+    pub last_refresh_time: ::core::option::Option<String>,
     /// Resource location.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Database resource id.
     #[serde(default, rename = "resourceId")]
-    pub resource_id: Option<DatabaseResourceId>,
+    pub resource_id: ::core::option::Option<::std::boxed::Box<DatabaseResourceId>>,
     /// Deprecated: Use signal_metadata_list instead.
     #[serde(default, rename = "signalBoolValue")]
-    pub signal_bool_value: Option<bool>,
+    pub signal_bool_value: ::core::option::Option<bool>,
     /// This will support array of OneOf signal metadata information for a given signal type.
     #[serde(default, rename = "signalMetadataList")]
-    pub signal_metadata_list: Option<Vec<SignalMetadata>>,
+    pub signal_metadata_list:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SignalMetadata>>>,
     /// Required. Output only. Signal state of the signal // TODO: enum values: ["SIGNAL_STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "DISMISSED"]
     #[serde(default, rename = "signalState")]
-    pub signal_state: Option<String>,
+    pub signal_state: ::core::option::Option<String>,
     /// Required. Signal type of the signal // TODO: enum values: ["SIGNAL_TYPE_UNSPECIFIED", "SIGNAL_TYPE_OUTDATED_MINOR_VERSION", "SIGNAL_TYPE_DATABASE_AUDITING_DISABLED", "SIGNAL_TYPE_NO_ROOT_PASSWORD", "SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS", "SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS", "SIGNAL_TYPE_EXTENDED_SUPPORT", "SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY", "SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE", "SIGNAL_TYPE_LAST_BACKUP_OLD", "SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER"]
     #[serde(default, rename = "signalType")]
-    pub signal_type: Option<String>,
+    pub signal_type: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -831,13 +844,13 @@ pub struct DatabaseResourceSignalData {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Endpoints on each network, for Redis clients to connect to the cluster.
@@ -845,13 +858,13 @@ pub struct Date {
 pub struct DiscoveryEndpoint {
     /// Output only. Address of the exposed Redis endpoint used by clients to connect to the service. The address could be either IP or hostname.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Output only. The port number of the exposed Redis endpoint.
     #[serde(default)]
-    pub port: Option<i32>,
+    pub port: ::core::option::Option<i32>,
     /// Output only. Customer configuration for where the endpoint is created and accessed from.
     #[serde(default, rename = "pscConfig")]
-    pub psc_config: Option<PscConfig>,
+    pub psc_config: ::core::option::Option<::std::boxed::Box<PscConfig>>,
 }
 
 /// EncryptionInfo describes the encryption information of a cluster or a backup.
@@ -859,16 +872,16 @@ pub struct DiscoveryEndpoint {
 pub struct EncryptionInfo {
     /// Output only. Type of encryption. // TODO: enum values: ["TYPE_UNSPECIFIED", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
-    pub encryption_type: Option<String>,
+    pub encryption_type: ::core::option::Option<String>,
     /// Output only. The state of the primary version of the KMS key perceived by the system. This field is not populated in backups. // TODO: enum values: ["KMS_KEY_STATE_UNSPECIFIED", "ENABLED", "PERMISSION_DENIED", "DISABLED", "DESTROYED", "DESTROY_SCHEDULED", "EKM_KEY_UNREACHABLE_DETECTED", "BILLING_DISABLED", "UNKNOWN_FAILURE"]
     #[serde(default, rename = "kmsKeyPrimaryState")]
-    pub kms_key_primary_state: Option<String>,
+    pub kms_key_primary_state: ::core::option::Option<String>,
     /// Output only. KMS key versions that are being used to protect the data at-rest.
     #[serde(default, rename = "kmsKeyVersions")]
-    pub kms_key_versions: Option<Vec<String>>,
+    pub kms_key_versions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The most recent time when the encryption info was updated.
     #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: Option<String>,
+    pub last_update_time: ::core::option::Option<String>,
 }
 
 /// Proto representing the access that a user has to a specific feature/service. NextId: 3.
@@ -876,10 +889,10 @@ pub struct EncryptionInfo {
 pub struct Entitlement {
     /// The current state of user''s accessibility to a feature/benefit. // TODO: enum values: ["ENTITLEMENT_STATE_UNSPECIFIED", "ENTITLED", "REVOKED"]
     #[serde(default, rename = "entitlementState")]
-    pub entitlement_state: Option<String>,
+    pub entitlement_state: ::core::option::Option<String>,
     /// An enum that represents the type of this entitlement. // TODO: enum values: ["ENTITLEMENT_TYPE_UNSPECIFIED", "GEMINI", "NATIVE", "GCA_STANDARD"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Request for [ExportBackup].
@@ -887,7 +900,7 @@ pub struct Entitlement {
 pub struct ExportBackupRequest {
     /// Google Cloud Storage bucket, like "my-bucket".
     #[serde(default, rename = "gcsBucket")]
-    pub gcs_bucket: Option<String>,
+    pub gcs_bucket: ::core::option::Option<String>,
 }
 
 /// Request for Export.
@@ -895,7 +908,7 @@ pub struct ExportBackupRequest {
 pub struct ExportInstanceRequest {
     /// Required. Specify data to be exported.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<OutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<OutputConfig>>,
 }
 
 /// Request for Failover.
@@ -903,7 +916,7 @@ pub struct ExportInstanceRequest {
 pub struct FailoverInstanceRequest {
     /// Optional. Available data protection modes that the user can choose. If it''s unspecified, data protection mode will be LIMITED_DATA_LOSS by default. // TODO: enum values: ["DATA_PROTECTION_MODE_UNSPECIFIED", "LIMITED_DATA_LOSS", "FORCE_DATA_LOSS"]
     #[serde(default, rename = "dataProtectionMode")]
-    pub data_protection_mode: Option<String>,
+    pub data_protection_mode: ::core::option::Option<String>,
 }
 
 /// This schedule allows the backup to be triggered at a fixed frequency (currently only daily is supported).
@@ -911,7 +924,7 @@ pub struct FailoverInstanceRequest {
 pub struct FixedFrequencySchedule {
     /// Required. The start time of every automated backup in UTC. It must be set to the start of an hour. This field is required.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// GCBDR Configuration for the resource.
@@ -919,7 +932,7 @@ pub struct FixedFrequencySchedule {
 pub struct GCBDRConfiguration {
     /// Whether the resource is managed by GCBDR.
     #[serde(default, rename = "gcbdrManaged")]
-    pub gcbdr_managed: Option<bool>,
+    pub gcbdr_managed: ::core::option::Option<bool>,
 }
 
 /// Backups stored in Cloud Storage buckets. The Cloud Storage buckets need to be the same region as the clusters.
@@ -927,7 +940,7 @@ pub struct GCBDRConfiguration {
 pub struct GcsBackupSource {
     /// Optional. URIs of the Cloud Storage objects to import. Example: gs://bucket1/object1, gs://bucket2/folder2/object2
     #[serde(default)]
-    pub uris: Option<Vec<String>>,
+    pub uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Cloud Storage location for the output content
@@ -935,7 +948,7 @@ pub struct GcsBackupSource {
 pub struct GcsDestination {
     /// Required. Data destination URI (e.g. ''gs://my_bucket/my_object''). Existing files will be overwritten.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The Cloud Storage location for the input content
@@ -943,7 +956,7 @@ pub struct GcsDestination {
 pub struct GcsSource {
     /// Required. Source data URI. (e.g. ''gs://my_bucket/my_object'').
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Represents the v1 metadata of the long-running operation.
@@ -951,25 +964,25 @@ pub struct GcsSource {
 pub struct GoogleCloudRedisV1OperationMetadata {
     /// API version.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Specifies if cancellation was requested for the operation.
     #[serde(default, rename = "cancelRequested")]
-    pub cancel_requested: Option<bool>,
+    pub cancel_requested: ::core::option::Option<bool>,
     /// Creation timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// End timestamp.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Operation status details.
     #[serde(default, rename = "statusDetail")]
-    pub status_detail: Option<String>,
+    pub status_detail: ::core::option::Option<String>,
     /// Operation target.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Operation verb.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Request for Import.
@@ -977,7 +990,7 @@ pub struct GoogleCloudRedisV1OperationMetadata {
 pub struct ImportInstanceRequest {
     /// Required. Specify data to be imported.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<InputConfig>,
+    pub input_config: ::core::option::Option<::std::boxed::Box<InputConfig>>,
 }
 
 /// The input content
@@ -985,7 +998,7 @@ pub struct ImportInstanceRequest {
 pub struct InputConfig {
     /// Google Cloud Storage location where input content is located.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsSource>>,
 }
 
 /// A Memorystore for Redis instance.
@@ -993,118 +1006,118 @@ pub struct InputConfig {
 pub struct Instance {
     /// Optional. If specified, at least one node will be provisioned in this zone in addition to the zone specified in location_id. Only applicable to standard tier. If provided, it must be a different zone from the one provided in [location_id]. Additional nodes beyond the first 2 will be placed in zones selected by the service.
     #[serde(default, rename = "alternativeLocationId")]
-    pub alternative_location_id: Option<String>,
+    pub alternative_location_id: ::core::option::Option<String>,
     /// Optional. Indicates whether OSS Redis AUTH is enabled for the instance. If set to "true" AUTH is enabled on the instance. Default value is "false" meaning AUTH is disabled.
     #[serde(default, rename = "authEnabled")]
-    pub auth_enabled: Option<bool>,
+    pub auth_enabled: ::core::option::Option<bool>,
     /// Optional. The full name of the Google Compute Engine [network](https://cloud.google.com/vpc/docs/vpc) to which the instance is connected. If left unspecified, the default network will be used.
     #[serde(default, rename = "authorizedNetwork")]
-    pub authorized_network: Option<String>,
+    pub authorized_network: ::core::option::Option<String>,
     /// Optional. The available maintenance versions that an instance could update to.
     #[serde(default, rename = "availableMaintenanceVersions")]
-    pub available_maintenance_versions: Option<Vec<String>>,
+    pub available_maintenance_versions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The network connect mode of the Redis instance. If not provided, the connect mode defaults to DIRECT_PEERING. // TODO: enum values: ["CONNECT_MODE_UNSPECIFIED", "DIRECT_PEERING", "PRIVATE_SERVICE_ACCESS"]
     #[serde(default, rename = "connectMode")]
-    pub connect_mode: Option<String>,
+    pub connect_mode: ::core::option::Option<String>,
     /// Output only. The time the instance was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The current zone where the Redis primary node is located. In basic tier, this will always be the same as [location_id]. In standard tier, this can be the zone of any node in the instance.
     #[serde(default, rename = "currentLocationId")]
-    pub current_location_id: Option<String>,
+    pub current_location_id: ::core::option::Option<String>,
     /// Optional. The KMS key reference that the customer provides when trying to create the instance.
     #[serde(default, rename = "customerManagedKey")]
-    pub customer_managed_key: Option<String>,
+    pub customer_managed_key: ::core::option::Option<String>,
     /// An arbitrary and optional user-provided name for the instance.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Hostname or IP address of the exposed Redis endpoint used by clients to connect to the service.
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     /// Resource labels to represent user provided metadata
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The zone where the instance will be provisioned. If not provided, the service will choose a zone from the specified region for the instance. For standard tier, additional nodes will be added across multiple zones for protection against zonal failures. If specified, at least one node will be provisioned in this zone.
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Optional. The maintenance policy for the instance. If not provided, maintenance events can be performed at any time.
     #[serde(default, rename = "maintenancePolicy")]
-    pub maintenance_policy: Option<MaintenancePolicy>,
+    pub maintenance_policy: ::core::option::Option<::std::boxed::Box<MaintenancePolicy>>,
     /// Output only. Date and time of upcoming maintenance events which have been scheduled.
     #[serde(default, rename = "maintenanceSchedule")]
-    pub maintenance_schedule: Option<MaintenanceSchedule>,
+    pub maintenance_schedule: ::core::option::Option<::std::boxed::Box<MaintenanceSchedule>>,
     /// Optional. The self service update maintenance version. The version is date based such as "20210712_00_00".
     #[serde(default, rename = "maintenanceVersion")]
-    pub maintenance_version: Option<String>,
+    pub maintenance_version: ::core::option::Option<String>,
     /// Required. Redis memory size in GiB.
     #[serde(default, rename = "memorySizeGb")]
-    pub memory_size_gb: Option<i32>,
+    pub memory_size_gb: ::core::option::Option<i32>,
     /// Required. Unique name of the resource in this scope including project and location using the form: projects/{project_id}/locations/{location_id}/instances/{instance_id} Note: Redis instances are managed and addressed at regional level so location_id here refers to a GCP region; however, users may choose which specific zone (or collection of zones for cross-zone instances) an instance should be provisioned in. Refer to location_id and alternative_location_id fields for more details.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Info per node.
     #[serde(default)]
-    pub nodes: Option<Vec<NodeInfo>>,
+    pub nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NodeInfo>>>,
     /// Optional. Persistence configuration parameters
     #[serde(default, rename = "persistenceConfig")]
-    pub persistence_config: Option<PersistenceConfig>,
+    pub persistence_config: ::core::option::Option<::std::boxed::Box<PersistenceConfig>>,
     /// Output only. Cloud IAM identity used by import / export operations to transfer data to/from Cloud Storage. Format is "serviceAccount:". The value may change over time for a given instance so should be checked before each import/export operation.
     #[serde(default, rename = "persistenceIamIdentity")]
-    pub persistence_iam_identity: Option<String>,
+    pub persistence_iam_identity: ::core::option::Option<String>,
     /// Output only. The port number of the exposed Redis endpoint.
     #[serde(default)]
-    pub port: Option<i32>,
+    pub port: ::core::option::Option<i32>,
     /// Output only. Hostname or IP address of the exposed readonly Redis endpoint. Standard tier only. Targets all healthy replica nodes in instance. Replication is asynchronous and replica nodes will exhibit some lag behind the primary. Write requests must target ''host''.
     #[serde(default, rename = "readEndpoint")]
-    pub read_endpoint: Option<String>,
+    pub read_endpoint: ::core::option::Option<String>,
     /// Output only. The port number of the exposed readonly redis endpoint. Standard tier only. Write requests should target ''port''.
     #[serde(default, rename = "readEndpointPort")]
-    pub read_endpoint_port: Option<i32>,
+    pub read_endpoint_port: ::core::option::Option<i32>,
     /// Optional. Read replicas mode for the instance. Defaults to READ_REPLICAS_DISABLED. // TODO: enum values: ["READ_REPLICAS_MODE_UNSPECIFIED", "READ_REPLICAS_DISABLED", "READ_REPLICAS_ENABLED"]
     #[serde(default, rename = "readReplicasMode")]
-    pub read_replicas_mode: Option<String>,
+    pub read_replicas_mode: ::core::option::Option<String>,
     /// Optional. Redis configuration parameters, according to [Redis configuration](https://redis.io/docs/latest/operate/oss_and_stack/management/config/). Currently, the only supported parameters are: Redis version 3.2 and newer: * maxmemory-policy * notify-keyspace-events Redis version 4.0 and newer: * activedefrag * lfu-decay-time * lfu-log-factor * maxmemory-gb Redis version 5.0 and newer: * stream-node-max-bytes * stream-node-max-entries
     #[serde(default, rename = "redisConfigs")]
-    pub redis_configs: Option<serde_json::Value>,
+    pub redis_configs: ::core::option::Option<serde_json::Value>,
     /// Optional. The version of Redis software. If not provided, the default version will be used. Currently, the supported values are: * REDIS_3_2 for Redis 3.2 compatibility * REDIS_4_0 for Redis 4.0 compatibility * REDIS_5_0 for Redis 5.0 compatibility * REDIS_6_X for Redis 6.x compatibility * REDIS_7_0 for Redis 7.0 compatibility (default) * REDIS_7_2 for Redis 7.2 compatibility
     #[serde(default, rename = "redisVersion")]
-    pub redis_version: Option<String>,
+    pub redis_version: ::core::option::Option<String>,
     /// Optional. The number of replica nodes. The valid range for the Standard Tier with read replicas enabled is [1-5] and defaults to 2. If read replicas are not enabled for a Standard Tier instance, the only valid value is 1 and the default is 1. The valid value for basic tier is 0 and the default is also 0.
     #[serde(default, rename = "replicaCount")]
-    pub replica_count: Option<i32>,
+    pub replica_count: ::core::option::Option<i32>,
     /// Optional. For DIRECT_PEERING mode, the CIDR range of internal addresses that are reserved for this instance. Range must be unique and non-overlapping with existing subnets in an authorized network. For PRIVATE_SERVICE_ACCESS mode, the name of one allocated IP address ranges associated with this private service access connection. If not provided, the service will choose an unused /29 block, for example, 10.0.0.0/29 or 192.168.0.0/29. For READ_REPLICAS_ENABLED the default block size is /28.
     #[serde(default, rename = "reservedIpRange")]
-    pub reserved_ip_range: Option<String>,
+    pub reserved_ip_range: ::core::option::Option<String>,
     /// Optional. Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Optional. Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Optional. Additional IP range for node placement. Required when enabling read replicas on an existing instance. For DIRECT_PEERING mode value must be a CIDR range of size /28, or "auto". For PRIVATE_SERVICE_ACCESS mode value must be the name of an allocated address range associated with the private service access connection, or "auto".
     #[serde(default, rename = "secondaryIpRange")]
-    pub secondary_ip_range: Option<String>,
+    pub secondary_ip_range: ::core::option::Option<String>,
     /// Output only. List of server CA certificates for the instance.
     #[serde(default, rename = "serverCaCerts")]
-    pub server_ca_certs: Option<Vec<TlsCertificate>>,
+    pub server_ca_certs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TlsCertificate>>>,
     /// Output only. The current state of this instance. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "DELETING", "REPAIRING", "MAINTENANCE", "IMPORTING", "FAILING_OVER"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Additional information about the current status of this instance, if available.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Optional. reasons that causes instance in "SUSPENDED" state.
     #[serde(default, rename = "suspensionReasons")]
-    pub suspension_reasons: Option<Vec<String>>,
+    pub suspension_reasons: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
     /// Required. The service tier of the instance. // TODO: enum values: ["TIER_UNSPECIFIED", "BASIC", "STANDARD_HA"]
     #[serde(default)]
-    pub tier: Option<String>,
+    pub tier: ::core::option::Option<String>,
     /// Optional. The TLS mode of the Redis instance. If not provided, TLS is disabled for the instance. // TODO: enum values: ["TRANSIT_ENCRYPTION_MODE_UNSPECIFIED", "SERVER_AUTHENTICATION", "DISABLED"]
     #[serde(default, rename = "transitEncryptionMode")]
-    pub transit_encryption_mode: Option<String>,
+    pub transit_encryption_mode: ::core::option::Option<String>,
 }
 
 /// Instance AUTH string details.
@@ -1112,7 +1125,7 @@ pub struct Instance {
 pub struct InstanceAuthString {
     /// AUTH string set on the instance.
     #[serde(default, rename = "authString")]
-    pub auth_string: Option<String>,
+    pub auth_string: ::core::option::Option<String>,
 }
 
 /// Metadata for individual internal resources in an instance. e.g. spanner instance can have multiple databases with unique configuration settings. Similarly bigtable can have multiple clusters within same bigtable instance.
@@ -1120,20 +1133,20 @@ pub struct InstanceAuthString {
 pub struct InternalResourceMetadata {
     /// Backup configuration for this database
     #[serde(default, rename = "backupConfiguration")]
-    pub backup_configuration: Option<BackupConfiguration>,
+    pub backup_configuration: ::core::option::Option<::std::boxed::Box<BackupConfiguration>>,
     /// Information about the last backup attempt for this database
     #[serde(default, rename = "backupRun")]
-    pub backup_run: Option<BackupRun>,
+    pub backup_run: ::core::option::Option<::std::boxed::Box<BackupRun>>,
     /// Whether deletion protection is enabled for this internal resource.
     #[serde(default, rename = "isDeletionProtectionEnabled")]
-    pub is_deletion_protection_enabled: Option<bool>,
+    pub is_deletion_protection_enabled: ::core::option::Option<bool>,
     #[serde(default)]
-    pub product: Option<Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<Product>>,
     #[serde(default, rename = "resourceId")]
-    pub resource_id: Option<DatabaseResourceId>,
+    pub resource_id: ::core::option::Option<::std::boxed::Box<DatabaseResourceId>>,
     /// Required. internal resource name for spanner this will be database name e.g."spanner.googleapis.com/projects/123/abc/instances/inst1/databases/db1"
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
 }
 
 /// Response for ListAclPolicies.
@@ -1141,13 +1154,13 @@ pub struct InternalResourceMetadata {
 pub struct ListAclPoliciesResponse {
     /// A list of ACL policies in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated.
     #[serde(default, rename = "aclPolicies")]
-    pub acl_policies: Option<Vec<AclPolicy>>,
+    pub acl_policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AclPolicy>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListAuthTokens.
@@ -1155,13 +1168,13 @@ pub struct ListAclPoliciesResponse {
 pub struct ListAuthTokensResponse {
     /// A list of auth tokens in the project.
     #[serde(default, rename = "authTokens")]
-    pub auth_tokens: Option<Vec<AuthToken>>,
+    pub auth_tokens: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthToken>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Unordered list. Auth tokens that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for [ListBackupCollections].
@@ -1169,13 +1182,14 @@ pub struct ListAuthTokensResponse {
 pub struct ListBackupCollectionsResponse {
     /// A list of backupCollections in the project. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder backupCollection entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/backupCollections/- and the status field set to ERROR and status_message field set to "location not available for ListBackupCollections".
     #[serde(default, rename = "backupCollections")]
-    pub backup_collections: Option<Vec<BackupCollection>>,
+    pub backup_collections:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BackupCollection>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for [ListBackups].
@@ -1183,13 +1197,13 @@ pub struct ListBackupCollectionsResponse {
 pub struct ListBackupsResponse {
     /// A list of backups in the project.
     #[serde(default)]
-    pub backups: Option<Vec<Backup>>,
+    pub backups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Backup>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Backups that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListClusters.
@@ -1197,13 +1211,13 @@ pub struct ListBackupsResponse {
 pub struct ListClustersResponse {
     /// A list of Redis clusters in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder Redis entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/clusters/- and the status field set to ERROR and status_message field set to "location not available for ListClusters".
     #[serde(default)]
-    pub clusters: Option<Vec<Cluster>>,
+    pub clusters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Cluster>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for ListInstances.
@@ -1211,13 +1225,13 @@ pub struct ListClustersResponse {
 pub struct ListInstancesResponse {
     /// A list of Redis instances in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated. If in such an aggregated query a location is unavailable, a placeholder Redis entry is included in the response with the name field set to a value of the form projects/{project_id}/locations/{location_id}/instances/- and the status field set to ERROR and status_message field set to "location not available for ListInstances".
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1225,10 +1239,10 @@ pub struct ListInstancesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1236,13 +1250,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListTokenAuthUsers.
@@ -1250,13 +1264,13 @@ pub struct ListOperationsResponse {
 pub struct ListTokenAuthUsersResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of token auth users in the project.
     #[serde(default, rename = "tokenAuthUsers")]
-    pub token_auth_users: Option<Vec<TokenAuthUser>>,
+    pub token_auth_users: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TokenAuthUser>>>,
     /// Unordered list. Token auth users that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1264,19 +1278,19 @@ pub struct ListTokenAuthUsersResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Resource ID for the region. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Output only. The set of available zones in the location. The map is keyed by the lowercase ID of each zone, as defined by Compute Engine. These keys can be specified in location_id or alternative_location_id fields when creating a Redis instance.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Full resource name for the region. For example: "projects/example-project/locations/us-east1".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// MachineConfiguration describes the configuration of a machine specific to Database Resource.
@@ -1284,22 +1298,22 @@ pub struct Location {
 pub struct MachineConfiguration {
     /// Optional. Baseline slots for BigQuery Reservations. Baseline slots are in increments of 50.
     #[serde(default, rename = "baselineSlots")]
-    pub baseline_slots: Option<String>,
+    pub baseline_slots: ::core::option::Option<String>,
     /// The number of CPUs. Deprecated. Use vcpu_count instead. TODO(b/342344482) add proto validations again after bug fix.
     #[serde(default, rename = "cpuCount")]
-    pub cpu_count: Option<i32>,
+    pub cpu_count: ::core::option::Option<i32>,
     /// Optional. Max slots for BigQuery Reservations. Max slots are in increments of 50.
     #[serde(default, rename = "maxReservationSlots")]
-    pub max_reservation_slots: Option<String>,
+    pub max_reservation_slots: ::core::option::Option<String>,
     /// Memory size in bytes. TODO(b/342344482) add proto validations again after bug fix.
     #[serde(default, rename = "memorySizeInBytes")]
-    pub memory_size_in_bytes: Option<String>,
+    pub memory_size_in_bytes: ::core::option::Option<String>,
     /// Optional. Number of shards (if applicable).
     #[serde(default, rename = "shardCount")]
-    pub shard_count: Option<i32>,
+    pub shard_count: ::core::option::Option<i32>,
     /// Optional. The number of vCPUs. TODO(b/342344482) add proto validations again after bug fix.
     #[serde(default, rename = "vcpuCount")]
-    pub vcpu_count: Option<f64>,
+    pub vcpu_count: ::core::option::Option<f64>,
 }
 
 /// Maintenance policy for an instance.
@@ -1307,16 +1321,17 @@ pub struct MachineConfiguration {
 pub struct MaintenancePolicy {
     /// Output only. The time when the policy was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Description of what this policy is for. Create/Update methods return INVALID_ARGUMENT if the length is greater than 512.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The time when the policy was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. Maintenance window that is applied to resources covered by this policy. Minimum 1. For the current version, the maximum number of weekly_window is expected to be one.
     #[serde(default, rename = "weeklyMaintenanceWindow")]
-    pub weekly_maintenance_window: Option<Vec<WeeklyMaintenanceWindow>>,
+    pub weekly_maintenance_window:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WeeklyMaintenanceWindow>>>,
 }
 
 /// Upcoming maintenance schedule. If no maintenance is scheduled, fields are not populated.
@@ -1324,16 +1339,16 @@ pub struct MaintenancePolicy {
 pub struct MaintenanceSchedule {
     /// If the scheduled maintenance can be rescheduled, default is true.
     #[serde(default, rename = "canReschedule")]
-    pub can_reschedule: Option<bool>,
+    pub can_reschedule: ::core::option::Option<bool>,
     /// Output only. The end time of any upcoming scheduled maintenance for this instance.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The deadline that the maintenance schedule start time can not go beyond, including reschedule.
     #[serde(default, rename = "scheduleDeadlineTime")]
-    pub schedule_deadline_time: Option<String>,
+    pub schedule_deadline_time: ::core::option::Option<String>,
     /// Output only. The start time of any upcoming scheduled maintenance for this instance.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Backups that generated and managed by memorystore.
@@ -1341,7 +1356,7 @@ pub struct MaintenanceSchedule {
 pub struct ManagedBackupSource {
     /// Optional. Example: //redis.googleapis.com/projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup} A shorter version (without the prefix) of the backup name is also supported, like projects/{project}/locations/{location}/backupCollections/{collection}/backups/{backup_id} In this case, it assumes the backup is under redis.googleapis.com.
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
 }
 
 /// ManagedCertificateAuthority resource type.
@@ -1349,7 +1364,7 @@ pub struct ManagedBackupSource {
 pub struct ManagedCertificateAuthority {
     /// The PEM encoded CA certificate chains for redis managed server authentication
     #[serde(default, rename = "caCerts")]
-    pub ca_certs: Option<Vec<CertChain>>,
+    pub ca_certs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CertChain>>>,
 }
 
 /// An output only view of all the member clusters participating in the cross cluster replication.
@@ -1357,10 +1372,11 @@ pub struct ManagedCertificateAuthority {
 pub struct Membership {
     /// Output only. The primary cluster that acts as the source of replication for the secondary clusters.
     #[serde(default, rename = "primaryCluster")]
-    pub primary_cluster: Option<RemoteCluster>,
+    pub primary_cluster: ::core::option::Option<::std::boxed::Box<RemoteCluster>>,
     /// Output only. The list of secondary clusters replicating from the primary cluster.
     #[serde(default, rename = "secondaryClusters")]
-    pub secondary_clusters: Option<Vec<RemoteCluster>>,
+    pub secondary_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RemoteCluster>>>,
 }
 
 /// Node specific properties.
@@ -1368,10 +1384,10 @@ pub struct Membership {
 pub struct NodeInfo {
     /// Output only. Node identifying string. e.g. ''node-0'', ''node-1''
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Output only. Location of the node.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// ObservabilityMetricData resource type.
@@ -1379,19 +1395,19 @@ pub struct NodeInfo {
 pub struct ObservabilityMetricData {
     /// Required. Type of aggregation performed on the metric. // TODO: enum values: ["AGGREGATION_TYPE_UNSPECIFIED", "PEAK", "P99", "P95", "CURRENT"]
     #[serde(default, rename = "aggregationType")]
-    pub aggregation_type: Option<String>,
+    pub aggregation_type: ::core::option::Option<String>,
     /// Required. Type of metric like CPU, Memory, etc. // TODO: enum values: ["METRIC_TYPE_UNSPECIFIED", "CPU_UTILIZATION", "MEMORY_UTILIZATION", "NETWORK_CONNECTIONS", "STORAGE_UTILIZATION", "STORAGE_USED_BYTES", "NODE_COUNT", "MEMORY_USED_BYTES", "PROCESSING_UNIT_COUNT"]
     #[serde(default, rename = "metricType")]
-    pub metric_type: Option<String>,
+    pub metric_type: ::core::option::Option<String>,
     /// Required. The time the metric value was observed.
     #[serde(default, rename = "observationTime")]
-    pub observation_time: Option<String>,
+    pub observation_time: ::core::option::Option<String>,
     /// Required. Database resource name associated with the signal. Resource name to follow CAIS resource_name format as noted here go/condor-common-datamodel
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     /// Required. Value of the metric type.
     #[serde(default)]
-    pub value: Option<TypedValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<TypedValue>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1399,19 +1415,19 @@ pub struct ObservabilityMetricData {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// { createTime: The time the operation was created. endTime: The time the operation finished running. target: Server-defined resource path for the target of the operation. verb: Name of the verb executed by the operation. statusDetail: Human-readable status of the operation, if any. cancelRequested: Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED. apiVersion: API version used to start the operation. }
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// An error that occurred during a backup creation operation.
@@ -1419,13 +1435,13 @@ pub struct Operation {
 pub struct OperationError {
     /// Identifies the specific error that occurred. REQUIRED
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// TODO: enum values: ["OPERATION_ERROR_TYPE_UNSPECIFIED", "KMS_KEY_ERROR", "DATABASE_ERROR", "STOCKOUT_ERROR", "CANCELLATION_ERROR", "SQLSERVER_ERROR", "INTERNAL_ERROR"]
     #[serde(default, rename = "errorType")]
-    pub error_type: Option<String>,
+    pub error_type: ::core::option::Option<String>,
     /// Additional information about the error encountered. REQUIRED
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Pre-defined metadata fields.
@@ -1433,25 +1449,25 @@ pub struct OperationError {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// The output content
@@ -1459,7 +1475,7 @@ pub struct OperationMetadata {
 pub struct OutputConfig {
     /// Google Cloud Storage destination for output content.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GcsDestination>,
+    pub gcs_destination: ::core::option::Option<::std::boxed::Box<GcsDestination>>,
 }
 
 /// Configuration of the persistence functionality.
@@ -1467,16 +1483,16 @@ pub struct OutputConfig {
 pub struct PersistenceConfig {
     /// Optional. Controls whether Persistence features are enabled. If not provided, the existing value will be used. // TODO: enum values: ["PERSISTENCE_MODE_UNSPECIFIED", "DISABLED", "RDB"]
     #[serde(default, rename = "persistenceMode")]
-    pub persistence_mode: Option<String>,
+    pub persistence_mode: ::core::option::Option<String>,
     /// Output only. The next time that a snapshot attempt is scheduled to occur.
     #[serde(default, rename = "rdbNextSnapshotTime")]
-    pub rdb_next_snapshot_time: Option<String>,
+    pub rdb_next_snapshot_time: ::core::option::Option<String>,
     /// Optional. Period between RDB snapshots. Snapshots will be attempted every period starting from the provided snapshot start time. For example, a start time of 01/01/2033 06:45 and SIX_HOURS snapshot period will do nothing until 01/01/2033, and then trigger snapshots every day at 06:45, 12:45, 18:45, and 00:45 the next day, and so on. If not provided, TWENTY_FOUR_HOURS will be used as default. // TODO: enum values: ["SNAPSHOT_PERIOD_UNSPECIFIED", "ONE_HOUR", "SIX_HOURS", "TWELVE_HOURS", "TWENTY_FOUR_HOURS"]
     #[serde(default, rename = "rdbSnapshotPeriod")]
-    pub rdb_snapshot_period: Option<String>,
+    pub rdb_snapshot_period: ::core::option::Option<String>,
     /// Optional. Date and time that the first snapshot was/will be attempted, and to which future snapshots will be aligned. If not provided, the current time will be used.
     #[serde(default, rename = "rdbSnapshotStartTime")]
-    pub rdb_snapshot_start_time: Option<String>,
+    pub rdb_snapshot_start_time: ::core::option::Option<String>,
 }
 
 /// Product specification for Condor resources.
@@ -1484,16 +1500,16 @@ pub struct PersistenceConfig {
 pub struct Product {
     /// The specific engine that the underlying database is running. // TODO: enum values: ["ENGINE_UNSPECIFIED", "ENGINE_MYSQL", "MYSQL", "ENGINE_POSTGRES", "POSTGRES", "ENGINE_SQL_SERVER", "SQL_SERVER", "ENGINE_NATIVE", "NATIVE", "ENGINE_CLOUD_SPANNER_WITH_POSTGRES_DIALECT", "ENGINE_CLOUD_SPANNER_WITH_GOOGLESQL_DIALECT", "ENGINE_MEMORYSTORE_FOR_REDIS", "ENGINE_MEMORYSTORE_FOR_REDIS_CLUSTER", "ENGINE_OTHER", "ENGINE_FIRESTORE_WITH_NATIVE_MODE", "ENGINE_FIRESTORE_WITH_DATASTORE_MODE", "ENGINE_FIRESTORE_WITH_MONGODB_COMPATIBILITY_MODE", "ENGINE_EXADATA_ORACLE", "ENGINE_ADB_SERVERLESS_ORACLE"]
     #[serde(default)]
-    pub engine: Option<String>,
+    pub engine: ::core::option::Option<String>,
     /// Minor version of the underlying database engine. Example values: For MySQL, it could be "8.0.32", "5.7.32" etc.. For Postgres, it could be "14.3", "15.3" etc..
     #[serde(default, rename = "minorVersion")]
-    pub minor_version: Option<String>,
+    pub minor_version: ::core::option::Option<String>,
     /// Type of specific database product. It could be CloudSQL, AlloyDB etc.. // TODO: enum values: ["PRODUCT_TYPE_UNSPECIFIED", "PRODUCT_TYPE_CLOUD_SQL", "CLOUD_SQL", "PRODUCT_TYPE_ALLOYDB", "ALLOYDB", "PRODUCT_TYPE_SPANNER", "PRODUCT_TYPE_ON_PREM", "ON_PREM", "PRODUCT_TYPE_MEMORYSTORE", "PRODUCT_TYPE_BIGTABLE", "PRODUCT_TYPE_FIRESTORE", "PRODUCT_TYPE_COMPUTE_ENGINE", "PRODUCT_TYPE_ORACLE_ON_GCP", "PRODUCT_TYPE_BIGQUERY", "PRODUCT_TYPE_OTHER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Version of the underlying database engine. Example values: For MySQL, it could be "8.0", "5.7" etc.. For Postgres, it could be "14", "15" etc..
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Details of consumer resources in a PSC connection that is created through Service Connectivity Automation.
@@ -1501,28 +1517,28 @@ pub struct Product {
 pub struct PscAutoConnection {
     /// Output only. The IP allocated on the consumer network for the PSC forwarding rule.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Output only. Type of the PSC connection. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "CONNECTION_TYPE_DISCOVERY", "CONNECTION_TYPE_PRIMARY", "CONNECTION_TYPE_READER"]
     #[serde(default, rename = "connectionType")]
-    pub connection_type: Option<String>,
+    pub connection_type: ::core::option::Option<String>,
     /// Output only. The URI of the consumer side forwarding rule. Example: projects/{projectNumOrId}/regions/us-east1/forwardingRules/{resourceId}.
     #[serde(default, rename = "forwardingRule")]
-    pub forwarding_rule: Option<String>,
+    pub forwarding_rule: ::core::option::Option<String>,
     /// Required. The consumer network where the IP address resides, in the form of projects/{project_id}/global/networks/{network_id}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Required. The consumer project_id where the forwarding rule is created from.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Output only. The PSC connection id of the forwarding rule connected to the service attachment.
     #[serde(default, rename = "pscConnectionId")]
-    pub psc_connection_id: Option<String>,
+    pub psc_connection_id: ::core::option::Option<String>,
     /// Output only. The status of the PSC connection. Please note that this value is updated periodically. Please use Private Service Connect APIs for the latest status. // TODO: enum values: ["PSC_CONNECTION_STATUS_UNSPECIFIED", "PSC_CONNECTION_STATUS_ACTIVE", "PSC_CONNECTION_STATUS_NOT_FOUND"]
     #[serde(default, rename = "pscConnectionStatus")]
-    pub psc_connection_status: Option<String>,
+    pub psc_connection_status: ::core::option::Option<String>,
     /// Output only. The service attachment which is the target of the PSC connection, in the form of projects/{project-id}/regions/{region}/serviceAttachments/{service-attachment-id}.
     #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: Option<String>,
+    pub service_attachment: ::core::option::Option<String>,
 }
 
 /// PscConfig resource type.
@@ -1530,7 +1546,7 @@ pub struct PscAutoConnection {
 pub struct PscConfig {
     /// Required. The network where the IP address of the discovery endpoint will be reserved, in the form of projects/{network_project}/global/networks/{network_id}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
 }
 
 /// Details of consumer resources in a PSC connection.
@@ -1538,31 +1554,31 @@ pub struct PscConfig {
 pub struct PscConnection {
     /// Required. The IP allocated on the consumer network for the PSC forwarding rule.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Output only. Type of the PSC connection. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "CONNECTION_TYPE_DISCOVERY", "CONNECTION_TYPE_PRIMARY", "CONNECTION_TYPE_READER"]
     #[serde(default, rename = "connectionType")]
-    pub connection_type: Option<String>,
+    pub connection_type: ::core::option::Option<String>,
     /// Required. The URI of the consumer side forwarding rule. Example: projects/{projectNumOrId}/regions/us-east1/forwardingRules/{resourceId}.
     #[serde(default, rename = "forwardingRule")]
-    pub forwarding_rule: Option<String>,
+    pub forwarding_rule: ::core::option::Option<String>,
     /// Required. The consumer network where the IP address resides, in the form of projects/{project_id}/global/networks/{network_id}.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. port will only be set for Primary/Reader or Discovery endpoint.
     #[serde(default)]
-    pub port: Option<i32>,
+    pub port: ::core::option::Option<i32>,
     /// Optional. Project ID of the consumer project where the forwarding rule is created in.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Required. The PSC connection id of the forwarding rule connected to the service attachment.
     #[serde(default, rename = "pscConnectionId")]
-    pub psc_connection_id: Option<String>,
+    pub psc_connection_id: ::core::option::Option<String>,
     /// Output only. The status of the PSC connection. Please note that this value is updated periodically. To get the latest status of a PSC connection, follow https://cloud.google.com/vpc/docs/configure-private-service-connect-services#endpoint-details. // TODO: enum values: ["PSC_CONNECTION_STATUS_UNSPECIFIED", "PSC_CONNECTION_STATUS_ACTIVE", "PSC_CONNECTION_STATUS_NOT_FOUND"]
     #[serde(default, rename = "pscConnectionStatus")]
-    pub psc_connection_status: Option<String>,
+    pub psc_connection_status: ::core::option::Option<String>,
     /// Required. The service attachment which is the target of the PSC connection, in the form of projects/{project-id}/regions/{region}/serviceAttachments/{service-attachment-id}.
     #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: Option<String>,
+    pub service_attachment: ::core::option::Option<String>,
 }
 
 /// Configuration of a service attachment of the cluster, for creating PSC connections.
@@ -1570,10 +1586,10 @@ pub struct PscConnection {
 pub struct PscServiceAttachment {
     /// Output only. Type of a PSC connection targeting this service attachment. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "CONNECTION_TYPE_DISCOVERY", "CONNECTION_TYPE_PRIMARY", "CONNECTION_TYPE_READER"]
     #[serde(default, rename = "connectionType")]
-    pub connection_type: Option<String>,
+    pub connection_type: ::core::option::Option<String>,
     /// Output only. Service attachment URI which your self-created PscConnection should use as target
     #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: Option<String>,
+    pub service_attachment: ::core::option::Option<String>,
 }
 
 /// Configuration of the RDB based persistence.
@@ -1581,10 +1597,10 @@ pub struct PscServiceAttachment {
 pub struct RDBConfig {
     /// Optional. Period between RDB snapshots. // TODO: enum values: ["SNAPSHOT_PERIOD_UNSPECIFIED", "ONE_HOUR", "SIX_HOURS", "TWELVE_HOURS", "TWENTY_FOUR_HOURS"]
     #[serde(default, rename = "rdbSnapshotPeriod")]
-    pub rdb_snapshot_period: Option<String>,
+    pub rdb_snapshot_period: ::core::option::Option<String>,
     /// Optional. The time that the first snapshot was/will be attempted, and to which future snapshots will be aligned. If not provided, the current time will be used.
     #[serde(default, rename = "rdbSnapshotStartTime")]
-    pub rdb_snapshot_start_time: Option<String>,
+    pub rdb_snapshot_start_time: ::core::option::Option<String>,
 }
 
 /// Operation metadata returned by the CLH during resource state reconciliation.
@@ -1592,10 +1608,10 @@ pub struct RDBConfig {
 pub struct ReconciliationOperationMetadata {
     /// DEPRECATED. Use exclusive_action instead.
     #[serde(default, rename = "deleteResource")]
-    pub delete_resource: Option<bool>,
+    pub delete_resource: ::core::option::Option<bool>,
     /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
     #[serde(default, rename = "exclusiveAction")]
-    pub exclusive_action: Option<String>,
+    pub exclusive_action: ::core::option::Option<String>,
 }
 
 /// The certificates that form the CA chain, from leaf to root order.
@@ -1603,7 +1619,7 @@ pub struct ReconciliationOperationMetadata {
 pub struct RegionalCertChain {
     /// The certificates that form the CA chain, from leaf to root order.
     #[serde(default)]
-    pub certificates: Option<Vec<String>>,
+    pub certificates: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// CA certificate chains for redis managed server authentication.
@@ -1611,7 +1627,7 @@ pub struct RegionalCertChain {
 pub struct RegionalManagedCertificateAuthority {
     /// The PEM encoded CA certificate chains for redis managed server authentication
     #[serde(default, rename = "caCerts")]
-    pub ca_certs: Option<Vec<RegionalCertChain>>,
+    pub ca_certs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RegionalCertChain>>>,
 }
 
 /// Details of the remote cluster associated with this cluster in a cross cluster replication setup.
@@ -1619,10 +1635,10 @@ pub struct RegionalManagedCertificateAuthority {
 pub struct RemoteCluster {
     /// Output only. The full resource path of the remote cluster in the format: projects//locations//clusters/
     #[serde(default)]
-    pub cluster: Option<String>,
+    pub cluster: ::core::option::Option<String>,
     /// Output only. The unique identifier of the remote cluster.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }
 
 /// Request for rescheduling a cluster maintenance.
@@ -1630,10 +1646,10 @@ pub struct RemoteCluster {
 pub struct RescheduleClusterMaintenanceRequest {
     /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "SPECIFIC_TIME"]
     #[serde(default, rename = "rescheduleType")]
-    pub reschedule_type: Option<String>,
+    pub reschedule_type: ::core::option::Option<String>,
     /// Optional. Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in RFC 3339 format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: Option<String>,
+    pub schedule_time: ::core::option::Option<String>,
 }
 
 /// Request for RescheduleMaintenance.
@@ -1641,10 +1657,10 @@ pub struct RescheduleClusterMaintenanceRequest {
 pub struct RescheduleMaintenanceRequest {
     /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "NEXT_AVAILABLE_WINDOW", "SPECIFIC_TIME"]
     #[serde(default, rename = "rescheduleType")]
-    pub reschedule_type: Option<String>,
+    pub reschedule_type: ::core::option::Option<String>,
     /// Optional. Timestamp when the maintenance shall be rescheduled to if reschedule_type=SPECIFIC_TIME, in RFC 3339 format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: Option<String>,
+    pub schedule_time: ::core::option::Option<String>,
 }
 
 /// Message type for storing resource flags.
@@ -1652,10 +1668,10 @@ pub struct RescheduleMaintenanceRequest {
 pub struct ResourceFlags {
     /// Optional. Key of the resource flag.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Optional. Value of the resource flag.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Deny maintenance period for the database resource. It specifies the time range during which the maintenance cannot start. This is configured by the customer.
@@ -1663,13 +1679,13 @@ pub struct ResourceFlags {
 pub struct ResourceMaintenanceDenySchedule {
     /// Optional. Deny period end date.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<Date>,
+    pub end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Optional. The start date of the deny maintenance period.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<Date>,
+    pub start_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Optional. Time in UTC when the deny period starts on start_date and ends on end_date.
     #[serde(default)]
-    pub time: Option<TimeOfDay>,
+    pub time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// MaintenanceInfo to capture the maintenance details of database resource.
@@ -1677,25 +1693,27 @@ pub struct ResourceMaintenanceDenySchedule {
 pub struct ResourceMaintenanceInfo {
     /// Optional. The date when the current maintenance version was released.
     #[serde(default, rename = "currentVersionReleaseDate")]
-    pub current_version_release_date: Option<Date>,
+    pub current_version_release_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Optional. List of Deny maintenance period for the database resource.
     #[serde(default, rename = "denyMaintenanceSchedules")]
-    pub deny_maintenance_schedules: Option<Vec<ResourceMaintenanceDenySchedule>>,
+    pub deny_maintenance_schedules:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceMaintenanceDenySchedule>>>,
     /// Optional. Whether the instance is in stopped state. This information is temporarily being captured in maintenanceInfo, till STOPPED state is supported by DB Center.
     #[serde(default, rename = "isInstanceStopped")]
-    pub is_instance_stopped: Option<bool>,
+    pub is_instance_stopped: ::core::option::Option<bool>,
     /// Optional. Maintenance window for the database resource.
     #[serde(default, rename = "maintenanceSchedule")]
-    pub maintenance_schedule: Option<ResourceMaintenanceSchedule>,
+    pub maintenance_schedule:
+        ::core::option::Option<::std::boxed::Box<ResourceMaintenanceSchedule>>,
     /// Output only. Current state of maintenance on the database resource. // TODO: enum values: ["MAINTENANCE_STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "REPAIRING", "DELETING", "ERROR"]
     #[serde(default, rename = "maintenanceState")]
-    pub maintenance_state: Option<String>,
+    pub maintenance_state: ::core::option::Option<String>,
     /// Optional. Current Maintenance version of the database resource. Example: "MYSQL_8_0_41.R20250531.01_15"
     #[serde(default, rename = "maintenanceVersion")]
-    pub maintenance_version: Option<String>,
+    pub maintenance_version: ::core::option::Option<String>,
     /// Optional. Upcoming maintenance for the database resource. This field is populated once SLM generates and publishes upcoming maintenance window.
     #[serde(default, rename = "upcomingMaintenance")]
-    pub upcoming_maintenance: Option<UpcomingMaintenance>,
+    pub upcoming_maintenance: ::core::option::Option<::std::boxed::Box<UpcomingMaintenance>>,
 }
 
 /// Maintenance window for the database resource. It specifies preferred time and day of the week and phase in some cases, when the maintenance can start. This is configured by the customer.
@@ -1703,13 +1721,13 @@ pub struct ResourceMaintenanceInfo {
 pub struct ResourceMaintenanceSchedule {
     /// Optional. Preferred day of the week for maintenance, e.g. MONDAY, TUESDAY, etc. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
-    pub day: Option<String>,
+    pub day: ::core::option::Option<String>,
     /// Optional. Phase of the maintenance window. This is to capture order of maintenance. For example, for Cloud SQL resources, this can be used to capture if the maintenance window is in Week1, Week2, Week5, etc. Non production resources are usually part of early phase. For more details, refer to Cloud SQL resources - https://cloud.google.com/sql/docs/mysql/maintenance // TODO: enum values: ["PHASE_UNSPECIFIED", "ANY", "WEEK1", "WEEK2", "WEEK5"]
     #[serde(default)]
-    pub phase: Option<String>,
+    pub phase: ::core::option::Option<String>,
     /// Optional. Preferred time to start the maintenance operation on the specified day.
     #[serde(default)]
-    pub time: Option<TimeOfDay>,
+    pub time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// RetentionSettings resource type.
@@ -1717,17 +1735,17 @@ pub struct ResourceMaintenanceSchedule {
 pub struct RetentionSettings {
     /// Duration based retention period i.e. 172800 seconds (2 days)
     #[serde(default, rename = "durationBasedRetention")]
-    pub duration_based_retention: Option<String>,
+    pub duration_based_retention: ::core::option::Option<String>,
     #[serde(default, rename = "quantityBasedRetention")]
-    pub quantity_based_retention: Option<i32>,
+    pub quantity_based_retention: ::core::option::Option<i32>,
     /// The unit that ''retained_backups'' represents. // TODO: enum values: ["RETENTION_UNIT_UNSPECIFIED", "COUNT", "TIME", "DURATION", "RETENTION_UNIT_OTHER"]
     #[serde(default, rename = "retentionUnit")]
-    pub retention_unit: Option<String>,
+    pub retention_unit: ::core::option::Option<String>,
     #[serde(default, rename = "timeBasedRetention")]
-    pub time_based_retention: Option<String>,
+    pub time_based_retention: ::core::option::Option<String>,
     /// Timestamp based retention period i.e. 2024-05-01T00:00:00Z
     #[serde(default, rename = "timestampBasedRetentionTime")]
-    pub timestamp_based_retention_time: Option<String>,
+    pub timestamp_based_retention_time: ::core::option::Option<String>,
 }
 
 /// Shared regional certificate authority
@@ -1735,10 +1753,11 @@ pub struct RetentionSettings {
 pub struct SharedRegionalCertificateAuthority {
     /// CA certificate chains for redis managed server authentication.
     #[serde(default, rename = "managedServerCa")]
-    pub managed_server_ca: Option<RegionalManagedCertificateAuthority>,
+    pub managed_server_ca:
+        ::core::option::Option<::std::boxed::Box<RegionalManagedCertificateAuthority>>,
     /// Identifier. Unique name of the resource in this scope including project and location using the form: projects/{project}/locations/{location}/sharedRegionalCertificateAuthority
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// SignalMetadata contains one of the signal metadata proto messages associated with a SignalType. This proto will be mapped to SignalMetadata message in storage.proto. Next ID: 3
@@ -1746,10 +1765,10 @@ pub struct SharedRegionalCertificateAuthority {
 pub struct SignalMetadata {
     /// Signal data for backup runs.
     #[serde(default, rename = "backupRun")]
-    pub backup_run: Option<BackupRun>,
+    pub backup_run: ::core::option::Option<::std::boxed::Box<BackupRun>>,
     /// Signal data for boolean signals.
     #[serde(default, rename = "signalBoolValue")]
-    pub signal_bool_value: Option<bool>,
+    pub signal_bool_value: ::core::option::Option<bool>,
 }
 
 /// Represents additional information about the state of the cluster.
@@ -1757,7 +1776,7 @@ pub struct SignalMetadata {
 pub struct StateInfo {
     /// Describes ongoing update on the cluster when cluster state is UPDATING.
     #[serde(default, rename = "updateInfo")]
-    pub update_info: Option<UpdateInfo>,
+    pub update_info: ::core::option::Option<::std::boxed::Box<UpdateInfo>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1765,13 +1784,13 @@ pub struct StateInfo {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -1779,16 +1798,16 @@ pub struct Status {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// TlsCertificate Resource
@@ -1796,19 +1815,19 @@ pub struct TimeOfDay {
 pub struct TlsCertificate {
     /// PEM representation.
     #[serde(default)]
-    pub cert: Option<String>,
+    pub cert: ::core::option::Option<String>,
     /// Output only. The time when the certificate was created in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2020-05-18T00:00:00.094Z.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time when the certificate expires in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2020-05-18T00:00:00.094Z.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Serial number, as extracted from the certificate.
     #[serde(default, rename = "serialNumber")]
-    pub serial_number: Option<String>,
+    pub serial_number: ::core::option::Option<String>,
     /// Sha1 Fingerprint of the certificate.
     #[serde(default, rename = "sha1Fingerprint")]
-    pub sha1_fingerprint: Option<String>,
+    pub sha1_fingerprint: ::core::option::Option<String>,
 }
 
 /// Represents a token based auth user for the cluster.
@@ -1816,10 +1835,10 @@ pub struct TlsCertificate {
 pub struct TokenAuthUser {
     /// Identifier. The resource name of the token based auth user. Format: projects/{project}/locations/{location}/clusters/{cluster}/tokenAuthUsers/{token_auth_user}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The state of the token based auth user. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "UPDATING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// TypedValue represents the value of a metric type. It can either be a double, an int64, a string or a bool.
@@ -1827,16 +1846,16 @@ pub struct TokenAuthUser {
 pub struct TypedValue {
     /// For boolean value
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// For double value
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// For integer value
     #[serde(default, rename = "int64Value")]
-    pub int64_value: Option<String>,
+    pub int64_value: ::core::option::Option<String>,
     /// For string value
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// Upcoming maintenance for the database resource. This is generated by SLM once the upcoming maintenance schedule is published.
@@ -1844,10 +1863,10 @@ pub struct TypedValue {
 pub struct UpcomingMaintenance {
     /// Optional. The end time of the upcoming maintenance.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. The start time of the upcoming maintenance.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Represents information about an updating cluster.
@@ -1855,13 +1874,13 @@ pub struct UpcomingMaintenance {
 pub struct UpdateInfo {
     /// Target node type for redis cluster. // TODO: enum values: ["NODE_TYPE_UNSPECIFIED", "REDIS_SHARED_CORE_NANO", "REDIS_HIGHMEM_MEDIUM", "REDIS_HIGHMEM_XLARGE", "REDIS_STANDARD_SMALL"]
     #[serde(default, rename = "targetNodeType")]
-    pub target_node_type: Option<String>,
+    pub target_node_type: ::core::option::Option<String>,
     /// Target number of replica nodes per shard.
     #[serde(default, rename = "targetReplicaCount")]
-    pub target_replica_count: Option<i32>,
+    pub target_replica_count: ::core::option::Option<i32>,
     /// Target number of shards for redis cluster
     #[serde(default, rename = "targetShardCount")]
-    pub target_shard_count: Option<i32>,
+    pub target_shard_count: ::core::option::Option<i32>,
 }
 
 /// Request for UpgradeInstance.
@@ -1869,7 +1888,7 @@ pub struct UpdateInfo {
 pub struct UpgradeInstanceRequest {
     /// Required. Specifies the target version of Redis software to upgrade to.
     #[serde(default, rename = "redisVersion")]
-    pub redis_version: Option<String>,
+    pub redis_version: ::core::option::Option<String>,
 }
 
 /// Time window in which disruptive maintenance updates occur. Non-disruptive updates can occur inside or outside this window.
@@ -1877,13 +1896,13 @@ pub struct UpgradeInstanceRequest {
 pub struct WeeklyMaintenanceWindow {
     /// Required. The day of week that maintenance updates occur. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
-    pub day: Option<String>,
+    pub day: ::core::option::Option<String>,
     /// Output only. Duration of the maintenance window. The current window is fixed at 1 hour.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Required. Start time of the window in UTC time.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// Zone distribution config for allocation of cluster resources.
@@ -1891,8 +1910,8 @@ pub struct WeeklyMaintenanceWindow {
 pub struct ZoneDistributionConfig {
     /// Optional. The mode of zone distribution. Defaults to MULTI_ZONE, when not specified. // TODO: enum values: ["ZONE_DISTRIBUTION_MODE_UNSPECIFIED", "MULTI_ZONE", "SINGLE_ZONE"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// Optional. When SINGLE ZONE distribution is selected, zone field would be used to allocate all resources in that zone. This is not applicable to MULTI_ZONE, and would be ignored for MULTI_ZONE clusters.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }

@@ -10,27 +10,29 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Device resource represents an instance of enterprise managed device in the property.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleHomeEnterpriseSdmV1Device {
     /// Output only. The GHP device ID of the device.
     #[serde(default, rename = "ghpName")]
-    pub ghp_name: Option<String>,
+    pub ghp_name: ::core::option::Option<String>,
     /// Required. The resource name of the device. For example: "enterprises/XYZ/devices/123".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Assignee details of the device.
     #[serde(default, rename = "parentRelations")]
-    pub parent_relations: Option<Vec<GoogleHomeEnterpriseSdmV1ParentRelation>>,
+    pub parent_relations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleHomeEnterpriseSdmV1ParentRelation>>,
+    >,
     /// Output only. Device traits.
     #[serde(default)]
-    pub traits: Option<serde_json::Value>,
+    pub traits: ::core::option::Option<serde_json::Value>,
     /// Output only. Type of the device for general display purposes. For example: "THERMOSTAT". The device type should not be used to deduce or infer functionality of the actual device it is assigned to. Instead, use the returned traits for the device.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Request message for SmartDeviceManagementService.ExecuteDeviceCommand
@@ -38,10 +40,10 @@ pub struct GoogleHomeEnterpriseSdmV1Device {
 pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest {
     /// The command name to execute, represented by the fully qualified protobuf message name.
     #[serde(default)]
-    pub command: Option<String>,
+    pub command: ::core::option::Option<String>,
     /// The command message to execute, represented as a Struct.
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
 }
 
 /// Response message for SmartDeviceManagementService.ListDevices
@@ -49,7 +51,8 @@ pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest {
 pub struct GoogleHomeEnterpriseSdmV1ListDevicesResponse {
     /// The list of devices.
     #[serde(default)]
-    pub devices: Option<Vec<GoogleHomeEnterpriseSdmV1Device>>,
+    pub devices:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleHomeEnterpriseSdmV1Device>>>,
 }
 
 /// Response message for SmartDeviceManagementService.ListRooms
@@ -57,7 +60,8 @@ pub struct GoogleHomeEnterpriseSdmV1ListDevicesResponse {
 pub struct GoogleHomeEnterpriseSdmV1ListRoomsResponse {
     /// The list of rooms.
     #[serde(default)]
-    pub rooms: Option<Vec<GoogleHomeEnterpriseSdmV1Room>>,
+    pub rooms:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleHomeEnterpriseSdmV1Room>>>,
 }
 
 /// Response message for SmartDeviceManagementService.ListStructures
@@ -65,7 +69,9 @@ pub struct GoogleHomeEnterpriseSdmV1ListRoomsResponse {
 pub struct GoogleHomeEnterpriseSdmV1ListStructuresResponse {
     /// The list of structures.
     #[serde(default)]
-    pub structures: Option<Vec<GoogleHomeEnterpriseSdmV1Structure>>,
+    pub structures: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleHomeEnterpriseSdmV1Structure>>,
+    >,
 }
 
 /// Represents device relationships, for instance, structure/room to which the device is assigned to.
@@ -73,13 +79,13 @@ pub struct GoogleHomeEnterpriseSdmV1ListStructuresResponse {
 pub struct GoogleHomeEnterpriseSdmV1ParentRelation {
     /// Output only. The custom name of the relation -- e.g., structure/room where the device is assigned to.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The GHP name of the relation -- e.g., structure/room where the device is assigned to. For example: "homegraph.googleapis.com/Structure/ABC" or "homegraph.googleapis.com/Room/ABC"
     #[serde(default, rename = "ghpParent")]
-    pub ghp_parent: Option<String>,
+    pub ghp_parent: ::core::option::Option<String>,
     /// Output only. The name of the relation -- e.g., structure/room where the device is assigned to. For example: "enterprises/XYZ/structures/ABC" or "enterprises/XYZ/structures/ABC/rooms/123"
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Room resource represents an instance of sub-space within a structure such as rooms in a hotel suite or rental apartment.
@@ -87,10 +93,10 @@ pub struct GoogleHomeEnterpriseSdmV1ParentRelation {
 pub struct GoogleHomeEnterpriseSdmV1Room {
     /// Output only. The resource name of the room. For example: "enterprises/XYZ/structures/ABC/rooms/123".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Room traits.
     #[serde(default)]
-    pub traits: Option<serde_json::Value>,
+    pub traits: ::core::option::Option<serde_json::Value>,
 }
 
 /// Structure resource represents an instance of enterprise managed home or hotel room.
@@ -98,11 +104,11 @@ pub struct GoogleHomeEnterpriseSdmV1Room {
 pub struct GoogleHomeEnterpriseSdmV1Structure {
     /// Output only. The unique identifier for the structure in Google Home Platform. Format: homegraph.googleapis.com/Structure/{structure_id}
     #[serde(default, rename = "ghpName")]
-    pub ghp_name: Option<String>,
+    pub ghp_name: ::core::option::Option<String>,
     /// Output only. The resource name of the structure. For example: "enterprises/XYZ/structures/ABC".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Structure traits.
     #[serde(default)]
-    pub traits: Option<serde_json::Value>,
+    pub traits: ::core::option::Option<serde_json::Value>,
 }

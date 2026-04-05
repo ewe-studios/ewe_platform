@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A request to add assets to a group.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddAssetsToGroupRequest {
     /// Optional. When this value is set to false and one of the given assets is already an existing member of the group, the operation fails with an Already Exists error. When set to true this situation is silently ignored by the server. Default value is false.
     #[serde(default, rename = "allowExisting")]
-    pub allow_existing: Option<bool>,
+    pub allow_existing: ::core::option::Option<bool>,
     /// Required. List of assets to be added. The maximum number of assets that can be added in a single request is 2000.
     #[serde(default)]
-    pub assets: Option<AssetList>,
+    pub assets: ::core::option::Option<::std::boxed::Box<AssetList>>,
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// A request to aggregate one or more values.
@@ -32,13 +32,13 @@ pub struct AddAssetsToGroupRequest {
 pub struct AggregateAssetsValuesRequest {
     /// Array of aggregations to perform. Up to 25 aggregations can be defined.
     #[serde(default)]
-    pub aggregations: Option<Vec<Aggregation>>,
+    pub aggregations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Aggregation>>>,
     /// Optional. The aggregation will be performed on assets that match the provided filter.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Optional. When this value is set to ''true'' the response will include all assets, including those that are hidden.
     #[serde(default, rename = "showHidden")]
-    pub show_hidden: Option<bool>,
+    pub show_hidden: ::core::option::Option<bool>,
 }
 
 /// A response to a request to aggregated assets values.
@@ -46,7 +46,7 @@ pub struct AggregateAssetsValuesRequest {
 pub struct AggregateAssetsValuesResponse {
     /// The aggregation results.
     #[serde(default)]
-    pub results: Option<Vec<AggregationResult>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AggregationResult>>>,
 }
 
 /// Message describing an aggregation. The message includes the aggregation type, parameters, and the field on which to perform the aggregation.
@@ -54,19 +54,19 @@ pub struct AggregateAssetsValuesResponse {
 pub struct Aggregation {
     /// Count the number of matching objects.
     #[serde(default)]
-    pub count: Option<serde_json::Value>,
+    pub count: ::core::option::Option<serde_json::Value>,
     /// The name of the field on which to aggregate.
     #[serde(default)]
-    pub field: Option<String>,
+    pub field: ::core::option::Option<String>,
     /// Creates a frequency distribution of all field values.
     #[serde(default)]
-    pub frequency: Option<serde_json::Value>,
+    pub frequency: ::core::option::Option<serde_json::Value>,
     /// Creates a bucketed histogram of field values.
     #[serde(default)]
-    pub histogram: Option<AggregationHistogram>,
+    pub histogram: ::core::option::Option<::std::boxed::Box<AggregationHistogram>>,
     /// Sum over a numeric field.
     #[serde(default)]
-    pub sum: Option<serde_json::Value>,
+    pub sum: ::core::option::Option<serde_json::Value>,
 }
 
 /// Histogram of bucketed assets counts by field value.
@@ -74,29 +74,29 @@ pub struct Aggregation {
 pub struct AggregationHistogram {
     /// Lower bounds of buckets. The response will contain n+1 buckets for n bounds. The first bucket will count all assets for which the field value is smaller than the first bound. Subsequent buckets will count assets for which the field value is greater or equal to a lower bound and smaller than the next one. The last bucket will count assets for which the field value is greater or equal to the final lower bound. You can define up to 20 lower bounds.
     #[serde(default, rename = "lowerBounds")]
-    pub lower_bounds: Option<Vec<f64>>,
+    pub lower_bounds: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Message describing a result of an aggregation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AggregationResult {
     #[serde(default)]
-    pub count: Option<AggregationResultCount>,
+    pub count: ::core::option::Option<::std::boxed::Box<AggregationResultCount>>,
     #[serde(default)]
-    pub field: Option<String>,
+    pub field: ::core::option::Option<String>,
     #[serde(default)]
-    pub frequency: Option<AggregationResultFrequency>,
+    pub frequency: ::core::option::Option<::std::boxed::Box<AggregationResultFrequency>>,
     #[serde(default)]
-    pub histogram: Option<AggregationResultHistogram>,
+    pub histogram: ::core::option::Option<::std::boxed::Box<AggregationResultHistogram>>,
     #[serde(default)]
-    pub sum: Option<AggregationResultSum>,
+    pub sum: ::core::option::Option<::std::boxed::Box<AggregationResultSum>>,
 }
 
 /// The result of a count aggregation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AggregationResultCount {
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// The result of a bucketed histogram aggregation.
@@ -104,7 +104,9 @@ pub struct AggregationResultCount {
 pub struct AggregationResultHistogram {
     /// Buckets in the histogram. There will be n+1 buckets matching n lower bounds in the request. The first bucket will be from -infinity to the first bound. Subsequent buckets will be between one bound and the next. The final bucket will be from the final bound to infinity.
     #[serde(default)]
-    pub buckets: Option<Vec<AggregationResultHistogramBucket>>,
+    pub buckets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AggregationResultHistogramBucket>>,
+    >,
 }
 
 /// A histogram bucket with a lower and upper bound, and a count of items with a field value between those bounds. The lower bound is inclusive and the upper bound is exclusive. Lower bound may be -infinity and upper bound may be infinity.
@@ -112,20 +114,20 @@ pub struct AggregationResultHistogram {
 pub struct AggregationResultHistogramBucket {
     /// Count of items in the bucket.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Lower bound - inclusive.
     #[serde(default, rename = "lowerBound")]
-    pub lower_bound: Option<f64>,
+    pub lower_bound: ::core::option::Option<f64>,
     /// Upper bound - exclusive.
     #[serde(default, rename = "upperBound")]
-    pub upper_bound: Option<f64>,
+    pub upper_bound: ::core::option::Option<f64>,
 }
 
 /// The result of a sum aggregation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AggregationResultSum {
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// An asset represents a resource in your environment. Asset types include virtual machines and databases.
@@ -133,52 +135,53 @@ pub struct AggregationResultSum {
 pub struct Asset {
     /// Output only. The list of groups that the asset is assigned to.
     #[serde(default, rename = "assignedGroups")]
-    pub assigned_groups: Option<Vec<String>>,
+    pub assigned_groups: ::core::option::Option<::std::vec::Vec<String>>,
     /// Generic asset attributes.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Output only. The timestamp when the asset was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Asset information specific for database deployments.
     #[serde(default, rename = "databaseDeploymentDetails")]
-    pub database_deployment_details: Option<DatabaseDeploymentDetails>,
+    pub database_deployment_details:
+        ::core::option::Option<::std::boxed::Box<DatabaseDeploymentDetails>>,
     /// Output only. Asset information specific for logical databases.
     #[serde(default, rename = "databaseDetails")]
-    pub database_details: Option<DatabaseDetails>,
+    pub database_details: ::core::option::Option<::std::boxed::Box<DatabaseDetails>>,
     /// Optional. Indicates if the asset is hidden.
     #[serde(default)]
-    pub hidden: Option<bool>,
+    pub hidden: ::core::option::Option<bool>,
     /// Optional. An optional reason for marking this asset as hidden.
     #[serde(default, rename = "hideReason")]
-    pub hide_reason: Option<String>,
+    pub hide_reason: ::core::option::Option<String>,
     /// Output only. The timestamp when the asset was marked as hidden.
     #[serde(default, rename = "hideTime")]
-    pub hide_time: Option<String>,
+    pub hide_time: ::core::option::Option<String>,
     /// Output only. The list of insights associated with the asset.
     #[serde(default, rename = "insightList")]
-    pub insight_list: Option<InsightList>,
+    pub insight_list: ::core::option::Option<::std::boxed::Box<InsightList>>,
     /// Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Asset information specific for virtual and physical machines.
     #[serde(default, rename = "machineDetails")]
-    pub machine_details: Option<MachineDetails>,
+    pub machine_details: ::core::option::Option<::std::boxed::Box<MachineDetails>>,
     /// Output only. The full name of the asset.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Performance data for the asset.
     #[serde(default, rename = "performanceData")]
-    pub performance_data: Option<AssetPerformanceData>,
+    pub performance_data: ::core::option::Option<::std::boxed::Box<AssetPerformanceData>>,
     /// Output only. The list of sources contributing to the asset.
     #[serde(default)]
-    pub sources: Option<Vec<String>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Server generated human readable name of the asset.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Output only. The timestamp when the asset was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Contains data reported from an inventory source on an asset.
@@ -186,31 +189,33 @@ pub struct Asset {
 pub struct AssetFrame {
     /// Generic asset attributes.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. Frame collection type, if not specified the collection type will be based on the source type of the source the frame was reported on. // TODO: enum values: ["SOURCE_TYPE_UNKNOWN", "SOURCE_TYPE_UPLOAD", "SOURCE_TYPE_GUEST_OS_SCAN", "SOURCE_TYPE_INVENTORY_SCAN", "SOURCE_TYPE_CUSTOM", "SOURCE_TYPE_DISCOVERY_CLIENT"]
     #[serde(default, rename = "collectionType")]
-    pub collection_type: Option<String>,
+    pub collection_type: ::core::option::Option<String>,
     /// Asset information specific for database deployments.
     #[serde(default, rename = "databaseDeploymentDetails")]
-    pub database_deployment_details: Option<DatabaseDeploymentDetails>,
+    pub database_deployment_details:
+        ::core::option::Option<::std::boxed::Box<DatabaseDeploymentDetails>>,
     /// Asset information specific for logical databases.
     #[serde(default, rename = "databaseDetails")]
-    pub database_details: Option<DatabaseDetails>,
+    pub database_details: ::core::option::Option<::std::boxed::Box<DatabaseDetails>>,
     /// Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Asset information specific for virtual machines.
     #[serde(default, rename = "machineDetails")]
-    pub machine_details: Option<MachineDetails>,
+    pub machine_details: ::core::option::Option<::std::boxed::Box<MachineDetails>>,
     /// Asset performance data samples. Samples that are from more than 40 days ago or after tomorrow are ignored.
     #[serde(default, rename = "performanceSamples")]
-    pub performance_samples: Option<Vec<PerformanceSample>>,
+    pub performance_samples:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PerformanceSample>>>,
     /// The time the data was reported.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Optional. Trace token is optionally provided to assist with debugging and traceability.
     #[serde(default, rename = "traceToken")]
-    pub trace_token: Option<String>,
+    pub trace_token: ::core::option::Option<String>,
 }
 
 /// Lists the asset IDs of all assets.
@@ -218,7 +223,7 @@ pub struct AssetFrame {
 pub struct AssetList {
     /// Required. A list of asset IDs
     #[serde(default, rename = "assetIds")]
-    pub asset_ids: Option<Vec<String>>,
+    pub asset_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Performance data for an asset.
@@ -226,7 +231,8 @@ pub struct AssetList {
 pub struct AssetPerformanceData {
     /// Daily resource usage aggregations. Contains all of the data available for an asset, up to the last 420 days. Aggregations are sorted from oldest to most recent.
     #[serde(default, rename = "dailyResourceUsageAggregations")]
-    pub daily_resource_usage_aggregations: Option<Vec<DailyResourceUsageAggregation>>,
+    pub daily_resource_usage_aggregations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DailyResourceUsageAggregation>>>,
 }
 
 /// Assets export job message.
@@ -234,37 +240,38 @@ pub struct AssetPerformanceData {
 pub struct AssetsExportJob {
     /// Optional. Conditions for selecting assets to export.
     #[serde(default)]
-    pub condition: Option<AssetsExportJobExportCondition>,
+    pub condition: ::core::option::Option<::std::boxed::Box<AssetsExportJobExportCondition>>,
     /// Output only. Resource creation time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Export asset inventory details.
     #[serde(default)]
-    pub inventory: Option<serde_json::Value>,
+    pub inventory: ::core::option::Option<serde_json::Value>,
     /// Optional. Labels as key value pairs. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 128 bytes.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Identifier. Resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Export data regarding asset network dependencies.
     #[serde(default, rename = "networkDependencies")]
-    pub network_dependencies: Option<serde_json::Value>,
+    pub network_dependencies: ::core::option::Option<serde_json::Value>,
     /// Export asset with performance data.
     #[serde(default, rename = "performanceData")]
-    pub performance_data: Option<AssetsExportJobPerformanceData>,
+    pub performance_data: ::core::option::Option<::std::boxed::Box<AssetsExportJobPerformanceData>>,
     /// Output only. Recent non expired executions of the job.
     #[serde(default, rename = "recentExecutions")]
-    pub recent_executions: Option<Vec<AssetsExportJobExecution>>,
+    pub recent_executions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssetsExportJobExecution>>>,
     /// Optional. When this value is set to ''true'' the response will include all assets, including those that are hidden.
     #[serde(default, rename = "showHidden")]
-    pub show_hidden: Option<bool>,
+    pub show_hidden: ::core::option::Option<bool>,
     /// Export to Cloud Storage files downloadable using signed URIs.
     #[serde(default, rename = "signedUriDestination")]
-    pub signed_uri_destination: Option<SignedUriDestination>,
+    pub signed_uri_destination: ::core::option::Option<::std::boxed::Box<SignedUriDestination>>,
     /// Output only. Resource update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Execution status of assets export job.
@@ -272,22 +279,22 @@ pub struct AssetsExportJob {
 pub struct AssetsExportJobExecution {
     /// Output only. Completion time of the export.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Globally unique identifier of the execution.
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     /// Output only. Expiration time for the export and artifacts.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Output only. Number of assets requested for export after resolving the requested filters.
     #[serde(default, rename = "requestedAssetCount")]
-    pub requested_asset_count: Option<i32>,
+    pub requested_asset_count: ::core::option::Option<i32>,
     /// Output only. Result of the export execution.
     #[serde(default)]
-    pub result: Option<AssetsExportJobExecutionResult>,
+    pub result: ::core::option::Option<::std::boxed::Box<AssetsExportJobExecutionResult>>,
     /// Output only. Execution timestamp.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Contains the result of the assets export.
@@ -295,13 +302,13 @@ pub struct AssetsExportJobExecution {
 pub struct AssetsExportJobExecutionResult {
     /// Output only. Error encountered during export.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. List of output files.
     #[serde(default, rename = "outputFiles")]
-    pub output_files: Option<OutputFileList>,
+    pub output_files: ::core::option::Option<::std::boxed::Box<OutputFileList>>,
     /// Output only. Signed URLs for downloading export artifacts.
     #[serde(default, rename = "signedUris")]
-    pub signed_uris: Option<SignedUris>,
+    pub signed_uris: ::core::option::Option<::std::boxed::Box<SignedUris>>,
 }
 
 /// Conditions for selecting assets to export.
@@ -309,7 +316,7 @@ pub struct AssetsExportJobExecutionResult {
 pub struct AssetsExportJobExportCondition {
     /// Optional. Assets filter, supports the same syntax as asset listing.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
 }
 
 /// Configuration for performance data exports.
@@ -317,7 +324,7 @@ pub struct AssetsExportJobExportCondition {
 pub struct AssetsExportJobPerformanceData {
     /// Optional. When this value is set to a positive integer, performance data will be returned for the most recent days for which data is available. When this value is unset (or set to zero), all available data is returned. The maximum value is 420; values above 420 will be coerced to 420. If unset (0 value) a default value of 40 will be used.
     #[serde(default, rename = "maxDays")]
-    pub max_days: Option<i32>,
+    pub max_days: ::core::option::Option<i32>,
 }
 
 /// AWS EC2 specific details.
@@ -325,13 +332,13 @@ pub struct AssetsExportJobPerformanceData {
 pub struct AwsEc2PlatformDetails {
     /// Optional. Whether the machine is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default)]
-    pub hyperthreading: Option<String>,
+    pub hyperthreading: ::core::option::Option<String>,
     /// The location of the machine in the AWS format.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// AWS platform''s machine type label.
     #[serde(default, rename = "machineTypeLabel")]
-    pub machine_type_label: Option<String>,
+    pub machine_type_label: ::core::option::Option<String>,
 }
 
 /// Azure VM specific details.
@@ -339,16 +346,16 @@ pub struct AwsEc2PlatformDetails {
 pub struct AzureVmPlatformDetails {
     /// Whether the machine is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default)]
-    pub hyperthreading: Option<String>,
+    pub hyperthreading: ::core::option::Option<String>,
     /// The location of the machine in the Azure format.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Azure platform''s machine type label.
     #[serde(default, rename = "machineTypeLabel")]
-    pub machine_type_label: Option<String>,
+    pub machine_type_label: ::core::option::Option<String>,
     /// Azure platform''s provisioning state.
     #[serde(default, rename = "provisioningState")]
-    pub provisioning_state: Option<String>,
+    pub provisioning_state: ::core::option::Option<String>,
 }
 
 /// A request to delete a list of asset.
@@ -356,13 +363,13 @@ pub struct AzureVmPlatformDetails {
 pub struct BatchDeleteAssetsRequest {
     /// Optional. When this value is set to true the request is a no-op for non-existing assets. See https://google.aip.dev/135#delete-if-existing for additional details. Default value is false.
     #[serde(default, rename = "allowMissing")]
-    pub allow_missing: Option<bool>,
+    pub allow_missing: ::core::option::Option<bool>,
     /// Optional. Optional cascading rules for deleting related assets.
     #[serde(default, rename = "cascadingRules")]
-    pub cascading_rules: Option<Vec<CascadingRule>>,
+    pub cascading_rules: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CascadingRule>>>,
     /// Required. The IDs of the assets to delete. A maximum of 1000 assets can be deleted in a batch. Format: projects/{project}/locations/{location}/assets/{name}.
     #[serde(default)]
-    pub names: Option<Vec<String>>,
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A request to update a list of assets.
@@ -370,7 +377,7 @@ pub struct BatchDeleteAssetsRequest {
 pub struct BatchUpdateAssetsRequest {
     /// Required. The request message specifying the resources to update. A maximum of 1000 assets can be modified in a batch.
     #[serde(default)]
-    pub requests: Option<Vec<UpdateAssetRequest>>,
+    pub requests: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UpdateAssetRequest>>>,
 }
 
 /// Response for updating a list of assets.
@@ -378,7 +385,7 @@ pub struct BatchUpdateAssetsRequest {
 pub struct BatchUpdateAssetsResponse {
     /// Update asset content. The content only includes values after field mask being applied.
     #[serde(default)]
-    pub assets: Option<Vec<Asset>>,
+    pub assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Asset>>>,
 }
 
 /// Details about the BIOS.
@@ -386,22 +393,22 @@ pub struct BatchUpdateAssetsResponse {
 pub struct BiosDetails {
     /// BIOS name. This fields is deprecated. Please use the id field instead.
     #[serde(default, rename = "biosName")]
-    pub bios_name: Option<String>,
+    pub bios_name: ::core::option::Option<String>,
     /// BIOS ID.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// BIOS manufacturer.
     #[serde(default)]
-    pub manufacturer: Option<String>,
+    pub manufacturer: ::core::option::Option<String>,
     /// BIOS release date.
     #[serde(default, rename = "releaseDate")]
-    pub release_date: Option<Date>,
+    pub release_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// SMBIOS UUID.
     #[serde(default, rename = "smbiosUuid")]
-    pub smbios_uuid: Option<String>,
+    pub smbios_uuid: ::core::option::Option<String>,
     /// BIOS version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Compute engine migration target.
@@ -409,7 +416,7 @@ pub struct BiosDetails {
 pub struct ComputeEngineMigrationTarget {
     /// Description of the suggested shape for the migration target.
     #[serde(default)]
-    pub shape: Option<ComputeEngineShapeDescriptor>,
+    pub shape: ::core::option::Option<::std::boxed::Box<ComputeEngineShapeDescriptor>>,
 }
 
 /// The user preferences relating to Compute Engine target platform.
@@ -417,13 +424,13 @@ pub struct ComputeEngineMigrationTarget {
 pub struct ComputeEnginePreferences {
     /// License type to consider when calculating costs for virtual machine insights and recommendations. If unspecified, costs are calculated based on the default licensing plan. // TODO: enum values: ["LICENSE_TYPE_UNSPECIFIED", "LICENSE_TYPE_DEFAULT", "LICENSE_TYPE_BRING_YOUR_OWN_LICENSE"]
     #[serde(default, rename = "licenseType")]
-    pub license_type: Option<String>,
+    pub license_type: ::core::option::Option<String>,
     /// Preferences concerning the machine types to consider on Compute Engine.
     #[serde(default, rename = "machinePreferences")]
-    pub machine_preferences: Option<MachinePreferences>,
+    pub machine_preferences: ::core::option::Option<::std::boxed::Box<MachinePreferences>>,
     /// Persistent disk type to use. If unspecified (default), all types are considered, based on available usage data. // TODO: enum values: ["PERSISTENT_DISK_TYPE_UNSPECIFIED", "PERSISTENT_DISK_TYPE_STANDARD", "PERSISTENT_DISK_TYPE_BALANCED", "PERSISTENT_DISK_TYPE_SSD"]
     #[serde(default, rename = "persistentDiskType")]
-    pub persistent_disk_type: Option<String>,
+    pub persistent_disk_type: ::core::option::Option<String>,
 }
 
 /// Compute Engine target shape descriptor.
@@ -431,22 +438,23 @@ pub struct ComputeEnginePreferences {
 pub struct ComputeEngineShapeDescriptor {
     /// Output only. Number of logical cores.
     #[serde(default, rename = "logicalCoreCount")]
-    pub logical_core_count: Option<i32>,
+    pub logical_core_count: ::core::option::Option<i32>,
     /// Output only. Compute Engine machine type.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Memory in mebibytes.
     #[serde(default, rename = "memoryMb")]
-    pub memory_mb: Option<i32>,
+    pub memory_mb: ::core::option::Option<i32>,
     /// Number of physical cores.
     #[serde(default, rename = "physicalCoreCount")]
-    pub physical_core_count: Option<i32>,
+    pub physical_core_count: ::core::option::Option<i32>,
     /// Output only. Compute Engine machine series.
     #[serde(default)]
-    pub series: Option<String>,
+    pub series: ::core::option::Option<String>,
     /// Output only. Compute Engine storage. Never empty.
     #[serde(default)]
-    pub storage: Option<Vec<ComputeStorageDescriptor>>,
+    pub storage:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ComputeStorageDescriptor>>>,
 }
 
 /// Compute Engine storage option descriptor.
@@ -454,10 +462,10 @@ pub struct ComputeEngineShapeDescriptor {
 pub struct ComputeStorageDescriptor {
     /// Output only. Disk size in GiB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<i32>,
+    pub size_gb: ::core::option::Option<i32>,
     /// Output only. Disk type backing the storage. // TODO: enum values: ["PERSISTENT_DISK_TYPE_UNSPECIFIED", "PERSISTENT_DISK_TYPE_STANDARD", "PERSISTENT_DISK_TYPE_BALANCED", "PERSISTENT_DISK_TYPE_SSD"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// CPU usage sample.
@@ -465,7 +473,7 @@ pub struct ComputeStorageDescriptor {
 pub struct CpuUsageSample {
     /// Percentage of total CPU capacity utilized. Must be in the interval [0, 100]. On most systems can be calculated using 100 - idle percentage.
     #[serde(default, rename = "utilizedPercentage")]
-    pub utilized_percentage: Option<f32>,
+    pub utilized_percentage: ::core::option::Option<f32>,
 }
 
 /// Contains a single output file of type CSV.
@@ -473,13 +481,13 @@ pub struct CpuUsageSample {
 pub struct CsvOutputFile {
     /// Output only. Number of columns in the file.
     #[serde(default, rename = "columnsCount")]
-    pub columns_count: Option<i32>,
+    pub columns_count: ::core::option::Option<i32>,
     /// Output only. Number of rows in the file.
     #[serde(default, rename = "rowCount")]
-    pub row_count: Option<i32>,
+    pub row_count: ::core::option::Option<i32>,
     /// Output only. Signed URI destination.
     #[serde(default, rename = "signedUri")]
-    pub signed_uri: Option<SignedUri>,
+    pub signed_uri: ::core::option::Option<::std::boxed::Box<SignedUri>>,
 }
 
 /// Usage data aggregation for a single day.
@@ -487,19 +495,19 @@ pub struct CsvOutputFile {
 pub struct DailyResourceUsageAggregation {
     /// CPU usage.
     #[serde(default)]
-    pub cpu: Option<DailyResourceUsageAggregationCPU>,
+    pub cpu: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationCPU>>,
     /// Aggregation date. Day boundaries are at midnight UTC.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Disk usage.
     #[serde(default)]
-    pub disk: Option<DailyResourceUsageAggregationDisk>,
+    pub disk: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationDisk>>,
     /// Memory usage.
     #[serde(default)]
-    pub memory: Option<DailyResourceUsageAggregationMemory>,
+    pub memory: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationMemory>>,
     /// Network usage.
     #[serde(default)]
-    pub network: Option<DailyResourceUsageAggregationNetwork>,
+    pub network: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationNetwork>>,
 }
 
 /// Statistical aggregation of CPU usage.
@@ -507,7 +515,8 @@ pub struct DailyResourceUsageAggregation {
 pub struct DailyResourceUsageAggregationCPU {
     /// CPU utilization percentage.
     #[serde(default, rename = "utilizationPercentage")]
-    pub utilization_percentage: Option<DailyResourceUsageAggregationStats>,
+    pub utilization_percentage:
+        ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationStats>>,
 }
 
 /// Statistical aggregation of disk usage.
@@ -515,13 +524,13 @@ pub struct DailyResourceUsageAggregationCPU {
 pub struct DailyResourceUsageAggregationDisk {
     /// Optional. Disk I/O operations per second.
     #[serde(default)]
-    pub iops: Option<DailyResourceUsageAggregationStats>,
+    pub iops: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationStats>>,
     /// Optional. Disk read I/O operations per second.
     #[serde(default, rename = "readIops")]
-    pub read_iops: Option<DailyResourceUsageAggregationStats>,
+    pub read_iops: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationStats>>,
     /// Optional. Disk write I/O operations per second.
     #[serde(default, rename = "writeIops")]
-    pub write_iops: Option<DailyResourceUsageAggregationStats>,
+    pub write_iops: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationStats>>,
 }
 
 /// Statistical aggregation of memory usage.
@@ -529,7 +538,8 @@ pub struct DailyResourceUsageAggregationDisk {
 pub struct DailyResourceUsageAggregationMemory {
     /// Memory utilization percentage.
     #[serde(default, rename = "utilizationPercentage")]
-    pub utilization_percentage: Option<DailyResourceUsageAggregationStats>,
+    pub utilization_percentage:
+        ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationStats>>,
 }
 
 /// Statistical aggregation of network usage.
@@ -537,10 +547,10 @@ pub struct DailyResourceUsageAggregationMemory {
 pub struct DailyResourceUsageAggregationNetwork {
     /// Network egress in B/s.
     #[serde(default, rename = "egressBps")]
-    pub egress_bps: Option<DailyResourceUsageAggregationStats>,
+    pub egress_bps: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationStats>>,
     /// Network ingress in B/s.
     #[serde(default, rename = "ingressBps")]
-    pub ingress_bps: Option<DailyResourceUsageAggregationStats>,
+    pub ingress_bps: ::core::option::Option<::std::boxed::Box<DailyResourceUsageAggregationStats>>,
 }
 
 /// Statistical aggregation of samples for a single resource usage.
@@ -548,16 +558,16 @@ pub struct DailyResourceUsageAggregationNetwork {
 pub struct DailyResourceUsageAggregationStats {
     /// Average usage value.
     #[serde(default)]
-    pub average: Option<f32>,
+    pub average: ::core::option::Option<f32>,
     /// Median usage value.
     #[serde(default)]
-    pub median: Option<f32>,
+    pub median: ::core::option::Option<f32>,
     /// 95th percentile usage value.
     #[serde(default, rename = "ninteyFifthPercentile")]
-    pub nintey_fifth_percentile: Option<f32>,
+    pub nintey_fifth_percentile: ::core::option::Option<f32>,
     /// Peak usage value.
     #[serde(default)]
-    pub peak: Option<f32>,
+    pub peak: ::core::option::Option<f32>,
 }
 
 /// The details of a database deployment asset.
@@ -565,34 +575,35 @@ pub struct DailyResourceUsageAggregationStats {
 pub struct DatabaseDeploymentDetails {
     /// Output only. Aggregated stats for the database deployment.
     #[serde(default, rename = "aggregatedStats")]
-    pub aggregated_stats: Option<DatabaseDeploymentDetailsAggregatedStats>,
+    pub aggregated_stats:
+        ::core::option::Option<::std::boxed::Box<DatabaseDeploymentDetailsAggregatedStats>>,
     /// Optional. Details of an AWS RDS instance.
     #[serde(default, rename = "awsRds")]
-    pub aws_rds: Option<serde_json::Value>,
+    pub aws_rds: ::core::option::Option<serde_json::Value>,
     /// Optional. The database deployment edition.
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// Optional. The database deployment generated ID.
     #[serde(default, rename = "generatedId")]
-    pub generated_id: Option<String>,
+    pub generated_id: ::core::option::Option<String>,
     /// Optional. A manual unique ID set by the user.
     #[serde(default, rename = "manualUniqueId")]
-    pub manual_unique_id: Option<String>,
+    pub manual_unique_id: ::core::option::Option<String>,
     /// Optional. Details of a MYSQL database deployment.
     #[serde(default)]
-    pub mysql: Option<MysqlDatabaseDeployment>,
+    pub mysql: ::core::option::Option<::std::boxed::Box<MysqlDatabaseDeployment>>,
     /// Optional. Details of a PostgreSQL database deployment.
     #[serde(default)]
-    pub postgresql: Option<PostgreSqlDatabaseDeployment>,
+    pub postgresql: ::core::option::Option<::std::boxed::Box<PostgreSqlDatabaseDeployment>>,
     /// Optional. Details of a Microsoft SQL Server database deployment.
     #[serde(default, rename = "sqlServer")]
-    pub sql_server: Option<SqlServerDatabaseDeployment>,
+    pub sql_server: ::core::option::Option<::std::boxed::Box<SqlServerDatabaseDeployment>>,
     /// Optional. Details of the database deployment topology.
     #[serde(default)]
-    pub topology: Option<DatabaseDeploymentTopology>,
+    pub topology: ::core::option::Option<::std::boxed::Box<DatabaseDeploymentTopology>>,
     /// Optional. The database deployment version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Aggregated stats for the database deployment.
@@ -600,7 +611,7 @@ pub struct DatabaseDeploymentDetails {
 pub struct DatabaseDeploymentDetailsAggregatedStats {
     /// Output only. The number of databases in the deployment.
     #[serde(default, rename = "databaseCount")]
-    pub database_count: Option<i32>,
+    pub database_count: ::core::option::Option<i32>,
 }
 
 /// Details of database deployment''s topology.
@@ -608,31 +619,31 @@ pub struct DatabaseDeploymentDetailsAggregatedStats {
 pub struct DatabaseDeploymentTopology {
     /// Optional. Number of total logical cores.
     #[serde(default, rename = "coreCount")]
-    pub core_count: Option<i32>,
+    pub core_count: ::core::option::Option<i32>,
     /// Optional. Number of total logical cores limited by db deployment.
     #[serde(default, rename = "coreLimit")]
-    pub core_limit: Option<i32>,
+    pub core_limit: ::core::option::Option<i32>,
     /// Optional. Disk allocated in bytes.
     #[serde(default, rename = "diskAllocatedBytes")]
-    pub disk_allocated_bytes: Option<String>,
+    pub disk_allocated_bytes: ::core::option::Option<String>,
     /// Optional. Disk used in bytes.
     #[serde(default, rename = "diskUsedBytes")]
-    pub disk_used_bytes: Option<String>,
+    pub disk_used_bytes: ::core::option::Option<String>,
     /// Optional. List of database instances.
     #[serde(default)]
-    pub instances: Option<Vec<DatabaseInstance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseInstance>>>,
     /// Optional. Total memory in bytes.
     #[serde(default, rename = "memoryBytes")]
-    pub memory_bytes: Option<String>,
+    pub memory_bytes: ::core::option::Option<String>,
     /// Optional. Total memory in bytes limited by db deployment.
     #[serde(default, rename = "memoryLimitBytes")]
-    pub memory_limit_bytes: Option<String>,
+    pub memory_limit_bytes: ::core::option::Option<String>,
     /// Optional. Number of total physical cores.
     #[serde(default, rename = "physicalCoreCount")]
-    pub physical_core_count: Option<i32>,
+    pub physical_core_count: ::core::option::Option<i32>,
     /// Optional. Number of total physical cores limited by db deployment.
     #[serde(default, rename = "physicalCoreLimit")]
-    pub physical_core_limit: Option<i32>,
+    pub physical_core_limit: ::core::option::Option<i32>,
 }
 
 /// Details of a logical database.
@@ -640,16 +651,17 @@ pub struct DatabaseDeploymentTopology {
 pub struct DatabaseDetails {
     /// Optional. The allocated storage for the database in bytes.
     #[serde(default, rename = "allocatedStorageBytes")]
-    pub allocated_storage_bytes: Option<String>,
+    pub allocated_storage_bytes: ::core::option::Option<String>,
     /// Required. The name of the database.
     #[serde(default, rename = "databaseName")]
-    pub database_name: Option<String>,
+    pub database_name: ::core::option::Option<String>,
     /// Required. The parent database deployment that contains the logical database.
     #[serde(default, rename = "parentDatabaseDeployment")]
-    pub parent_database_deployment: Option<DatabaseDetailsParentDatabaseDeployment>,
+    pub parent_database_deployment:
+        ::core::option::Option<::std::boxed::Box<DatabaseDetailsParentDatabaseDeployment>>,
     /// Optional. The database schemas.
     #[serde(default)]
-    pub schemas: Option<Vec<DatabaseSchema>>,
+    pub schemas: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseSchema>>>,
 }
 
 /// The identifiers of the parent database deployment.
@@ -657,10 +669,10 @@ pub struct DatabaseDetails {
 pub struct DatabaseDetailsParentDatabaseDeployment {
     /// Optional. The parent database deployment generated ID.
     #[serde(default, rename = "generatedId")]
-    pub generated_id: Option<String>,
+    pub generated_id: ::core::option::Option<String>,
     /// Optional. The parent database deployment optional manual unique ID set by the user.
     #[serde(default, rename = "manualUniqueId")]
-    pub manual_unique_id: Option<String>,
+    pub manual_unique_id: ::core::option::Option<String>,
 }
 
 /// Details of a database instance.
@@ -668,13 +680,13 @@ pub struct DatabaseDetailsParentDatabaseDeployment {
 pub struct DatabaseInstance {
     /// Optional. The instance''s name.
     #[serde(default, rename = "instanceName")]
-    pub instance_name: Option<String>,
+    pub instance_name: ::core::option::Option<String>,
     /// Optional. Networking details.
     #[serde(default)]
-    pub network: Option<DatabaseInstanceNetwork>,
+    pub network: ::core::option::Option<::std::boxed::Box<DatabaseInstanceNetwork>>,
     /// Optional. The instance role in the database engine. // TODO: enum values: ["ROLE_UNSPECIFIED", "PRIMARY", "SECONDARY", "ARBITER"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Network details of a database instance.
@@ -682,13 +694,13 @@ pub struct DatabaseInstance {
 pub struct DatabaseInstanceNetwork {
     /// Optional. The instance''s host names.
     #[serde(default, rename = "hostNames")]
-    pub host_names: Option<Vec<String>>,
+    pub host_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The instance''s IP addresses.
     #[serde(default, rename = "ipAddresses")]
-    pub ip_addresses: Option<Vec<String>>,
+    pub ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The instance''s primary MAC address.
     #[serde(default, rename = "primaryMacAddress")]
-    pub primary_mac_address: Option<String>,
+    pub primary_mac_address: ::core::option::Option<String>,
 }
 
 /// Details of a group of database objects.
@@ -696,10 +708,10 @@ pub struct DatabaseInstanceNetwork {
 pub struct DatabaseObjects {
     /// Optional. The category of the objects. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "TABLE", "INDEX", "CONSTRAINTS", "VIEWS", "SOURCE_CODE", "OTHER"]
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// Optional. The number of objects.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
 }
 
 /// Details of a database schema.
@@ -707,22 +719,22 @@ pub struct DatabaseObjects {
 pub struct DatabaseSchema {
     /// Optional. Details of a Mysql schema.
     #[serde(default)]
-    pub mysql: Option<MySqlSchemaDetails>,
+    pub mysql: ::core::option::Option<::std::boxed::Box<MySqlSchemaDetails>>,
     /// Optional. List of details of objects by category.
     #[serde(default)]
-    pub objects: Option<Vec<DatabaseObjects>>,
+    pub objects: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseObjects>>>,
     /// Optional. Details of a PostgreSql schema.
     #[serde(default)]
-    pub postgresql: Option<PostgreSqlSchemaDetails>,
+    pub postgresql: ::core::option::Option<::std::boxed::Box<PostgreSqlSchemaDetails>>,
     /// Required. The name of the schema.
     #[serde(default, rename = "schemaName")]
-    pub schema_name: Option<String>,
+    pub schema_name: ::core::option::Option<String>,
     /// Optional. Details of a SqlServer schema.
     #[serde(default, rename = "sqlServer")]
-    pub sql_server: Option<SqlServerSchemaDetails>,
+    pub sql_server: ::core::option::Option<::std::boxed::Box<SqlServerSchemaDetails>>,
     /// Optional. The total size of tables in bytes.
     #[serde(default, rename = "tablesSizeBytes")]
-    pub tables_size_bytes: Option<String>,
+    pub tables_size_bytes: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -730,13 +742,13 @@ pub struct DatabaseSchema {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Represents an installed Migration Center Discovery Client instance.
@@ -744,49 +756,49 @@ pub struct Date {
 pub struct DiscoveryClient {
     /// Output only. Time when the discovery client was first created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Free text description. Maximum length is 1000 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Free text display name. Maximum length is 63 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Errors affecting client functionality.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Optional. Client expiration time in UTC. If specified, the backend will not accept new frames after this time.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Output only. Last heartbeat time. Healthy clients are expected to send heartbeats regularly (normally every few minutes).
     #[serde(default, rename = "heartbeatTime")]
-    pub heartbeat_time: Option<String>,
+    pub heartbeat_time: ::core::option::Option<String>,
     /// Optional. Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Identifier. Full name of this discovery client.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Service account used by the discovery client for various operation.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Output only. This field is intended for internal use.
     #[serde(default, rename = "signalsEndpoint")]
-    pub signals_endpoint: Option<String>,
+    pub signals_endpoint: ::core::option::Option<String>,
     /// Required. Immutable. Full name of the source object associated with this discovery client.
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Output only. Current state of the discovery client. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "OFFLINE", "DEGRADED", "EXPIRED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. Input only. Client time-to-live. If specified, the backend will not accept new frames after this time. This field is input only. The derived expiration time is provided as output through the expire_time field.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Output only. Time when the discovery client was last updated. This value is not updated by heartbeats, to view the last heartbeat time please refer to the heartbeat_time field.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. Client version, as reported in recent heartbeat.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Single disk entry.
@@ -794,28 +806,28 @@ pub struct DiscoveryClient {
 pub struct DiskEntry {
     /// Disk capacity.
     #[serde(default, rename = "capacityBytes")]
-    pub capacity_bytes: Option<String>,
+    pub capacity_bytes: ::core::option::Option<String>,
     /// Disk label.
     #[serde(default, rename = "diskLabel")]
-    pub disk_label: Option<String>,
+    pub disk_label: ::core::option::Option<String>,
     /// Disk label type (e.g. BIOS/GPT)
     #[serde(default, rename = "diskLabelType")]
-    pub disk_label_type: Option<String>,
+    pub disk_label_type: ::core::option::Option<String>,
     /// Disk free space.
     #[serde(default, rename = "freeBytes")]
-    pub free_bytes: Option<String>,
+    pub free_bytes: ::core::option::Option<String>,
     /// Disk hardware address (e.g. 0:1 for SCSI).
     #[serde(default, rename = "hwAddress")]
-    pub hw_address: Option<String>,
+    pub hw_address: ::core::option::Option<String>,
     /// Disks interface type. // TODO: enum values: ["INTERFACE_TYPE_UNSPECIFIED", "IDE", "SATA", "SAS", "SCSI", "NVME", "FC", "ISCSI"]
     #[serde(default, rename = "interfaceType")]
-    pub interface_type: Option<String>,
+    pub interface_type: ::core::option::Option<String>,
     /// Partition layout.
     #[serde(default)]
-    pub partitions: Option<DiskPartitionList>,
+    pub partitions: ::core::option::Option<::std::boxed::Box<DiskPartitionList>>,
     /// VMware disk details.
     #[serde(default)]
-    pub vmware: Option<VmwareDiskConfig>,
+    pub vmware: ::core::option::Option<::std::boxed::Box<VmwareDiskConfig>>,
 }
 
 /// VM disks.
@@ -823,7 +835,7 @@ pub struct DiskEntry {
 pub struct DiskEntryList {
     /// Disk entries.
     #[serde(default)]
-    pub entries: Option<Vec<DiskEntry>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DiskEntry>>>,
 }
 
 /// Disk Partition details.
@@ -831,25 +843,25 @@ pub struct DiskEntryList {
 pub struct DiskPartition {
     /// Partition capacity.
     #[serde(default, rename = "capacityBytes")]
-    pub capacity_bytes: Option<String>,
+    pub capacity_bytes: ::core::option::Option<String>,
     /// Partition file system.
     #[serde(default, rename = "fileSystem")]
-    pub file_system: Option<String>,
+    pub file_system: ::core::option::Option<String>,
     /// Partition free space.
     #[serde(default, rename = "freeBytes")]
-    pub free_bytes: Option<String>,
+    pub free_bytes: ::core::option::Option<String>,
     /// Mount point (Linux/Windows) or drive letter (Windows).
     #[serde(default, rename = "mountPoint")]
-    pub mount_point: Option<String>,
+    pub mount_point: ::core::option::Option<String>,
     /// Sub-partitions.
     #[serde(default, rename = "subPartitions")]
-    pub sub_partitions: Option<DiskPartitionList>,
+    pub sub_partitions: ::core::option::Option<::std::boxed::Box<DiskPartitionList>>,
     /// Partition type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Partition UUID.
     #[serde(default)]
-    pub uuid: Option<String>,
+    pub uuid: ::core::option::Option<String>,
 }
 
 /// Disk partition details.
@@ -857,13 +869,13 @@ pub struct DiskPartition {
 pub struct DiskPartitionDetails {
     /// Output only. Total free space of all partitions.
     #[serde(default, rename = "freeSpaceBytes")]
-    pub free_space_bytes: Option<String>,
+    pub free_space_bytes: ::core::option::Option<String>,
     /// Optional. List of partitions.
     #[serde(default)]
-    pub partitions: Option<DiskPartitionList>,
+    pub partitions: ::core::option::Option<::std::boxed::Box<DiskPartitionList>>,
     /// Output only. Total capacity of all partitions.
     #[serde(default, rename = "totalCapacityBytes")]
-    pub total_capacity_bytes: Option<String>,
+    pub total_capacity_bytes: ::core::option::Option<String>,
 }
 
 /// Disk partition list.
@@ -871,7 +883,7 @@ pub struct DiskPartitionDetails {
 pub struct DiskPartitionList {
     /// Partition entries.
     #[serde(default)]
-    pub entries: Option<Vec<DiskPartition>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DiskPartition>>>,
 }
 
 /// Disk usage sample. Values are across all disks.
@@ -879,13 +891,13 @@ pub struct DiskPartitionList {
 pub struct DiskUsageSample {
     /// Optional. Average IOPS sampled over a short window. Must be non-negative. If read or write are set, the sum of read and write will override the value of the average_iops.
     #[serde(default, rename = "averageIops")]
-    pub average_iops: Option<f32>,
+    pub average_iops: ::core::option::Option<f32>,
     /// Optional. Average read IOPS sampled over a short window. Must be non-negative. If both read and write are zero they are ignored.
     #[serde(default, rename = "averageReadIops")]
-    pub average_read_iops: Option<f32>,
+    pub average_read_iops: ::core::option::Option<f32>,
     /// Optional. Average write IOPS sampled over a short window. Must be non-negative. If both read and write are zero they are ignored.
     #[serde(default, rename = "averageWriteIops")]
-    pub average_write_iops: Option<f32>,
+    pub average_write_iops: ::core::option::Option<f32>,
 }
 
 /// Message representing a frame which failed to be processed due to an error.
@@ -893,16 +905,16 @@ pub struct DiskUsageSample {
 pub struct ErrorFrame {
     /// Output only. Frame ingestion time.
     #[serde(default, rename = "ingestionTime")]
-    pub ingestion_time: Option<String>,
+    pub ingestion_time: ::core::option::Option<String>,
     /// Output only. The identifier of the ErrorFrame.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The frame that was originally reported.
     #[serde(default, rename = "originalFrame")]
-    pub original_frame: Option<AssetFrame>,
+    pub original_frame: ::core::option::Option<::std::boxed::Box<AssetFrame>>,
     /// Output only. All the violations that were detected for the frame.
     #[serde(default)]
-    pub violations: Option<Vec<FrameViolationEntry>>,
+    pub violations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FrameViolationEntry>>>,
 }
 
 /// A resource that reports result of the import job execution.
@@ -910,13 +922,13 @@ pub struct ErrorFrame {
 pub struct ExecutionReport {
     /// Validation errors encountered during the execution of the import job.
     #[serde(default, rename = "executionErrors")]
-    pub execution_errors: Option<ValidationReport>,
+    pub execution_errors: ::core::option::Option<::std::boxed::Box<ValidationReport>>,
     /// Total number of asset frames reported for the import job.
     #[serde(default, rename = "framesReported")]
-    pub frames_reported: Option<i32>,
+    pub frames_reported: ::core::option::Option<i32>,
     /// Output only. Total number of rows in the import job.
     #[serde(default, rename = "totalRowsCount")]
-    pub total_rows_count: Option<i32>,
+    pub total_rows_count: ::core::option::Option<i32>,
 }
 
 /// A resource that aggregates the validation errors found in an import job file.
@@ -924,16 +936,16 @@ pub struct ExecutionReport {
 pub struct FileValidationReport {
     /// List of file level errors.
     #[serde(default, rename = "fileErrors")]
-    pub file_errors: Option<Vec<ImportError>>,
+    pub file_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportError>>>,
     /// The name of the file.
     #[serde(default, rename = "fileName")]
-    pub file_name: Option<String>,
+    pub file_name: ::core::option::Option<String>,
     /// Flag indicating that processing was aborted due to maximum number of errors.
     #[serde(default, rename = "partialReport")]
-    pub partial_report: Option<bool>,
+    pub partial_report: ::core::option::Option<bool>,
     /// Partial list of rows that encountered validation error.
     #[serde(default, rename = "rowErrors")]
-    pub row_errors: Option<Vec<ImportRowError>>,
+    pub row_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportRowError>>>,
 }
 
 /// Describes the fit level of an asset for migration to a specific target.
@@ -941,7 +953,7 @@ pub struct FileValidationReport {
 pub struct FitDescriptor {
     /// Output only. Fit level. // TODO: enum values: ["FIT_LEVEL_UNSPECIFIED", "FIT", "NO_FIT", "REQUIRES_EFFORT"]
     #[serde(default, rename = "fitLevel")]
-    pub fit_level: Option<String>,
+    pub fit_level: ::core::option::Option<String>,
 }
 
 /// A resource that contains a single violation of a reported AssetFrame resource.
@@ -949,10 +961,10 @@ pub struct FitDescriptor {
 pub struct FrameViolationEntry {
     /// The field of the original frame where the violation occurred.
     #[serde(default)]
-    pub field: Option<String>,
+    pub field: ::core::option::Option<String>,
     /// A message describing the violation.
     #[serde(default)]
-    pub violation: Option<String>,
+    pub violation: ::core::option::Option<String>,
 }
 
 /// Collection of frame data.
@@ -960,7 +972,7 @@ pub struct FrameViolationEntry {
 pub struct Frames {
     /// A repeated field of asset data.
     #[serde(default, rename = "framesData")]
-    pub frames_data: Option<Vec<AssetFrame>>,
+    pub frames_data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssetFrame>>>,
 }
 
 /// Single fstab entry.
@@ -968,22 +980,22 @@ pub struct Frames {
 pub struct FstabEntry {
     /// The mount point for the filesystem.
     #[serde(default)]
-    pub file: Option<String>,
+    pub file: ::core::option::Option<String>,
     /// Used by dump to determine which filesystems need to be dumped.
     #[serde(default)]
-    pub freq: Option<i32>,
+    pub freq: ::core::option::Option<i32>,
     /// Mount options associated with the filesystem.
     #[serde(default)]
-    pub mntops: Option<String>,
+    pub mntops: ::core::option::Option<String>,
     /// Used by the fsck(8) program to determine the order in which filesystem checks are done at reboot time.
     #[serde(default)]
-    pub passno: Option<i32>,
+    pub passno: ::core::option::Option<i32>,
     /// The block special device or remote filesystem to be mounted.
     #[serde(default)]
-    pub spec: Option<String>,
+    pub spec: ::core::option::Option<String>,
     /// The type of the filesystem.
     #[serde(default)]
-    pub vfstype: Option<String>,
+    pub vfstype: ::core::option::Option<String>,
 }
 
 /// Fstab content.
@@ -991,7 +1003,7 @@ pub struct FstabEntry {
 pub struct FstabEntryList {
     /// Fstab entries.
     #[serde(default)]
-    pub entries: Option<Vec<FstabEntry>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FstabEntry>>>,
 }
 
 /// A generic insight about an asset.
@@ -999,13 +1011,13 @@ pub struct FstabEntryList {
 pub struct GenericInsight {
     /// Output only. Additional information about the insight, each entry can be a logical entry and must make sense if it is displayed with line breaks between each entry. Text can contain md style links.
     #[serde(default, rename = "additionalInformation")]
-    pub additional_information: Option<Vec<String>>,
+    pub additional_information: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. In case message_code is not yet known by the client default_message will be the message to be used instead.
     #[serde(default, rename = "defaultMessage")]
-    pub default_message: Option<String>,
+    pub default_message: ::core::option::Option<String>,
     /// Output only. Represents a globally unique message id for this insight, can be used for localization purposes, in case message_code is not yet known by the client use default_message instead.
     #[serde(default, rename = "messageId")]
-    pub message_id: Option<String>,
+    pub message_id: ::core::option::Option<String>,
 }
 
 /// Generic platform details.
@@ -1013,10 +1025,10 @@ pub struct GenericInsight {
 pub struct GenericPlatformDetails {
     /// Whether the machine is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default)]
-    pub hyperthreading: Option<String>,
+    pub hyperthreading: ::core::option::Option<String>,
     /// Free text representation of the machine location. The format of this field should not be relied on. Different VMs in the same location may have different string values for this field.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
 }
 
 /// A resource that represents an asset group. The purpose of an asset group is to bundle a set of assets that have something in common, while allowing users to add annotations to the group. An asset can belong to multiple groups.
@@ -1024,22 +1036,22 @@ pub struct GenericPlatformDetails {
 pub struct Group {
     /// Output only. The timestamp when the group was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. The description of the group.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. User-friendly display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The name of the group.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The timestamp when the group was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Guest OS config information.
@@ -1047,19 +1059,19 @@ pub struct Group {
 pub struct GuestConfigDetails {
     /// Mount list (Linux fstab).
     #[serde(default)]
-    pub fstab: Option<FstabEntryList>,
+    pub fstab: ::core::option::Option<::std::boxed::Box<FstabEntryList>>,
     /// Hosts file (/etc/hosts).
     #[serde(default)]
-    pub hosts: Option<HostsEntryList>,
+    pub hosts: ::core::option::Option<::std::boxed::Box<HostsEntryList>>,
     /// OS issue (typically /etc/issue in Linux).
     #[serde(default)]
-    pub issue: Option<String>,
+    pub issue: ::core::option::Option<String>,
     /// NFS exports.
     #[serde(default, rename = "nfsExports")]
-    pub nfs_exports: Option<NfsExportList>,
+    pub nfs_exports: ::core::option::Option<::std::boxed::Box<NfsExportList>>,
     /// Security-Enhanced Linux (SELinux) mode. // TODO: enum values: ["SE_LINUX_MODE_UNSPECIFIED", "SE_LINUX_MODE_DISABLED", "SE_LINUX_MODE_PERMISSIVE", "SE_LINUX_MODE_ENFORCING"]
     #[serde(default, rename = "selinuxMode")]
-    pub selinux_mode: Option<String>,
+    pub selinux_mode: ::core::option::Option<String>,
 }
 
 /// Guest installed application information.
@@ -1067,22 +1079,22 @@ pub struct GuestConfigDetails {
 pub struct GuestInstalledApplication {
     /// Installed application name.
     #[serde(default, rename = "applicationName")]
-    pub application_name: Option<String>,
+    pub application_name: ::core::option::Option<String>,
     /// The time when the application was installed.
     #[serde(default, rename = "installTime")]
-    pub install_time: Option<String>,
+    pub install_time: ::core::option::Option<String>,
     /// License strings associated with the installed application.
     #[serde(default)]
-    pub licenses: Option<Vec<String>>,
+    pub licenses: ::core::option::Option<::std::vec::Vec<String>>,
     /// Source path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Installed application vendor.
     #[serde(default)]
-    pub vendor: Option<String>,
+    pub vendor: ::core::option::Option<String>,
     /// Installed application version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Guest installed application list.
@@ -1090,7 +1102,8 @@ pub struct GuestInstalledApplication {
 pub struct GuestInstalledApplicationList {
     /// Application entries.
     #[serde(default)]
-    pub entries: Option<Vec<GuestInstalledApplication>>,
+    pub entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GuestInstalledApplication>>>,
 }
 
 /// Information from Guest-level collections.
@@ -1098,19 +1111,19 @@ pub struct GuestInstalledApplicationList {
 pub struct GuestOsDetails {
     /// OS and app configuration.
     #[serde(default)]
-    pub config: Option<GuestConfigDetails>,
+    pub config: ::core::option::Option<::std::boxed::Box<GuestConfigDetails>>,
     /// What family the OS belong to, if known. // TODO: enum values: ["OS_FAMILY_UNKNOWN", "OS_FAMILY_WINDOWS", "OS_FAMILY_LINUX", "OS_FAMILY_UNIX"]
     #[serde(default)]
-    pub family: Option<String>,
+    pub family: ::core::option::Option<String>,
     /// The name of the operating system.
     #[serde(default, rename = "osName")]
-    pub os_name: Option<String>,
+    pub os_name: ::core::option::Option<String>,
     /// Runtime information.
     #[serde(default)]
-    pub runtime: Option<GuestRuntimeDetails>,
+    pub runtime: ::core::option::Option<::std::boxed::Box<GuestRuntimeDetails>>,
     /// The version of the operating system.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Guest OS runtime information.
@@ -1118,28 +1131,28 @@ pub struct GuestOsDetails {
 pub struct GuestRuntimeDetails {
     /// Domain, e.g. c.stratozone-development.internal.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Installed applications information.
     #[serde(default, rename = "installedApps")]
-    pub installed_apps: Option<GuestInstalledApplicationList>,
+    pub installed_apps: ::core::option::Option<::std::boxed::Box<GuestInstalledApplicationList>>,
     /// Last time the OS was booted.
     #[serde(default, rename = "lastBootTime")]
-    pub last_boot_time: Option<String>,
+    pub last_boot_time: ::core::option::Option<String>,
     /// Machine name.
     #[serde(default, rename = "machineName")]
-    pub machine_name: Option<String>,
+    pub machine_name: ::core::option::Option<String>,
     /// Runtime network information (connections, ports).
     #[serde(default)]
-    pub network: Option<RuntimeNetworkInfo>,
+    pub network: ::core::option::Option<::std::boxed::Box<RuntimeNetworkInfo>>,
     /// Open files information.
     #[serde(default, rename = "openFileList")]
-    pub open_file_list: Option<OpenFileList>,
+    pub open_file_list: ::core::option::Option<::std::boxed::Box<OpenFileList>>,
     /// Running processes.
     #[serde(default)]
-    pub processes: Option<RunningProcessList>,
+    pub processes: ::core::option::Option<::std::boxed::Box<RunningProcessList>>,
     /// Running background services.
     #[serde(default)]
-    pub services: Option<RunningServiceList>,
+    pub services: ::core::option::Option<::std::boxed::Box<RunningServiceList>>,
 }
 
 /// Single /etc/hosts entry.
@@ -1147,10 +1160,10 @@ pub struct GuestRuntimeDetails {
 pub struct HostsEntry {
     /// List of host names / aliases.
     #[serde(default, rename = "hostNames")]
-    pub host_names: Option<Vec<String>>,
+    pub host_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// IP (raw, IPv4/6 agnostic).
     #[serde(default)]
-    pub ip: Option<String>,
+    pub ip: ::core::option::Option<String>,
 }
 
 /// Hosts content.
@@ -1158,7 +1171,7 @@ pub struct HostsEntry {
 pub struct HostsEntryList {
     /// Hosts entries.
     #[serde(default)]
-    pub entries: Option<Vec<HostsEntry>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<HostsEntry>>>,
 }
 
 /// A resource that represents a payload file in an import job.
@@ -1166,22 +1179,22 @@ pub struct HostsEntryList {
 pub struct ImportDataFile {
     /// Output only. The timestamp when the file was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-friendly display name. Maximum length is 63 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. The payload format. // TODO: enum values: ["IMPORT_JOB_FORMAT_UNSPECIFIED", "IMPORT_JOB_FORMAT_RVTOOLS_XLSX", "IMPORT_JOB_FORMAT_RVTOOLS_CSV", "IMPORT_JOB_FORMAT_EXPORTED_AWS_CSV", "IMPORT_JOB_FORMAT_EXPORTED_AZURE_CSV", "IMPORT_JOB_FORMAT_STRATOZONE_CSV", "IMPORT_JOB_FORMAT_DATABASE_ZIP"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Output only. The name of the file.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The state of the import data file. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Information about a file that is uploaded to a storage service.
     #[serde(default, rename = "uploadFileInfo")]
-    pub upload_file_info: Option<UploadFileInfo>,
+    pub upload_file_info: ::core::option::Option<::std::boxed::Box<UploadFileInfo>>,
 }
 
 /// A resource that reports the errors encountered while processing an import job.
@@ -1189,10 +1202,10 @@ pub struct ImportDataFile {
 pub struct ImportError {
     /// The error information.
     #[serde(default, rename = "errorDetails")]
-    pub error_details: Option<String>,
+    pub error_details: ::core::option::Option<String>,
     /// The severity of the error. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// A resource that represents the background job that imports asset frames.
@@ -1200,34 +1213,34 @@ pub struct ImportError {
 pub struct ImportJob {
     /// Required. Reference to a source.
     #[serde(default, rename = "assetSource")]
-    pub asset_source: Option<String>,
+    pub asset_source: ::core::option::Option<String>,
     /// Output only. The timestamp when the import job was completed.
     #[serde(default, rename = "completeTime")]
-    pub complete_time: Option<String>,
+    pub complete_time: ::core::option::Option<String>,
     /// Output only. The timestamp when the import job was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User-friendly display name. Maximum length is 256 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The report with the results of running the import job.
     #[serde(default, rename = "executionReport")]
-    pub execution_report: Option<ExecutionReport>,
+    pub execution_report: ::core::option::Option<::std::boxed::Box<ExecutionReport>>,
     /// Labels as key value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The full name of the import job.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The state of the import job. // TODO: enum values: ["IMPORT_JOB_STATE_UNSPECIFIED", "IMPORT_JOB_STATE_PENDING", "IMPORT_JOB_STATE_RUNNING", "IMPORT_JOB_STATE_COMPLETED", "IMPORT_JOB_STATE_FAILED", "IMPORT_JOB_STATE_VALIDATING", "IMPORT_JOB_STATE_FAILED_VALIDATION", "IMPORT_JOB_STATE_READY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp when the import job was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The report with the validation results of the import job.
     #[serde(default, rename = "validationReport")]
-    pub validation_report: Option<ValidationReport>,
+    pub validation_report: ::core::option::Option<::std::boxed::Box<ValidationReport>>,
 }
 
 /// A resource that reports the import job errors at row level.
@@ -1235,28 +1248,28 @@ pub struct ImportJob {
 pub struct ImportRowError {
     /// Error details for an archive file.
     #[serde(default, rename = "archiveError")]
-    pub archive_error: Option<ImportRowErrorArchiveErrorDetails>,
+    pub archive_error: ::core::option::Option<::std::boxed::Box<ImportRowErrorArchiveErrorDetails>>,
     /// Output only. The asset title.
     #[serde(default, rename = "assetTitle")]
-    pub asset_title: Option<String>,
+    pub asset_title: ::core::option::Option<String>,
     /// Error details for a CSV file.
     #[serde(default, rename = "csvError")]
-    pub csv_error: Option<ImportRowErrorCsvErrorDetails>,
+    pub csv_error: ::core::option::Option<::std::boxed::Box<ImportRowErrorCsvErrorDetails>>,
     /// The list of errors detected in the row.
     #[serde(default)]
-    pub errors: Option<Vec<ImportError>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportError>>>,
     /// The row number where the error was detected.
     #[serde(default, rename = "rowNumber")]
-    pub row_number: Option<i32>,
+    pub row_number: ::core::option::Option<i32>,
     /// The name of the VM in the row.
     #[serde(default, rename = "vmName")]
-    pub vm_name: Option<String>,
+    pub vm_name: ::core::option::Option<String>,
     /// The VM UUID.
     #[serde(default, rename = "vmUuid")]
-    pub vm_uuid: Option<String>,
+    pub vm_uuid: ::core::option::Option<String>,
     /// Error details for an XLSX file.
     #[serde(default, rename = "xlsxError")]
-    pub xlsx_error: Option<ImportRowErrorXlsxErrorDetails>,
+    pub xlsx_error: ::core::option::Option<::std::boxed::Box<ImportRowErrorXlsxErrorDetails>>,
 }
 
 /// Error details for an archive file.
@@ -1264,10 +1277,10 @@ pub struct ImportRowError {
 pub struct ImportRowErrorArchiveErrorDetails {
     /// Error details for a CSV file.
     #[serde(default, rename = "csvError")]
-    pub csv_error: Option<ImportRowErrorCsvErrorDetails>,
+    pub csv_error: ::core::option::Option<::std::boxed::Box<ImportRowErrorCsvErrorDetails>>,
     /// Output only. The file path inside the archive where the error was detected.
     #[serde(default, rename = "filePath")]
-    pub file_path: Option<String>,
+    pub file_path: ::core::option::Option<String>,
 }
 
 /// Error details for a CSV file.
@@ -1275,7 +1288,7 @@ pub struct ImportRowErrorArchiveErrorDetails {
 pub struct ImportRowErrorCsvErrorDetails {
     /// The row number where the error was detected.
     #[serde(default, rename = "rowNumber")]
-    pub row_number: Option<i32>,
+    pub row_number: ::core::option::Option<i32>,
 }
 
 /// Error details for an XLSX file.
@@ -1283,10 +1296,10 @@ pub struct ImportRowErrorCsvErrorDetails {
 pub struct ImportRowErrorXlsxErrorDetails {
     /// The row number where the error was detected.
     #[serde(default, rename = "rowNumber")]
-    pub row_number: Option<i32>,
+    pub row_number: ::core::option::Option<i32>,
     /// The name of the sheet where the error was detected.
     #[serde(default)]
-    pub sheet: Option<String>,
+    pub sheet: ::core::option::Option<String>,
 }
 
 /// An insight about an asset.
@@ -1294,10 +1307,10 @@ pub struct ImportRowErrorXlsxErrorDetails {
 pub struct Insight {
     /// Output only. A generic insight about an asset.
     #[serde(default, rename = "genericInsight")]
-    pub generic_insight: Option<GenericInsight>,
+    pub generic_insight: ::core::option::Option<::std::boxed::Box<GenericInsight>>,
     /// Output only. An insight about potential migrations for an asset.
     #[serde(default, rename = "migrationInsight")]
-    pub migration_insight: Option<MigrationInsight>,
+    pub migration_insight: ::core::option::Option<::std::boxed::Box<MigrationInsight>>,
 }
 
 /// Message containing insights list.
@@ -1305,10 +1318,10 @@ pub struct Insight {
 pub struct InsightList {
     /// Output only. Insights of the list.
     #[serde(default)]
-    pub insights: Option<Vec<Insight>>,
+    pub insights: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Insight>>>,
     /// Output only. Update timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Response message for listing assets export jobs.
@@ -1316,10 +1329,11 @@ pub struct InsightList {
 pub struct ListAssetsExportJobsResponse {
     /// Output only. The list of assets export jobs.
     #[serde(default, rename = "assetsExportJobs")]
-    pub assets_export_jobs: Option<Vec<AssetsExportJob>>,
+    pub assets_export_jobs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AssetsExportJob>>>,
     /// Output only. A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for listing assets.
@@ -1327,13 +1341,13 @@ pub struct ListAssetsExportJobsResponse {
 pub struct ListAssetsResponse {
     /// A list of assets.
     #[serde(default)]
-    pub assets: Option<Vec<Asset>>,
+    pub assets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Asset>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for listing discovery clients.
@@ -1341,13 +1355,14 @@ pub struct ListAssetsResponse {
 pub struct ListDiscoveryClientsResponse {
     /// List of discovery clients.
     #[serde(default, rename = "discoveryClients")]
-    pub discovery_clients: Option<Vec<DiscoveryClient>>,
+    pub discovery_clients:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DiscoveryClient>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A response for listing error frames.
@@ -1355,13 +1370,13 @@ pub struct ListDiscoveryClientsResponse {
 pub struct ListErrorFramesResponse {
     /// The list of error frames.
     #[serde(default, rename = "errorFrames")]
-    pub error_frames: Option<Vec<ErrorFrame>>,
+    pub error_frames: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ErrorFrame>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A response for listing groups.
@@ -1369,13 +1384,13 @@ pub struct ListErrorFramesResponse {
 pub struct ListGroupsResponse {
     /// The list of Group
     #[serde(default)]
-    pub groups: Option<Vec<Group>>,
+    pub groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Group>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response for listing payload files of an import job.
@@ -1383,13 +1398,14 @@ pub struct ListGroupsResponse {
 pub struct ListImportDataFilesResponse {
     /// The list of import data files.
     #[serde(default, rename = "importDataFiles")]
-    pub import_data_files: Option<Vec<ImportDataFile>>,
+    pub import_data_files:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportDataFile>>>,
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A response for listing import jobs.
@@ -1397,13 +1413,13 @@ pub struct ListImportDataFilesResponse {
 pub struct ListImportJobsResponse {
     /// The list of import jobs.
     #[serde(default, rename = "importJobs")]
-    pub import_jobs: Option<Vec<ImportJob>>,
+    pub import_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportJob>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1411,10 +1427,10 @@ pub struct ListImportJobsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1422,13 +1438,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for listing preference sets.
@@ -1436,13 +1452,13 @@ pub struct ListOperationsResponse {
 pub struct ListPreferenceSetsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of PreferenceSets
     #[serde(default, rename = "preferenceSets")]
-    pub preference_sets: Option<Vec<PreferenceSet>>,
+    pub preference_sets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PreferenceSet>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for listing relations.
@@ -1450,10 +1466,10 @@ pub struct ListPreferenceSetsResponse {
 pub struct ListRelationsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of relations.
     #[serde(default)]
-    pub relations: Option<Vec<Relation>>,
+    pub relations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Relation>>>,
 }
 
 /// Response message for listing report configs.
@@ -1461,13 +1477,13 @@ pub struct ListRelationsResponse {
 pub struct ListReportConfigsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of report configs.
     #[serde(default, rename = "reportConfigs")]
-    pub report_configs: Option<Vec<ReportConfig>>,
+    pub report_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReportConfig>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for listing Reports.
@@ -1475,13 +1491,13 @@ pub struct ListReportConfigsResponse {
 pub struct ListReportsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of Reports.
     #[serde(default)]
-    pub reports: Option<Vec<Report>>,
+    pub reports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Report>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for listing sources.
@@ -1489,13 +1505,13 @@ pub struct ListReportsResponse {
 pub struct ListSourcesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of sources.
     #[serde(default)]
-    pub sources: Option<Vec<Source>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Source>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1503,19 +1519,19 @@ pub struct ListSourcesResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Details of the machine architecture.
@@ -1523,31 +1539,31 @@ pub struct Location {
 pub struct MachineArchitectureDetails {
     /// BIOS Details.
     #[serde(default)]
-    pub bios: Option<BiosDetails>,
+    pub bios: ::core::option::Option<::std::boxed::Box<BiosDetails>>,
     /// CPU architecture, e.g., "x64-based PC", "x86_64", "i686" etc.
     #[serde(default, rename = "cpuArchitecture")]
-    pub cpu_architecture: Option<String>,
+    pub cpu_architecture: ::core::option::Option<String>,
     /// Optional. CPU manufacturer, e.g., "Intel", "AMD".
     #[serde(default, rename = "cpuManufacturer")]
-    pub cpu_manufacturer: Option<String>,
+    pub cpu_manufacturer: ::core::option::Option<String>,
     /// CPU name, e.g., "Intel Xeon E5-2690", "AMD EPYC 7571" etc.
     #[serde(default, rename = "cpuName")]
-    pub cpu_name: Option<String>,
+    pub cpu_name: ::core::option::Option<String>,
     /// Number of processor sockets allocated to the machine.
     #[serde(default, rename = "cpuSocketCount")]
-    pub cpu_socket_count: Option<i32>,
+    pub cpu_socket_count: ::core::option::Option<i32>,
     /// Deprecated: use MachineDetails.core_count instead. Number of CPU threads allocated to the machine.
     #[serde(default, rename = "cpuThreadCount")]
-    pub cpu_thread_count: Option<i32>,
+    pub cpu_thread_count: ::core::option::Option<i32>,
     /// Firmware type. // TODO: enum values: ["FIRMWARE_TYPE_UNSPECIFIED", "BIOS", "EFI"]
     #[serde(default, rename = "firmwareType")]
-    pub firmware_type: Option<String>,
+    pub firmware_type: ::core::option::Option<String>,
     /// CPU hyper-threading support. // TODO: enum values: ["CPU_HYPER_THREADING_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default)]
-    pub hyperthreading: Option<String>,
+    pub hyperthreading: ::core::option::Option<String>,
     /// Hardware vendor.
     #[serde(default)]
-    pub vendor: Option<String>,
+    pub vendor: ::core::option::Option<String>,
 }
 
 /// Details of a machine.
@@ -1555,40 +1571,40 @@ pub struct MachineArchitectureDetails {
 pub struct MachineDetails {
     /// Architecture details (vendor, CPU architecture).
     #[serde(default)]
-    pub architecture: Option<MachineArchitectureDetails>,
+    pub architecture: ::core::option::Option<::std::boxed::Box<MachineArchitectureDetails>>,
     /// Number of logical CPU cores in the machine. Must be non-negative.
     #[serde(default, rename = "coreCount")]
-    pub core_count: Option<i32>,
+    pub core_count: ::core::option::Option<i32>,
     /// Machine creation time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Disk partitions details. Note: Partitions are not necessarily mounted on local disks and therefore might not have a one-to-one correspondence with local disks.
     #[serde(default, rename = "diskPartitions")]
-    pub disk_partitions: Option<DiskPartitionDetails>,
+    pub disk_partitions: ::core::option::Option<::std::boxed::Box<DiskPartitionDetails>>,
     /// Disk details.
     #[serde(default)]
-    pub disks: Option<MachineDiskDetails>,
+    pub disks: ::core::option::Option<::std::boxed::Box<MachineDiskDetails>>,
     /// Guest OS information.
     #[serde(default, rename = "guestOs")]
-    pub guest_os: Option<GuestOsDetails>,
+    pub guest_os: ::core::option::Option<::std::boxed::Box<GuestOsDetails>>,
     /// Machine name.
     #[serde(default, rename = "machineName")]
-    pub machine_name: Option<String>,
+    pub machine_name: ::core::option::Option<String>,
     /// The amount of memory in the machine. Must be non-negative.
     #[serde(default, rename = "memoryMb")]
-    pub memory_mb: Option<i32>,
+    pub memory_mb: ::core::option::Option<i32>,
     /// Network details.
     #[serde(default)]
-    pub network: Option<MachineNetworkDetails>,
+    pub network: ::core::option::Option<::std::boxed::Box<MachineNetworkDetails>>,
     /// Platform specific information.
     #[serde(default)]
-    pub platform: Option<PlatformDetails>,
+    pub platform: ::core::option::Option<::std::boxed::Box<PlatformDetails>>,
     /// Power state of the machine. // TODO: enum values: ["POWER_STATE_UNSPECIFIED", "PENDING", "ACTIVE", "SUSPENDING", "SUSPENDED", "DELETING", "DELETED"]
     #[serde(default, rename = "powerState")]
-    pub power_state: Option<String>,
+    pub power_state: ::core::option::Option<String>,
     /// Machine unique identifier.
     #[serde(default)]
-    pub uuid: Option<String>,
+    pub uuid: ::core::option::Option<String>,
 }
 
 /// Details of machine disks.
@@ -1596,13 +1612,13 @@ pub struct MachineDetails {
 pub struct MachineDiskDetails {
     /// List of disks.
     #[serde(default)]
-    pub disks: Option<DiskEntryList>,
+    pub disks: ::core::option::Option<::std::boxed::Box<DiskEntryList>>,
     /// Disk total Capacity.
     #[serde(default, rename = "totalCapacityBytes")]
-    pub total_capacity_bytes: Option<String>,
+    pub total_capacity_bytes: ::core::option::Option<String>,
     /// Total disk free space.
     #[serde(default, rename = "totalFreeBytes")]
-    pub total_free_bytes: Option<String>,
+    pub total_free_bytes: ::core::option::Option<String>,
 }
 
 /// Details of network adapters and settings.
@@ -1610,19 +1626,19 @@ pub struct MachineDiskDetails {
 pub struct MachineNetworkDetails {
     /// List of network adapters.
     #[serde(default)]
-    pub adapters: Option<NetworkAdapterList>,
+    pub adapters: ::core::option::Option<::std::boxed::Box<NetworkAdapterList>>,
     /// Optional. Default gateway address.
     #[serde(default, rename = "defaultGateway")]
-    pub default_gateway: Option<String>,
+    pub default_gateway: ::core::option::Option<String>,
     /// The primary IP address of the machine.
     #[serde(default, rename = "primaryIpAddress")]
-    pub primary_ip_address: Option<String>,
+    pub primary_ip_address: ::core::option::Option<String>,
     /// MAC address of the machine. This property is used to uniqly identify the machine.
     #[serde(default, rename = "primaryMacAddress")]
-    pub primary_mac_address: Option<String>,
+    pub primary_mac_address: ::core::option::Option<String>,
     /// The public IP address of the machine.
     #[serde(default, rename = "publicIpAddress")]
-    pub public_ip_address: Option<String>,
+    pub public_ip_address: ::core::option::Option<String>,
 }
 
 /// The type of machines to consider when calculating virtual machine migration insights and recommendations. Not all machine types are available in all zones and regions.
@@ -1630,7 +1646,8 @@ pub struct MachineNetworkDetails {
 pub struct MachinePreferences {
     /// Compute Engine machine series to consider for insights and recommendations. If empty, no restriction is applied on the machine series.
     #[serde(default, rename = "allowedMachineSeries")]
-    pub allowed_machine_series: Option<Vec<MachineSeries>>,
+    pub allowed_machine_series:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MachineSeries>>>,
 }
 
 /// A machine series, for a target product (e.g. Compute Engine, Google Cloud VMware Engine).
@@ -1638,7 +1655,7 @@ pub struct MachinePreferences {
 pub struct MachineSeries {
     /// Code to identify a machine series. Consult this for more details on the available series for Compute Engine: https://cloud.google.com/compute/docs/machine-resource#machine_type_comparison Consult this for more details on the available series for Google Cloud VMware Engine: https://cloud.google.com/vmware-engine/pricing
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
 }
 
 /// Memory usage sample.
@@ -1646,7 +1663,7 @@ pub struct MachineSeries {
 pub struct MemoryUsageSample {
     /// Percentage of system memory utilized. Must be in the interval [0, 100].
     #[serde(default, rename = "utilizedPercentage")]
-    pub utilized_percentage: Option<f32>,
+    pub utilized_percentage: ::core::option::Option<f32>,
 }
 
 /// An insight about potential migrations for an asset.
@@ -1654,10 +1671,11 @@ pub struct MemoryUsageSample {
 pub struct MigrationInsight {
     /// Output only. A Google Compute Engine target.
     #[serde(default, rename = "computeEngineTarget")]
-    pub compute_engine_target: Option<ComputeEngineMigrationTarget>,
+    pub compute_engine_target:
+        ::core::option::Option<::std::boxed::Box<ComputeEngineMigrationTarget>>,
     /// Output only. Description of how well the asset this insight is associated with fits the proposed migration.
     #[serde(default)]
-    pub fit: Option<FitDescriptor>,
+    pub fit: ::core::option::Option<::std::boxed::Box<FitDescriptor>>,
 }
 
 /// Represents an amount of money with its currency type.
@@ -1665,13 +1683,13 @@ pub struct MigrationInsight {
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
     #[serde(default)]
-    pub units: Option<String>,
+    pub units: ::core::option::Option<String>,
 }
 
 /// MySql plugin.
@@ -1679,13 +1697,13 @@ pub struct Money {
 pub struct MySqlPlugin {
     /// Required. The plugin is active.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Required. The plugin name.
     #[serde(default)]
-    pub plugin: Option<String>,
+    pub plugin: ::core::option::Option<String>,
     /// Required. The plugin version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// MySql property.
@@ -1693,13 +1711,13 @@ pub struct MySqlPlugin {
 pub struct MySqlProperty {
     /// Required. The property is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Required. The property numeric value.
     #[serde(default, rename = "numericValue")]
-    pub numeric_value: Option<String>,
+    pub numeric_value: ::core::option::Option<String>,
     /// Required. The property name.
     #[serde(default)]
-    pub property: Option<String>,
+    pub property: ::core::option::Option<String>,
 }
 
 /// Specific details for a Mysql database.
@@ -1707,7 +1725,8 @@ pub struct MySqlProperty {
 pub struct MySqlSchemaDetails {
     /// Optional. Mysql storage engine tables.
     #[serde(default, rename = "storageEngines")]
-    pub storage_engines: Option<Vec<MySqlStorageEngineDetails>>,
+    pub storage_engines:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MySqlStorageEngineDetails>>>,
 }
 
 /// Mysql storage engine tables.
@@ -1715,13 +1734,13 @@ pub struct MySqlSchemaDetails {
 pub struct MySqlStorageEngineDetails {
     /// Optional. The number of encrypted tables.
     #[serde(default, rename = "encryptedTableCount")]
-    pub encrypted_table_count: Option<i32>,
+    pub encrypted_table_count: ::core::option::Option<i32>,
     /// Required. The storage engine. // TODO: enum values: ["ENGINE_UNSPECIFIED", "INNODB", "MYISAM", "MEMORY", "CSV", "ARCHIVE", "BLACKHOLE", "NDB", "MERGE", "FEDERATED", "EXAMPLE", "OTHER"]
     #[serde(default)]
-    pub engine: Option<String>,
+    pub engine: ::core::option::Option<String>,
     /// Optional. The number of tables.
     #[serde(default, rename = "tableCount")]
-    pub table_count: Option<i32>,
+    pub table_count: ::core::option::Option<i32>,
 }
 
 /// MySql variable.
@@ -1729,13 +1748,13 @@ pub struct MySqlStorageEngineDetails {
 pub struct MySqlVariable {
     /// Required. The variable category.
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// Required. The variable value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
     /// Required. The variable name.
     #[serde(default)]
-    pub variable: Option<String>,
+    pub variable: ::core::option::Option<String>,
 }
 
 /// Specific details for a Mysql database deployment.
@@ -1743,16 +1762,16 @@ pub struct MySqlVariable {
 pub struct MysqlDatabaseDeployment {
     /// Optional. List of MySql plugins.
     #[serde(default)]
-    pub plugins: Option<Vec<MySqlPlugin>>,
+    pub plugins: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MySqlPlugin>>>,
     /// Optional. List of MySql properties.
     #[serde(default)]
-    pub properties: Option<Vec<MySqlProperty>>,
+    pub properties: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MySqlProperty>>>,
     /// Optional. Number of resource groups.
     #[serde(default, rename = "resourceGroupsCount")]
-    pub resource_groups_count: Option<i32>,
+    pub resource_groups_count: ::core::option::Option<i32>,
     /// Optional. List of MySql variables.
     #[serde(default)]
-    pub variables: Option<Vec<MySqlVariable>>,
+    pub variables: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MySqlVariable>>>,
 }
 
 /// Details of network adapter.
@@ -1760,13 +1779,13 @@ pub struct MysqlDatabaseDeployment {
 pub struct NetworkAdapterDetails {
     /// Network adapter type (e.g. VMXNET3).
     #[serde(default, rename = "adapterType")]
-    pub adapter_type: Option<String>,
+    pub adapter_type: ::core::option::Option<String>,
     /// NetworkAddressList
     #[serde(default)]
-    pub addresses: Option<NetworkAddressList>,
+    pub addresses: ::core::option::Option<::std::boxed::Box<NetworkAddressList>>,
     /// MAC address.
     #[serde(default, rename = "macAddress")]
-    pub mac_address: Option<String>,
+    pub mac_address: ::core::option::Option<String>,
 }
 
 /// List of network adapters.
@@ -1774,7 +1793,7 @@ pub struct NetworkAdapterDetails {
 pub struct NetworkAdapterList {
     /// Network adapter entries.
     #[serde(default)]
-    pub entries: Option<Vec<NetworkAdapterDetails>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkAdapterDetails>>>,
 }
 
 /// Details of network address.
@@ -1782,19 +1801,19 @@ pub struct NetworkAdapterList {
 pub struct NetworkAddress {
     /// Whether DHCP is used to assign addresses. // TODO: enum values: ["ADDRESS_ASSIGNMENT_UNSPECIFIED", "ADDRESS_ASSIGNMENT_STATIC", "ADDRESS_ASSIGNMENT_DHCP"]
     #[serde(default)]
-    pub assignment: Option<String>,
+    pub assignment: ::core::option::Option<String>,
     /// Broadcast address.
     #[serde(default)]
-    pub bcast: Option<String>,
+    pub bcast: ::core::option::Option<String>,
     /// Fully qualified domain name.
     #[serde(default)]
-    pub fqdn: Option<String>,
+    pub fqdn: ::core::option::Option<String>,
     /// Assigned or configured IP Address.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// Subnet mask.
     #[serde(default, rename = "subnetMask")]
-    pub subnet_mask: Option<String>,
+    pub subnet_mask: ::core::option::Option<String>,
 }
 
 /// List of allocated/assigned network addresses.
@@ -1802,7 +1821,7 @@ pub struct NetworkAddress {
 pub struct NetworkAddressList {
     /// Network address entries.
     #[serde(default)]
-    pub entries: Option<Vec<NetworkAddress>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkAddress>>>,
 }
 
 /// NetworkConnection resource type.
@@ -1810,28 +1829,28 @@ pub struct NetworkAddressList {
 pub struct NetworkConnection {
     /// Local IP address.
     #[serde(default, rename = "localIpAddress")]
-    pub local_ip_address: Option<String>,
+    pub local_ip_address: ::core::option::Option<String>,
     /// Local port.
     #[serde(default, rename = "localPort")]
-    pub local_port: Option<i32>,
+    pub local_port: ::core::option::Option<i32>,
     /// Process ID.
     #[serde(default)]
-    pub pid: Option<String>,
+    pub pid: ::core::option::Option<String>,
     /// Process or service name.
     #[serde(default, rename = "processName")]
-    pub process_name: Option<String>,
+    pub process_name: ::core::option::Option<String>,
     /// Connection protocol (e.g. TCP/UDP).
     #[serde(default)]
-    pub protocol: Option<String>,
+    pub protocol: ::core::option::Option<String>,
     /// Remote IP address.
     #[serde(default, rename = "remoteIpAddress")]
-    pub remote_ip_address: Option<String>,
+    pub remote_ip_address: ::core::option::Option<String>,
     /// Remote port.
     #[serde(default, rename = "remotePort")]
-    pub remote_port: Option<i32>,
+    pub remote_port: ::core::option::Option<i32>,
     /// Network connection state. // TODO: enum values: ["STATE_UNSPECIFIED", "OPENING", "OPEN", "LISTEN", "CLOSING", "CLOSED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Network connection list.
@@ -1839,7 +1858,7 @@ pub struct NetworkConnection {
 pub struct NetworkConnectionList {
     /// Network connection entries.
     #[serde(default)]
-    pub entries: Option<Vec<NetworkConnection>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkConnection>>>,
 }
 
 /// Network usage sample. Values are across all network interfaces.
@@ -1847,10 +1866,10 @@ pub struct NetworkConnectionList {
 pub struct NetworkUsageSample {
     /// Average network egress in B/s sampled over a short window. Must be non-negative.
     #[serde(default, rename = "averageEgressBps")]
-    pub average_egress_bps: Option<f32>,
+    pub average_egress_bps: ::core::option::Option<f32>,
     /// Average network ingress in B/s sampled over a short window. Must be non-negative.
     #[serde(default, rename = "averageIngressBps")]
-    pub average_ingress_bps: Option<f32>,
+    pub average_ingress_bps: ::core::option::Option<f32>,
 }
 
 /// NFS export.
@@ -1858,10 +1877,10 @@ pub struct NetworkUsageSample {
 pub struct NfsExport {
     /// The directory being exported.
     #[serde(default, rename = "exportDirectory")]
-    pub export_directory: Option<String>,
+    pub export_directory: ::core::option::Option<String>,
     /// The hosts or networks to which the export is being shared.
     #[serde(default)]
-    pub hosts: Option<Vec<String>>,
+    pub hosts: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// NFS exports.
@@ -1869,7 +1888,7 @@ pub struct NfsExport {
 pub struct NfsExportList {
     /// NFS export entries.
     #[serde(default)]
-    pub entries: Option<Vec<NfsExport>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NfsExport>>>,
 }
 
 /// Open file Information.
@@ -1877,16 +1896,16 @@ pub struct NfsExportList {
 pub struct OpenFileDetails {
     /// Opened file command.
     #[serde(default)]
-    pub command: Option<String>,
+    pub command: ::core::option::Option<String>,
     /// Opened file file path.
     #[serde(default, rename = "filePath")]
-    pub file_path: Option<String>,
+    pub file_path: ::core::option::Option<String>,
     /// Opened file file type.
     #[serde(default, rename = "fileType")]
-    pub file_type: Option<String>,
+    pub file_type: ::core::option::Option<String>,
     /// Opened file user.
     #[serde(default)]
-    pub user: Option<String>,
+    pub user: ::core::option::Option<String>,
 }
 
 /// Open file list.
@@ -1894,7 +1913,7 @@ pub struct OpenFileDetails {
 pub struct OpenFileList {
     /// Open file details entries.
     #[serde(default)]
-    pub entries: Option<Vec<OpenFileDetails>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OpenFileDetails>>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1902,19 +1921,19 @@ pub struct OpenFileList {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1922,25 +1941,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Contains a single output file.
@@ -1948,13 +1967,13 @@ pub struct OperationMetadata {
 pub struct OutputFile {
     /// Output only. CSV output file.
     #[serde(default, rename = "csvOutputFile")]
-    pub csv_output_file: Option<CsvOutputFile>,
+    pub csv_output_file: ::core::option::Option<::std::boxed::Box<CsvOutputFile>>,
     /// Output only. File size in bytes.
     #[serde(default, rename = "fileSizeBytes")]
-    pub file_size_bytes: Option<String>,
+    pub file_size_bytes: ::core::option::Option<String>,
     /// Output only. XLSX output file.
     #[serde(default, rename = "xlsxOutputFile")]
-    pub xlsx_output_file: Option<XlsxOutputFile>,
+    pub xlsx_output_file: ::core::option::Option<::std::boxed::Box<XlsxOutputFile>>,
 }
 
 /// Contains a list of output files.
@@ -1962,7 +1981,7 @@ pub struct OutputFile {
 pub struct OutputFileList {
     /// Output only. List of output files.
     #[serde(default)]
-    pub entries: Option<Vec<OutputFile>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OutputFile>>>,
 }
 
 /// Performance data sample.
@@ -1970,19 +1989,19 @@ pub struct OutputFileList {
 pub struct PerformanceSample {
     /// CPU usage sample.
     #[serde(default)]
-    pub cpu: Option<CpuUsageSample>,
+    pub cpu: ::core::option::Option<::std::boxed::Box<CpuUsageSample>>,
     /// Disk usage sample.
     #[serde(default)]
-    pub disk: Option<DiskUsageSample>,
+    pub disk: ::core::option::Option<::std::boxed::Box<DiskUsageSample>>,
     /// Memory usage sample.
     #[serde(default)]
-    pub memory: Option<MemoryUsageSample>,
+    pub memory: ::core::option::Option<::std::boxed::Box<MemoryUsageSample>>,
     /// Network usage sample.
     #[serde(default)]
-    pub network: Option<NetworkUsageSample>,
+    pub network: ::core::option::Option<::std::boxed::Box<NetworkUsageSample>>,
     /// Time the sample was collected. If omitted, the frame report time will be used.
     #[serde(default, rename = "sampleTime")]
-    pub sample_time: Option<String>,
+    pub sample_time: ::core::option::Option<String>,
 }
 
 /// Platform specific details for Physical Machines.
@@ -1990,10 +2009,10 @@ pub struct PerformanceSample {
 pub struct PhysicalPlatformDetails {
     /// Whether the machine is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default)]
-    pub hyperthreading: Option<String>,
+    pub hyperthreading: ::core::option::Option<String>,
     /// Free text representation of the machine location. The format of this field should not be relied on. Different machines in the same location may have different string values for this field.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
 }
 
 /// Information about the platform.
@@ -2001,19 +2020,19 @@ pub struct PhysicalPlatformDetails {
 pub struct PlatformDetails {
     /// AWS EC2 specific details.
     #[serde(default, rename = "awsEc2Details")]
-    pub aws_ec2_details: Option<AwsEc2PlatformDetails>,
+    pub aws_ec2_details: ::core::option::Option<::std::boxed::Box<AwsEc2PlatformDetails>>,
     /// Azure VM specific details.
     #[serde(default, rename = "azureVmDetails")]
-    pub azure_vm_details: Option<AzureVmPlatformDetails>,
+    pub azure_vm_details: ::core::option::Option<::std::boxed::Box<AzureVmPlatformDetails>>,
     /// Generic platform details.
     #[serde(default, rename = "genericDetails")]
-    pub generic_details: Option<GenericPlatformDetails>,
+    pub generic_details: ::core::option::Option<::std::boxed::Box<GenericPlatformDetails>>,
     /// Physical machines platform details.
     #[serde(default, rename = "physicalDetails")]
-    pub physical_details: Option<PhysicalPlatformDetails>,
+    pub physical_details: ::core::option::Option<::std::boxed::Box<PhysicalPlatformDetails>>,
     /// VMware specific details.
     #[serde(default, rename = "vmwareDetails")]
-    pub vmware_details: Option<VmwarePlatformDetails>,
+    pub vmware_details: ::core::option::Option<::std::boxed::Box<VmwarePlatformDetails>>,
 }
 
 /// Specific details for a PostgreSQL database deployment.
@@ -2021,10 +2040,10 @@ pub struct PlatformDetails {
 pub struct PostgreSqlDatabaseDeployment {
     /// Optional. List of PostgreSql properties.
     #[serde(default)]
-    pub properties: Option<Vec<PostgreSqlProperty>>,
+    pub properties: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PostgreSqlProperty>>>,
     /// Optional. List of PostgreSql settings.
     #[serde(default)]
-    pub settings: Option<Vec<PostgreSqlSetting>>,
+    pub settings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PostgreSqlSetting>>>,
 }
 
 /// PostgreSql extension.
@@ -2032,10 +2051,10 @@ pub struct PostgreSqlDatabaseDeployment {
 pub struct PostgreSqlExtension {
     /// Required. The extension name.
     #[serde(default)]
-    pub extension: Option<String>,
+    pub extension: ::core::option::Option<String>,
     /// Required. The extension version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// PostgreSql property.
@@ -2043,13 +2062,13 @@ pub struct PostgreSqlExtension {
 pub struct PostgreSqlProperty {
     /// Required. The property is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Required. The property numeric value.
     #[serde(default, rename = "numericValue")]
-    pub numeric_value: Option<String>,
+    pub numeric_value: ::core::option::Option<String>,
     /// Required. The property name.
     #[serde(default)]
-    pub property: Option<String>,
+    pub property: ::core::option::Option<String>,
 }
 
 /// Specific details for a PostgreSql schema.
@@ -2057,10 +2076,11 @@ pub struct PostgreSqlProperty {
 pub struct PostgreSqlSchemaDetails {
     /// Optional. PostgreSql foreign tables.
     #[serde(default, rename = "foreignTablesCount")]
-    pub foreign_tables_count: Option<i32>,
+    pub foreign_tables_count: ::core::option::Option<i32>,
     /// Optional. PostgreSql extensions.
     #[serde(default, rename = "postgresqlExtensions")]
-    pub postgresql_extensions: Option<Vec<PostgreSqlExtension>>,
+    pub postgresql_extensions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PostgreSqlExtension>>>,
 }
 
 /// PostgreSql setting.
@@ -2068,25 +2088,25 @@ pub struct PostgreSqlSchemaDetails {
 pub struct PostgreSqlSetting {
     /// Required. The setting boolean value.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// Required. The setting int value.
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     /// Required. The setting real value.
     #[serde(default, rename = "realValue")]
-    pub real_value: Option<f32>,
+    pub real_value: ::core::option::Option<f32>,
     /// Required. The setting name.
     #[serde(default)]
-    pub setting: Option<String>,
+    pub setting: ::core::option::Option<String>,
     /// Required. The setting source.
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Required. The setting string value. Notice that enum values are stored as strings.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
     /// Optional. The setting unit.
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
 }
 
 /// The preferences that apply to all assets in a given context.
@@ -2094,22 +2114,23 @@ pub struct PostgreSqlSetting {
 pub struct PreferenceSet {
     /// Output only. The timestamp when the preference set was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// A description of the preference set.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User-friendly display name. Maximum length is 63 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Name of the preference set.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The timestamp when the preference set was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. A set of preferences that applies to all virtual machines in the context.
     #[serde(default, rename = "virtualMachinePreferences")]
-    pub virtual_machine_preferences: Option<VirtualMachinePreferences>,
+    pub virtual_machine_preferences:
+        ::core::option::Option<::std::boxed::Box<VirtualMachinePreferences>>,
 }
 
 /// The user preferences relating to target regions.
@@ -2117,7 +2138,7 @@ pub struct PreferenceSet {
 pub struct RegionPreferences {
     /// A list of preferred regions, ordered by the most preferred region first. Set only valid Google Cloud region names. See https://cloud.google.com/compute/docs/regions-zones for available regions.
     #[serde(default, rename = "preferredRegions")]
-    pub preferred_regions: Option<Vec<String>>,
+    pub preferred_regions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message representing a relation between 2 resource.
@@ -2125,19 +2146,19 @@ pub struct RegionPreferences {
 pub struct Relation {
     /// Output only. The timestamp when the relation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The destination asset name in the relation.
     #[serde(default, rename = "dstAsset")]
-    pub dst_asset: Option<String>,
+    pub dst_asset: ::core::option::Option<String>,
     /// Output only. Identifier. The identifier of the relation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The source asset name in the relation.
     #[serde(default, rename = "srcAsset")]
-    pub src_asset: Option<String>,
+    pub src_asset: ::core::option::Option<String>,
     /// Optional. The type of the relation. // TODO: enum values: ["TYPE_UNSPECIFIED", "LOGICAL_DATABASE", "DATABASE_DEPLOYMENT_HOSTING_SERVER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A request to remove assets from a group.
@@ -2145,13 +2166,13 @@ pub struct Relation {
 pub struct RemoveAssetsFromGroupRequest {
     /// Optional. When this value is set to false and one of the given assets is not an existing member of the group, the operation fails with a Not Found error. When set to true this situation is silently ignored by the server. Default value is false.
     #[serde(default, rename = "allowMissing")]
-    pub allow_missing: Option<bool>,
+    pub allow_missing: ::core::option::Option<bool>,
     /// Required. List of assets to be removed. The maximum number of assets that can be removed in a single request is 1000.
     #[serde(default)]
-    pub assets: Option<AssetList>,
+    pub assets: ::core::option::Option<::std::boxed::Box<AssetList>>,
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Report represents a point-in-time rendering of the ReportConfig results.
@@ -2159,28 +2180,28 @@ pub struct RemoveAssetsFromGroupRequest {
 pub struct Report {
     /// Output only. Creation timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Free-text description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User-friendly display name. Maximum length is 63 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Name of resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Report creation state. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Summary view of the Report.
     #[serde(default)]
-    pub summary: Option<ReportSummary>,
+    pub summary: ::core::option::Option<::std::boxed::Box<ReportSummary>>,
     /// Report type. // TODO: enum values: ["TYPE_UNSPECIFIED", "TOTAL_COST_OF_OWNERSHIP"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Last update timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The groups and associated preference sets on which we can generate reports.
@@ -2188,22 +2209,24 @@ pub struct Report {
 pub struct ReportConfig {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Free-text description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User-friendly display name. Maximum length is 63 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Collection of combinations of groups and preference sets.
     #[serde(default, rename = "groupPreferencesetAssignments")]
-    pub group_preferenceset_assignments: Option<Vec<ReportConfigGroupPreferenceSetAssignment>>,
+    pub group_preferenceset_assignments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ReportConfigGroupPreferenceSetAssignment>>,
+    >,
     /// Output only. Name of resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Represents a combination of a group with a preference set.
@@ -2211,10 +2234,10 @@ pub struct ReportConfig {
 pub struct ReportConfigGroupPreferenceSetAssignment {
     /// Required. Name of the group.
     #[serde(default)]
-    pub group: Option<String>,
+    pub group: ::core::option::Option<String>,
     /// Required. Name of the Preference Set.
     #[serde(default, rename = "preferenceSet")]
-    pub preference_set: Option<String>,
+    pub preference_set: ::core::option::Option<String>,
 }
 
 /// Describes the Summary view of a Report, which contains aggregated values for all the groups and preference sets included in this Report.
@@ -2222,10 +2245,12 @@ pub struct ReportConfigGroupPreferenceSetAssignment {
 pub struct ReportSummary {
     /// Aggregate statistics for all the assets across all the groups.
     #[serde(default, rename = "allAssetsStats")]
-    pub all_assets_stats: Option<ReportSummaryAssetAggregateStats>,
+    pub all_assets_stats:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryAssetAggregateStats>>,
     /// Findings for each Group included in this report.
     #[serde(default, rename = "groupFindings")]
-    pub group_findings: Option<Vec<ReportSummaryGroupFinding>>,
+    pub group_findings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReportSummaryGroupFinding>>>,
 }
 
 /// Aggregate statistics for a collection of assets.
@@ -2233,37 +2258,42 @@ pub struct ReportSummary {
 pub struct ReportSummaryAssetAggregateStats {
     /// Histogram showing a distribution of logical CPU core counts.
     #[serde(default, rename = "coreCountHistogram")]
-    pub core_count_histogram: Option<ReportSummaryHistogramChartData>,
+    pub core_count_histogram:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryHistogramChartData>>,
     /// Histogram showing a distribution of memory sizes.
     #[serde(default, rename = "memoryBytesHistogram")]
-    pub memory_bytes_histogram: Option<ReportSummaryHistogramChartData>,
+    pub memory_bytes_histogram:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryHistogramChartData>>,
     /// Total memory split into Used/Free buckets.
     #[serde(default, rename = "memoryUtilizationChart")]
-    pub memory_utilization_chart: Option<ReportSummaryUtilizationChartData>,
+    pub memory_utilization_chart:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryUtilizationChartData>>,
     /// Count of assets grouped by Operating System families.
     #[serde(default, rename = "operatingSystem")]
-    pub operating_system: Option<ReportSummaryChartData>,
+    pub operating_system: ::core::option::Option<::std::boxed::Box<ReportSummaryChartData>>,
     /// Output only. Count of assets grouped by software name. Only present for virtual machines.
     #[serde(default, rename = "softwareInstances")]
-    pub software_instances: Option<ReportSummaryChartData>,
+    pub software_instances: ::core::option::Option<::std::boxed::Box<ReportSummaryChartData>>,
     /// Histogram showing a distribution of storage sizes.
     #[serde(default, rename = "storageBytesHistogram")]
-    pub storage_bytes_histogram: Option<ReportSummaryHistogramChartData>,
+    pub storage_bytes_histogram:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryHistogramChartData>>,
     /// Total memory split into Used/Free buckets.
     #[serde(default, rename = "storageUtilizationChart")]
-    pub storage_utilization_chart: Option<ReportSummaryUtilizationChartData>,
+    pub storage_utilization_chart:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryUtilizationChartData>>,
     /// Count of the number of unique assets in this collection.
     #[serde(default, rename = "totalAssets")]
-    pub total_assets: Option<String>,
+    pub total_assets: ::core::option::Option<String>,
     /// Sum of the CPU core count of all the assets in this collection.
     #[serde(default, rename = "totalCores")]
-    pub total_cores: Option<String>,
+    pub total_cores: ::core::option::Option<String>,
     /// Sum of the memory in bytes of all the assets in this collection.
     #[serde(default, rename = "totalMemoryBytes")]
-    pub total_memory_bytes: Option<String>,
+    pub total_memory_bytes: ::core::option::Option<String>,
     /// Sum of persistent storage in bytes of all the assets in this collection.
     #[serde(default, rename = "totalStorageBytes")]
-    pub total_storage_bytes: Option<String>,
+    pub total_storage_bytes: ::core::option::Option<String>,
 }
 
 /// Describes a collection of data points rendered as a Chart.
@@ -2271,7 +2301,8 @@ pub struct ReportSummaryAssetAggregateStats {
 pub struct ReportSummaryChartData {
     /// Each data point in the chart is represented as a name-value pair with the name being the x-axis label, and the value being the y-axis value.
     #[serde(default, rename = "dataPoints")]
-    pub data_points: Option<Vec<ReportSummaryChartDataDataPoint>>,
+    pub data_points:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReportSummaryChartDataDataPoint>>>,
 }
 
 /// Describes a single data point in the Chart.
@@ -2279,10 +2310,10 @@ pub struct ReportSummaryChartData {
 pub struct ReportSummaryChartDataDataPoint {
     /// The X-axis label for this data point.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The Y-axis value for this data point.
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// A set of findings that applies to assets destined for Compute Engine.
@@ -2290,16 +2321,18 @@ pub struct ReportSummaryChartDataDataPoint {
 pub struct ReportSummaryComputeEngineFinding {
     /// Count of assets which were allocated.
     #[serde(default, rename = "allocatedAssetCount")]
-    pub allocated_asset_count: Option<String>,
+    pub allocated_asset_count: ::core::option::Option<String>,
     /// Set of disk types allocated to assets.
     #[serde(default, rename = "allocatedDiskTypes")]
-    pub allocated_disk_types: Option<Vec<String>>,
+    pub allocated_disk_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Set of regions in which the assets were allocated.
     #[serde(default, rename = "allocatedRegions")]
-    pub allocated_regions: Option<Vec<String>>,
+    pub allocated_regions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Distribution of assets based on the Machine Series.
     #[serde(default, rename = "machineSeriesAllocations")]
-    pub machine_series_allocations: Option<Vec<ReportSummaryMachineSeriesAllocation>>,
+    pub machine_series_allocations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ReportSummaryMachineSeriesAllocation>>,
+    >,
 }
 
 /// Summary Findings for a specific Group.
@@ -2307,19 +2340,22 @@ pub struct ReportSummaryComputeEngineFinding {
 pub struct ReportSummaryGroupFinding {
     /// Summary statistics for all the assets in this group.
     #[serde(default, rename = "assetAggregateStats")]
-    pub asset_aggregate_stats: Option<ReportSummaryAssetAggregateStats>,
+    pub asset_aggregate_stats:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryAssetAggregateStats>>,
     /// Description for the Group.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Display Name for the Group.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// This field is deprecated, do not rely on it having a value.
     #[serde(default, rename = "overlappingAssetCount")]
-    pub overlapping_asset_count: Option<String>,
+    pub overlapping_asset_count: ::core::option::Option<String>,
     /// Findings for each of the PreferenceSets for this group.
     #[serde(default, rename = "preferenceSetFindings")]
-    pub preference_set_findings: Option<Vec<ReportSummaryGroupPreferenceSetFinding>>,
+    pub preference_set_findings: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ReportSummaryGroupPreferenceSetFinding>>,
+    >,
 }
 
 /// Summary Findings for a specific Group/PreferenceSet combination.
@@ -2327,40 +2363,43 @@ pub struct ReportSummaryGroupFinding {
 pub struct ReportSummaryGroupPreferenceSetFinding {
     /// A set of findings that applies to Compute Engine machines in the input.
     #[serde(default, rename = "computeEngineFinding")]
-    pub compute_engine_finding: Option<ReportSummaryComputeEngineFinding>,
+    pub compute_engine_finding:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryComputeEngineFinding>>,
     /// Description for the Preference Set.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Display Name of the Preference Set
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// A set of preferences that applies to all machines in the context.
     #[serde(default, rename = "machinePreferences")]
-    pub machine_preferences: Option<VirtualMachinePreferences>,
+    pub machine_preferences: ::core::option::Option<::std::boxed::Box<VirtualMachinePreferences>>,
     /// Compute monthly cost for this preference set.
     #[serde(default, rename = "monthlyCostCompute")]
-    pub monthly_cost_compute: Option<Money>,
+    pub monthly_cost_compute: ::core::option::Option<::std::boxed::Box<Money>>,
     /// Network Egress monthly cost for this preference set.
     #[serde(default, rename = "monthlyCostNetworkEgress")]
-    pub monthly_cost_network_egress: Option<Money>,
+    pub monthly_cost_network_egress: ::core::option::Option<::std::boxed::Box<Money>>,
     /// Licensing monthly cost for this preference set.
     #[serde(default, rename = "monthlyCostOsLicense")]
-    pub monthly_cost_os_license: Option<Money>,
+    pub monthly_cost_os_license: ::core::option::Option<::std::boxed::Box<Money>>,
     /// Miscellaneous monthly cost for this preference set.
     #[serde(default, rename = "monthlyCostOther")]
-    pub monthly_cost_other: Option<Money>,
+    pub monthly_cost_other: ::core::option::Option<::std::boxed::Box<Money>>,
     /// Storage monthly cost for this preference set.
     #[serde(default, rename = "monthlyCostStorage")]
-    pub monthly_cost_storage: Option<Money>,
+    pub monthly_cost_storage: ::core::option::Option<::std::boxed::Box<Money>>,
     /// Total monthly cost for this preference set.
     #[serde(default, rename = "monthlyCostTotal")]
-    pub monthly_cost_total: Option<Money>,
+    pub monthly_cost_total: ::core::option::Option<::std::boxed::Box<Money>>,
     /// A set of findings that applies to Sole-Tenant machines in the input.
     #[serde(default, rename = "soleTenantFinding")]
-    pub sole_tenant_finding: Option<ReportSummarySoleTenantFinding>,
+    pub sole_tenant_finding:
+        ::core::option::Option<::std::boxed::Box<ReportSummarySoleTenantFinding>>,
     /// A set of findings that applies to VMWare machines in the input.
     #[serde(default, rename = "vmwareEngineFinding")]
-    pub vmware_engine_finding: Option<ReportSummaryVmwareEngineFinding>,
+    pub vmware_engine_finding:
+        ::core::option::Option<::std::boxed::Box<ReportSummaryVmwareEngineFinding>>,
 }
 
 /// A Histogram Chart shows a distribution of values into buckets, showing a count of values which fall into a bucket.
@@ -2368,7 +2407,9 @@ pub struct ReportSummaryGroupPreferenceSetFinding {
 pub struct ReportSummaryHistogramChartData {
     /// Buckets in the histogram. There will be n+1 buckets matching n lower bounds in the request. The first bucket will be from -infinity to the first bound. Subsequent buckets will be between one bound and the next. The final bucket will be from the final bound to infinity.
     #[serde(default)]
-    pub buckets: Option<Vec<ReportSummaryHistogramChartDataBucket>>,
+    pub buckets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ReportSummaryHistogramChartDataBucket>>,
+    >,
 }
 
 /// A histogram bucket with a lower and upper bound, and a count of items with a field value between those bounds. The lower bound is inclusive and the upper bound is exclusive. Lower bound may be -infinity and upper bound may be infinity.
@@ -2376,13 +2417,13 @@ pub struct ReportSummaryHistogramChartData {
 pub struct ReportSummaryHistogramChartDataBucket {
     /// Count of items in the bucket.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Lower bound - inclusive.
     #[serde(default, rename = "lowerBound")]
-    pub lower_bound: Option<String>,
+    pub lower_bound: ::core::option::Option<String>,
     /// Upper bound - exclusive.
     #[serde(default, rename = "upperBound")]
-    pub upper_bound: Option<String>,
+    pub upper_bound: ::core::option::Option<String>,
 }
 
 /// Represents a data point tracking the count of assets allocated for a specific Machine Series.
@@ -2390,10 +2431,10 @@ pub struct ReportSummaryHistogramChartDataBucket {
 pub struct ReportSummaryMachineSeriesAllocation {
     /// Count of assets allocated to this machine series.
     #[serde(default, rename = "allocatedAssetCount")]
-    pub allocated_asset_count: Option<String>,
+    pub allocated_asset_count: ::core::option::Option<String>,
     /// The Machine Series (e.g. "E2", "N2")
     #[serde(default, rename = "machineSeries")]
-    pub machine_series: Option<MachineSeries>,
+    pub machine_series: ::core::option::Option<::std::boxed::Box<MachineSeries>>,
 }
 
 /// A set of findings that applies to assets destined for Sole-Tenant nodes.
@@ -2401,13 +2442,15 @@ pub struct ReportSummaryMachineSeriesAllocation {
 pub struct ReportSummarySoleTenantFinding {
     /// Count of assets which are allocated
     #[serde(default, rename = "allocatedAssetCount")]
-    pub allocated_asset_count: Option<String>,
+    pub allocated_asset_count: ::core::option::Option<String>,
     /// Set of regions in which the assets are allocated
     #[serde(default, rename = "allocatedRegions")]
-    pub allocated_regions: Option<Vec<String>>,
+    pub allocated_regions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Set of per-nodetype allocation records
     #[serde(default, rename = "nodeAllocations")]
-    pub node_allocations: Option<Vec<ReportSummarySoleTenantNodeAllocation>>,
+    pub node_allocations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ReportSummarySoleTenantNodeAllocation>>,
+    >,
 }
 
 /// Represents the assets allocated to a specific Sole-Tenant node type.
@@ -2415,13 +2458,13 @@ pub struct ReportSummarySoleTenantFinding {
 pub struct ReportSummarySoleTenantNodeAllocation {
     /// Count of assets allocated to these nodes
     #[serde(default, rename = "allocatedAssetCount")]
-    pub allocated_asset_count: Option<String>,
+    pub allocated_asset_count: ::core::option::Option<String>,
     /// Sole Tenant node type, e.g. "m3-node-128-3904"
     #[serde(default)]
-    pub node: Option<SoleTenantNodeType>,
+    pub node: ::core::option::Option<::std::boxed::Box<SoleTenantNodeType>>,
     /// Count of this node type to be provisioned
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<String>,
+    pub node_count: ::core::option::Option<String>,
 }
 
 /// Utilization Chart is a specific type of visualization which displays a metric classified into "Used" and "Free" buckets.
@@ -2429,10 +2472,10 @@ pub struct ReportSummarySoleTenantNodeAllocation {
 pub struct ReportSummaryUtilizationChartData {
     /// Aggregate value which falls into the "Free" bucket.
     #[serde(default)]
-    pub free: Option<String>,
+    pub free: ::core::option::Option<String>,
     /// Aggregate value which falls into the "Used" bucket.
     #[serde(default)]
-    pub used: Option<String>,
+    pub used: ::core::option::Option<String>,
 }
 
 /// A set of findings that applies to assets destined for VMWare Engine.
@@ -2440,13 +2483,15 @@ pub struct ReportSummaryUtilizationChartData {
 pub struct ReportSummaryVmwareEngineFinding {
     /// Count of assets which are allocated
     #[serde(default, rename = "allocatedAssetCount")]
-    pub allocated_asset_count: Option<String>,
+    pub allocated_asset_count: ::core::option::Option<String>,
     /// Set of regions in which the assets were allocated
     #[serde(default, rename = "allocatedRegions")]
-    pub allocated_regions: Option<Vec<String>>,
+    pub allocated_regions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Set of per-nodetype allocation records
     #[serde(default, rename = "nodeAllocations")]
-    pub node_allocations: Option<Vec<ReportSummaryVmwareNodeAllocation>>,
+    pub node_allocations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<ReportSummaryVmwareNodeAllocation>>,
+    >,
 }
 
 /// A VMWare Engine Node
@@ -2454,7 +2499,7 @@ pub struct ReportSummaryVmwareEngineFinding {
 pub struct ReportSummaryVmwareNode {
     /// Code to identify VMware Engine node series, e.g. "ve1-standard-72". Based on the displayName of cloud.google.com/vmware-engine/docs/reference/rest/v1/projects.locations.nodeTypes
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
 }
 
 /// Represents assets allocated to a specific VMWare Node type.
@@ -2462,13 +2507,13 @@ pub struct ReportSummaryVmwareNode {
 pub struct ReportSummaryVmwareNodeAllocation {
     /// Count of assets allocated to these nodes
     #[serde(default, rename = "allocatedAssetCount")]
-    pub allocated_asset_count: Option<String>,
+    pub allocated_asset_count: ::core::option::Option<String>,
     /// Count of this node type to be provisioned
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<String>,
+    pub node_count: ::core::option::Option<String>,
     /// VMWare node type, e.g. "ve1-standard-72"
     #[serde(default, rename = "vmwareNode")]
-    pub vmware_node: Option<ReportSummaryVmwareNode>,
+    pub vmware_node: ::core::option::Option<::std::boxed::Box<ReportSummaryVmwareNode>>,
 }
 
 /// A request to run an assets export job.
@@ -2476,7 +2521,7 @@ pub struct ReportSummaryVmwareNodeAllocation {
 pub struct RunAssetsExportJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Response message for running an assets export job.
@@ -2484,7 +2529,8 @@ pub struct RunAssetsExportJobRequest {
 pub struct RunAssetsExportJobResponse {
     /// Output only. Execution status of the assets export operation.
     #[serde(default, rename = "assetsExportJobExecution")]
-    pub assets_export_job_execution: Option<AssetsExportJobExecution>,
+    pub assets_export_job_execution:
+        ::core::option::Option<::std::boxed::Box<AssetsExportJobExecution>>,
 }
 
 /// A request to run an import job.
@@ -2492,7 +2538,7 @@ pub struct RunAssetsExportJobResponse {
 pub struct RunImportJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Guest OS running process details.
@@ -2500,19 +2546,19 @@ pub struct RunImportJobRequest {
 pub struct RunningProcess {
     /// Process extended attributes.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Process full command line.
     #[serde(default)]
-    pub cmdline: Option<String>,
+    pub cmdline: ::core::option::Option<String>,
     /// Process binary path.
     #[serde(default, rename = "exePath")]
-    pub exe_path: Option<String>,
+    pub exe_path: ::core::option::Option<String>,
     /// Process ID.
     #[serde(default)]
-    pub pid: Option<String>,
+    pub pid: ::core::option::Option<String>,
     /// User running the process.
     #[serde(default)]
-    pub user: Option<String>,
+    pub user: ::core::option::Option<String>,
 }
 
 /// List of running guest OS processes.
@@ -2520,7 +2566,7 @@ pub struct RunningProcess {
 pub struct RunningProcessList {
     /// Running process entries.
     #[serde(default)]
-    pub entries: Option<Vec<RunningProcess>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RunningProcess>>>,
 }
 
 /// Guest OS running service details.
@@ -2528,22 +2574,22 @@ pub struct RunningProcessList {
 pub struct RunningService {
     /// Service command line.
     #[serde(default)]
-    pub cmdline: Option<String>,
+    pub cmdline: ::core::option::Option<String>,
     /// Service binary path.
     #[serde(default, rename = "exePath")]
-    pub exe_path: Option<String>,
+    pub exe_path: ::core::option::Option<String>,
     /// Service pid.
     #[serde(default)]
-    pub pid: Option<String>,
+    pub pid: ::core::option::Option<String>,
     /// Service name.
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
     /// Service start mode (OS-agnostic). // TODO: enum values: ["START_MODE_UNSPECIFIED", "BOOT", "SYSTEM", "AUTO", "MANUAL", "DISABLED"]
     #[serde(default, rename = "startMode")]
-    pub start_mode: Option<String>,
+    pub start_mode: ::core::option::Option<String>,
     /// Service state (OS-agnostic). // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PAUSED", "STOPPED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// List of running guest OS services.
@@ -2551,7 +2597,7 @@ pub struct RunningService {
 pub struct RunningServiceList {
     /// Running service entries.
     #[serde(default)]
-    pub entries: Option<Vec<RunningService>>,
+    pub entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RunningService>>>,
 }
 
 /// Runtime networking information.
@@ -2559,10 +2605,10 @@ pub struct RunningServiceList {
 pub struct RuntimeNetworkInfo {
     /// Network connections.
     #[serde(default)]
-    pub connections: Option<NetworkConnectionList>,
+    pub connections: ::core::option::Option<::std::boxed::Box<NetworkConnectionList>>,
     /// Time of the last network scan.
     #[serde(default, rename = "scanTime")]
-    pub scan_time: Option<String>,
+    pub scan_time: ::core::option::Option<String>,
 }
 
 /// A request to send a discovery client heartbeat.
@@ -2570,10 +2616,10 @@ pub struct RuntimeNetworkInfo {
 pub struct SendDiscoveryClientHeartbeatRequest {
     /// Optional. Errors affecting client functionality.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// Optional. Client application version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Describes the Migration Center settings related to the project.
@@ -2581,13 +2627,13 @@ pub struct SendDiscoveryClientHeartbeatRequest {
 pub struct Settings {
     /// Disable Cloud Logging for the Migration Center API. Users are billed for the logs.
     #[serde(default, rename = "disableCloudLogging")]
-    pub disable_cloud_logging: Option<bool>,
+    pub disable_cloud_logging: ::core::option::Option<bool>,
     /// Output only. The name of the resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The preference set used by default for a project.
     #[serde(default, rename = "preferenceSet")]
-    pub preference_set: Option<String>,
+    pub preference_set: ::core::option::Option<String>,
 }
 
 /// Contains a signed URI.
@@ -2595,10 +2641,10 @@ pub struct Settings {
 pub struct SignedUri {
     /// Output only. Name of the file the Signed URI references.
     #[serde(default)]
-    pub file: Option<String>,
+    pub file: ::core::option::Option<String>,
     /// Output only. Download URI for the file.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Signed URI destination configuration.
@@ -2606,7 +2652,7 @@ pub struct SignedUri {
 pub struct SignedUriDestination {
     /// Required. The file format to export. // TODO: enum values: ["FILE_FORMAT_UNSPECIFIED", "CSV", "XLSX"]
     #[serde(default, rename = "fileFormat")]
-    pub file_format: Option<String>,
+    pub file_format: ::core::option::Option<String>,
 }
 
 /// Contains a list of Signed URIs.
@@ -2614,7 +2660,7 @@ pub struct SignedUriDestination {
 pub struct SignedUris {
     /// Output only. List of signed URIs.
     #[serde(default, rename = "signedUris")]
-    pub signed_uris: Option<Vec<SignedUri>>,
+    pub signed_uris: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SignedUri>>>,
 }
 
 /// Preferences concerning Sole Tenancy nodes and VMs.
@@ -2622,16 +2668,16 @@ pub struct SignedUris {
 pub struct SoleTenancyPreferences {
     /// Commitment plan to consider when calculating costs for virtual machine insights and recommendations. If you are unsure which value to set, a 3 year commitment plan is often a good value to start with. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "ON_DEMAND", "COMMITMENT_1_YEAR", "COMMITMENT_3_YEAR"]
     #[serde(default, rename = "commitmentPlan")]
-    pub commitment_plan: Option<String>,
+    pub commitment_plan: ::core::option::Option<String>,
     /// CPU overcommit ratio. Acceptable values are between 1.0 and 2.0 inclusive.
     #[serde(default, rename = "cpuOvercommitRatio")]
-    pub cpu_overcommit_ratio: Option<f64>,
+    pub cpu_overcommit_ratio: ::core::option::Option<f64>,
     /// Sole Tenancy nodes maintenance policy. // TODO: enum values: ["HOST_MAINTENANCE_POLICY_UNSPECIFIED", "HOST_MAINTENANCE_POLICY_DEFAULT", "HOST_MAINTENANCE_POLICY_RESTART_IN_PLACE", "HOST_MAINTENANCE_POLICY_MIGRATE_WITHIN_NODE_GROUP"]
     #[serde(default, rename = "hostMaintenancePolicy")]
-    pub host_maintenance_policy: Option<String>,
+    pub host_maintenance_policy: ::core::option::Option<String>,
     /// A list of sole tenant node types. An empty list means that all possible node types will be considered.
     #[serde(default, rename = "nodeTypes")]
-    pub node_types: Option<Vec<SoleTenantNodeType>>,
+    pub node_types: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SoleTenantNodeType>>>,
 }
 
 /// A Sole Tenant node type.
@@ -2639,7 +2685,7 @@ pub struct SoleTenancyPreferences {
 pub struct SoleTenantNodeType {
     /// Name of the Sole Tenant node. Consult https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes
     #[serde(default, rename = "nodeName")]
-    pub node_name: Option<String>,
+    pub node_name: ::core::option::Option<String>,
 }
 
 /// Source represents an object from which asset information is streamed to Migration Center.
@@ -2647,37 +2693,37 @@ pub struct SoleTenantNodeType {
 pub struct Source {
     /// Output only. The timestamp when the source was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Free-text description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User-friendly display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The number of frames that were reported by the source and contained errors.
     #[serde(default, rename = "errorFrameCount")]
-    pub error_frame_count: Option<i32>,
+    pub error_frame_count: ::core::option::Option<i32>,
     /// If true, the source is managed by other service(s).
     #[serde(default)]
-    pub managed: Option<bool>,
+    pub managed: ::core::option::Option<bool>,
     /// Output only. The full name of the source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Number of frames that are still being processed.
     #[serde(default, rename = "pendingFrameCount")]
-    pub pending_frame_count: Option<i32>,
+    pub pending_frame_count: ::core::option::Option<i32>,
     /// The information confidence of the source. The higher the value, the higher the confidence.
     #[serde(default)]
-    pub priority: Option<i32>,
+    pub priority: ::core::option::Option<i32>,
     /// Output only. The state of the source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETING", "INVALID"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Data source type. // TODO: enum values: ["SOURCE_TYPE_UNKNOWN", "SOURCE_TYPE_UPLOAD", "SOURCE_TYPE_GUEST_OS_SCAN", "SOURCE_TYPE_INVENTORY_SCAN", "SOURCE_TYPE_CUSTOM", "SOURCE_TYPE_DISCOVERY_CLIENT"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. The timestamp when the source was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Specific details for a Microsoft SQL Server database deployment.
@@ -2685,13 +2731,14 @@ pub struct Source {
 pub struct SqlServerDatabaseDeployment {
     /// Optional. List of SQL Server features.
     #[serde(default)]
-    pub features: Option<Vec<SqlServerFeature>>,
+    pub features: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlServerFeature>>>,
     /// Optional. List of SQL Server server flags.
     #[serde(default, rename = "serverFlags")]
-    pub server_flags: Option<Vec<SqlServerServerFlag>>,
+    pub server_flags:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlServerServerFlag>>>,
     /// Optional. List of SQL Server trace flags.
     #[serde(default, rename = "traceFlags")]
-    pub trace_flags: Option<Vec<SqlServerTraceFlag>>,
+    pub trace_flags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlServerTraceFlag>>>,
 }
 
 /// SQL Server feature details.
@@ -2699,10 +2746,10 @@ pub struct SqlServerDatabaseDeployment {
 pub struct SqlServerFeature {
     /// Required. Field enabled is set when a feature is used on the source deployment.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Required. The feature name.
     #[serde(default, rename = "featureName")]
-    pub feature_name: Option<String>,
+    pub feature_name: ::core::option::Option<String>,
 }
 
 /// Specific details for a SqlServer database.
@@ -2710,7 +2757,7 @@ pub struct SqlServerFeature {
 pub struct SqlServerSchemaDetails {
     /// Optional. SqlServer number of CLR objects.
     #[serde(default, rename = "clrObjectCount")]
-    pub clr_object_count: Option<i32>,
+    pub clr_object_count: ::core::option::Option<i32>,
 }
 
 /// SQL Server server flag details.
@@ -2718,13 +2765,13 @@ pub struct SqlServerSchemaDetails {
 pub struct SqlServerServerFlag {
     /// Required. The server flag name.
     #[serde(default, rename = "serverFlagName")]
-    pub server_flag_name: Option<String>,
+    pub server_flag_name: ::core::option::Option<String>,
     /// Required. The server flag value set by the user.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
     /// Required. The server flag actual value. If value_in_use is different from value it means that either the configuration change was not applied or it is an expected behavior. See SQL Server documentation for more details.
     #[serde(default, rename = "valueInUse")]
-    pub value_in_use: Option<String>,
+    pub value_in_use: ::core::option::Option<String>,
 }
 
 /// SQL Server trace flag details.
@@ -2732,10 +2779,10 @@ pub struct SqlServerServerFlag {
 pub struct SqlServerTraceFlag {
     /// Required. The trace flag scope. // TODO: enum values: ["SCOPE_UNSPECIFIED", "OFF", "GLOBAL", "SESSION"]
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// Required. The trace flag name.
     #[serde(default, rename = "traceFlagName")]
-    pub trace_flag_name: Option<String>,
+    pub trace_flag_name: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2743,13 +2790,13 @@ pub struct SqlServerTraceFlag {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A request to update an asset.
@@ -2757,13 +2804,13 @@ pub struct Status {
 pub struct UpdateAssetRequest {
     /// Required. The resource being updated.
     #[serde(default)]
-    pub asset: Option<Asset>,
+    pub asset: ::core::option::Option<::std::boxed::Box<Asset>>,
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Required. Field mask is used to specify the fields to be overwritten in the Asset resource by the update. The values specified in the update_mask field are relative to the resource, not the full request. A field will be overwritten if it is in the mask. A single * value in the mask lets you to overwrite all fields.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// A resource that contains a URI to which a data file can be uploaded.
@@ -2771,13 +2818,13 @@ pub struct UpdateAssetRequest {
 pub struct UploadFileInfo {
     /// Output only. The headers that were used to sign the URI.
     #[serde(default)]
-    pub headers: Option<serde_json::Value>,
+    pub headers: ::core::option::Option<serde_json::Value>,
     /// Output only. Upload URI for the file.
     #[serde(default, rename = "signedUri")]
-    pub signed_uri: Option<String>,
+    pub signed_uri: ::core::option::Option<String>,
     /// Output only. Expiration time of the upload URI.
     #[serde(default, rename = "uriExpirationTime")]
-    pub uri_expiration_time: Option<String>,
+    pub uri_expiration_time: ::core::option::Option<String>,
 }
 
 /// A request to validate an import job.
@@ -2785,7 +2832,7 @@ pub struct UploadFileInfo {
 pub struct ValidateImportJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// A resource that aggregates errors across import job files.
@@ -2793,10 +2840,11 @@ pub struct ValidateImportJobRequest {
 pub struct ValidationReport {
     /// List of errors found in files.
     #[serde(default, rename = "fileValidations")]
-    pub file_validations: Option<Vec<FileValidationReport>>,
+    pub file_validations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FileValidationReport>>>,
     /// List of job level errors.
     #[serde(default, rename = "jobErrors")]
-    pub job_errors: Option<Vec<ImportError>>,
+    pub job_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImportError>>>,
 }
 
 /// VirtualMachinePreferences enables you to create sets of assumptions, for example, a geographical location and pricing track, for your migrated virtual machines. The set of preferences influence recommendations for migrating virtual machine assets.
@@ -2804,25 +2852,27 @@ pub struct ValidationReport {
 pub struct VirtualMachinePreferences {
     /// Commitment plan to consider when calculating costs for virtual machine insights and recommendations. If you are unsure which value to set, a 3 year commitment plan is often a good value to start with. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "COMMITMENT_PLAN_NONE", "COMMITMENT_PLAN_ONE_YEAR", "COMMITMENT_PLAN_THREE_YEARS"]
     #[serde(default, rename = "commitmentPlan")]
-    pub commitment_plan: Option<String>,
+    pub commitment_plan: ::core::option::Option<String>,
     /// Compute Engine preferences concern insights and recommendations for Compute Engine target.
     #[serde(default, rename = "computeEnginePreferences")]
-    pub compute_engine_preferences: Option<ComputeEnginePreferences>,
+    pub compute_engine_preferences:
+        ::core::option::Option<::std::boxed::Box<ComputeEnginePreferences>>,
     /// Region preferences for assets using this preference set. If you are unsure which value to set, the migration service API region is often a good value to start with.
     #[serde(default, rename = "regionPreferences")]
-    pub region_preferences: Option<RegionPreferences>,
+    pub region_preferences: ::core::option::Option<::std::boxed::Box<RegionPreferences>>,
     /// Sizing optimization strategy specifies the preferred strategy used when extrapolating usage data to calculate insights and recommendations for a virtual machine. If you are unsure which value to set, a moderate sizing optimization strategy is often a good value to start with. // TODO: enum values: ["SIZING_OPTIMIZATION_STRATEGY_UNSPECIFIED", "SIZING_OPTIMIZATION_STRATEGY_SAME_AS_SOURCE", "SIZING_OPTIMIZATION_STRATEGY_MODERATE", "SIZING_OPTIMIZATION_STRATEGY_AGGRESSIVE"]
     #[serde(default, rename = "sizingOptimizationStrategy")]
-    pub sizing_optimization_strategy: Option<String>,
+    pub sizing_optimization_strategy: ::core::option::Option<String>,
     /// Preferences concerning Sole Tenant nodes and virtual machines.
     #[serde(default, rename = "soleTenancyPreferences")]
-    pub sole_tenancy_preferences: Option<SoleTenancyPreferences>,
+    pub sole_tenancy_preferences: ::core::option::Option<::std::boxed::Box<SoleTenancyPreferences>>,
     /// Target product for assets using this preference set. Specify either target product or business goal, but not both. // TODO: enum values: ["COMPUTE_MIGRATION_TARGET_PRODUCT_UNSPECIFIED", "COMPUTE_MIGRATION_TARGET_PRODUCT_COMPUTE_ENGINE", "COMPUTE_MIGRATION_TARGET_PRODUCT_VMWARE_ENGINE", "COMPUTE_MIGRATION_TARGET_PRODUCT_SOLE_TENANCY"]
     #[serde(default, rename = "targetProduct")]
-    pub target_product: Option<String>,
+    pub target_product: ::core::option::Option<String>,
     /// Preferences concerning insights and recommendations for Google Cloud VMware Engine.
     #[serde(default, rename = "vmwareEnginePreferences")]
-    pub vmware_engine_preferences: Option<VmwareEnginePreferences>,
+    pub vmware_engine_preferences:
+        ::core::option::Option<::std::boxed::Box<VmwareEnginePreferences>>,
 }
 
 /// VMware disk config details.
@@ -2830,16 +2880,16 @@ pub struct VirtualMachinePreferences {
 pub struct VmwareDiskConfig {
     /// VMDK backing type. // TODO: enum values: ["BACKING_TYPE_UNSPECIFIED", "BACKING_TYPE_FLAT_V1", "BACKING_TYPE_FLAT_V2", "BACKING_TYPE_PMEM", "BACKING_TYPE_RDM_V1", "BACKING_TYPE_RDM_V2", "BACKING_TYPE_SESPARSE", "BACKING_TYPE_SESPARSE_V1", "BACKING_TYPE_SESPARSE_V2"]
     #[serde(default, rename = "backingType")]
-    pub backing_type: Option<String>,
+    pub backing_type: ::core::option::Option<String>,
     /// RDM compatibility mode. // TODO: enum values: ["RDM_COMPATIBILITY_UNSPECIFIED", "PHYSICAL_COMPATIBILITY", "VIRTUAL_COMPATIBILITY"]
     #[serde(default, rename = "rdmCompatibility")]
-    pub rdm_compatibility: Option<String>,
+    pub rdm_compatibility: ::core::option::Option<String>,
     /// Is VMDK shared with other VMs.
     #[serde(default)]
-    pub shared: Option<bool>,
+    pub shared: ::core::option::Option<bool>,
     /// VMDK disk mode. // TODO: enum values: ["VMDK_MODE_UNSPECIFIED", "DEPENDENT", "INDEPENDENT_PERSISTENT", "INDEPENDENT_NONPERSISTENT"]
     #[serde(default, rename = "vmdkMode")]
-    pub vmdk_mode: Option<String>,
+    pub vmdk_mode: ::core::option::Option<String>,
 }
 
 /// The user preferences relating to Google Cloud VMware Engine target platform.
@@ -2847,16 +2897,16 @@ pub struct VmwareDiskConfig {
 pub struct VmwareEnginePreferences {
     /// Commitment plan to consider when calculating costs for virtual machine insights and recommendations. If you are unsure which value to set, a 3 year commitment plan is often a good value to start with. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "ON_DEMAND", "COMMITMENT_1_YEAR_MONTHLY_PAYMENTS", "COMMITMENT_3_YEAR_MONTHLY_PAYMENTS", "COMMITMENT_1_YEAR_UPFRONT_PAYMENT", "COMMITMENT_3_YEAR_UPFRONT_PAYMENT"]
     #[serde(default, rename = "commitmentPlan")]
-    pub commitment_plan: Option<String>,
+    pub commitment_plan: ::core::option::Option<String>,
     /// CPU overcommit ratio. Acceptable values are between 1.0 and 8.0, with 0.1 increment.
     #[serde(default, rename = "cpuOvercommitRatio")]
-    pub cpu_overcommit_ratio: Option<f64>,
+    pub cpu_overcommit_ratio: ::core::option::Option<f64>,
     /// Memory overcommit ratio. Acceptable values are 1.0, 1.25, 1.5, 1.75 and 2.0.
     #[serde(default, rename = "memoryOvercommitRatio")]
-    pub memory_overcommit_ratio: Option<f64>,
+    pub memory_overcommit_ratio: ::core::option::Option<f64>,
     /// The Deduplication and Compression ratio is based on the logical (Used Before) space required to store data before applying deduplication and compression, in relation to the physical (Used After) space required after applying deduplication and compression. Specifically, the ratio is the Used Before space divided by the Used After space. For example, if the Used Before space is 3 GB, but the physical Used After space is 1 GB, the deduplication and compression ratio is 3x. Acceptable values are between 1.0 and 4.0.
     #[serde(default, rename = "storageDeduplicationCompressionRatio")]
-    pub storage_deduplication_compression_ratio: Option<f64>,
+    pub storage_deduplication_compression_ratio: ::core::option::Option<f64>,
 }
 
 /// VMware specific details.
@@ -2864,25 +2914,25 @@ pub struct VmwareEnginePreferences {
 pub struct VmwarePlatformDetails {
     /// Whether the ESX is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default, rename = "esxHyperthreading")]
-    pub esx_hyperthreading: Option<String>,
+    pub esx_hyperthreading: ::core::option::Option<String>,
     /// ESX version.
     #[serde(default, rename = "esxVersion")]
-    pub esx_version: Option<String>,
+    pub esx_version: ::core::option::Option<String>,
     /// VMware os enum - https://vdc-repo.vmware.com/vmwb-repository/dcr-public/da47f910-60ac-438b-8b9b-6122f4d14524/16b7274a-bf8b-4b4c-a05e-746f2aa93c8c/doc/vim.vm.GuestOsDescriptor.GuestOsIdentifier.html.
     #[serde(default)]
-    pub osid: Option<String>,
+    pub osid: ::core::option::Option<String>,
     /// Folder name in vCenter where asset resides.
     #[serde(default, rename = "vcenterFolder")]
-    pub vcenter_folder: Option<String>,
+    pub vcenter_folder: ::core::option::Option<String>,
     /// vCenter URI used in collection.
     #[serde(default, rename = "vcenterUri")]
-    pub vcenter_uri: Option<String>,
+    pub vcenter_uri: ::core::option::Option<String>,
     /// vCenter version.
     #[serde(default, rename = "vcenterVersion")]
-    pub vcenter_version: Option<String>,
+    pub vcenter_version: ::core::option::Option<String>,
     /// vCenter VM ID.
     #[serde(default, rename = "vcenterVmId")]
-    pub vcenter_vm_id: Option<String>,
+    pub vcenter_vm_id: ::core::option::Option<String>,
 }
 
 /// Contains a single output file of type XLSX.
@@ -2890,5 +2940,5 @@ pub struct VmwarePlatformDetails {
 pub struct XlsxOutputFile {
     /// Output only. Signed URI destination.
     #[serde(default, rename = "signedUri")]
-    pub signed_uri: Option<SignedUri>,
+    pub signed_uri: ::core::option::Option<::std::boxed::Box<SignedUri>>,
 }

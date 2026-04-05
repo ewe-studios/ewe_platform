@@ -10,33 +10,33 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// gdata
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GdataBlobstore2Info {
     /// gdata
     #[serde(default, rename = "blobGeneration")]
-    pub blob_generation: Option<String>,
+    pub blob_generation: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "blobId")]
-    pub blob_id: Option<String>,
+    pub blob_id: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "downloadExternalReadToken")]
-    pub download_external_read_token: Option<String>,
+    pub download_external_read_token: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "downloadReadHandle")]
-    pub download_read_handle: Option<String>,
+    pub download_read_handle: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "readToken")]
-    pub read_token: Option<String>,
+    pub read_token: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "uploadFragmentListCreationInfo")]
-    pub upload_fragment_list_creation_info: Option<String>,
+    pub upload_fragment_list_creation_info: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "uploadMetadataContainer")]
-    pub upload_metadata_container: Option<String>,
+    pub upload_metadata_container: ::core::option::Option<String>,
 }
 
 /// gdata
@@ -44,37 +44,37 @@ pub struct GdataBlobstore2Info {
 pub struct GdataCompositeMedia {
     /// gdata
     #[serde(default, rename = "blobRef")]
-    pub blob_ref: Option<String>,
+    pub blob_ref: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "blobstore2Info")]
-    pub blobstore2_info: Option<GdataBlobstore2Info>,
+    pub blobstore2_info: ::core::option::Option<::std::boxed::Box<GdataBlobstore2Info>>,
     /// gdata
     #[serde(default, rename = "cosmoBinaryReference")]
-    pub cosmo_binary_reference: Option<String>,
+    pub cosmo_binary_reference: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "crc32cHash")]
-    pub crc32c_hash: Option<i64>,
+    pub crc32c_hash: ::core::option::Option<i64>,
     /// gdata
     #[serde(default)]
-    pub inline: Option<String>,
+    pub inline: ::core::option::Option<String>,
     /// gdata
     #[serde(default)]
-    pub length: Option<String>,
+    pub length: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "md5Hash")]
-    pub md5_hash: Option<String>,
+    pub md5_hash: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<GdataObjectId>,
+    pub object_id: ::core::option::Option<::std::boxed::Box<GdataObjectId>>,
     /// gdata
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// gdata // TODO: enum values: ["PATH", "BLOB_REF", "INLINE", "BIGSTORE_REF", "COSMO_BINARY_REFERENCE"]
     #[serde(default, rename = "referenceType")]
-    pub reference_type: Option<String>,
+    pub reference_type: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "sha1Hash")]
-    pub sha1_hash: Option<String>,
+    pub sha1_hash: ::core::option::Option<String>,
 }
 
 /// gdata
@@ -82,19 +82,19 @@ pub struct GdataCompositeMedia {
 pub struct GdataContentTypeInfo {
     /// gdata
     #[serde(default, rename = "bestGuess")]
-    pub best_guess: Option<String>,
+    pub best_guess: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "fromBytes")]
-    pub from_bytes: Option<String>,
+    pub from_bytes: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "fromFileName")]
-    pub from_file_name: Option<String>,
+    pub from_file_name: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "fromHeader")]
-    pub from_header: Option<String>,
+    pub from_header: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "fromUrlPath")]
-    pub from_url_path: Option<String>,
+    pub from_url_path: ::core::option::Option<String>,
 }
 
 /// gdata
@@ -102,19 +102,19 @@ pub struct GdataContentTypeInfo {
 pub struct GdataDiffChecksumsResponse {
     /// gdata
     #[serde(default, rename = "checksumsLocation")]
-    pub checksums_location: Option<GdataCompositeMedia>,
+    pub checksums_location: ::core::option::Option<::std::boxed::Box<GdataCompositeMedia>>,
     /// gdata
     #[serde(default, rename = "chunkSizeBytes")]
-    pub chunk_size_bytes: Option<String>,
+    pub chunk_size_bytes: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "objectLocation")]
-    pub object_location: Option<GdataCompositeMedia>,
+    pub object_location: ::core::option::Option<::std::boxed::Box<GdataCompositeMedia>>,
     /// gdata
     #[serde(default, rename = "objectSizeBytes")]
-    pub object_size_bytes: Option<String>,
+    pub object_size_bytes: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "objectVersion")]
-    pub object_version: Option<String>,
+    pub object_version: ::core::option::Option<String>,
 }
 
 /// gdata
@@ -122,7 +122,7 @@ pub struct GdataDiffChecksumsResponse {
 pub struct GdataDiffDownloadResponse {
     /// gdata
     #[serde(default, rename = "objectLocation")]
-    pub object_location: Option<GdataCompositeMedia>,
+    pub object_location: ::core::option::Option<::std::boxed::Box<GdataCompositeMedia>>,
 }
 
 /// gdata
@@ -130,13 +130,13 @@ pub struct GdataDiffDownloadResponse {
 pub struct GdataDiffUploadRequest {
     /// gdata
     #[serde(default, rename = "checksumsInfo")]
-    pub checksums_info: Option<GdataCompositeMedia>,
+    pub checksums_info: ::core::option::Option<::std::boxed::Box<GdataCompositeMedia>>,
     /// gdata
     #[serde(default, rename = "objectInfo")]
-    pub object_info: Option<GdataCompositeMedia>,
+    pub object_info: ::core::option::Option<::std::boxed::Box<GdataCompositeMedia>>,
     /// gdata
     #[serde(default, rename = "objectVersion")]
-    pub object_version: Option<String>,
+    pub object_version: ::core::option::Option<String>,
 }
 
 /// gdata
@@ -144,10 +144,10 @@ pub struct GdataDiffUploadRequest {
 pub struct GdataDiffUploadResponse {
     /// gdata
     #[serde(default, rename = "objectVersion")]
-    pub object_version: Option<String>,
+    pub object_version: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "originalObject")]
-    pub original_object: Option<GdataCompositeMedia>,
+    pub original_object: ::core::option::Option<::std::boxed::Box<GdataCompositeMedia>>,
 }
 
 /// gdata
@@ -155,10 +155,10 @@ pub struct GdataDiffUploadResponse {
 pub struct GdataDiffVersionResponse {
     /// gdata
     #[serde(default, rename = "objectSizeBytes")]
-    pub object_size_bytes: Option<String>,
+    pub object_size_bytes: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "objectVersion")]
-    pub object_version: Option<String>,
+    pub object_version: ::core::option::Option<String>,
 }
 
 /// gdata
@@ -166,10 +166,10 @@ pub struct GdataDiffVersionResponse {
 pub struct GdataDownloadParameters {
     /// gdata
     #[serde(default, rename = "allowGzipCompression")]
-    pub allow_gzip_compression: Option<bool>,
+    pub allow_gzip_compression: ::core::option::Option<bool>,
     /// gdata
     #[serde(default, rename = "ignoreRange")]
-    pub ignore_range: Option<bool>,
+    pub ignore_range: ::core::option::Option<bool>,
 }
 
 /// gdata
@@ -177,94 +177,97 @@ pub struct GdataDownloadParameters {
 pub struct GdataMedia {
     /// gdata
     #[serde(default)]
-    pub algorithm: Option<String>,
+    pub algorithm: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "bigstoreObjectRef")]
-    pub bigstore_object_ref: Option<String>,
+    pub bigstore_object_ref: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "blobRef")]
-    pub blob_ref: Option<String>,
+    pub blob_ref: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "blobstore2Info")]
-    pub blobstore2_info: Option<GdataBlobstore2Info>,
+    pub blobstore2_info: ::core::option::Option<::std::boxed::Box<GdataBlobstore2Info>>,
     /// gdata
     #[serde(default, rename = "compositeMedia")]
-    pub composite_media: Option<Vec<GdataCompositeMedia>>,
+    pub composite_media:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GdataCompositeMedia>>>,
     /// gdata
     #[serde(default, rename = "contentType")]
-    pub content_type: Option<String>,
+    pub content_type: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "contentTypeInfo")]
-    pub content_type_info: Option<GdataContentTypeInfo>,
+    pub content_type_info: ::core::option::Option<::std::boxed::Box<GdataContentTypeInfo>>,
     /// gdata
     #[serde(default, rename = "cosmoBinaryReference")]
-    pub cosmo_binary_reference: Option<String>,
+    pub cosmo_binary_reference: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "crc32cHash")]
-    pub crc32c_hash: Option<i64>,
+    pub crc32c_hash: ::core::option::Option<i64>,
     /// gdata
     #[serde(default, rename = "diffChecksumsResponse")]
-    pub diff_checksums_response: Option<GdataDiffChecksumsResponse>,
+    pub diff_checksums_response:
+        ::core::option::Option<::std::boxed::Box<GdataDiffChecksumsResponse>>,
     /// gdata
     #[serde(default, rename = "diffDownloadResponse")]
-    pub diff_download_response: Option<GdataDiffDownloadResponse>,
+    pub diff_download_response:
+        ::core::option::Option<::std::boxed::Box<GdataDiffDownloadResponse>>,
     /// gdata
     #[serde(default, rename = "diffUploadRequest")]
-    pub diff_upload_request: Option<GdataDiffUploadRequest>,
+    pub diff_upload_request: ::core::option::Option<::std::boxed::Box<GdataDiffUploadRequest>>,
     /// gdata
     #[serde(default, rename = "diffUploadResponse")]
-    pub diff_upload_response: Option<GdataDiffUploadResponse>,
+    pub diff_upload_response: ::core::option::Option<::std::boxed::Box<GdataDiffUploadResponse>>,
     /// gdata
     #[serde(default, rename = "diffVersionResponse")]
-    pub diff_version_response: Option<GdataDiffVersionResponse>,
+    pub diff_version_response: ::core::option::Option<::std::boxed::Box<GdataDiffVersionResponse>>,
     /// gdata
     #[serde(default, rename = "downloadParameters")]
-    pub download_parameters: Option<GdataDownloadParameters>,
+    pub download_parameters: ::core::option::Option<::std::boxed::Box<GdataDownloadParameters>>,
     /// gdata
     #[serde(default)]
-    pub filename: Option<String>,
+    pub filename: ::core::option::Option<String>,
     /// gdata
     #[serde(default)]
-    pub hash: Option<String>,
+    pub hash: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "hashVerified")]
-    pub hash_verified: Option<bool>,
+    pub hash_verified: ::core::option::Option<bool>,
     /// gdata
     #[serde(default)]
-    pub inline: Option<String>,
+    pub inline: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "isPotentialRetry")]
-    pub is_potential_retry: Option<bool>,
+    pub is_potential_retry: ::core::option::Option<bool>,
     /// gdata
     #[serde(default)]
-    pub length: Option<String>,
+    pub length: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "md5Hash")]
-    pub md5_hash: Option<String>,
+    pub md5_hash: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "mediaId")]
-    pub media_id: Option<String>,
+    pub media_id: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<GdataObjectId>,
+    pub object_id: ::core::option::Option<::std::boxed::Box<GdataObjectId>>,
     /// gdata
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// gdata // TODO: enum values: ["PATH", "BLOB_REF", "INLINE", "GET_MEDIA", "COMPOSITE_MEDIA", "BIGSTORE_REF", "DIFF_VERSION_RESPONSE", "DIFF_CHECKSUMS_RESPONSE", "DIFF_DOWNLOAD_RESPONSE", "DIFF_UPLOAD_REQUEST", "DIFF_UPLOAD_RESPONSE", "COSMO_BINARY_REFERENCE", "ARBITRARY_BYTES"]
     #[serde(default, rename = "referenceType")]
-    pub reference_type: Option<String>,
+    pub reference_type: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "sha1Hash")]
-    pub sha1_hash: Option<String>,
+    pub sha1_hash: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "sha256Hash")]
-    pub sha256_hash: Option<String>,
+    pub sha256_hash: ::core::option::Option<String>,
     /// gdata
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
     /// gdata
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// gdata
@@ -272,13 +275,13 @@ pub struct GdataMedia {
 pub struct GdataObjectId {
     /// gdata
     #[serde(default, rename = "bucketName")]
-    pub bucket_name: Option<String>,
+    pub bucket_name: ::core::option::Option<String>,
     /// gdata
     #[serde(default)]
-    pub generation: Option<String>,
+    pub generation: ::core::option::Option<String>,
     /// gdata
     #[serde(default, rename = "objectName")]
-    pub object_name: Option<String>,
+    pub object_name: ::core::option::Option<String>,
 }
 
 /// A job creating reports of a specific type.
@@ -286,22 +289,22 @@ pub struct GdataObjectId {
 pub struct Job {
     /// The creation date/time of the job.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The date/time when this job will expire/expired. After a job expired, no new reports are generated.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// The server-generated ID of the job (max. 40 characters).
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The name of the job (max. 100 characters).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The type of reports this job creates. Corresponds to the ID of a ReportType.
     #[serde(default, rename = "reportTypeId")]
-    pub report_type_id: Option<String>,
+    pub report_type_id: ::core::option::Option<String>,
     /// True if this a system-managed job that cannot be modified by the user; otherwise false.
     #[serde(default, rename = "systemManaged")]
-    pub system_managed: Option<bool>,
+    pub system_managed: ::core::option::Option<bool>,
 }
 
 /// Response message for ReportingService.ListJobs.
@@ -309,10 +312,10 @@ pub struct Job {
 pub struct ListJobsResponse {
     /// The list of jobs.
     #[serde(default)]
-    pub jobs: Option<Vec<Job>>,
+    pub jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Job>>>,
     /// A token to retrieve next page of results. Pass this value in the ListJobsRequest.page_token field in the subsequent call to ListJobs method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ReportingService.ListReportTypes.
@@ -320,10 +323,10 @@ pub struct ListJobsResponse {
 pub struct ListReportTypesResponse {
     /// A token to retrieve next page of results. Pass this value in the ListReportTypesRequest.page_token field in the subsequent call to ListReportTypes method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of report types.
     #[serde(default, rename = "reportTypes")]
-    pub report_types: Option<Vec<ReportType>>,
+    pub report_types: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReportType>>>,
 }
 
 /// Response message for ReportingService.ListReports.
@@ -331,10 +334,10 @@ pub struct ListReportTypesResponse {
 pub struct ListReportsResponse {
     /// A token to retrieve next page of results. Pass this value in the ListReportsRequest.page_token field in the subsequent call to ListReports method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of report types.
     #[serde(default)]
-    pub reports: Option<Vec<Report>>,
+    pub reports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Report>>>,
 }
 
 /// A report''s metadata including the URL from which the report itself can be downloaded.
@@ -342,25 +345,25 @@ pub struct ListReportsResponse {
 pub struct Report {
     /// The date/time when this report was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The URL from which the report can be downloaded (max. 1000 characters).
     #[serde(default, rename = "downloadUrl")]
-    pub download_url: Option<String>,
+    pub download_url: ::core::option::Option<String>,
     /// The end of the time period that the report instance covers. The value is exclusive.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The server-generated ID of the report.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The date/time when the job this report belongs to will expire/expired.
     #[serde(default, rename = "jobExpireTime")]
-    pub job_expire_time: Option<String>,
+    pub job_expire_time: ::core::option::Option<String>,
     /// The ID of the job that created this report.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// The start of the time period that the report instance covers. The value is inclusive.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// A report type.
@@ -368,14 +371,14 @@ pub struct Report {
 pub struct ReportType {
     /// The date/time when this report type was/will be deprecated.
     #[serde(default, rename = "deprecateTime")]
-    pub deprecate_time: Option<String>,
+    pub deprecate_time: ::core::option::Option<String>,
     /// The ID of the report type (max. 100 characters).
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The name of the report type (max. 100 characters).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// True if this a system-managed report type; otherwise false. Reporting jobs for system-managed report types are created automatically and can thus not be used in the CreateJob method.
     #[serde(default, rename = "systemManaged")]
-    pub system_managed: Option<bool>,
+    pub system_managed: ::core::option::Option<bool>,
 }

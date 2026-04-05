@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Associates members, or principals, with a role.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -32,16 +32,16 @@ pub struct Binding {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Request message for GetIamPolicy method.
@@ -49,7 +49,7 @@ pub struct Expr {
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
-    pub options: Option<GetPolicyOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<GetPolicyOptions>>,
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
@@ -57,7 +57,7 @@ pub struct GetIamPolicyRequest {
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
-    pub requested_policy_version: Option<i32>,
+    pub requested_policy_version: ::core::option::Option<i32>,
 }
 
 /// Specification for the BigQuery connection.
@@ -65,13 +65,15 @@ pub struct GetPolicyOptions {
 pub struct GoogleCloudDatacatalogV1BigQueryConnectionSpec {
     /// Specification for the BigQuery connection to a Cloud SQL instance.
     #[serde(default, rename = "cloudSql")]
-    pub cloud_sql: Option<GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec>,
+    pub cloud_sql: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec>,
+    >,
     /// The type of the BigQuery connection. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "CLOUD_SQL"]
     #[serde(default, rename = "connectionType")]
-    pub connection_type: Option<String>,
+    pub connection_type: ::core::option::Option<String>,
     /// True if there are credentials attached to the BigQuery connection; false otherwise.
     #[serde(default, rename = "hasCredential")]
-    pub has_credential: Option<bool>,
+    pub has_credential: ::core::option::Option<bool>,
 }
 
 /// Specification for a group of BigQuery tables with the [prefix]YYYYMMDD name pattern. For more information, see [Introduction to partitioned tables] (https://cloud.google.com/bigquery/docs/partitioned-tables#partitioning_versus_sharding).
@@ -79,16 +81,16 @@ pub struct GoogleCloudDatacatalogV1BigQueryConnectionSpec {
 pub struct GoogleCloudDatacatalogV1BigQueryDateShardedSpec {
     /// Output only. The Data Catalog resource name of the dataset entry the current table belongs to. For example: projects/{PROJECT_ID}/locations/{LOCATION}/entrygroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. BigQuery resource name of the latest shard.
     #[serde(default, rename = "latestShardResource")]
-    pub latest_shard_resource: Option<String>,
+    pub latest_shard_resource: ::core::option::Option<String>,
     /// Output only. Total number of shards.
     #[serde(default, rename = "shardCount")]
-    pub shard_count: Option<String>,
+    pub shard_count: ::core::option::Option<String>,
     /// Output only. The table name prefix of the shards. The name of any given shard is [table_prefix]YYYYMMDD. For example, for the MyTable20180101 shard, the table_prefix is MyTable.
     #[serde(default, rename = "tablePrefix")]
-    pub table_prefix: Option<String>,
+    pub table_prefix: ::core::option::Option<String>,
 }
 
 /// Fields specific for BigQuery routines.
@@ -96,7 +98,7 @@ pub struct GoogleCloudDatacatalogV1BigQueryDateShardedSpec {
 pub struct GoogleCloudDatacatalogV1BigQueryRoutineSpec {
     /// Paths of the imported libraries.
     #[serde(default, rename = "importedLibraries")]
-    pub imported_libraries: Option<Vec<String>>,
+    pub imported_libraries: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Describes a BigQuery table.
@@ -104,13 +106,13 @@ pub struct GoogleCloudDatacatalogV1BigQueryRoutineSpec {
 pub struct GoogleCloudDatacatalogV1BigQueryTableSpec {
     /// Output only. The table source type. // TODO: enum values: ["TABLE_SOURCE_TYPE_UNSPECIFIED", "BIGQUERY_VIEW", "BIGQUERY_TABLE", "BIGQUERY_MATERIALIZED_VIEW"]
     #[serde(default, rename = "tableSourceType")]
-    pub table_source_type: Option<String>,
+    pub table_source_type: ::core::option::Option<String>,
     /// Specification of a BigQuery table. Populated only if the table_source_type is BIGQUERY_TABLE.
     #[serde(default, rename = "tableSpec")]
-    pub table_spec: Option<GoogleCloudDatacatalogV1TableSpec>,
+    pub table_spec: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1TableSpec>>,
     /// Table view specification. Populated only if the table_source_type is BIGQUERY_VIEW.
     #[serde(default, rename = "viewSpec")]
-    pub view_spec: Option<GoogleCloudDatacatalogV1ViewSpec>,
+    pub view_spec: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1ViewSpec>>,
 }
 
 /// Business Context of the entry.
@@ -118,10 +120,11 @@ pub struct GoogleCloudDatacatalogV1BigQueryTableSpec {
 pub struct GoogleCloudDatacatalogV1BusinessContext {
     /// Contact people for the entry.
     #[serde(default)]
-    pub contacts: Option<GoogleCloudDatacatalogV1Contacts>,
+    pub contacts: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1Contacts>>,
     /// Entry overview fields for rich text descriptions of entries.
     #[serde(default, rename = "entryOverview")]
-    pub entry_overview: Option<GoogleCloudDatacatalogV1EntryOverview>,
+    pub entry_overview:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1EntryOverview>>,
 }
 
 /// Specification that applies to Instance entries that are part of CLOUD_BIGTABLE system. (user_specified_type)
@@ -129,8 +132,13 @@ pub struct GoogleCloudDatacatalogV1BusinessContext {
 pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpec {
     /// The list of clusters for the Instance.
     #[serde(default, rename = "cloudBigtableClusterSpecs")]
-    pub cloud_bigtable_cluster_specs:
-        Option<Vec<GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec>>,
+    pub cloud_bigtable_cluster_specs: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec,
+            >,
+        >,
+    >,
 }
 
 /// Spec that applies to clusters of an Instance of Cloud Bigtable.
@@ -138,16 +146,16 @@ pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpec {
 pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec {
     /// Name of the cluster.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// A link back to the parent resource, in this case Instance.
     #[serde(default, rename = "linkedResource")]
-    pub linked_resource: Option<String>,
+    pub linked_resource: ::core::option::Option<String>,
     /// Location of the cluster, typically a Cloud zone.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Type of the resource. For a cluster this would be "CLUSTER".
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Specification that applies to all entries that are part of CLOUD_BIGTABLE system (user_specified_type)
@@ -155,7 +163,7 @@ pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableCluster
 pub struct GoogleCloudDatacatalogV1CloudBigtableSystemSpec {
     /// Display name of the Instance. This is user specified and different from the resource name.
     #[serde(default, rename = "instanceDisplayName")]
-    pub instance_display_name: Option<String>,
+    pub instance_display_name: ::core::option::Option<String>,
 }
 
 /// Specification for the BigQuery connection to a Cloud SQL instance.
@@ -163,13 +171,13 @@ pub struct GoogleCloudDatacatalogV1CloudBigtableSystemSpec {
 pub struct GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec {
     /// Database name.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// Cloud SQL instance ID in the format of project:location:instance.
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
     /// Type of the Cloud SQL database. // TODO: enum values: ["DATABASE_TYPE_UNSPECIFIED", "POSTGRES", "MYSQL"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A column within a schema. Columns can be nested inside other columns.
@@ -177,37 +185,43 @@ pub struct GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec {
 pub struct GoogleCloudDatacatalogV1ColumnSchema {
     /// Required. Name of the column. Must be a UTF-8 string without dots (.). The maximum size is 64 bytes.
     #[serde(default)]
-    pub column: Option<String>,
+    pub column: ::core::option::Option<String>,
     /// Optional. Default value for the column.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<String>,
+    pub default_value: ::core::option::Option<String>,
     /// Optional. Description of the column. Default value is an empty string. The description must be a UTF-8 string with the maximum size of 2000 bytes.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Garbage collection policy for the column or column family. Applies to systems like Cloud Bigtable.
     #[serde(default, rename = "gcRule")]
-    pub gc_rule: Option<String>,
+    pub gc_rule: ::core::option::Option<String>,
     /// Optional. Most important inclusion of this column. // TODO: enum values: ["INDEXING_TYPE_UNSPECIFIED", "INDEXING_TYPE_NONE", "INDEXING_TYPE_NON_UNIQUE", "INDEXING_TYPE_UNIQUE", "INDEXING_TYPE_PRIMARY_KEY"]
     #[serde(default, rename = "highestIndexingType")]
-    pub highest_indexing_type: Option<String>,
+    pub highest_indexing_type: ::core::option::Option<String>,
     /// Looker specific column info of this column.
     #[serde(default, rename = "lookerColumnSpec")]
-    pub looker_column_spec: Option<GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec>,
+    pub looker_column_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec>,
+    >,
     /// Optional. A column''s mode indicates whether values in this column are required, nullable, or repeated. Only NULLABLE, REQUIRED, and REPEATED values are supported. Default mode is NULLABLE.
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// Optional. Ordinal position
     #[serde(default, rename = "ordinalPosition")]
-    pub ordinal_position: Option<i32>,
+    pub ordinal_position: ::core::option::Option<i32>,
     /// Optional. The subtype of the RANGE, if the type of this field is RANGE. If the type is RANGE, this field is required. Possible values for the field element type of a RANGE include: * DATE * DATETIME * TIMESTAMP
     #[serde(default, rename = "rangeElementType")]
-    pub range_element_type: Option<GoogleCloudDatacatalogV1ColumnSchemaFieldElementType>,
+    pub range_element_type: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1ColumnSchemaFieldElementType>,
+    >,
     /// Optional. Schema of sub-columns. A column can have zero or more sub-columns.
     #[serde(default)]
-    pub subcolumns: Option<Vec<GoogleCloudDatacatalogV1ColumnSchema>>,
+    pub subcolumns: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1ColumnSchema>>,
+    >,
     /// Required. Type of the column. Must be a UTF-8 string with the maximum size of 128 bytes.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents the type of a field element.
@@ -215,7 +229,7 @@ pub struct GoogleCloudDatacatalogV1ColumnSchema {
 pub struct GoogleCloudDatacatalogV1ColumnSchemaFieldElementType {
     /// Required. The type of a field element. See ColumnSchema.type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Column info specific to Looker System.
@@ -223,7 +237,7 @@ pub struct GoogleCloudDatacatalogV1ColumnSchemaFieldElementType {
 pub struct GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec {
     /// Looker specific column type of this column. // TODO: enum values: ["LOOKER_COLUMN_TYPE_UNSPECIFIED", "DIMENSION", "DIMENSION_GROUP", "FILTER", "MEASURE", "PARAMETER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Common statistics on the entry''s usage. They can be set on any system.
@@ -231,7 +245,7 @@ pub struct GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec {
 pub struct GoogleCloudDatacatalogV1CommonUsageStats {
     /// View count in source system.
     #[serde(default, rename = "viewCount")]
-    pub view_count: Option<String>,
+    pub view_count: ::core::option::Option<String>,
 }
 
 /// Contact people for the entry.
@@ -239,7 +253,9 @@ pub struct GoogleCloudDatacatalogV1CommonUsageStats {
 pub struct GoogleCloudDatacatalogV1Contacts {
     /// The list of contact people for the entry.
     #[serde(default)]
-    pub people: Option<Vec<GoogleCloudDatacatalogV1ContactsPerson>>,
+    pub people: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1ContactsPerson>>,
+    >,
 }
 
 /// A contact person for the entry.
@@ -247,10 +263,10 @@ pub struct GoogleCloudDatacatalogV1Contacts {
 pub struct GoogleCloudDatacatalogV1ContactsPerson {
     /// Designation of the person, for example, Data Steward.
     #[serde(default)]
-    pub designation: Option<String>,
+    pub designation: ::core::option::Option<String>,
     /// Email of the person in the format of john.doe@xyz, , or John Doe.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// Cross-regional source used to import an existing taxonomy into a different region.
@@ -258,7 +274,7 @@ pub struct GoogleCloudDatacatalogV1ContactsPerson {
 pub struct GoogleCloudDatacatalogV1CrossRegionalSource {
     /// Required. The resource name of the source taxonomy to import.
     #[serde(default)]
-    pub taxonomy: Option<String>,
+    pub taxonomy: ::core::option::Option<String>,
 }
 
 /// Physical location of an entry.
@@ -266,16 +282,17 @@ pub struct GoogleCloudDatacatalogV1CrossRegionalSource {
 pub struct GoogleCloudDatacatalogV1DataSource {
     /// Full name of a resource as defined by the service. For example: //bigquery.googleapis.com/projects/{PROJECT_ID}/locations/{LOCATION}/datasets/{DATASET_ID}/tables/{TABLE_ID}
     #[serde(default)]
-    pub resource: Option<String>,
+    pub resource: ::core::option::Option<String>,
     /// Service that physically stores the data. // TODO: enum values: ["SERVICE_UNSPECIFIED", "CLOUD_STORAGE", "BIGQUERY"]
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
     /// Output only. Data Catalog entry name, if applicable.
     #[serde(default, rename = "sourceEntry")]
-    pub source_entry: Option<String>,
+    pub source_entry: ::core::option::Option<String>,
     /// Detailed properties of the underlying storage.
     #[serde(default, rename = "storageProperties")]
-    pub storage_properties: Option<GoogleCloudDatacatalogV1StorageProperties>,
+    pub storage_properties:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1StorageProperties>>,
 }
 
 /// Specification that applies to a data source connection. Valid only for entries with the DATA_SOURCE_CONNECTION type. Only one of internal specs can be set at the time, and cannot be changed later.
@@ -283,7 +300,8 @@ pub struct GoogleCloudDatacatalogV1DataSource {
 pub struct GoogleCloudDatacatalogV1DataSourceConnectionSpec {
     /// Output only. Fields specific to BigQuery connections.
     #[serde(default, rename = "bigqueryConnectionSpec")]
-    pub bigquery_connection_spec: Option<GoogleCloudDatacatalogV1BigQueryConnectionSpec>,
+    pub bigquery_connection_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1BigQueryConnectionSpec>>,
 }
 
 /// Specification that applies to a table resource. Valid only for entries with the TABLE type.
@@ -291,13 +309,16 @@ pub struct GoogleCloudDatacatalogV1DataSourceConnectionSpec {
 pub struct GoogleCloudDatacatalogV1DatabaseTableSpec {
     /// Spec what applies to tables that are actually views. Not set for "real" tables.
     #[serde(default, rename = "databaseViewSpec")]
-    pub database_view_spec: Option<GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec>,
+    pub database_view_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec>,
+    >,
     /// Output only. Fields specific to a Dataplex Universal Catalog table and present only in the Dataplex Universal Catalog table entries.
     #[serde(default, rename = "dataplexTable")]
-    pub dataplex_table: Option<GoogleCloudDatacatalogV1DataplexTableSpec>,
+    pub dataplex_table:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1DataplexTableSpec>>,
     /// Type of this table. // TODO: enum values: ["TABLE_TYPE_UNSPECIFIED", "NATIVE", "EXTERNAL"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Specification that applies to database view.
@@ -305,13 +326,13 @@ pub struct GoogleCloudDatacatalogV1DatabaseTableSpec {
 pub struct GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec {
     /// Name of a singular table this view reflects one to one.
     #[serde(default, rename = "baseTable")]
-    pub base_table: Option<String>,
+    pub base_table: ::core::option::Option<String>,
     /// SQL query used to generate this view.
     #[serde(default, rename = "sqlQuery")]
-    pub sql_query: Option<String>,
+    pub sql_query: ::core::option::Option<String>,
     /// Type of this view. // TODO: enum values: ["VIEW_TYPE_UNSPECIFIED", "STANDARD_VIEW", "MATERIALIZED_VIEW"]
     #[serde(default, rename = "viewType")]
-    pub view_type: Option<String>,
+    pub view_type: ::core::option::Option<String>,
 }
 
 /// External table registered by Dataplex Universal Catalog. Dataplex Universal Catalog publishes data discovered from an asset into multiple other systems (BigQuery, DPMS) in form of tables. We call them "external tables". External tables are also synced into the Data Catalog. This message contains pointers to those external tables (fully qualified name, resource name et cetera) within the Data Catalog.
@@ -319,16 +340,16 @@ pub struct GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec {
 pub struct GoogleCloudDatacatalogV1DataplexExternalTable {
     /// Name of the Data Catalog entry representing the external table.
     #[serde(default, rename = "dataCatalogEntry")]
-    pub data_catalog_entry: Option<String>,
+    pub data_catalog_entry: ::core::option::Option<String>,
     /// Fully qualified name (FQN) of the external table.
     #[serde(default, rename = "fullyQualifiedName")]
-    pub fully_qualified_name: Option<String>,
+    pub fully_qualified_name: ::core::option::Option<String>,
     /// Google Cloud resource name of the external table.
     #[serde(default, rename = "googleCloudResource")]
-    pub google_cloud_resource: Option<String>,
+    pub google_cloud_resource: ::core::option::Option<String>,
     /// Service in which the external table is registered. // TODO: enum values: ["INTEGRATED_SYSTEM_UNSPECIFIED", "BIGQUERY", "CLOUD_PUBSUB", "DATAPROC_METASTORE", "DATAPLEX", "CLOUD_SPANNER", "CLOUD_BIGTABLE", "CLOUD_SQL", "LOOKER", "VERTEX_AI"]
     #[serde(default)]
-    pub system: Option<String>,
+    pub system: ::core::option::Option<String>,
 }
 
 /// Entry specification for a Dataplex Universal Catalog fileset.
@@ -336,7 +357,8 @@ pub struct GoogleCloudDatacatalogV1DataplexExternalTable {
 pub struct GoogleCloudDatacatalogV1DataplexFilesetSpec {
     /// Common Dataplex Universal Catalog fields.
     #[serde(default, rename = "dataplexSpec")]
-    pub dataplex_spec: Option<GoogleCloudDatacatalogV1DataplexSpec>,
+    pub dataplex_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1DataplexSpec>>,
 }
 
 /// Common Dataplex Universal Catalog fields.
@@ -344,16 +366,17 @@ pub struct GoogleCloudDatacatalogV1DataplexFilesetSpec {
 pub struct GoogleCloudDatacatalogV1DataplexSpec {
     /// Fully qualified resource name of an asset in Dataplex Universal Catalog, to which the underlying data source (Cloud Storage bucket or BigQuery dataset) of the entity is attached.
     #[serde(default)]
-    pub asset: Option<String>,
+    pub asset: ::core::option::Option<String>,
     /// Compression format of the data, e.g., zip, gzip etc.
     #[serde(default, rename = "compressionFormat")]
-    pub compression_format: Option<String>,
+    pub compression_format: ::core::option::Option<String>,
     /// Format of the data.
     #[serde(default, rename = "dataFormat")]
-    pub data_format: Option<GoogleCloudDatacatalogV1PhysicalSchema>,
+    pub data_format:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1PhysicalSchema>>,
     /// Project ID of the underlying Cloud Storage or BigQuery data. Note that this may not be the same project as the corresponding Dataplex Universal Catalog lake / zone / asset.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
 }
 
 /// Entry specification for a Dataplex Universal Catalog table.
@@ -361,13 +384,16 @@ pub struct GoogleCloudDatacatalogV1DataplexSpec {
 pub struct GoogleCloudDatacatalogV1DataplexTableSpec {
     /// Common Dataplex Universal Catalog fields.
     #[serde(default, rename = "dataplexSpec")]
-    pub dataplex_spec: Option<GoogleCloudDatacatalogV1DataplexSpec>,
+    pub dataplex_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1DataplexSpec>>,
     /// List of external tables registered by Dataplex Universal Catalog in other systems based on the same underlying data. External tables allow to query this data in those systems.
     #[serde(default, rename = "externalTables")]
-    pub external_tables: Option<Vec<GoogleCloudDatacatalogV1DataplexExternalTable>>,
+    pub external_tables: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1DataplexExternalTable>>,
+    >,
     /// Indicates if the table schema is managed by the user or not.
     #[serde(default, rename = "userManaged")]
-    pub user_managed: Option<bool>,
+    pub user_managed: ::core::option::Option<bool>,
 }
 
 /// Specification that applies to a dataset. Valid only for entries with the DATASET type.
@@ -375,7 +401,8 @@ pub struct GoogleCloudDatacatalogV1DataplexTableSpec {
 pub struct GoogleCloudDatacatalogV1DatasetSpec {
     /// Vertex AI Dataset specific fields
     #[serde(default, rename = "vertexDatasetSpec")]
-    pub vertex_dataset_spec: Option<GoogleCloudDatacatalogV1VertexDatasetSpec>,
+    pub vertex_dataset_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1VertexDatasetSpec>>,
 }
 
 /// Wrapper for any item that can be contained in the dump.
@@ -383,7 +410,8 @@ pub struct GoogleCloudDatacatalogV1DatasetSpec {
 pub struct GoogleCloudDatacatalogV1DumpItem {
     /// Entry and its tags.
     #[serde(default, rename = "taggedEntry")]
-    pub tagged_entry: Option<GoogleCloudDatacatalogV1TaggedEntry>,
+    pub tagged_entry:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1TaggedEntry>>,
 }
 
 /// Entry metadata. A Data Catalog entry represents another resource in Google Cloud Platform (such as a BigQuery dataset or a Pub/Sub topic) or outside of it. You can use the linked_resource field in the entry resource to refer to the original resource ID of the source system. An entry resource contains resource details, for example, its schema. Additionally, you can attach flexible metadata to an entry in the form of a Tag.
@@ -391,100 +419,118 @@ pub struct GoogleCloudDatacatalogV1DumpItem {
 pub struct GoogleCloudDatacatalogV1Entry {
     /// Output only. Specification for a group of BigQuery tables with the [prefix]YYYYMMDD name pattern. For more information, see [Introduction to partitioned tables] (https://cloud.google.com/bigquery/docs/partitioned-tables#partitioning_versus_sharding).
     #[serde(default, rename = "bigqueryDateShardedSpec")]
-    pub bigquery_date_sharded_spec: Option<GoogleCloudDatacatalogV1BigQueryDateShardedSpec>,
+    pub bigquery_date_sharded_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1BigQueryDateShardedSpec>>,
     /// Output only. Specification that applies to a BigQuery table. Valid only for entries with the TABLE type.
     #[serde(default, rename = "bigqueryTableSpec")]
-    pub bigquery_table_spec: Option<GoogleCloudDatacatalogV1BigQueryTableSpec>,
+    pub bigquery_table_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1BigQueryTableSpec>>,
     /// Business Context of the entry. Not supported for BigQuery datasets
     #[serde(default, rename = "businessContext")]
-    pub business_context: Option<GoogleCloudDatacatalogV1BusinessContext>,
+    pub business_context:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1BusinessContext>>,
     /// Specification that applies to Cloud Bigtable system. Only settable when integrated_system is equal to CLOUD_BIGTABLE
     #[serde(default, rename = "cloudBigtableSystemSpec")]
-    pub cloud_bigtable_system_spec: Option<GoogleCloudDatacatalogV1CloudBigtableSystemSpec>,
+    pub cloud_bigtable_system_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1CloudBigtableSystemSpec>>,
     /// Output only. Physical location of the entry.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<GoogleCloudDatacatalogV1DataSource>,
+    pub data_source: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1DataSource>>,
     /// Specification that applies to a data source connection. Valid only for entries with the DATA_SOURCE_CONNECTION type.
     #[serde(default, rename = "dataSourceConnectionSpec")]
-    pub data_source_connection_spec: Option<GoogleCloudDatacatalogV1DataSourceConnectionSpec>,
+    pub data_source_connection_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1DataSourceConnectionSpec>>,
     /// Specification that applies to a table resource. Valid only for entries with the TABLE or EXPLORE type.
     #[serde(default, rename = "databaseTableSpec")]
-    pub database_table_spec: Option<GoogleCloudDatacatalogV1DatabaseTableSpec>,
+    pub database_table_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1DatabaseTableSpec>>,
     /// Specification that applies to a dataset.
     #[serde(default, rename = "datasetSpec")]
-    pub dataset_spec: Option<GoogleCloudDatacatalogV1DatasetSpec>,
+    pub dataset_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1DatasetSpec>>,
     /// Entry description that can consist of several sentences or paragraphs that describe entry contents. The description must not contain Unicode non-characters as well as C0 and C1 control codes except tabs (HT), new lines (LF), carriage returns (CR), and page breaks (FF). The maximum size is 2000 bytes when encoded in UTF-8. Default value is an empty string.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Display name of an entry. The maximum size is 500 bytes when encoded in UTF-8. Default value is an empty string.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// FeatureonlineStore spec for Vertex AI Feature Store.
     #[serde(default, rename = "featureOnlineStoreSpec")]
-    pub feature_online_store_spec: Option<GoogleCloudDatacatalogV1FeatureOnlineStoreSpec>,
+    pub feature_online_store_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1FeatureOnlineStoreSpec>>,
     /// Specification that applies to a fileset resource. Valid only for entries with the FILESET type.
     #[serde(default, rename = "filesetSpec")]
-    pub fileset_spec: Option<GoogleCloudDatacatalogV1FilesetSpec>,
+    pub fileset_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1FilesetSpec>>,
     /// [Fully Qualified Name (FQN)](https://cloud.google.com//data-catalog/docs/fully-qualified-names) of the resource. Set automatically for entries representing resources from synced systems. Settable only during creation, and read-only later. Can be used for search and lookup of the entries.
     #[serde(default, rename = "fullyQualifiedName")]
-    pub fully_qualified_name: Option<String>,
+    pub fully_qualified_name: ::core::option::Option<String>,
     /// Specification that applies to a Cloud Storage fileset. Valid only for entries with the FILESET type.
     #[serde(default, rename = "gcsFilesetSpec")]
-    pub gcs_fileset_spec: Option<GoogleCloudDatacatalogV1GcsFilesetSpec>,
+    pub gcs_fileset_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1GcsFilesetSpec>>,
     /// Spec for graph.
     #[serde(default, rename = "graphSpec")]
-    pub graph_spec: Option<GoogleCloudDatacatalogV1GraphSpec>,
+    pub graph_spec: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1GraphSpec>>,
     /// Output only. Indicates the entry''s source system that Data Catalog integrates with, such as BigQuery, Pub/Sub, or Dataproc Metastore. // TODO: enum values: ["INTEGRATED_SYSTEM_UNSPECIFIED", "BIGQUERY", "CLOUD_PUBSUB", "DATAPROC_METASTORE", "DATAPLEX", "CLOUD_SPANNER", "CLOUD_BIGTABLE", "CLOUD_SQL", "LOOKER", "VERTEX_AI"]
     #[serde(default, rename = "integratedSystem")]
-    pub integrated_system: Option<String>,
+    pub integrated_system: ::core::option::Option<String>,
     /// Cloud labels attached to the entry. In Data Catalog, you can create and modify labels attached only to custom entries. Synced entries have unmodifiable labels that come from the source system.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The resource this metadata entry refers to. For Google Cloud Platform resources, linked_resource is the [Full Resource Name] (https://cloud.google.com/apis/design/resource_names#full_resource_name). For example, the linked_resource for a table resource from BigQuery is: //bigquery.googleapis.com/projects/{PROJECT_ID}/datasets/{DATASET_ID}/tables/{TABLE_ID} Output only when the entry is one of the types in the EntryType enum. For entries with a user_specified_type, this field is optional and defaults to an empty string. The resource string must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), periods (.), colons (:), slashes (/), dashes (-), and hashes (#). The maximum size is 200 bytes when encoded in UTF-8.
     #[serde(default, rename = "linkedResource")]
-    pub linked_resource: Option<String>,
+    pub linked_resource: ::core::option::Option<String>,
     /// Specification that applies to Looker sysstem. Only settable when user_specified_system is equal to LOOKER
     #[serde(default, rename = "lookerSystemSpec")]
-    pub looker_system_spec: Option<GoogleCloudDatacatalogV1LookerSystemSpec>,
+    pub looker_system_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1LookerSystemSpec>>,
     /// Model specification.
     #[serde(default, rename = "modelSpec")]
-    pub model_spec: Option<GoogleCloudDatacatalogV1ModelSpec>,
+    pub model_spec: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1ModelSpec>>,
     /// Output only. Identifier. The resource name of an entry in URL format. Note: The entry itself and its child resources might not be stored in the location specified in its name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Additional information related to the entry. Private to the current user.
     #[serde(default, rename = "personalDetails")]
-    pub personal_details: Option<GoogleCloudDatacatalogV1PersonalDetails>,
+    pub personal_details:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1PersonalDetails>>,
     /// Specification that applies to a user-defined function or procedure. Valid only for entries with the ROUTINE type.
     #[serde(default, rename = "routineSpec")]
-    pub routine_spec: Option<GoogleCloudDatacatalogV1RoutineSpec>,
+    pub routine_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1RoutineSpec>>,
     /// Schema of the entry. An entry might not have any schema attached to it.
     #[serde(default)]
-    pub schema: Option<GoogleCloudDatacatalogV1Schema>,
+    pub schema: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1Schema>>,
     /// Specification that applies to a Service resource.
     #[serde(default, rename = "serviceSpec")]
-    pub service_spec: Option<GoogleCloudDatacatalogV1ServiceSpec>,
+    pub service_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1ServiceSpec>>,
     /// Timestamps from the underlying resource, not from the Data Catalog entry. Output only when the entry has a system listed in the IntegratedSystem enum. For entries with user_specified_system, this field is optional and defaults to an empty timestamp.
     #[serde(default, rename = "sourceSystemTimestamps")]
-    pub source_system_timestamps: Option<GoogleCloudDatacatalogV1SystemTimestamps>,
+    pub source_system_timestamps:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1SystemTimestamps>>,
     /// Specification of a Spanner table.
     #[serde(default, rename = "spannerTableSpec")]
-    pub spanner_table_spec: Option<GoogleCloudDatacatalogV1SpannerTableSpec>,
+    pub spanner_table_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1SpannerTableSpec>>,
     /// Specification that applies to a relational database system. Only settable when user_specified_system is equal to SQL_DATABASE
     #[serde(default, rename = "sqlDatabaseSystemSpec")]
-    pub sql_database_system_spec: Option<GoogleCloudDatacatalogV1SqlDatabaseSystemSpec>,
+    pub sql_database_system_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1SqlDatabaseSystemSpec>>,
     /// The type of the entry. For details, see [EntryType](#entrytype). // TODO: enum values: ["ENTRY_TYPE_UNSPECIFIED", "TABLE", "MODEL", "DATA_STREAM", "FILESET", "CLUSTER", "DATABASE", "DATA_SOURCE_CONNECTION", "ROUTINE", "LAKE", "ZONE", "SERVICE", "DATABASE_SCHEMA", "DASHBOARD", "EXPLORE", "LOOK", "FEATURE_ONLINE_STORE", "FEATURE_VIEW", "FEATURE_GROUP", "GRAPH"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Resource usage statistics.
     #[serde(default, rename = "usageSignal")]
-    pub usage_signal: Option<GoogleCloudDatacatalogV1UsageSignal>,
+    pub usage_signal:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1UsageSignal>>,
     /// Indicates the entry''s source system that Data Catalog doesn''t automatically integrate with. The user_specified_system string has the following limitations: * Is case insensitive. * Must begin with a letter or underscore. * Can only contain letters, numbers, and underscores. * Must be at least 1 character and at most 64 characters long.
     #[serde(default, rename = "userSpecifiedSystem")]
-    pub user_specified_system: Option<String>,
+    pub user_specified_system: ::core::option::Option<String>,
     /// Custom entry type that doesn''t match any of the values allowed for input and listed in the EntryType enum. When creating an entry, first check the type values in the enum. If there are no appropriate types for the new entry, provide a custom value, for example, my_special_type. The user_specified_type string has the following limitations: * Is case insensitive. * Must begin with a letter or underscore. * Can only contain letters, numbers, and underscores. * Must be at least 1 character and at most 64 characters long.
     #[serde(default, rename = "userSpecifiedType")]
-    pub user_specified_type: Option<String>,
+    pub user_specified_type: ::core::option::Option<String>,
 }
 
 /// Entry group metadata. An EntryGroup resource represents a logical grouping of zero or more Data Catalog Entry resources.
@@ -492,19 +538,20 @@ pub struct GoogleCloudDatacatalogV1Entry {
 pub struct GoogleCloudDatacatalogV1EntryGroup {
     /// Output only. Timestamps of the entry group. Default value is empty.
     #[serde(default, rename = "dataCatalogTimestamps")]
-    pub data_catalog_timestamps: Option<GoogleCloudDatacatalogV1SystemTimestamps>,
+    pub data_catalog_timestamps:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1SystemTimestamps>>,
     /// Entry group description. Can consist of several sentences or paragraphs that describe the entry group contents. Default value is an empty string.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A short name to identify the entry group, for example, "analytics data - jan 2011". Default value is an empty string.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. The resource name of the entry group in URL format. Note: The entry group itself and its child resources might not be stored in the location specified in its name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. When set to [true], it means DataCatalog EntryGroup was transferred to Dataplex Universal Catalog. It makes EntryGroup and its Entries to be read-only in DataCatalog. However, new Tags on EntryGroup and its Entries can be created. After setting the flag to [true] it cannot be unset.
     #[serde(default, rename = "transferredToDataplex")]
-    pub transferred_to_dataplex: Option<bool>,
+    pub transferred_to_dataplex: ::core::option::Option<bool>,
 }
 
 /// Entry overview fields for rich text descriptions of entries.
@@ -512,7 +559,7 @@ pub struct GoogleCloudDatacatalogV1EntryGroup {
 pub struct GoogleCloudDatacatalogV1EntryOverview {
     /// Entry overview with support for rich text. The overview must only contain Unicode characters, and should be formatted using HTML. The maximum length is 10 MiB as this value holds HTML descriptions including encoded images. The maximum length of the text without images is 100 KiB.
     #[serde(default)]
-    pub overview: Option<String>,
+    pub overview: ::core::option::Option<String>,
 }
 
 /// Response message for ExportTaxonomies.
@@ -520,7 +567,9 @@ pub struct GoogleCloudDatacatalogV1EntryOverview {
 pub struct GoogleCloudDatacatalogV1ExportTaxonomiesResponse {
     /// List of taxonomies and policy tags as nested protocol buffers.
     #[serde(default)]
-    pub taxonomies: Option<Vec<GoogleCloudDatacatalogV1SerializedTaxonomy>>,
+    pub taxonomies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1SerializedTaxonomy>>,
+    >,
 }
 
 /// Detail description of the source information of a Vertex Feature Online Store.
@@ -528,7 +577,7 @@ pub struct GoogleCloudDatacatalogV1ExportTaxonomiesResponse {
 pub struct GoogleCloudDatacatalogV1FeatureOnlineStoreSpec {
     /// Output only. Type of underlying storage for the FeatureOnlineStore. // TODO: enum values: ["STORAGE_TYPE_UNSPECIFIED", "BIGTABLE", "OPTIMIZED"]
     #[serde(default, rename = "storageType")]
-    pub storage_type: Option<String>,
+    pub storage_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDatacatalogV1FieldType resource type.
@@ -536,10 +585,11 @@ pub struct GoogleCloudDatacatalogV1FeatureOnlineStoreSpec {
 pub struct GoogleCloudDatacatalogV1FieldType {
     /// An enum type.
     #[serde(default, rename = "enumType")]
-    pub enum_type: Option<GoogleCloudDatacatalogV1FieldTypeEnumType>,
+    pub enum_type:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1FieldTypeEnumType>>,
     /// Primitive types, such as string, boolean, etc. // TODO: enum values: ["PRIMITIVE_TYPE_UNSPECIFIED", "DOUBLE", "STRING", "BOOL", "TIMESTAMP", "RICHTEXT"]
     #[serde(default, rename = "primitiveType")]
-    pub primitive_type: Option<String>,
+    pub primitive_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDatacatalogV1FieldTypeEnumType resource type.
@@ -547,7 +597,9 @@ pub struct GoogleCloudDatacatalogV1FieldType {
 pub struct GoogleCloudDatacatalogV1FieldTypeEnumType {
     /// The set of allowed values for this enum. This set must not be empty and can include up to 100 allowed values. The display names of the values in this set must not be empty and must be case-insensitively unique within this set. The order of items in this set is preserved. This field can be used to create, remove, and reorder enum values. To rename enum values, use the RenameTagTemplateFieldEnumValue method.
     #[serde(default, rename = "allowedValues")]
-    pub allowed_values: Option<Vec<GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue>>,
+    pub allowed_values: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue>>,
+    >,
 }
 
 /// GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue resource type.
@@ -555,7 +607,7 @@ pub struct GoogleCloudDatacatalogV1FieldTypeEnumType {
 pub struct GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue {
     /// Required. The display name of the enum value. Must not be an empty string. The name must contain only Unicode letters, numbers (0-9), underscores (_), dashes (-), spaces ( ), and can''t start or end with spaces. The maximum length is 200 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Specification that applies to a fileset. Valid only for entries with the ''FILESET'' type.
@@ -563,7 +615,8 @@ pub struct GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue {
 pub struct GoogleCloudDatacatalogV1FilesetSpec {
     /// Fields specific to a Dataplex Universal Catalog fileset and present only in the Dataplex Universal Catalog fileset entries.
     #[serde(default, rename = "dataplexFileset")]
-    pub dataplex_fileset: Option<GoogleCloudDatacatalogV1DataplexFilesetSpec>,
+    pub dataplex_fileset:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1DataplexFilesetSpec>>,
 }
 
 /// Specification of a single file in Cloud Storage.
@@ -571,13 +624,14 @@ pub struct GoogleCloudDatacatalogV1FilesetSpec {
 pub struct GoogleCloudDatacatalogV1GcsFileSpec {
     /// Required. Full file path. Example: gs://bucket_name/a/b.txt.
     #[serde(default, rename = "filePath")]
-    pub file_path: Option<String>,
+    pub file_path: ::core::option::Option<String>,
     /// Output only. Creation, modification, and expiration timestamps of a Cloud Storage file.
     #[serde(default, rename = "gcsTimestamps")]
-    pub gcs_timestamps: Option<GoogleCloudDatacatalogV1SystemTimestamps>,
+    pub gcs_timestamps:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1SystemTimestamps>>,
     /// Output only. File size in bytes.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
 }
 
 /// Describes a Cloud Storage fileset entry.
@@ -585,10 +639,12 @@ pub struct GoogleCloudDatacatalogV1GcsFileSpec {
 pub struct GoogleCloudDatacatalogV1GcsFilesetSpec {
     /// Required. Patterns to identify a set of files in Google Cloud Storage. For more information, see [Wildcard Names] (https://cloud.google.com/storage/docs/wildcards). Note: Currently, bucket wildcards are not supported. Examples of valid file_patterns: * gs://bucket_name/dir/*: matches all files in bucket_name/dir directory * gs://bucket_name/dir/**: matches all files in bucket_name/dir and all subdirectories * gs://bucket_name/file*: matches files prefixed by file in bucket_name * gs://bucket_name/??.txt: matches files with two characters followed by .txt in bucket_name * gs://bucket_name/[aeiou].txt: matches files that contain a single vowel character followed by .txt in bucket_name * gs://bucket_name/[a-m].txt: matches files that contain a, b, ... or m followed by .txt in bucket_name * gs://bucket_name/a/*/b: matches all files in bucket_name that match the a/*/b pattern, such as a/c/b, a/d/b * gs://another_bucket/a.txt: matches gs://another_bucket/a.txt You can combine wildcards to match complex sets of files, for example: gs://bucket_name/[a-m]??.j*g
     #[serde(default, rename = "filePatterns")]
-    pub file_patterns: Option<Vec<String>>,
+    pub file_patterns: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Sample files contained in this fileset, not all files contained in this fileset are represented here.
     #[serde(default, rename = "sampleGcsFileSpecs")]
-    pub sample_gcs_file_specs: Option<Vec<GoogleCloudDatacatalogV1GcsFileSpec>>,
+    pub sample_gcs_file_specs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1GcsFileSpec>>,
+    >,
 }
 
 /// Specification that applies to a graph.
@@ -596,13 +652,17 @@ pub struct GoogleCloudDatacatalogV1GcsFilesetSpec {
 pub struct GoogleCloudDatacatalogV1GraphSpec {
     /// Optional. Edge tables of the graph.
     #[serde(default, rename = "edgeTables")]
-    pub edge_tables: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTable>>,
+    pub edge_tables: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1GraphSpecGraphElementTable>>,
+    >,
     /// Output only. Fully qualified graph name. e.g. named_catalog.MyGraph
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Node tables of the graph.
     #[serde(default, rename = "nodeTables")]
-    pub node_tables: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTable>>,
+    pub node_tables: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1GraphSpecGraphElementTable>>,
+    >,
 }
 
 /// Element table definition.
@@ -610,37 +670,42 @@ pub struct GoogleCloudDatacatalogV1GraphSpec {
 pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTable {
     /// Required. The alias name of the graph element.
     #[serde(default)]
-    pub alias: Option<String>,
+    pub alias: ::core::option::Option<String>,
     /// Required. The name of the data source. This is either a table name or a view name that is used for graph element input source. E.g. Person table or PersonView view.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<String>,
+    pub data_source: ::core::option::Option<String>,
     /// Optional. The destination node reference of the edge.
     #[serde(default, rename = "destinationNodeReference")]
-    pub destination_node_reference:
-        Option<GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference>,
+    pub destination_node_reference: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference>,
+    >,
     /// Optional. If set, this is the input column for dynamic label in schemaless data model.
     #[serde(default, rename = "dynamicLabelColumn")]
-    pub dynamic_label_column: Option<String>,
+    pub dynamic_label_column: ::core::option::Option<String>,
     /// Optional. If set, this is the input column for dynamic properties in schemaless data model.
     #[serde(default, rename = "dynamicPropertiesColumn")]
-    pub dynamic_properties_column: Option<String>,
+    pub dynamic_properties_column: ::core::option::Option<String>,
     /// Required. The name of the keys of the elements in the table.
     #[serde(default, rename = "elementKeys")]
-    pub element_keys: Option<Vec<String>>,
+    pub element_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The input source of the graph element. // TODO: enum values: ["INPUT_SOURCE_UNSPECIFIED", "TABLE", "VIEW"]
     #[serde(default, rename = "inputSource")]
-    pub input_source: Option<String>,
+    pub input_source: ::core::option::Option<String>,
     /// Required. The kind of the graph element. // TODO: enum values: ["KIND_UNSPECIFIED", "NODE", "EDGE"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Required. The labels and their properties for the graph element.
     #[serde(default, rename = "labelAndProperties")]
-    pub label_and_properties:
-        Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties>>,
+    pub label_and_properties: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties>,
+        >,
+    >,
     /// Optional. The source node reference of the edge.
     #[serde(default, rename = "sourceNodeReference")]
-    pub source_node_reference:
-        Option<GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference>,
+    pub source_node_reference: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference>,
+    >,
 }
 
 /// A reference to a source or destination node in a graph edge.
@@ -648,13 +713,13 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTable {
 pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference {
     /// Required. The referencing columns in the edge table. The size of edge_table_columns must be equal to the size of node_table_columns.
     #[serde(default, rename = "edgeTableColumns")]
-    pub edge_table_columns: Option<Vec<String>>,
+    pub edge_table_columns: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The reference to the source/destination node of the edge. This name must be a valid alias of a node element in the same graph. Example, Person node can be a source node name of an edge element Person_to_Address.
     #[serde(default, rename = "nodeAlias")]
-    pub node_alias: Option<String>,
+    pub node_alias: ::core::option::Option<String>,
     /// Required. The referenced columns of the source node table.
     #[serde(default, rename = "nodeTableColumns")]
-    pub node_table_columns: Option<Vec<String>>,
+    pub node_table_columns: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The label and its properties. Each label is associated with a set of properties.
@@ -662,10 +727,14 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference 
 pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties {
     /// Required. The name of the label.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Optional. The properties associated with the label.
     #[serde(default)]
-    pub properties: Option<Vec<GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty>>,
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty>,
+        >,
+    >,
 }
 
 /// A property declaration.
@@ -673,10 +742,10 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties 
 pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty {
     /// Required. Property name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Property data type.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Metadata message for long-running operation returned by the ImportEntries.
@@ -684,10 +753,10 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty {
 pub struct GoogleCloudDatacatalogV1ImportEntriesMetadata {
     /// Partial errors that are encountered during the ImportEntries operation. There is no guarantee that all the encountered errors are reported. However, if no errors are reported, it means that no errors were encountered.
     #[serde(default)]
-    pub errors: Option<Vec<Status>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// State of the import operation. // TODO: enum values: ["IMPORT_STATE_UNSPECIFIED", "IMPORT_QUEUED", "IMPORT_IN_PROGRESS", "IMPORT_DONE", "IMPORT_OBSOLETE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Request message for ImportEntries method.
@@ -695,10 +764,10 @@ pub struct GoogleCloudDatacatalogV1ImportEntriesMetadata {
 pub struct GoogleCloudDatacatalogV1ImportEntriesRequest {
     /// Path to a Cloud Storage bucket that contains a dump ready for ingestion.
     #[serde(default, rename = "gcsBucketPath")]
-    pub gcs_bucket_path: Option<String>,
+    pub gcs_bucket_path: ::core::option::Option<String>,
     /// Optional. (Optional) Dataplex Universal Catalog task job id, if specified will be used as part of ImportEntries LRO ID
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
 }
 
 /// Response message for long-running operation returned by the ImportEntries.
@@ -706,10 +775,10 @@ pub struct GoogleCloudDatacatalogV1ImportEntriesRequest {
 pub struct GoogleCloudDatacatalogV1ImportEntriesResponse {
     /// Number of entries deleted as a result of import operation.
     #[serde(default, rename = "deletedEntriesCount")]
-    pub deleted_entries_count: Option<String>,
+    pub deleted_entries_count: ::core::option::Option<String>,
     /// Cumulative number of entries created and entries updated as a result of import operation.
     #[serde(default, rename = "upsertedEntriesCount")]
-    pub upserted_entries_count: Option<String>,
+    pub upserted_entries_count: ::core::option::Option<String>,
 }
 
 /// Request message for ImportTaxonomies.
@@ -717,10 +786,12 @@ pub struct GoogleCloudDatacatalogV1ImportEntriesResponse {
 pub struct GoogleCloudDatacatalogV1ImportTaxonomiesRequest {
     /// Cross-regional source taxonomy to import.
     #[serde(default, rename = "crossRegionalSource")]
-    pub cross_regional_source: Option<GoogleCloudDatacatalogV1CrossRegionalSource>,
+    pub cross_regional_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1CrossRegionalSource>>,
     /// Inline source taxonomy to import.
     #[serde(default, rename = "inlineSource")]
-    pub inline_source: Option<GoogleCloudDatacatalogV1InlineSource>,
+    pub inline_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1InlineSource>>,
 }
 
 /// Response message for ImportTaxonomies.
@@ -728,7 +799,9 @@ pub struct GoogleCloudDatacatalogV1ImportTaxonomiesRequest {
 pub struct GoogleCloudDatacatalogV1ImportTaxonomiesResponse {
     /// Imported taxonomies.
     #[serde(default)]
-    pub taxonomies: Option<Vec<GoogleCloudDatacatalogV1Taxonomy>>,
+    pub taxonomies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1Taxonomy>>,
+    >,
 }
 
 /// Inline source containing taxonomies to import.
@@ -736,7 +809,9 @@ pub struct GoogleCloudDatacatalogV1ImportTaxonomiesResponse {
 pub struct GoogleCloudDatacatalogV1InlineSource {
     /// Required. Taxonomies to import.
     #[serde(default)]
-    pub taxonomies: Option<Vec<GoogleCloudDatacatalogV1SerializedTaxonomy>>,
+    pub taxonomies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1SerializedTaxonomy>>,
+    >,
 }
 
 /// Response message for ListEntries.
@@ -744,10 +819,11 @@ pub struct GoogleCloudDatacatalogV1InlineSource {
 pub struct GoogleCloudDatacatalogV1ListEntriesResponse {
     /// Entry details.
     #[serde(default)]
-    pub entries: Option<Vec<GoogleCloudDatacatalogV1Entry>>,
+    pub entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1Entry>>>,
     /// Pagination token of the next results page. Empty if there are no more items in results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListEntryGroups.
@@ -755,10 +831,12 @@ pub struct GoogleCloudDatacatalogV1ListEntriesResponse {
 pub struct GoogleCloudDatacatalogV1ListEntryGroupsResponse {
     /// Entry group details.
     #[serde(default, rename = "entryGroups")]
-    pub entry_groups: Option<Vec<GoogleCloudDatacatalogV1EntryGroup>>,
+    pub entry_groups: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1EntryGroup>>,
+    >,
     /// Pagination token to specify in the next call to retrieve the next page of results. Empty if there are no more items.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListPolicyTags.
@@ -766,10 +844,12 @@ pub struct GoogleCloudDatacatalogV1ListEntryGroupsResponse {
 pub struct GoogleCloudDatacatalogV1ListPolicyTagsResponse {
     /// Pagination token of the next results page. Empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The policy tags that belong to the taxonomy.
     #[serde(default, rename = "policyTags")]
-    pub policy_tags: Option<Vec<GoogleCloudDatacatalogV1PolicyTag>>,
+    pub policy_tags: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1PolicyTag>>,
+    >,
 }
 
 /// Response message for ListTags.
@@ -777,10 +857,11 @@ pub struct GoogleCloudDatacatalogV1ListPolicyTagsResponse {
 pub struct GoogleCloudDatacatalogV1ListTagsResponse {
     /// Pagination token of the next results page. Empty if there are no more items in results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Tag details.
     #[serde(default)]
-    pub tags: Option<Vec<GoogleCloudDatacatalogV1Tag>>,
+    pub tags:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1Tag>>>,
 }
 
 /// Response message for ListTaxonomies.
@@ -788,10 +869,12 @@ pub struct GoogleCloudDatacatalogV1ListTagsResponse {
 pub struct GoogleCloudDatacatalogV1ListTaxonomiesResponse {
     /// Pagination token of the next results page. Empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Taxonomies that the project contains.
     #[serde(default)]
-    pub taxonomies: Option<Vec<GoogleCloudDatacatalogV1Taxonomy>>,
+    pub taxonomies: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1Taxonomy>>,
+    >,
 }
 
 /// Specification that applies to entries that are part LOOKER system (user_specified_type)
@@ -799,22 +882,22 @@ pub struct GoogleCloudDatacatalogV1ListTaxonomiesResponse {
 pub struct GoogleCloudDatacatalogV1LookerSystemSpec {
     /// Name of the parent Looker Instance. Empty if it does not exist.
     #[serde(default, rename = "parentInstanceDisplayName")]
-    pub parent_instance_display_name: Option<String>,
+    pub parent_instance_display_name: ::core::option::Option<String>,
     /// ID of the parent Looker Instance. Empty if it does not exist. Example value: someinstance.looker.com
     #[serde(default, rename = "parentInstanceId")]
-    pub parent_instance_id: Option<String>,
+    pub parent_instance_id: ::core::option::Option<String>,
     /// Name of the parent Model. Empty if it does not exist.
     #[serde(default, rename = "parentModelDisplayName")]
-    pub parent_model_display_name: Option<String>,
+    pub parent_model_display_name: ::core::option::Option<String>,
     /// ID of the parent Model. Empty if it does not exist.
     #[serde(default, rename = "parentModelId")]
-    pub parent_model_id: Option<String>,
+    pub parent_model_id: ::core::option::Option<String>,
     /// Name of the parent View. Empty if it does not exist.
     #[serde(default, rename = "parentViewDisplayName")]
-    pub parent_view_display_name: Option<String>,
+    pub parent_view_display_name: ::core::option::Option<String>,
     /// ID of the parent View. Empty if it does not exist.
     #[serde(default, rename = "parentViewId")]
-    pub parent_view_id: Option<String>,
+    pub parent_view_id: ::core::option::Option<String>,
 }
 
 /// The configuration related to the migration to Dataplex Universal Catalog applied to an organization or project. It is the response message for SetConfig and RetrieveEffectiveConfig.
@@ -822,13 +905,13 @@ pub struct GoogleCloudDatacatalogV1LookerSystemSpec {
 pub struct GoogleCloudDatacatalogV1MigrationConfig {
     /// Opt-in status for the UI switch to Dataplex Universal Catalog. // TODO: enum values: ["CATALOG_UI_EXPERIENCE_UNSPECIFIED", "CATALOG_UI_EXPERIENCE_ENABLED", "CATALOG_UI_EXPERIENCE_DISABLED"]
     #[serde(default, rename = "catalogUiExperience")]
-    pub catalog_ui_experience: Option<String>,
+    pub catalog_ui_experience: ::core::option::Option<String>,
     /// Opt-in status for the migration of Tag Templates to Dataplex Universal Catalog. // TODO: enum values: ["TAG_TEMPLATE_MIGRATION_UNSPECIFIED", "TAG_TEMPLATE_MIGRATION_ENABLED", "TAG_TEMPLATE_MIGRATION_DISABLED"]
     #[serde(default, rename = "tagTemplateMigration")]
-    pub tag_template_migration: Option<String>,
+    pub tag_template_migration: ::core::option::Option<String>,
     /// The time when the Tag Template migration was enabled. If the Tag Template migration is not enabled, this field is not set.
     #[serde(default, rename = "templateMigrationEnabledTime")]
-    pub template_migration_enabled_time: Option<String>,
+    pub template_migration_enabled_time: ::core::option::Option<String>,
 }
 
 /// Specification that applies to a model. Valid only for entries with the MODEL type.
@@ -836,7 +919,8 @@ pub struct GoogleCloudDatacatalogV1MigrationConfig {
 pub struct GoogleCloudDatacatalogV1ModelSpec {
     /// Specification for vertex model resources.
     #[serde(default, rename = "vertexModelSpec")]
-    pub vertex_model_spec: Option<GoogleCloudDatacatalogV1VertexModelSpec>,
+    pub vertex_model_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1VertexModelSpec>>,
 }
 
 /// Request message for ModifyEntryContacts.
@@ -844,7 +928,7 @@ pub struct GoogleCloudDatacatalogV1ModelSpec {
 pub struct GoogleCloudDatacatalogV1ModifyEntryContactsRequest {
     /// Required. The new value for the Contacts.
     #[serde(default)]
-    pub contacts: Option<GoogleCloudDatacatalogV1Contacts>,
+    pub contacts: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1Contacts>>,
 }
 
 /// Request message for ModifyEntryOverview.
@@ -852,7 +936,8 @@ pub struct GoogleCloudDatacatalogV1ModifyEntryContactsRequest {
 pub struct GoogleCloudDatacatalogV1ModifyEntryOverviewRequest {
     /// Required. The new value for the Entry Overview.
     #[serde(default, rename = "entryOverview")]
-    pub entry_overview: Option<GoogleCloudDatacatalogV1EntryOverview>,
+    pub entry_overview:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1EntryOverview>>,
 }
 
 /// Entry metadata relevant only to the user and private to them.
@@ -860,10 +945,10 @@ pub struct GoogleCloudDatacatalogV1ModifyEntryOverviewRequest {
 pub struct GoogleCloudDatacatalogV1PersonalDetails {
     /// Set if the entry is starred; unset otherwise.
     #[serde(default, rename = "starTime")]
-    pub star_time: Option<String>,
+    pub star_time: ::core::option::Option<String>,
     /// True if the entry is starred by the user; false otherwise.
     #[serde(default)]
-    pub starred: Option<bool>,
+    pub starred: ::core::option::Option<bool>,
 }
 
 /// Native schema used by a resource represented as an entry. Used by query engines for deserializing and parsing source data.
@@ -871,22 +956,27 @@ pub struct GoogleCloudDatacatalogV1PersonalDetails {
 pub struct GoogleCloudDatacatalogV1PhysicalSchema {
     /// Schema in Avro JSON format.
     #[serde(default)]
-    pub avro: Option<GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema>,
+    pub avro:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema>>,
     /// Marks a CSV-encoded data source.
     #[serde(default)]
-    pub csv: Option<serde_json::Value>,
+    pub csv: ::core::option::Option<serde_json::Value>,
     /// Marks an ORC-encoded data source.
     #[serde(default)]
-    pub orc: Option<serde_json::Value>,
+    pub orc: ::core::option::Option<serde_json::Value>,
     /// Marks a Parquet-encoded data source.
     #[serde(default)]
-    pub parquet: Option<serde_json::Value>,
+    pub parquet: ::core::option::Option<serde_json::Value>,
     /// Schema in protocol buffer format.
     #[serde(default)]
-    pub protobuf: Option<GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema>,
+    pub protobuf: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema>,
+    >,
     /// Schema in Thrift format.
     #[serde(default)]
-    pub thrift: Option<GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema>,
+    pub thrift: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema>,
+    >,
 }
 
 /// Schema in Avro JSON format.
@@ -894,7 +984,7 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchema {
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema {
     /// JSON source of the Avro schema.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Schema in protocol buffer format.
@@ -902,7 +992,7 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema {
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema {
     /// Protocol buffer source of the schema.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Schema in Thrift format.
@@ -910,7 +1000,7 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema {
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema {
     /// Thrift IDL source of the schema.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Denotes one policy tag in a taxonomy, for example, SSN. Policy tags can be defined in a hierarchy. For example:  + Geolocation + LatLong + City + ZipCode  Where the "Geolocation" policy tag contains three children.
@@ -918,19 +1008,19 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema {
 pub struct GoogleCloudDatacatalogV1PolicyTag {
     /// Output only. Resource names of child policy tags of this policy tag.
     #[serde(default, rename = "childPolicyTags")]
-    pub child_policy_tags: Option<Vec<String>>,
+    pub child_policy_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Description of this policy tag. If not set, defaults to empty. The description must contain only Unicode characters, tabs, newlines, carriage returns and page breaks, and be at most 2000 bytes long when encoded in UTF-8.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. User-defined name of this policy tag. The name can''t start or end with spaces and must be unique within the parent taxonomy, contain only Unicode letters, numbers, underscores, dashes and spaces, and be at most 200 bytes long when encoded in UTF-8.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. Resource name of this policy tag in the URL format. The policy tag manager generates unique taxonomy IDs and policy tag IDs.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Resource name of this policy tag''s parent policy tag. If empty, this is a top level tag. If not set, defaults to an empty string. For example, for the "LatLong" policy tag in the example above, this field contains the resource name of the "Geolocation" policy tag, and, for "Geolocation", this field is empty.
     #[serde(default, rename = "parentPolicyTag")]
-    pub parent_policy_tag: Option<String>,
+    pub parent_policy_tag: ::core::option::Option<String>,
 }
 
 /// Long-running operation metadata message returned by the ReconcileTags.
@@ -938,23 +1028,24 @@ pub struct GoogleCloudDatacatalogV1PolicyTag {
 pub struct GoogleCloudDatacatalogV1ReconcileTagsMetadata {
     /// Maps the name of each tagged column (or empty string for a sole entry) to tagging operation status.
     #[serde(default)]
-    pub errors: Option<serde_json::Value>,
+    pub errors: ::core::option::Option<serde_json::Value>,
     /// State of the reconciliation operation. // TODO: enum values: ["RECONCILIATION_STATE_UNSPECIFIED", "RECONCILIATION_QUEUED", "RECONCILIATION_IN_PROGRESS", "RECONCILIATION_DONE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Request message for ReconcileTags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatacatalogV1ReconcileTagsRequest {
     #[serde(default, rename = "forceDeleteMissing")]
-    pub force_delete_missing: Option<bool>,
+    pub force_delete_missing: ::core::option::Option<bool>,
     /// Required. The name of the tag template, which is used for reconciliation.
     #[serde(default, rename = "tagTemplate")]
-    pub tag_template: Option<String>,
+    pub tag_template: ::core::option::Option<String>,
     /// A list of tags to apply to an entry. A tag can specify a tag template, which must be the template specified in the ReconcileTagsRequest. The sole entry and each of its columns must be mentioned at most once.
     #[serde(default)]
-    pub tags: Option<Vec<GoogleCloudDatacatalogV1Tag>>,
+    pub tags:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1Tag>>>,
 }
 
 /// Long-running operation response message returned by ReconcileTags.
@@ -962,13 +1053,13 @@ pub struct GoogleCloudDatacatalogV1ReconcileTagsRequest {
 pub struct GoogleCloudDatacatalogV1ReconcileTagsResponse {
     /// Number of tags created in the request.
     #[serde(default, rename = "createdTagsCount")]
-    pub created_tags_count: Option<String>,
+    pub created_tags_count: ::core::option::Option<String>,
     /// Number of tags deleted in the request.
     #[serde(default, rename = "deletedTagsCount")]
-    pub deleted_tags_count: Option<String>,
+    pub deleted_tags_count: ::core::option::Option<String>,
     /// Number of tags updated in the request.
     #[serde(default, rename = "updatedTagsCount")]
-    pub updated_tags_count: Option<String>,
+    pub updated_tags_count: ::core::option::Option<String>,
 }
 
 /// Request message for RenameTagTemplateFieldEnumValue.
@@ -976,7 +1067,7 @@ pub struct GoogleCloudDatacatalogV1ReconcileTagsResponse {
 pub struct GoogleCloudDatacatalogV1RenameTagTemplateFieldEnumValueRequest {
     /// Required. The new display name of the enum value. For example, my_new_enum_value.
     #[serde(default, rename = "newEnumValueDisplayName")]
-    pub new_enum_value_display_name: Option<String>,
+    pub new_enum_value_display_name: ::core::option::Option<String>,
 }
 
 /// Request message for RenameTagTemplateField.
@@ -984,7 +1075,7 @@ pub struct GoogleCloudDatacatalogV1RenameTagTemplateFieldEnumValueRequest {
 pub struct GoogleCloudDatacatalogV1RenameTagTemplateFieldRequest {
     /// Required. The new ID of this tag template field. For example, my_new_field.
     #[serde(default, rename = "newTagTemplateFieldId")]
-    pub new_tag_template_field_id: Option<String>,
+    pub new_tag_template_field_id: ::core::option::Option<String>,
 }
 
 /// Request message for ReplaceTaxonomy.
@@ -992,7 +1083,8 @@ pub struct GoogleCloudDatacatalogV1RenameTagTemplateFieldRequest {
 pub struct GoogleCloudDatacatalogV1ReplaceTaxonomyRequest {
     /// Required. Taxonomy to update along with its child policy tags.
     #[serde(default, rename = "serializedTaxonomy")]
-    pub serialized_taxonomy: Option<GoogleCloudDatacatalogV1SerializedTaxonomy>,
+    pub serialized_taxonomy:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1SerializedTaxonomy>>,
 }
 
 /// Specification that applies to a routine. Valid only for entries with the ROUTINE type.
@@ -1000,22 +1092,25 @@ pub struct GoogleCloudDatacatalogV1ReplaceTaxonomyRequest {
 pub struct GoogleCloudDatacatalogV1RoutineSpec {
     /// Fields specific for BigQuery routines.
     #[serde(default, rename = "bigqueryRoutineSpec")]
-    pub bigquery_routine_spec: Option<GoogleCloudDatacatalogV1BigQueryRoutineSpec>,
+    pub bigquery_routine_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1BigQueryRoutineSpec>>,
     /// The body of the routine.
     #[serde(default, rename = "definitionBody")]
-    pub definition_body: Option<String>,
+    pub definition_body: ::core::option::Option<String>,
     /// The language the routine is written in. The exact value depends on the source system. For BigQuery routines, possible values are: * SQL * JAVASCRIPT
     #[serde(default)]
-    pub language: Option<String>,
+    pub language: ::core::option::Option<String>,
     /// Return type of the argument. The exact value depends on the source system and the language.
     #[serde(default, rename = "returnType")]
-    pub return_type: Option<String>,
+    pub return_type: ::core::option::Option<String>,
     /// Arguments of the routine.
     #[serde(default, rename = "routineArguments")]
-    pub routine_arguments: Option<Vec<GoogleCloudDatacatalogV1RoutineSpecArgument>>,
+    pub routine_arguments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1RoutineSpecArgument>>,
+    >,
     /// The type of the routine. // TODO: enum values: ["ROUTINE_TYPE_UNSPECIFIED", "SCALAR_FUNCTION", "PROCEDURE"]
     #[serde(default, rename = "routineType")]
-    pub routine_type: Option<String>,
+    pub routine_type: ::core::option::Option<String>,
 }
 
 /// Input or output argument of a function or stored procedure.
@@ -1023,13 +1118,13 @@ pub struct GoogleCloudDatacatalogV1RoutineSpec {
 pub struct GoogleCloudDatacatalogV1RoutineSpecArgument {
     /// Specifies whether the argument is input or output. // TODO: enum values: ["MODE_UNSPECIFIED", "IN", "OUT", "INOUT"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// The name of the argument. A return argument of a function might not have a name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Type of the argument. The exact value depends on the source system and the language.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a schema, for example, a BigQuery, GoogleSQL, or Avro schema.
@@ -1037,7 +1132,9 @@ pub struct GoogleCloudDatacatalogV1RoutineSpecArgument {
 pub struct GoogleCloudDatacatalogV1Schema {
     /// The unified GoogleSQL-like schema of columns. The overall maximum number of columns and nested columns is 10,000. The maximum nested depth is 15 levels.
     #[serde(default)]
-    pub columns: Option<Vec<GoogleCloudDatacatalogV1ColumnSchema>>,
+    pub columns: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1ColumnSchema>>,
+    >,
 }
 
 /// Request message for SearchCatalog.
@@ -1045,22 +1142,24 @@ pub struct GoogleCloudDatacatalogV1Schema {
 pub struct GoogleCloudDatacatalogV1SearchCatalogRequest {
     /// Optional. If set, use searchAll permission granted on organizations from include_org_ids and projects from include_project_ids instead of the fine grained per resource permissions when filtering the search results. The only allowed order_by criteria for admin_search mode is default. Using this flags guarantees a full recall of the search results.
     #[serde(default, rename = "adminSearch")]
-    pub admin_search: Option<bool>,
+    pub admin_search: ::core::option::Option<bool>,
     /// Specifies the order of results. Currently supported case-sensitive values are: * relevance that can only be descending * last_modified_timestamp [asc|desc] with descending (desc) as default * default that can only be descending Search queries don''t guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. If you are experiencing recall issues and you don''t have to fetch the results in any specific order, consider setting this parameter to default. If this parameter is omitted, it defaults to the descending relevance.
     #[serde(default, rename = "orderBy")]
-    pub order_by: Option<String>,
+    pub order_by: ::core::option::Option<String>,
     /// Upper bound on the number of results you can get in a single response. Can''t be negative or 0, defaults to 10 in this case. The maximum number is 1000. If exceeded, throws an "invalid argument" exception.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// Optional. Pagination token that, if specified, returns the next page of search results. If empty, returns the first page. This token is returned in the SearchCatalogResponse.next_page_token field of the response to a previous SearchCatalogRequest call.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Optional. The query string with a minimum of 3 characters and specific syntax. For more information, see [Data Catalog search syntax](https://cloud.google.com/data-catalog/docs/how-to/search-reference). An empty query string returns all data assets (in the specified scope) that you have access to. A query string can be a simple xyz or qualified by predicates: * name:x * column:y * description:z
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Required. The scope of this search request. The scope is invalid if include_org_ids, include_project_ids are empty AND include_gcp_public_datasets is set to false. In this case, the request returns an error.
     #[serde(default)]
-    pub scope: Option<GoogleCloudDatacatalogV1SearchCatalogRequestScope>,
+    pub scope: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1SearchCatalogRequestScope>,
+    >,
 }
 
 /// The criteria that select the subspace used for query matching.
@@ -1068,22 +1167,22 @@ pub struct GoogleCloudDatacatalogV1SearchCatalogRequest {
 pub struct GoogleCloudDatacatalogV1SearchCatalogRequestScope {
     /// If true, include Google Cloud public datasets in search results. By default, they are excluded. See [Google Cloud Public Datasets](/public-datasets) for more information.
     #[serde(default, rename = "includeGcpPublicDatasets")]
-    pub include_gcp_public_datasets: Option<bool>,
+    pub include_gcp_public_datasets: ::core::option::Option<bool>,
     /// The list of organization IDs to search within. To find your organization ID, follow the steps from [Creating and managing organizations] (/resource-manager/docs/creating-managing-organization).
     #[serde(default, rename = "includeOrgIds")]
-    pub include_org_ids: Option<Vec<String>>,
+    pub include_org_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of project IDs to search within. For more information on the distinction between project names, IDs, and numbers, see [Projects](/docs/overview/#projects).
     #[serde(default, rename = "includeProjectIds")]
-    pub include_project_ids: Option<Vec<String>>,
+    pub include_project_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. This field is deprecated. The search mechanism for public and private tag templates is the same.
     #[serde(default, rename = "includePublicTagTemplates")]
-    pub include_public_tag_templates: Option<bool>,
+    pub include_public_tag_templates: ::core::option::Option<bool>,
     /// Optional. The list of locations to search within. If empty, all locations are searched. Returns an error if any location in the list isn''t one of the [Supported regions](https://cloud.google.com/data-catalog/docs/concepts/regions#supported_regions). If a location is unreachable, its name is returned in the SearchCatalogResponse.unreachable field. To get additional information on the error, repeat the search request and set the location name as the value of this parameter.
     #[serde(default, rename = "restrictedLocations")]
-    pub restricted_locations: Option<Vec<String>>,
+    pub restricted_locations: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. If true, search only among starred entries. By default, all results are returned, starred or not.
     #[serde(default, rename = "starredOnly")]
-    pub starred_only: Option<bool>,
+    pub starred_only: ::core::option::Option<bool>,
 }
 
 /// Response message for SearchCatalog.
@@ -1091,16 +1190,18 @@ pub struct GoogleCloudDatacatalogV1SearchCatalogRequestScope {
 pub struct GoogleCloudDatacatalogV1SearchCatalogResponse {
     /// Pagination token that can be used in subsequent calls to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Search results.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudDatacatalogV1SearchCatalogResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1SearchCatalogResult>>,
+    >,
     /// The approximate total number of entries matched by the query.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
     /// Unreachable locations. Search results don''t include data from those locations. To get additional information on an error, repeat the search request and restrict it to specific locations by setting the SearchCatalogRequest.scope.restricted_locations parameter.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Result in the response to a search request. Each result captures details of one entry that matches the search.
@@ -1108,34 +1209,34 @@ pub struct GoogleCloudDatacatalogV1SearchCatalogResponse {
 pub struct GoogleCloudDatacatalogV1SearchCatalogResult {
     /// Entry description that can consist of several sentences or paragraphs that describe entry contents.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The display name of the result.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Fully qualified name (FQN) of the resource. FQNs take two forms: * For non-regionalized resources: {SYSTEM}:{PROJECT}.{PATH_TO_RESOURCE_SEPARATED_WITH_DOTS} * For regionalized resources: {SYSTEM}:{PROJECT}.{LOCATION_ID}.{PATH_TO_RESOURCE_SEPARATED_WITH_DOTS} Example for a DPMS table: dataproc_metastore:PROJECT_ID.LOCATION_ID.INSTANCE_ID.DATABASE_ID.TABLE_ID
     #[serde(default, rename = "fullyQualifiedName")]
-    pub fully_qualified_name: Option<String>,
+    pub fully_qualified_name: ::core::option::Option<String>,
     /// Output only. The source system that Data Catalog automatically integrates with, such as BigQuery, Cloud Pub/Sub, or Dataproc Metastore. // TODO: enum values: ["INTEGRATED_SYSTEM_UNSPECIFIED", "BIGQUERY", "CLOUD_PUBSUB", "DATAPROC_METASTORE", "DATAPLEX", "CLOUD_SPANNER", "CLOUD_BIGTABLE", "CLOUD_SQL", "LOOKER", "VERTEX_AI"]
     #[serde(default, rename = "integratedSystem")]
-    pub integrated_system: Option<String>,
+    pub integrated_system: ::core::option::Option<String>,
     /// The full name of the Google Cloud resource the entry belongs to. For more information, see [Full Resource Name] (/apis/design/resource_names#full_resource_name). Example: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
     #[serde(default, rename = "linkedResource")]
-    pub linked_resource: Option<String>,
+    pub linked_resource: ::core::option::Option<String>,
     /// The last modification timestamp of the entry in the source system.
     #[serde(default, rename = "modifyTime")]
-    pub modify_time: Option<String>,
+    pub modify_time: ::core::option::Option<String>,
     /// The relative name of the resource in URL format. Examples: * projects/{PROJECT_ID}/locations/{LOCATION_ID}/entryGroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID} * projects/{PROJECT_ID}/tagTemplates/{TAG_TEMPLATE_ID}
     #[serde(default, rename = "relativeResourceName")]
-    pub relative_resource_name: Option<String>,
+    pub relative_resource_name: ::core::option::Option<String>,
     /// Sub-type of the search result. A dot-delimited full type of the resource. The same type you specify in the type search predicate. Examples: entry.table, entry.dataStream, tagTemplate.
     #[serde(default, rename = "searchResultSubtype")]
-    pub search_result_subtype: Option<String>,
+    pub search_result_subtype: ::core::option::Option<String>,
     /// Type of the search result. You can use this field to determine which get method to call to fetch the full resource. // TODO: enum values: ["SEARCH_RESULT_TYPE_UNSPECIFIED", "ENTRY", "TAG_TEMPLATE", "ENTRY_GROUP"]
     #[serde(default, rename = "searchResultType")]
-    pub search_result_type: Option<String>,
+    pub search_result_type: ::core::option::Option<String>,
     /// Custom source system that you can manually integrate Data Catalog with.
     #[serde(default, rename = "userSpecifiedSystem")]
-    pub user_specified_system: Option<String>,
+    pub user_specified_system: ::core::option::Option<String>,
 }
 
 /// A nested protocol buffer that represents a policy tag and all its descendants.
@@ -1143,16 +1244,18 @@ pub struct GoogleCloudDatacatalogV1SearchCatalogResult {
 pub struct GoogleCloudDatacatalogV1SerializedPolicyTag {
     /// Children of the policy tag, if any.
     #[serde(default, rename = "childPolicyTags")]
-    pub child_policy_tags: Option<Vec<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
+    pub child_policy_tags: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
+    >,
     /// Description of the serialized policy tag. At most 2000 bytes when encoded in UTF-8. If not set, defaults to an empty description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Display name of the policy tag. At most 200 bytes when encoded in UTF-8.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Resource name of the policy tag. This field is ignored when calling ImportTaxonomies.
     #[serde(default, rename = "policyTag")]
-    pub policy_tag: Option<String>,
+    pub policy_tag: ::core::option::Option<String>,
 }
 
 /// A nested protocol buffer that represents a taxonomy and the hierarchy of its policy tags. Used for taxonomy replacement, import, and export.
@@ -1160,16 +1263,18 @@ pub struct GoogleCloudDatacatalogV1SerializedPolicyTag {
 pub struct GoogleCloudDatacatalogV1SerializedTaxonomy {
     /// A list of policy types that are activated per taxonomy.
     #[serde(default, rename = "activatedPolicyTypes")]
-    pub activated_policy_types: Option<Vec<String>>,
+    pub activated_policy_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Description of the serialized taxonomy. At most 2000 bytes when encoded in UTF-8. If not set, defaults to an empty description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Display name of the taxonomy. At most 200 bytes when encoded in UTF-8.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Top level policy tags associated with the taxonomy, if any.
     #[serde(default, rename = "policyTags")]
-    pub policy_tags: Option<Vec<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
+    pub policy_tags: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1SerializedPolicyTag>>,
+    >,
 }
 
 /// Specification that applies to a Service resource. Valid only for entries with the SERVICE type.
@@ -1177,7 +1282,9 @@ pub struct GoogleCloudDatacatalogV1SerializedTaxonomy {
 pub struct GoogleCloudDatacatalogV1ServiceSpec {
     /// Specification that applies to Instance entries of CLOUD_BIGTABLE system.
     #[serde(default, rename = "cloudBigtableInstanceSpec")]
-    pub cloud_bigtable_instance_spec: Option<GoogleCloudDatacatalogV1CloudBigtableInstanceSpec>,
+    pub cloud_bigtable_instance_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1CloudBigtableInstanceSpec>,
+    >,
 }
 
 /// Request message for SetConfig.
@@ -1185,10 +1292,10 @@ pub struct GoogleCloudDatacatalogV1ServiceSpec {
 pub struct GoogleCloudDatacatalogV1SetConfigRequest {
     /// Opt-in status for the UI switch to Dataplex Universal Catalog. // TODO: enum values: ["CATALOG_UI_EXPERIENCE_UNSPECIFIED", "CATALOG_UI_EXPERIENCE_ENABLED", "CATALOG_UI_EXPERIENCE_DISABLED"]
     #[serde(default, rename = "catalogUiExperience")]
-    pub catalog_ui_experience: Option<String>,
+    pub catalog_ui_experience: ::core::option::Option<String>,
     /// Opt-in status for the migration of Tag Templates to Dataplex Universal Catalog. // TODO: enum values: ["TAG_TEMPLATE_MIGRATION_UNSPECIFIED", "TAG_TEMPLATE_MIGRATION_ENABLED", "TAG_TEMPLATE_MIGRATION_DISABLED"]
     #[serde(default, rename = "tagTemplateMigration")]
-    pub tag_template_migration: Option<String>,
+    pub tag_template_migration: ::core::option::Option<String>,
 }
 
 /// Specification of a Spanner table.
@@ -1196,10 +1303,16 @@ pub struct GoogleCloudDatacatalogV1SetConfigRequest {
 pub struct GoogleCloudDatacatalogV1SpannerTableSpec {
     /// Output only. The foreign keys of the table.
     #[serde(default, rename = "foreignKeys")]
-    pub foreign_keys: Option<Vec<GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey>>,
+    pub foreign_keys: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey>,
+        >,
+    >,
     /// Output only. The primary key of the table.
     #[serde(default, rename = "primaryKey")]
-    pub primary_key: Option<GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey>,
+    pub primary_key: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey>,
+    >,
 }
 
 /// Specification of a Spanner foreign key.
@@ -1207,15 +1320,19 @@ pub struct GoogleCloudDatacatalogV1SpannerTableSpec {
 pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey {
     /// Output only. The ordered list of column mappings for this foreign key.
     #[serde(default, rename = "columnMappings")]
-    pub column_mappings: Option<
-        Vec<GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping>,
+    pub column_mappings: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping,
+            >,
+        >,
     >,
     /// Output only. The table name this foreign key referenced to. Format: projects/{PROJECT_ID}/locations/{LOCATION}/entryGroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}
     #[serde(default)]
-    pub entry: Option<String>,
+    pub entry: ::core::option::Option<String>,
     /// Output only. The constraint_name of the foreign key, for example, FK_CustomerOrder.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Column mapping for a Spanner foreign key.
@@ -1223,10 +1340,10 @@ pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey {
 pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping {
     /// Output only. The column in the current table that is part of the foreign key.
     #[serde(default)]
-    pub column: Option<String>,
+    pub column: ::core::option::Option<String>,
     /// Output only. The column in the referenced table that is part of the foreign key.
     #[serde(default, rename = "referenceColumn")]
-    pub reference_column: Option<String>,
+    pub reference_column: ::core::option::Option<String>,
 }
 
 /// Specification of a Spanner primary key.
@@ -1234,7 +1351,7 @@ pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyCo
 pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey {
     /// Output only. Column names of the primary key.
     #[serde(default)]
-    pub columns: Option<Vec<String>>,
+    pub columns: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Specification that applies to entries that are part SQL_DATABASE system (user_specified_type)
@@ -1242,13 +1359,13 @@ pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey {
 pub struct GoogleCloudDatacatalogV1SqlDatabaseSystemSpec {
     /// Version of the database engine.
     #[serde(default, rename = "databaseVersion")]
-    pub database_version: Option<String>,
+    pub database_version: ::core::option::Option<String>,
     /// Host of the SQL database enum InstanceHost { UNDEFINED = 0; SELF_HOSTED = 1; CLOUD_SQL = 2; AMAZON_RDS = 3; AZURE_SQL = 4; } Host of the enclousing database instance.
     #[serde(default, rename = "instanceHost")]
-    pub instance_host: Option<String>,
+    pub instance_host: ::core::option::Option<String>,
     /// SQL Database Engine. enum SqlEngine { UNDEFINED = 0; MY_SQL = 1; POSTGRE_SQL = 2; SQL_SERVER = 3; } Engine of the enclosing database instance.
     #[serde(default, rename = "sqlEngine")]
-    pub sql_engine: Option<String>,
+    pub sql_engine: ::core::option::Option<String>,
 }
 
 /// Details the properties of the underlying storage.
@@ -1256,10 +1373,10 @@ pub struct GoogleCloudDatacatalogV1SqlDatabaseSystemSpec {
 pub struct GoogleCloudDatacatalogV1StorageProperties {
     /// Patterns to identify a set of files for this fileset. Examples of a valid file_pattern: * gs://bucket_name/dir/*: matches all files in the bucket_name/dir directory * gs://bucket_name/dir/**: matches all files in the bucket_name/dir and all subdirectories recursively * gs://bucket_name/file*: matches files prefixed by file in bucket_name * gs://bucket_name/??.txt: matches files with two characters followed by .txt in bucket_name * gs://bucket_name/[aeiou].txt: matches files that contain a single vowel character followed by .txt in bucket_name * gs://bucket_name/[a-m].txt: matches files that contain a, b, ... or m followed by .txt in bucket_name * gs://bucket_name/a/*/b: matches all files in bucket_name that match the a/*/b pattern, such as a/c/b, a/d/b * gs://another_bucket/a.txt: matches gs://another_bucket/a.txt
     #[serde(default, rename = "filePattern")]
-    pub file_pattern: Option<Vec<String>>,
+    pub file_pattern: ::core::option::Option<::std::vec::Vec<String>>,
     /// File type in MIME format, for example, text/plain.
     #[serde(default, rename = "fileType")]
-    pub file_type: Option<String>,
+    pub file_type: ::core::option::Option<String>,
 }
 
 /// Timestamps associated with this resource in a particular system.
@@ -1267,13 +1384,13 @@ pub struct GoogleCloudDatacatalogV1StorageProperties {
 pub struct GoogleCloudDatacatalogV1SystemTimestamps {
     /// Creation timestamp of the resource within the given system.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Expiration timestamp of the resource within the given system. Currently only applicable to BigQuery resources.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Timestamp of the last modification of the resource or its metadata within a given system. Note: Depending on the source system, not every modification updates this timestamp. For example, BigQuery timestamps every metadata modification but not data or permission changes.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Normal BigQuery table specification.
@@ -1281,7 +1398,7 @@ pub struct GoogleCloudDatacatalogV1SystemTimestamps {
 pub struct GoogleCloudDatacatalogV1TableSpec {
     /// Output only. If the table is date-sharded, that is, it matches the [prefix]YYYYMMDD name pattern, this field is the Data Catalog resource name of the date-sharded grouped entry. For example: projects/{PROJECT_ID}/locations/{LOCATION}/entrygroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}. Otherwise, grouped_entry is empty.
     #[serde(default, rename = "groupedEntry")]
-    pub grouped_entry: Option<String>,
+    pub grouped_entry: ::core::option::Option<String>,
 }
 
 /// Tags contain custom metadata and are attached to Data Catalog resources. Tags conform with the specification of their tag template. See [Data Catalog IAM](https://cloud.google.com/data-catalog/docs/concepts/iam) for information on the permissions needed to create or view tags.
@@ -1289,22 +1406,22 @@ pub struct GoogleCloudDatacatalogV1TableSpec {
 pub struct GoogleCloudDatacatalogV1Tag {
     /// Resources like entry can have schemas associated with them. This scope allows you to attach tags to an individual column based on that schema. To attach a tag to a nested column, separate column names with a dot (.). Example: column.nested_column.
     #[serde(default)]
-    pub column: Option<String>,
+    pub column: ::core::option::Option<String>,
     /// Output only. Denotes the transfer status of the Tag Template. // TODO: enum values: ["DATAPLEX_TRANSFER_STATUS_UNSPECIFIED", "MIGRATED", "TRANSFERRED"]
     #[serde(default, rename = "dataplexTransferStatus")]
-    pub dataplex_transfer_status: Option<String>,
+    pub dataplex_transfer_status: ::core::option::Option<String>,
     /// Required. Maps the ID of a tag field to its value and additional information about that field. Tag template defines valid field IDs. A tag must have at least 1 field and at most 500 fields.
     #[serde(default)]
-    pub fields: Option<serde_json::Value>,
+    pub fields: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name of the tag in URL format where tag ID is a system-generated identifier. Note: The tag itself might not be stored in the location specified in its name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The resource name of the tag template this tag uses. Example: projects/{PROJECT_ID}/locations/{LOCATION}/tagTemplates/{TAG_TEMPLATE_ID} This field cannot be modified after creation.
     #[serde(default)]
-    pub template: Option<String>,
+    pub template: ::core::option::Option<String>,
     /// Output only. The display name of the tag template.
     #[serde(default, rename = "templateDisplayName")]
-    pub template_display_name: Option<String>,
+    pub template_display_name: ::core::option::Option<String>,
 }
 
 /// Contains the value and additional information on a field within a Tag.
@@ -1312,28 +1429,29 @@ pub struct GoogleCloudDatacatalogV1Tag {
 pub struct GoogleCloudDatacatalogV1TagField {
     /// The value of a tag field with a boolean type.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// Output only. The display name of this field.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The value of a tag field with a double type.
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// The value of a tag field with an enum type. This value must be one of the allowed values listed in this enum.
     #[serde(default, rename = "enumValue")]
-    pub enum_value: Option<GoogleCloudDatacatalogV1TagFieldEnumValue>,
+    pub enum_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1TagFieldEnumValue>>,
     /// Output only. The order of this field with respect to other fields in this tag. Can be set by Tag. For example, a higher value can indicate a more important field. The value can be negative. Multiple fields can have the same order, and field orders within a tag don''t have to be sequential.
     #[serde(default)]
-    pub order: Option<i32>,
+    pub order: ::core::option::Option<i32>,
     /// The value of a tag field with a rich text type. The maximum length is 10 MiB as this value holds HTML descriptions including encoded images. The maximum length of the text without images is 100 KiB.
     #[serde(default, rename = "richtextValue")]
-    pub richtext_value: Option<String>,
+    pub richtext_value: ::core::option::Option<String>,
     /// The value of a tag field with a string type. The maximum length is 2000 UTF-8 characters.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
     /// The value of a tag field with a timestamp type.
     #[serde(default, rename = "timestampValue")]
-    pub timestamp_value: Option<String>,
+    pub timestamp_value: ::core::option::Option<String>,
 }
 
 /// An enum value.
@@ -1341,7 +1459,7 @@ pub struct GoogleCloudDatacatalogV1TagField {
 pub struct GoogleCloudDatacatalogV1TagFieldEnumValue {
     /// The display name of the enum value.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// A tag template defines a tag that can have one or more typed fields. The template is used to create tags that are attached to Google Cloud resources. [Tag template roles] (https://cloud.google.com/iam/docs/roles-permissions/datacatalog) provide permissions to create, edit, and use the template. For example, see the [TagTemplate User] (https://cloud.google.com/data-catalog/docs/how-to/template-user) role that includes a permission to use the tag template to tag resources.
@@ -1349,19 +1467,19 @@ pub struct GoogleCloudDatacatalogV1TagFieldEnumValue {
 pub struct GoogleCloudDatacatalogV1TagTemplate {
     /// Optional. Transfer status of the TagTemplate // TODO: enum values: ["DATAPLEX_TRANSFER_STATUS_UNSPECIFIED", "MIGRATED", "TRANSFERRED"]
     #[serde(default, rename = "dataplexTransferStatus")]
-    pub dataplex_transfer_status: Option<String>,
+    pub dataplex_transfer_status: ::core::option::Option<String>,
     /// Display name for this template. Defaults to an empty string. The name must contain only Unicode letters, numbers (0-9), underscores (_), dashes (-), spaces ( ), and can''t start or end with spaces. The maximum length is 200 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. Map of tag template field IDs to the settings for the field. This map is an exhaustive list of the allowed fields. The map must contain at least one field and at most 500 fields. The keys to this map are tag template field IDs. The IDs have the following limitations: * Can contain uppercase and lowercase letters, numbers (0-9) and underscores (_). * Must be at least 1 character and at most 64 characters long. * Must start with a letter or underscore.
     #[serde(default)]
-    pub fields: Option<serde_json::Value>,
+    pub fields: ::core::option::Option<serde_json::Value>,
     /// Indicates whether tags created with this template are public. Public tags do not require tag template access to appear in ListTags API response. Additionally, you can search for a public tag by value with a simple search query in addition to using a tag: predicate.
     #[serde(default, rename = "isPubliclyReadable")]
-    pub is_publicly_readable: Option<bool>,
+    pub is_publicly_readable: ::core::option::Option<bool>,
     /// Identifier. The resource name of the tag template in URL format. Note: The tag template itself and its child resources might not be stored in the location specified in its name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The template for an individual field within a tag template.
@@ -1369,22 +1487,22 @@ pub struct GoogleCloudDatacatalogV1TagTemplate {
 pub struct GoogleCloudDatacatalogV1TagTemplateField {
     /// The description for this field. Defaults to an empty string.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The display name for this field. Defaults to an empty string. The name must contain only Unicode letters, numbers (0-9), underscores (_), dashes (-), spaces ( ), and can''t start or end with spaces. The maximum length is 200 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// If true, this field is required. Defaults to false.
     #[serde(default, rename = "isRequired")]
-    pub is_required: Option<bool>,
+    pub is_required: ::core::option::Option<bool>,
     /// Identifier. The resource name of the tag template field in URL format. Example: projects/{PROJECT_ID}/locations/{LOCATION}/tagTemplates/{TAG_TEMPLATE}/fields/{FIELD} Note: The tag template field itself might not be stored in the location specified in its name. The name must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_), and must start with a letter or underscore. The maximum length is 64 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The order of this field with respect to other fields in this tag template. For example, a higher value can indicate a more important field. The value can be negative. Multiple fields can have the same order and field orders within a tag don''t have to be sequential.
     #[serde(default)]
-    pub order: Option<i32>,
+    pub order: ::core::option::Option<i32>,
     /// Required. The type of value this tag field can contain.
     #[serde(default, rename = "type")]
-    pub type_: Option<GoogleCloudDatacatalogV1FieldType>,
+    pub type_: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1FieldType>>,
 }
 
 /// Wrapper containing Entry and information about Tags that should and should not be attached to it.
@@ -1392,13 +1510,15 @@ pub struct GoogleCloudDatacatalogV1TagTemplateField {
 pub struct GoogleCloudDatacatalogV1TaggedEntry {
     /// Optional. Tags that should be deleted from the Data Catalog. Caller should populate template name and column only.
     #[serde(default, rename = "absentTags")]
-    pub absent_tags: Option<Vec<GoogleCloudDatacatalogV1Tag>>,
+    pub absent_tags:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1Tag>>>,
     /// Optional. Tags that should be ingested into the Data Catalog. Caller should populate template name, column and fields.
     #[serde(default, rename = "presentTags")]
-    pub present_tags: Option<Vec<GoogleCloudDatacatalogV1Tag>>,
+    pub present_tags:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogV1Tag>>>,
     /// Non-encrypted Data Catalog v1 Entry.
     #[serde(default, rename = "v1Entry")]
-    pub v1_entry: Option<GoogleCloudDatacatalogV1Entry>,
+    pub v1_entry: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1Entry>>,
 }
 
 /// A taxonomy is a collection of hierarchical policy tags that classify data along a common axis. For example, a "data sensitivity" taxonomy might contain the following policy tags:  + PII + Account number + Age + SSN + Zipcode + Financials + Revenue  A "data origin" taxonomy might contain the following policy tags:  + User data + Employee data + Partner data + Public data
@@ -1406,25 +1526,26 @@ pub struct GoogleCloudDatacatalogV1TaggedEntry {
 pub struct GoogleCloudDatacatalogV1Taxonomy {
     /// Optional. A list of policy types that are activated for this taxonomy. If not set, defaults to an empty list.
     #[serde(default, rename = "activatedPolicyTypes")]
-    pub activated_policy_types: Option<Vec<String>>,
+    pub activated_policy_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Description of this taxonomy. If not set, defaults to empty. The description must contain only Unicode characters, tabs, newlines, carriage returns, and page breaks, and be at most 2000 bytes long when encoded in UTF-8.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. User-defined name of this taxonomy. The name can''t start or end with spaces, must contain only Unicode letters, numbers, underscores, dashes, and spaces, and be at most 200 bytes long when encoded in UTF-8. The taxonomy display name must be unique within an organization.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. Resource name of this taxonomy in URL format. Note: Policy tag manager generates unique taxonomy IDs.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Number of policy tags in this taxonomy.
     #[serde(default, rename = "policyTagCount")]
-    pub policy_tag_count: Option<i32>,
+    pub policy_tag_count: ::core::option::Option<i32>,
     /// Output only. Identity of the service which owns the Taxonomy. This field is only populated when the taxonomy is created by a Google Cloud service. Currently only ''DATAPLEX'' is supported.
     #[serde(default)]
-    pub service: Option<GoogleCloudDatacatalogV1TaxonomyService>,
+    pub service: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1TaxonomyService>>,
     /// Output only. Creation and modification timestamps of this taxonomy.
     #[serde(default, rename = "taxonomyTimestamps")]
-    pub taxonomy_timestamps: Option<GoogleCloudDatacatalogV1SystemTimestamps>,
+    pub taxonomy_timestamps:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1SystemTimestamps>>,
 }
 
 /// The source system of the Taxonomy.
@@ -1432,10 +1553,10 @@ pub struct GoogleCloudDatacatalogV1Taxonomy {
 pub struct GoogleCloudDatacatalogV1TaxonomyService {
     /// The service agent for the service.
     #[serde(default)]
-    pub identity: Option<String>,
+    pub identity: ::core::option::Option<String>,
     /// The Google Cloud service name. // TODO: enum values: ["MANAGING_SYSTEM_UNSPECIFIED", "MANAGING_SYSTEM_DATAPLEX", "MANAGING_SYSTEM_OTHER"]
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The set of all usage signals that Data Catalog stores. Note: Usually, these signals are updated daily. In rare cases, an update may fail but will be performed again on the next day.
@@ -1443,16 +1564,16 @@ pub struct GoogleCloudDatacatalogV1TaxonomyService {
 pub struct GoogleCloudDatacatalogV1UsageSignal {
     /// Common usage statistics over each of the predefined time ranges. Supported time ranges are {"24H", "7D", "30D", "Lifetime"}.
     #[serde(default, rename = "commonUsageWithinTimeRange")]
-    pub common_usage_within_time_range: Option<serde_json::Value>,
+    pub common_usage_within_time_range: ::core::option::Option<serde_json::Value>,
     /// Favorite count in the source system.
     #[serde(default, rename = "favoriteCount")]
-    pub favorite_count: Option<String>,
+    pub favorite_count: ::core::option::Option<String>,
     /// The end timestamp of the duration of usage statistics.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. BigQuery usage statistics over each of the predefined time ranges. Supported time ranges are {"24H", "7D", "30D"}.
     #[serde(default, rename = "usageWithinTimeRange")]
-    pub usage_within_time_range: Option<serde_json::Value>,
+    pub usage_within_time_range: ::core::option::Option<serde_json::Value>,
 }
 
 /// Detailed statistics on the entry''s usage. Usage statistics have the following limitations: - Only BigQuery tables have them. - They only include BigQuery query jobs. - They might be underestimated because wildcard table references are not yet counted. For more information, see [Querying multiple tables using a wildcard table] (https://cloud.google.com/bigquery/docs/querying-wildcard-tables)
@@ -1460,16 +1581,16 @@ pub struct GoogleCloudDatacatalogV1UsageSignal {
 pub struct GoogleCloudDatacatalogV1UsageStats {
     /// The number of cancelled attempts to use the underlying entry.
     #[serde(default, rename = "totalCancellations")]
-    pub total_cancellations: Option<f32>,
+    pub total_cancellations: ::core::option::Option<f32>,
     /// The number of successful uses of the underlying entry.
     #[serde(default, rename = "totalCompletions")]
-    pub total_completions: Option<f32>,
+    pub total_completions: ::core::option::Option<f32>,
     /// Total time spent only on successful uses, in milliseconds.
     #[serde(default, rename = "totalExecutionTimeForCompletionsMillis")]
-    pub total_execution_time_for_completions_millis: Option<f32>,
+    pub total_execution_time_for_completions_millis: ::core::option::Option<f32>,
     /// The number of failed attempts to use the underlying entry.
     #[serde(default, rename = "totalFailures")]
-    pub total_failures: Option<f32>,
+    pub total_failures: ::core::option::Option<f32>,
 }
 
 /// Specification for vertex dataset resources.
@@ -1477,10 +1598,10 @@ pub struct GoogleCloudDatacatalogV1UsageStats {
 pub struct GoogleCloudDatacatalogV1VertexDatasetSpec {
     /// The number of DataItems in this Dataset. Only apply for non-structured Dataset.
     #[serde(default, rename = "dataItemCount")]
-    pub data_item_count: Option<String>,
+    pub data_item_count: ::core::option::Option<String>,
     /// Type of the dataset. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "TABLE", "IMAGE", "TEXT", "VIDEO", "CONVERSATION", "TIME_SERIES", "DOCUMENT", "TEXT_TO_SPEECH", "TRANSLATION", "STORE_VISION", "ENTERPRISE_KNOWLEDGE_GRAPH", "TEXT_PROMPT"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
 }
 
 /// Detail description of the source information of a Vertex model.
@@ -1488,10 +1609,10 @@ pub struct GoogleCloudDatacatalogV1VertexDatasetSpec {
 pub struct GoogleCloudDatacatalogV1VertexModelSourceInfo {
     /// If this Model is copy of another Model. If true then source_type pertains to the original.
     #[serde(default)]
-    pub copy: Option<bool>,
+    pub copy: ::core::option::Option<bool>,
     /// Type of the model source. // TODO: enum values: ["MODEL_SOURCE_TYPE_UNSPECIFIED", "AUTOML", "CUSTOM", "BQML", "MODEL_GARDEN", "GENIE", "CUSTOM_TEXT_EMBEDDING", "MARKETPLACE"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// Specification for vertex model resources.
@@ -1499,19 +1620,20 @@ pub struct GoogleCloudDatacatalogV1VertexModelSourceInfo {
 pub struct GoogleCloudDatacatalogV1VertexModelSpec {
     /// URI of the Docker image to be used as the custom container for serving predictions.
     #[serde(default, rename = "containerImageUri")]
-    pub container_image_uri: Option<String>,
+    pub container_image_uri: ::core::option::Option<String>,
     /// User provided version aliases so that a model version can be referenced via alias
     #[serde(default, rename = "versionAliases")]
-    pub version_aliases: Option<Vec<String>>,
+    pub version_aliases: ::core::option::Option<::std::vec::Vec<String>>,
     /// The description of this version.
     #[serde(default, rename = "versionDescription")]
-    pub version_description: Option<String>,
+    pub version_description: ::core::option::Option<String>,
     /// The version ID of the model.
     #[serde(default, rename = "versionId")]
-    pub version_id: Option<String>,
+    pub version_id: ::core::option::Option<String>,
     /// Source of a Vertex model.
     #[serde(default, rename = "vertexModelSourceInfo")]
-    pub vertex_model_source_info: Option<GoogleCloudDatacatalogV1VertexModelSourceInfo>,
+    pub vertex_model_source_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogV1VertexModelSourceInfo>>,
 }
 
 /// Table view specification.
@@ -1519,7 +1641,7 @@ pub struct GoogleCloudDatacatalogV1VertexModelSpec {
 pub struct GoogleCloudDatacatalogV1ViewSpec {
     /// Output only. The query that defines the table view.
     #[serde(default, rename = "viewQuery")]
-    pub view_query: Option<String>,
+    pub view_query: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1527,13 +1649,13 @@ pub struct GoogleCloudDatacatalogV1ViewSpec {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1541,19 +1663,19 @@ pub struct ListOperationsResponse {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -1561,13 +1683,13 @@ pub struct Operation {
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -1575,7 +1697,7 @@ pub struct Policy {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1583,13 +1705,13 @@ pub struct SetIamPolicyRequest {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -1597,7 +1719,7 @@ pub struct Status {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -1605,5 +1727,5 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }

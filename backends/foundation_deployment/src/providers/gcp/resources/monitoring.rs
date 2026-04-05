@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Describes how to combine multiple time series to provide a different view of the data. Aggregation of time series is done in two steps. First, each time series in the set is aligned to the same time interval boundaries, then the set of time series is optionally reduced in number.Alignment consists of applying the per_series_aligner operation to each time series after its data has been divided into regular alignment_period time intervals. This process takes all of the data points in an alignment period, applies a mathematical transformation such as averaging, minimum, maximum, delta, etc., and converts them into a single data point per period.Reduction is when the aligned and transformed time series can optionally be combined, reducing the number of time series through similar mathematical transformations. Reduction involves applying a cross_series_reducer to all the time series, optionally sorting the time series into subsets with group_by_fields, and applying the reducer to each subset.The raw time series data can contain a huge amount of information from multiple sources. Alignment and reduction transforms this mass of data into a more manageable and representative collection of data, for example "the 95% latency across the average of all tasks in a cluster". This representative data can be more easily graphed and comprehended, and the individual time series data is still available for later drilldown. For more details, see Filtering and aggregation (https://cloud.google.com/monitoring/api/v3/aggregation).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Aggregation {
     /// The alignment_period specifies a time interval, in seconds, that is used to divide the data in all the time series into consistent blocks of time. This will be done before the per-series aligner can be applied to the data.The value must be at least 60 seconds. If a per-series aligner other than ALIGN_NONE is specified, this field is required or an error is returned. If no per-series aligner is specified, or the aligner ALIGN_NONE is specified, then this field is ignored.The maximum value of the alignment_period is 104 weeks (2 years) for charts, and 90,000 seconds (25 hours) for alerting policies.
     #[serde(default, rename = "alignmentPeriod")]
-    pub alignment_period: Option<String>,
+    pub alignment_period: ::core::option::Option<String>,
     /// The reduction operation to be used to combine time series into a single time series, where the value of each data point in the resulting series is a function of all the already aligned values in the input time series.Not all reducer operations can be applied to all time series. The valid choices depend on the metric_kind and the value_type of the original time series. Reduction can yield a time series with a different metric_kind or value_type than the input time series.Time series data must first be aligned (see per_series_aligner) in order to perform cross-time series reduction. If cross_series_reducer is specified, then per_series_aligner must be specified, and must not be ALIGN_NONE. An alignment_period must also be specified; otherwise, an error is returned. // TODO: enum values: ["REDUCE_NONE", "REDUCE_MEAN", "REDUCE_MIN", "REDUCE_MAX", "REDUCE_SUM", "REDUCE_STDDEV", "REDUCE_COUNT", "REDUCE_COUNT_TRUE", "REDUCE_COUNT_FALSE", "REDUCE_FRACTION_TRUE", "REDUCE_PERCENTILE_99", "REDUCE_PERCENTILE_95", "REDUCE_PERCENTILE_50", "REDUCE_PERCENTILE_05"]
     #[serde(default, rename = "crossSeriesReducer")]
-    pub cross_series_reducer: Option<String>,
+    pub cross_series_reducer: ::core::option::Option<String>,
     /// The set of fields to preserve when cross_series_reducer is specified. The group_by_fields determine how the time series are partitioned into subsets prior to applying the aggregation operation. Each subset contains time series that have the same value for each of the grouping fields. Each individual time series is a member of exactly one subset. The cross_series_reducer is applied to each subset of time series. It is not possible to reduce across different resource types, so this field implicitly contains resource.type. Fields not specified in group_by_fields are aggregated away. If group_by_fields is not specified and all the time series have the same resource type, then the time series are aggregated into a single output time series. If cross_series_reducer is not defined, this field is ignored.
     #[serde(default, rename = "groupByFields")]
-    pub group_by_fields: Option<Vec<String>>,
+    pub group_by_fields: ::core::option::Option<::std::vec::Vec<String>>,
     /// An Aligner describes how to bring the data points in a single time series into temporal alignment. Except for ALIGN_NONE, all alignments cause all the data points in an alignment_period to be mathematically grouped together, resulting in a single data point for each alignment_period with end timestamp at the end of the period.Not all alignment operations may be applied to all time series. The valid choices depend on the metric_kind and value_type of the original time series. Alignment can change the metric_kind or the value_type of the time series.Time series data must be aligned in order to perform cross-time series reduction. If cross_series_reducer is specified, then per_series_aligner must be specified and not equal to ALIGN_NONE and alignment_period must be specified; otherwise, an error is returned. // TODO: enum values: ["ALIGN_NONE", "ALIGN_DELTA", "ALIGN_RATE", "ALIGN_INTERPOLATE", "ALIGN_NEXT_OLDER", "ALIGN_MIN", "ALIGN_MAX", "ALIGN_MEAN", "ALIGN_COUNT", "ALIGN_SUM", "ALIGN_STDDEV", "ALIGN_COUNT_TRUE", "ALIGN_COUNT_FALSE", "ALIGN_FRACTION_TRUE", "ALIGN_PERCENTILE_99", "ALIGN_PERCENTILE_95", "ALIGN_PERCENTILE_50", "ALIGN_PERCENTILE_05", "ALIGN_PERCENT_CHANGE"]
     #[serde(default, rename = "perSeriesAligner")]
-    pub per_series_aligner: Option<String>,
+    pub per_series_aligner: ::core::option::Option<String>,
 }
 
 /// An alert is the representation of a violation of an alert policy. It is a read-only resource that cannot be modified by the accompanied API.
@@ -35,31 +35,31 @@ pub struct Aggregation {
 pub struct Alert {
     /// The time when the alert was closed.
     #[serde(default, rename = "closeTime")]
-    pub close_time: Option<String>,
+    pub close_time: ::core::option::Option<String>,
     /// The log information associated with the alert. This field is only populated for log-based alerts.
     #[serde(default)]
-    pub log: Option<LogMetadata>,
+    pub log: ::core::option::Option<::std::boxed::Box<LogMetadata>>,
     /// The metadata of the monitored resource.
     #[serde(default)]
-    pub metadata: Option<MonitoredResourceMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<MonitoredResourceMetadata>>,
     /// The metric type and any metric labels preserved from the incident''s generating condition.
     #[serde(default)]
-    pub metric: Option<Metric>,
+    pub metric: ::core::option::Option<::std::boxed::Box<Metric>>,
     /// Identifier. The name of the alert.The format is: projects/[PROJECT_ID_OR_NUMBER]/alerts/[ALERT_ID] The [ALERT_ID] is a system-assigned unique identifier for the alert.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time when the alert was opened.
     #[serde(default, rename = "openTime")]
-    pub open_time: Option<String>,
+    pub open_time: ::core::option::Option<String>,
     /// The snapshot of the alert policy that generated this alert.
     #[serde(default)]
-    pub policy: Option<PolicySnapshot>,
+    pub policy: ::core::option::Option<::std::boxed::Box<PolicySnapshot>>,
     /// The monitored resource type and any monitored resource labels preserved from the incident''s generating condition.
     #[serde(default)]
-    pub resource: Option<MonitoredResource>,
+    pub resource: ::core::option::Option<::std::boxed::Box<MonitoredResource>>,
     /// Output only. The current state of the alert. // TODO: enum values: ["STATE_UNSPECIFIED", "OPEN", "CLOSED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// A description of the conditions under which some aspect of your system is considered to be "unhealthy" and the ways to notify people or services about this state. For an overview of alerting policies, see Introduction to Alerting (https://cloud.google.com/monitoring/alerts/).
@@ -67,43 +67,43 @@ pub struct Alert {
 pub struct AlertPolicy {
     /// Control over how this alerting policy''s notification channels are notified.
     #[serde(default, rename = "alertStrategy")]
-    pub alert_strategy: Option<AlertStrategy>,
+    pub alert_strategy: ::core::option::Option<::std::boxed::Box<AlertStrategy>>,
     /// How to combine the results of multiple conditions to determine if an incident should be opened. If condition_time_series_query_language is present, this must be COMBINE_UNSPECIFIED. // TODO: enum values: ["COMBINE_UNSPECIFIED", "AND", "OR", "AND_WITH_MATCHING_RESOURCE"]
     #[serde(default)]
-    pub combiner: Option<String>,
+    pub combiner: ::core::option::Option<String>,
     /// A list of conditions for the policy. The conditions are combined by AND or OR according to the combiner field. If the combined conditions evaluate to true, then an incident is created. A policy can have from one to six conditions. If condition_time_series_query_language is present, it must be the only condition. If condition_monitoring_query_language is present, it must be the only condition.
     #[serde(default)]
-    pub conditions: Option<Vec<Condition>>,
+    pub conditions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Condition>>>,
     /// A read-only record of the creation of the alerting policy. If provided in a call to create or update, this field will be ignored.
     #[serde(default, rename = "creationRecord")]
-    pub creation_record: Option<MutationRecord>,
+    pub creation_record: ::core::option::Option<::std::boxed::Box<MutationRecord>>,
     /// A short name or phrase used to identify the policy in dashboards, notifications, and incidents. To avoid confusion, don''t use the same display name for multiple policies in the same project. The name is limited to 512 Unicode characters.The convention for the display_name of a PrometheusQueryLanguageCondition is "{rule group name}/{alert name}", where the {rule group name} and {alert name} should be taken from the corresponding Prometheus configuration file. This convention is not enforced. In any case the display_name is not a unique key of the AlertPolicy.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Documentation that is included with notifications and incidents related to this policy. Best practice is for the documentation to include information to help responders understand, mitigate, escalate, and correct the underlying problems detected by the alerting policy. Notification channels that have limited capacity might not show this documentation.
     #[serde(default)]
-    pub documentation: Option<Documentation>,
+    pub documentation: ::core::option::Option<::std::boxed::Box<Documentation>>,
     /// Whether or not the policy is enabled. On write, the default interpretation if unset is that the policy is enabled. On read, clients should not make any assumption about the state if it has not been populated. The field should always be populated on List and Get operations, unless a field projection has been specified that strips it out.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// A read-only record of the most recent change to the alerting policy. If provided in a call to create or update, this field will be ignored.
     #[serde(default, rename = "mutationRecord")]
-    pub mutation_record: Option<MutationRecord>,
+    pub mutation_record: ::core::option::Option<::std::boxed::Box<MutationRecord>>,
     /// Identifier. Required if the policy exists. The resource name for this policy. The format is: projects/[PROJECT_ID_OR_NUMBER]/alertPolicies/[ALERT_POLICY_ID] [ALERT_POLICY_ID] is assigned by Cloud Monitoring when the policy is created. When calling the alertPolicies.create method, do not include the name field in the alerting policy passed as part of the request.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Identifies the notification channels to which notifications should be sent when incidents are opened or closed or when new violations occur on an already opened incident. Each element of this array corresponds to the name field in each of the NotificationChannel objects that are returned from the ListNotificationChannels method. The format of the entries in this field is: projects/[PROJECT_ID_OR_NUMBER]/notificationChannels/[CHANNEL_ID]
     #[serde(default, rename = "notificationChannels")]
-    pub notification_channels: Option<Vec<String>>,
+    pub notification_channels: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The severity of an alerting policy indicates how important incidents generated by that policy are. The severity level will be displayed on the Incident detail page and in notifications. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "ERROR", "WARNING"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// User-supplied key/value data to be used for organizing and identifying the AlertPolicy objects.The field can contain up to 64 entries. Each key and value is limited to 63 Unicode characters or 128 bytes, whichever is smaller. Labels and values can contain only lowercase letters, numerals, underscores, and dashes. Keys must begin with a letter.Note that Prometheus {alert name} is a valid Prometheus label names (https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels), whereas Prometheus {rule group} is an unrestricted UTF-8 string. This means that they cannot be stored as-is in user labels, because they may contain characters that are not allowed in user-label values.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
     /// Read-only description of how the alerting policy is invalid. This field is only set when the alerting policy is invalid. An invalid alerting policy will not generate incidents.
     #[serde(default)]
-    pub validity: Option<Status>,
+    pub validity: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// Control over how the notification channels in notification_channels are notified when this alert fires.
@@ -111,16 +111,17 @@ pub struct AlertPolicy {
 pub struct AlertStrategy {
     /// If an alerting policy that was active has no data for this long, any open incidents will close
     #[serde(default, rename = "autoClose")]
-    pub auto_close: Option<String>,
+    pub auto_close: ::core::option::Option<String>,
     /// Control how notifications will be sent out, on a per-channel basis.
     #[serde(default, rename = "notificationChannelStrategy")]
-    pub notification_channel_strategy: Option<Vec<NotificationChannelStrategy>>,
+    pub notification_channel_strategy:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NotificationChannelStrategy>>>,
     /// For log-based alert policies, the notification prompts is always OPENED. For non log-based alert policies, the notification prompts can be OPENED or OPENED, CLOSED.
     #[serde(default, rename = "notificationPrompts")]
-    pub notification_prompts: Option<Vec<String>>,
+    pub notification_prompts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required for log-based alerting policies, i.e. policies with a LogMatch condition.This limit is not implemented for alerting policies that do not have a LogMatch condition.
     #[serde(default, rename = "notificationRateLimit")]
-    pub notification_rate_limit: Option<NotificationRateLimit>,
+    pub notification_rate_limit: ::core::option::Option<::std::boxed::Box<NotificationRateLimit>>,
 }
 
 /// App Engine service. Learn more at https://cloud.google.com/appengine.
@@ -128,7 +129,7 @@ pub struct AlertStrategy {
 pub struct AppEngine {
     /// The ID of the App Engine module underlying this service. Corresponds to the module_id resource label in the gae_app monitored resource (https://cloud.google.com/monitoring/api/resources#tag_gae_app).
     #[serde(default, rename = "moduleId")]
-    pub module_id: Option<String>,
+    pub module_id: ::core::option::Option<String>,
 }
 
 /// The authentication parameters to provide to the specified resource or URL that requires a username and password. Currently, only Basic HTTP authentication (https://tools.ietf.org/html/rfc7617) is supported in Uptime checks.
@@ -136,10 +137,10 @@ pub struct AppEngine {
 pub struct BasicAuthentication {
     /// The password to use when authenticating with the HTTP server.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// The username to use when authenticating with the HTTP server.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// A well-known service type, defined by its service type and service labels. Documentation and examples here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).
@@ -147,10 +148,10 @@ pub struct BasicAuthentication {
 pub struct BasicService {
     /// Labels that specify the resource that emits the monitoring data which is used for SLO reporting of this Service. Documentation and valid values for given service types here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).
     #[serde(default, rename = "serviceLabels")]
-    pub service_labels: Option<serde_json::Value>,
+    pub service_labels: ::core::option::Option<serde_json::Value>,
     /// The type of service that this basic service defines, e.g. APP_ENGINE service type. Documentation and valid values here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).
     #[serde(default, rename = "serviceType")]
-    pub service_type: Option<String>,
+    pub service_type: ::core::option::Option<String>,
 }
 
 /// An SLI measuring performance on a well-known service type. Performance will be computed on the basis of pre-defined metrics. The type of the service_resource determines the metrics to use and the service_resource.labels and metric_labels are used to construct a monitoring filter to filter that metric down to just the data relevant to this service.
@@ -158,19 +159,19 @@ pub struct BasicService {
 pub struct BasicSli {
     /// Good service is defined to be the count of requests made to this service that return successfully.
     #[serde(default)]
-    pub availability: Option<serde_json::Value>,
+    pub availability: ::core::option::Option<serde_json::Value>,
     /// Good service is defined to be the count of requests made to this service that are fast enough with respect to latency.threshold.
     #[serde(default)]
-    pub latency: Option<LatencyCriteria>,
+    pub latency: ::core::option::Option<::std::boxed::Box<LatencyCriteria>>,
     /// OPTIONAL: The set of locations to which this SLI is relevant. Telemetry from other locations will not be used to calculate performance for this SLI. If omitted, this SLI applies to all locations in which the Service has activity. For service types that don''t support breaking down by location, setting this field will result in an error.
     #[serde(default)]
-    pub location: Option<Vec<String>>,
+    pub location: ::core::option::Option<::std::vec::Vec<String>>,
     /// OPTIONAL: The set of RPCs to which this SLI is relevant. Telemetry from other methods will not be used to calculate performance for this SLI. If omitted, this SLI applies to all the Service''s methods. For service types that don''t support breaking down by method, setting this field will result in an error.
     #[serde(default)]
-    pub method: Option<Vec<String>>,
+    pub method: ::core::option::Option<::std::vec::Vec<String>>,
     /// OPTIONAL: The set of API versions to which this SLI is relevant. Telemetry from other API versions will not be used to calculate performance for this SLI. If omitted, this SLI applies to all API versions. For service types that don''t support breaking down by version, setting this field will result in an error.
     #[serde(default)]
-    pub version: Option<Vec<String>>,
+    pub version: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A test that uses an alerting result in a boolean column produced by the SQL query.
@@ -178,7 +179,7 @@ pub struct BasicSli {
 pub struct BooleanTest {
     /// Required. The name of the column containing the boolean value. If the value in a row is NULL, that row is ignored.
     #[serde(default)]
-    pub column: Option<String>,
+    pub column: ::core::option::Option<String>,
 }
 
 /// BucketOptions describes the bucket boundaries used to create a histogram for the distribution. The buckets can be in a linear sequence, an exponential sequence, or each bucket can be specified explicitly. BucketOptions does not include the number of values in each bucket.A bucket has an inclusive lower bound and exclusive upper bound for the values that are counted for that bucket. The upper bound of a bucket must be strictly greater than the lower bound. The sequence of N buckets for a distribution consists of an underflow bucket (number 0), zero or more finite buckets (number 1 through N - 2) and an overflow bucket (number N - 1). The buckets are contiguous: the lower bound of bucket i (i &gt; 0) is the same as the upper bound of bucket i - 1. The buckets span the whole range of finite values: lower bound of the underflow bucket is -infinity and the upper bound of the overflow bucket is +infinity. The finite buckets are so-called because both bounds are finite.
@@ -186,13 +187,13 @@ pub struct BooleanTest {
 pub struct BucketOptions {
     /// The explicit buckets.
     #[serde(default, rename = "explicitBuckets")]
-    pub explicit_buckets: Option<Explicit>,
+    pub explicit_buckets: ::core::option::Option<::std::boxed::Box<Explicit>>,
     /// The exponential buckets.
     #[serde(default, rename = "exponentialBuckets")]
-    pub exponential_buckets: Option<Exponential>,
+    pub exponential_buckets: ::core::option::Option<::std::boxed::Box<Exponential>>,
     /// The linear bucket.
     #[serde(default, rename = "linearBuckets")]
-    pub linear_buckets: Option<Linear>,
+    pub linear_buckets: ::core::option::Option<::std::boxed::Box<Linear>>,
 }
 
 /// Cloud Endpoints service. Learn more at https://cloud.google.com/endpoints.
@@ -200,7 +201,7 @@ pub struct BucketOptions {
 pub struct CloudEndpoints {
     /// The name of the Cloud Endpoints service underlying this service. Corresponds to the service resource label in the api monitored resource (https://cloud.google.com/monitoring/api/resources#tag_api).
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// A Synthetic Monitor deployed to a Cloud Functions V2 instance.
@@ -208,10 +209,10 @@ pub struct CloudEndpoints {
 pub struct CloudFunctionV2Target {
     /// Output only. The cloud_run_revision Monitored Resource associated with the GCFv2. The Synthetic Monitor execution results (metrics, logs, and spans) are reported against this Monitored Resource. This field is output only.
     #[serde(default, rename = "cloudRunRevision")]
-    pub cloud_run_revision: Option<MonitoredResource>,
+    pub cloud_run_revision: ::core::option::Option<::std::boxed::Box<MonitoredResource>>,
     /// Required. Fully qualified GCFv2 resource name i.e. projects/{project}/locations/{location}/functions/{function} Required.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Cloud Run service. Learn more at https://cloud.google.com/run.
@@ -219,10 +220,10 @@ pub struct CloudFunctionV2Target {
 pub struct CloudRun {
     /// The location the service is run. Corresponds to the location resource label in the cloud_run_revision monitored resource (https://cloud.google.com/monitoring/api/resources#tag_cloud_run_revision).
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The name of the Cloud Run service. Corresponds to the service_name resource label in the cloud_run_revision monitored resource (https://cloud.google.com/monitoring/api/resources#tag_cloud_run_revision).
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
 }
 
 /// Istio service scoped to a single Kubernetes cluster. Learn more at https://istio.io. Clusters running OSS Istio will have their services ingested as this type.
@@ -230,16 +231,16 @@ pub struct CloudRun {
 pub struct ClusterIstio {
     /// The name of the Kubernetes cluster in which this Istio service is defined. Corresponds to the cluster_name resource label in k8s_cluster resources.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// The location of the Kubernetes cluster in which this Istio service is defined. Corresponds to the location resource label in k8s_cluster resources.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The name of the Istio service underlying this service. Corresponds to the destination_service_name metric label in Istio metrics.
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
     /// The namespace of the Istio service underlying this service. Corresponds to the destination_service_namespace metric label in Istio metrics.
     #[serde(default, rename = "serviceNamespace")]
-    pub service_namespace: Option<String>,
+    pub service_namespace: ::core::option::Option<String>,
 }
 
 /// A collection of data points sent from a collectd-based plugin. See the collectd documentation for more information.
@@ -247,28 +248,28 @@ pub struct ClusterIstio {
 pub struct CollectdPayload {
     /// The end time of the interval.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The measurement metadata. Example: "process_id" -&gt; 12345
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the plugin. Example: "disk".
     #[serde(default)]
-    pub plugin: Option<String>,
+    pub plugin: ::core::option::Option<String>,
     /// The instance name of the plugin Example: "hdcl".
     #[serde(default, rename = "pluginInstance")]
-    pub plugin_instance: Option<String>,
+    pub plugin_instance: ::core::option::Option<String>,
     /// The start time of the interval.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The measurement type. Example: "memory".
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The measurement type instance. Example: "used".
     #[serde(default, rename = "typeInstance")]
-    pub type_instance: Option<String>,
+    pub type_instance: ::core::option::Option<String>,
     /// The measured values during this time interval. Each value must have a different data_source_name.
     #[serde(default)]
-    pub values: Option<Vec<CollectdValue>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CollectdValue>>>,
 }
 
 /// Describes the error status for payloads that were not written.
@@ -276,13 +277,14 @@ pub struct CollectdPayload {
 pub struct CollectdPayloadError {
     /// Records the error status for the payload. If this field is present, the partial errors for nested values won''t be populated.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// The zero-based index in CreateCollectdTimeSeriesRequest.collectd_payloads.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     /// Records the error status for values that were not written due to an error.Failed payloads for which nothing is written will not include partial value errors.
     #[serde(default, rename = "valueErrors")]
-    pub value_errors: Option<Vec<CollectdValueError>>,
+    pub value_errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CollectdValueError>>>,
 }
 
 /// A single data point from a collectd-based plugin.
@@ -290,13 +292,13 @@ pub struct CollectdPayloadError {
 pub struct CollectdValue {
     /// The data source for the collectd value. For example, there are two data sources for network measurements: "rx" and "tx".
     #[serde(default, rename = "dataSourceName")]
-    pub data_source_name: Option<String>,
+    pub data_source_name: ::core::option::Option<String>,
     /// The type of measurement. // TODO: enum values: ["UNSPECIFIED_DATA_SOURCE_TYPE", "GAUGE", "COUNTER", "DERIVE", "ABSOLUTE"]
     #[serde(default, rename = "dataSourceType")]
-    pub data_source_type: Option<String>,
+    pub data_source_type: ::core::option::Option<String>,
     /// The measurement value.
     #[serde(default)]
-    pub value: Option<TypedValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<TypedValue>>,
 }
 
 /// Describes the error status for values that were not written.
@@ -304,10 +306,10 @@ pub struct CollectdValue {
 pub struct CollectdValueError {
     /// Records the error status for the value.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// The zero-based index in CollectdPayload.values within the parent CreateCollectdTimeSeriesRequest.collectd_payloads.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
 }
 
 /// A condition is a true/false test that determines when an alerting policy should open an incident. If a condition evaluates to true, it signifies that something is wrong.
@@ -315,28 +317,30 @@ pub struct CollectdValueError {
 pub struct Condition {
     /// A condition that checks that a time series continues to receive new data points.
     #[serde(default, rename = "conditionAbsent")]
-    pub condition_absent: Option<MetricAbsence>,
+    pub condition_absent: ::core::option::Option<::std::boxed::Box<MetricAbsence>>,
     /// A condition that checks for log messages matching given constraints. If set, no other conditions can be present.
     #[serde(default, rename = "conditionMatchedLog")]
-    pub condition_matched_log: Option<LogMatch>,
+    pub condition_matched_log: ::core::option::Option<::std::boxed::Box<LogMatch>>,
     /// A condition that uses the Monitoring Query Language to define alerts.
     #[serde(default, rename = "conditionMonitoringQueryLanguage")]
-    pub condition_monitoring_query_language: Option<MonitoringQueryLanguageCondition>,
+    pub condition_monitoring_query_language:
+        ::core::option::Option<::std::boxed::Box<MonitoringQueryLanguageCondition>>,
     /// A condition that uses the Prometheus query language to define alerts.
     #[serde(default, rename = "conditionPrometheusQueryLanguage")]
-    pub condition_prometheus_query_language: Option<PrometheusQueryLanguageCondition>,
+    pub condition_prometheus_query_language:
+        ::core::option::Option<::std::boxed::Box<PrometheusQueryLanguageCondition>>,
     /// A condition that periodically evaluates a SQL query result.
     #[serde(default, rename = "conditionSql")]
-    pub condition_sql: Option<SqlCondition>,
+    pub condition_sql: ::core::option::Option<::std::boxed::Box<SqlCondition>>,
     /// A condition that compares a time series against a threshold.
     #[serde(default, rename = "conditionThreshold")]
-    pub condition_threshold: Option<MetricThreshold>,
+    pub condition_threshold: ::core::option::Option<::std::boxed::Box<MetricThreshold>>,
     /// A short name or phrase used to identify the condition in dashboards, notifications, and incidents. To avoid confusion, don''t use the same display name for multiple conditions in the same policy.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required if the condition exists. The unique resource name for this condition. Its format is: projects/[PROJECT_ID_OR_NUMBER]/alertPolicies/[POLICY_ID]/conditions/[CONDITION_ID] [CONDITION_ID] is assigned by Cloud Monitoring when the condition is created as part of a new or updated alerting policy.When calling the alertPolicies.create method, do not include the name field in the conditions of the requested alerting policy. Cloud Monitoring creates the condition identifiers and includes them in the new policy.When calling the alertPolicies.update method to update a policy, including a condition name causes the existing condition to be updated. Conditions without names are added to the updated policy. Existing conditions are deleted if they are not updated.Best practice is to preserve [CONDITION_ID] if you make only small changes, such as those to condition thresholds, durations, or trigger values. Otherwise, treat the change as a new condition and let the existing condition be deleted.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Optional. Used to perform content matching. This allows matching based on substrings and regular expressions, together with their negations. Only the first 4 MB of an HTTP or HTTPS check''s response (and the first 1 MB of a TCP check''s response) are examined for purposes of content matching.
@@ -344,13 +348,13 @@ pub struct Condition {
 pub struct ContentMatcher {
     /// String, regex or JSON content to match. Maximum 1024 bytes. An empty content string indicates no content matching is to be performed.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Matcher information for MATCHES_JSON_PATH and NOT_MATCHES_JSON_PATH
     #[serde(default, rename = "jsonPathMatcher")]
-    pub json_path_matcher: Option<JsonPathMatcher>,
+    pub json_path_matcher: ::core::option::Option<::std::boxed::Box<JsonPathMatcher>>,
     /// The type of content matcher that will be applied to the server output, compared to the content string when the check is run. // TODO: enum values: ["CONTENT_MATCHER_OPTION_UNSPECIFIED", "CONTAINS_STRING", "NOT_CONTAINS_STRING", "MATCHES_REGEX", "NOT_MATCHES_REGEX", "MATCHES_JSON_PATH", "NOT_MATCHES_JSON_PATH"]
     #[serde(default)]
-    pub matcher: Option<String>,
+    pub matcher: ::core::option::Option<String>,
 }
 
 /// The CreateCollectdTimeSeries request.
@@ -358,13 +362,14 @@ pub struct ContentMatcher {
 pub struct CreateCollectdTimeSeriesRequest {
     /// The collectd payloads representing the time series data. You must not include more than a single point for each time series, so no two payloads can have the same values for all of the fields plugin, plugin_instance, type, and type_instance.
     #[serde(default, rename = "collectdPayloads")]
-    pub collectd_payloads: Option<Vec<CollectdPayload>>,
+    pub collectd_payloads:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CollectdPayload>>>,
     /// The version of collectd that collected the data. Example: "5.3.0-192.el6".
     #[serde(default, rename = "collectdVersion")]
-    pub collectd_version: Option<String>,
+    pub collectd_version: ::core::option::Option<String>,
     /// The monitored resource associated with the time series.
     #[serde(default)]
-    pub resource: Option<MonitoredResource>,
+    pub resource: ::core::option::Option<::std::boxed::Box<MonitoredResource>>,
 }
 
 /// The CreateCollectdTimeSeries response.
@@ -372,10 +377,11 @@ pub struct CreateCollectdTimeSeriesRequest {
 pub struct CreateCollectdTimeSeriesResponse {
     /// Records the error status for points that were not written due to an error in the request.Failed requests for which nothing is written will return an error response instead. Requests where data points were rejected by the backend will set summary instead.
     #[serde(default, rename = "payloadErrors")]
-    pub payload_errors: Option<Vec<CollectdPayloadError>>,
+    pub payload_errors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CollectdPayloadError>>>,
     /// Aggregate statistics from writing the payloads. This field is omitted if all points were successfully written, so that the response is empty. This is for backwards compatibility with clients that log errors on any non-empty response.
     #[serde(default)]
-    pub summary: Option<CreateTimeSeriesSummary>,
+    pub summary: ::core::option::Option<::std::boxed::Box<CreateTimeSeriesSummary>>,
 }
 
 /// The CreateTimeSeries request.
@@ -383,7 +389,7 @@ pub struct CreateCollectdTimeSeriesResponse {
 pub struct CreateTimeSeriesRequest {
     /// Required. The new data to be added to a list of time series. Adds at most one data point to each of several time series. The new data point must be more recent than any other point in its time series. Each TimeSeries value must fully specify a unique time series by supplying all label values for the metric and the monitored resource.The maximum number of TimeSeries objects per Create request is 200.
     #[serde(default, rename = "timeSeries")]
-    pub time_series: Option<Vec<TimeSeries>>,
+    pub time_series: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TimeSeries>>>,
 }
 
 /// Summary of the result of a failed request to write data to a time series.
@@ -391,13 +397,13 @@ pub struct CreateTimeSeriesRequest {
 pub struct CreateTimeSeriesSummary {
     /// The number of points that failed to be written. Order is not guaranteed.
     #[serde(default)]
-    pub errors: Option<Vec<Error>>,
+    pub errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Error>>>,
     /// The number of points that were successfully written.
     #[serde(default, rename = "successPointCount")]
-    pub success_point_count: Option<i32>,
+    pub success_point_count: ::core::option::Option<i32>,
     /// The number of points in the request.
     #[serde(default, rename = "totalPointCount")]
-    pub total_point_count: Option<i32>,
+    pub total_point_count: ::core::option::Option<i32>,
 }
 
 /// Criteria specific to the AlertPolicys that this Snooze applies to. The Snooze will suppress alerts that come from one of the AlertPolicys whose names are supplied.
@@ -405,10 +411,10 @@ pub struct CreateTimeSeriesSummary {
 pub struct Criteria {
     /// Optional. When you define a snooze, you can also define a filter for that snooze. The filter is a string containing one or more key-value pairs. The string uses the standard https://google.aip.dev/160 filter syntax. If you define a filter for a snooze, then the snooze can only apply to one alert policy. When the snooze is active, incidents won''t be created when the incident would have key-value pairs (labels) that match those specified by the filter in the snooze.Snooze filters support resource, metric, and metadata labels. If multiple labels are used, then they must be connected with an AND operator. For example, the following filter applies the snooze to incidents that have a resource label with an instance ID of 1234567890, a metric label with an instance name of test_group, a metadata user label with a key of foo and a value of bar, and a metadata system label with a key of region and a value of us-central1: "filter": "resource.labels.instance_id=\"1234567890\" AND metric.labels.instance_name=\"test_group\" AND metadata.user_labels.foo=\"bar\" AND metadata.system_labels.region=\"us-central1\""
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The specific AlertPolicy names for the alert that should be snoozed. The format is: projects/[PROJECT_ID_OR_NUMBER]/alertPolicies/[POLICY_ID] There is a limit of 16 policies per snooze. This limit is checked during snooze creation. Exactly 1 alert policy is required if filter is specified at the same time.
     #[serde(default)]
-    pub policies: Option<Vec<String>>,
+    pub policies: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Used to schedule the query to run every so many days.
@@ -416,10 +422,10 @@ pub struct Criteria {
 pub struct Daily {
     /// Optional. The time of day (in UTC) at which the query should run. If left unspecified, the server picks an arbitrary time of day and runs the query at the same time each day.
     #[serde(default, rename = "executionTime")]
-    pub execution_time: Option<TimeOfDay>,
+    pub execution_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
     /// Required. The number of days between runs. Must be greater than or equal to 1 day and less than or equal to 31 days.
     #[serde(default)]
-    pub periodicity: Option<i32>,
+    pub periodicity: ::core::option::Option<i32>,
 }
 
 /// Distribution contains summary statistics for a population of values. It optionally contains a histogram representing the distribution of those values across a set of buckets.The summary statistics are the count, mean, sum of the squared deviation from the mean, the minimum, and the maximum of the set of population of values. The histogram is based on a sequence of buckets and gives a count of values that fall into each bucket. The boundaries of the buckets are given either explicitly or by formulas for buckets of fixed or exponentially increasing widths.Although it is not forbidden, it is generally a bad idea to include non-finite values (infinities or NaNs) in the population of values, as this will render the mean and sum_of_squared_deviation fields meaningless.
@@ -427,25 +433,25 @@ pub struct Daily {
 pub struct Distribution {
     /// Required in the Cloud Monitoring API v3. The values for each bucket specified in bucket_options. The sum of the values in bucketCounts must equal the value in the count field of the Distribution object. The order of the bucket counts follows the numbering schemes described for the three bucket types. The underflow bucket has number 0; the finite buckets, if any, have numbers 1 through N-2; and the overflow bucket has number N-1. The size of bucket_counts must not be greater than N. If the size is less than N, then the remaining buckets are assigned values of zero.
     #[serde(default, rename = "bucketCounts")]
-    pub bucket_counts: Option<Vec<String>>,
+    pub bucket_counts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required in the Cloud Monitoring API v3. Defines the histogram bucket boundaries.
     #[serde(default, rename = "bucketOptions")]
-    pub bucket_options: Option<BucketOptions>,
+    pub bucket_options: ::core::option::Option<::std::boxed::Box<BucketOptions>>,
     /// The number of values in the population. Must be non-negative. This value must equal the sum of the values in bucket_counts if a histogram is provided.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Must be in increasing order of value field.
     #[serde(default)]
-    pub exemplars: Option<Vec<Exemplar>>,
+    pub exemplars: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Exemplar>>>,
     /// The arithmetic mean of the values in the population. If count is zero then this field must be zero.
     #[serde(default)]
-    pub mean: Option<f64>,
+    pub mean: ::core::option::Option<f64>,
     /// If specified, contains the range of the population values. The field must not be present if the count is zero. This field is presently ignored by the Cloud Monitoring API v3.
     #[serde(default)]
-    pub range: Option<Range>,
+    pub range: ::core::option::Option<::std::boxed::Box<Range>>,
     /// The sum of squared deviations from the mean of the values in the population. For values x_i this is: Sum[i=1..n]((x_i - mean)^2) Knuth, "The Art of Computer Programming", Vol. 2, page 232, 3rd edition describes Welford''s method for accumulating this sum in one pass.If count is zero then this field must be zero.
     #[serde(default, rename = "sumOfSquaredDeviation")]
-    pub sum_of_squared_deviation: Option<f64>,
+    pub sum_of_squared_deviation: ::core::option::Option<f64>,
 }
 
 /// A DistributionCut defines a TimeSeries and thresholds used for measuring good service and total service. The TimeSeries must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE. The computed good_service will be the estimated count of values in the Distribution that fall within the specified min and max.
@@ -453,10 +459,10 @@ pub struct Distribution {
 pub struct DistributionCut {
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries aggregating values. Must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE.
     #[serde(default, rename = "distributionFilter")]
-    pub distribution_filter: Option<String>,
+    pub distribution_filter: ::core::option::Option<String>,
     /// Range of values considered "good." For a one-sided range, set one bound to an infinite value.
     #[serde(default)]
-    pub range: Option<GoogleMonitoringV3Range>,
+    pub range: ::core::option::Option<::std::boxed::Box<GoogleMonitoringV3Range>>,
 }
 
 /// Documentation that is included in the notifications and incidents pertaining to this policy.
@@ -464,16 +470,16 @@ pub struct DistributionCut {
 pub struct Documentation {
     /// The body of the documentation, interpreted according to mime_type. The content may not exceed 8,192 Unicode characters and may not exceed more than 10,240 bytes when encoded in UTF-8 format, whichever is smaller. This text can be templatized by using variables (https://cloud.google.com/monitoring/alerts/doc-variables#doc-vars).
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Optional. Links to content such as playbooks, repositories, and other resources. This field can contain up to 3 entries.
     #[serde(default)]
-    pub links: Option<Vec<Link>>,
+    pub links: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Link>>>,
     /// The format of the content field. Presently, only the value "text/markdown" is supported. See Markdown (https://en.wikipedia.org/wiki/Markdown) for more information.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Optional. The subject line of the notification. The subject line may not exceed 10,240 bytes. In notifications generated by this policy, the contents of the subject line after variable expansion will be truncated to 255 bytes or shorter at the latest UTF-8 character boundary. The 255-byte limit is recommended by this thread (https://stackoverflow.com/questions/1592291/what-is-the-email-subject-length-limit). It is both the limit imposed by some third-party ticketing products and it is common to define textual fields in databases as VARCHAR(255).The contents of the subject line can be templatized by using variables (https://cloud.google.com/monitoring/alerts/doc-variables#doc-vars). If this field is missing or empty, a default subject line will be generated.
     #[serde(default)]
-    pub subject: Option<String>,
+    pub subject: ::core::option::Option<String>,
 }
 
 /// Detailed information about an error category.
@@ -481,10 +487,10 @@ pub struct Documentation {
 pub struct Error {
     /// The number of points that couldn''t be written because of status.
     #[serde(default, rename = "pointCount")]
-    pub point_count: Option<i32>,
+    pub point_count: ::core::option::Option<i32>,
     /// The status of the requested write operation.
     #[serde(default)]
-    pub status: Option<Status>,
+    pub status: ::core::option::Option<::std::boxed::Box<Status>>,
 }
 
 /// Exemplars are example points that may be used to annotate aggregated distribution values. They are metadata that gives information about a particular value added to a Distribution bucket, such as a trace ID that was active when a value was added. They may contain further information, such as a example values and timestamps, origin, etc.
@@ -492,13 +498,13 @@ pub struct Error {
 pub struct Exemplar {
     /// Contextual information about the example value. Examples are:Trace: type.googleapis.com/google.monitoring.v3.SpanContextLiteral string: type.googleapis.com/google.protobuf.StringValueLabels dropped during aggregation: type.googleapis.com/google.monitoring.v3.DroppedLabelsThere may be only a single attachment of any given message type in a single exemplar, and this is enforced by the system.
     #[serde(default)]
-    pub attachments: Option<Vec<serde_json::Value>>,
+    pub attachments: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// The observation (sampling) time of the above value.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
     /// Value of the exemplar point. This value determines to which bucket the exemplar belongs.
     #[serde(default)]
-    pub value: Option<f64>,
+    pub value: ::core::option::Option<f64>,
 }
 
 /// Specifies a set of buckets with arbitrary widths.There are size(bounds) + 1 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): boundsi Lower bound (1 &lt;= i &lt; N); boundsi - 1The bounds field must contain at least one element. If bounds has only one element, then there are no finite buckets, and that single element is the common boundary of the overflow and underflow buckets.
@@ -506,7 +512,7 @@ pub struct Exemplar {
 pub struct Explicit {
     /// The values must be monotonically increasing.
     #[serde(default)]
-    pub bounds: Option<Vec<f64>>,
+    pub bounds: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Specifies an exponential sequence of buckets that have a width that is proportional to the value of the lower bound. Each bucket represents a constant relative uncertainty on a specific value in the bucket.There are num_finite_buckets + 2 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): scale * (growth_factor ^ i).Lower bound (1 &lt;= i &lt; N): scale * (growth_factor ^ (i - 1)).
@@ -514,13 +520,13 @@ pub struct Explicit {
 pub struct Exponential {
     /// Must be greater than 1.
     #[serde(default, rename = "growthFactor")]
-    pub growth_factor: Option<f64>,
+    pub growth_factor: ::core::option::Option<f64>,
     /// Must be greater than 0.
     #[serde(default, rename = "numFiniteBuckets")]
-    pub num_finite_buckets: Option<i32>,
+    pub num_finite_buckets: ::core::option::Option<i32>,
     /// Must be greater than 0.
     #[serde(default)]
-    pub scale: Option<f64>,
+    pub scale: ::core::option::Option<f64>,
 }
 
 /// A single field of a message type.New usages of this message as an alternative to FieldDescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
@@ -528,34 +534,34 @@ pub struct Exponential {
 pub struct Field {
     /// The field cardinality. // TODO: enum values: ["CARDINALITY_UNKNOWN", "CARDINALITY_OPTIONAL", "CARDINALITY_REQUIRED", "CARDINALITY_REPEATED"]
     #[serde(default)]
-    pub cardinality: Option<String>,
+    pub cardinality: ::core::option::Option<String>,
     /// The string value of the default value of this field. Proto2 syntax only.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<String>,
+    pub default_value: ::core::option::Option<String>,
     /// The field JSON name.
     #[serde(default, rename = "jsonName")]
-    pub json_name: Option<String>,
+    pub json_name: ::core::option::Option<String>,
     /// The field type. // TODO: enum values: ["TYPE_UNKNOWN", "TYPE_DOUBLE", "TYPE_FLOAT", "TYPE_INT64", "TYPE_UINT64", "TYPE_INT32", "TYPE_FIXED64", "TYPE_FIXED32", "TYPE_BOOL", "TYPE_STRING", "TYPE_GROUP", "TYPE_MESSAGE", "TYPE_BYTES", "TYPE_UINT32", "TYPE_ENUM", "TYPE_SFIXED32", "TYPE_SFIXED64", "TYPE_SINT32", "TYPE_SINT64"]
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The field name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The field number.
     #[serde(default)]
-    pub number: Option<i32>,
+    pub number: ::core::option::Option<i32>,
     /// The index of the field type in Type.oneofs, for message or enumeration types. The first type has index 1; zero means the type is not in the list.
     #[serde(default, rename = "oneofIndex")]
-    pub oneof_index: Option<i32>,
+    pub oneof_index: ::core::option::Option<i32>,
     /// The protocol buffer options.
     #[serde(default)]
-    pub options: Option<Vec<Option>>,
+    pub options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiOption>>>,
     /// Whether to use alternative packed wire representation.
     #[serde(default)]
-    pub packed: Option<bool>,
+    pub packed: ::core::option::Option<bool>,
     /// The field type URL, without the scheme, for message or enumeration types. Example: "type.googleapis.com/google.protobuf.Timestamp".
     #[serde(default, rename = "typeUrl")]
-    pub type_url: Option<String>,
+    pub type_url: ::core::option::Option<String>,
 }
 
 /// Options used when forecasting the time series and testing the predicted value against the threshold.
@@ -563,7 +569,7 @@ pub struct Field {
 pub struct ForecastOptions {
     /// Required. The length of time into the future to forecast whether a time series will violate the threshold. If the predicted value is found to violate the threshold, and the violation is observed in all forecasts made for the configured duration, then the time series is considered to be failing. The forecast horizon can range from 1 hour to 60 hours.
     #[serde(default, rename = "forecastHorizon")]
-    pub forecast_horizon: Option<String>,
+    pub forecast_horizon: ::core::option::Option<String>,
 }
 
 /// The GetNotificationChannelVerificationCode request.
@@ -571,7 +577,7 @@ pub struct ForecastOptions {
 pub struct GetNotificationChannelVerificationCodeRequest {
     /// The desired expiration time. If specified, the API will guarantee that the returned code will not be valid after the specified timestamp; however, the API cannot guarantee that the returned code will be valid for at least as long as the requested time (the API puts an upper bound on the amount of time for which a code may be valid). If omitted, a default expiration will be used, which may be less than the max permissible expiration (so specifying an expiration may extend the code''s lifetime over omitting an expiration, even though the API does impose an upper limit on the maximum expiration that is permitted).
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
 }
 
 /// The GetNotificationChannelVerificationCode request.
@@ -579,10 +585,10 @@ pub struct GetNotificationChannelVerificationCodeRequest {
 pub struct GetNotificationChannelVerificationCodeResponse {
     /// The verification code, which may be used to verify other channels that have an equivalent identity (i.e. other channels of the same type with the same fingerprint such as other email channels with the same email address or other sms channels with the same number).
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
     /// The expiration time associated with the code that was returned. If an expiration was provided in the request, this is the minimum of the requested expiration in the request and the max permitted expiration.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
 }
 
 /// GKE Namespace. The field names correspond to the resource metadata labels on monitored resources that fall under a namespace (for example, k8s_container or k8s_pod).
@@ -590,16 +596,16 @@ pub struct GetNotificationChannelVerificationCodeResponse {
 pub struct GkeNamespace {
     /// The name of the parent cluster.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// The location of the parent cluster. This may be a zone or region.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The name of this namespace.
     #[serde(default, rename = "namespaceName")]
-    pub namespace_name: Option<String>,
+    pub namespace_name: ::core::option::Option<String>,
     /// Output only. The project this resource lives in. For legacy services migrated from the Custom type, this may be a distinct project from the one parenting the service itself.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
 }
 
 /// GKE Service. The "service" here represents a Kubernetes service object (https://kubernetes.io/docs/concepts/services-networking/service). The field names correspond to the resource labels on k8s_service monitored resources (https://cloud.google.com/monitoring/api/resources#tag_k8s_service).
@@ -607,19 +613,19 @@ pub struct GkeNamespace {
 pub struct GkeService {
     /// The name of the parent cluster.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// The location of the parent cluster. This may be a zone or region.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The name of the parent namespace.
     #[serde(default, rename = "namespaceName")]
-    pub namespace_name: Option<String>,
+    pub namespace_name: ::core::option::Option<String>,
     /// Output only. The project this resource lives in. For legacy services migrated from the Custom type, this may be a distinct project from the one parenting the service itself.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// The name of this service.
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
 }
 
 /// A GKE Workload (Deployment, StatefulSet, etc). The field names correspond to the metadata labels on monitored resources that fall under a workload (for example, k8s_container or k8s_pod).
@@ -627,22 +633,22 @@ pub struct GkeService {
 pub struct GkeWorkload {
     /// The name of the parent cluster.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// The location of the parent cluster. This may be a zone or region.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The name of the parent namespace.
     #[serde(default, rename = "namespaceName")]
-    pub namespace_name: Option<String>,
+    pub namespace_name: ::core::option::Option<String>,
     /// Output only. The project this resource lives in. For legacy services migrated from the Custom type, this may be a distinct project from the one parenting the service itself.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// The name of this workload.
     #[serde(default, rename = "topLevelControllerName")]
-    pub top_level_controller_name: Option<String>,
+    pub top_level_controller_name: ::core::option::Option<String>,
     /// The type of this workload (for example, "Deployment" or "DaemonSet")
     #[serde(default, rename = "topLevelControllerType")]
-    pub top_level_controller_type: Option<String>,
+    pub top_level_controller_type: ::core::option::Option<String>,
 }
 
 /// Range of numerical values within min and max.
@@ -650,10 +656,10 @@ pub struct GkeWorkload {
 pub struct GoogleMonitoringV3Range {
     /// Range maximum.
     #[serde(default)]
-    pub max: Option<f64>,
+    pub max: ::core::option::Option<f64>,
     /// Range minimum.
     #[serde(default)]
-    pub min: Option<f64>,
+    pub min: ::core::option::Option<f64>,
 }
 
 /// The description of a dynamic collection of monitored resources. Each group has a filter that is matched against monitored resources and their associated metadata. If a group''s filter matches an available monitored resource, then that resource is a member of that group. Groups can contain any number of monitored resources, and each monitored resource can be a member of any number of groups.Groups can be nested in parent-child hierarchies. The parentName field identifies an optional parent for each group. If a group has a parent, then the only monitored resources available to be matched by the group''s filter are the resources contained in the parent group. In other words, a group contains the monitored resources that match its filter and the filters of all the group''s ancestors. A group without a parent can contain any monitored resource.For example, consider an infrastructure running a set of instances with two user-defined tags: "environment" and "role". A parent group has a filter, environment="production". A child of that parent group has a filter, role="transcoder". The parent group contains all instances in the production environment, regardless of their roles. The child group contains instances that have the transcoder role and are in the production environment.The monitored resources contained in a group can change at any moment, depending on what resources exist and what filters are associated with the group and its ancestors.
@@ -661,19 +667,19 @@ pub struct GoogleMonitoringV3Range {
 pub struct Group {
     /// A user-assigned name for this group, used only for display purposes.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The filter used to determine which monitored resources belong to this group.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// If true, the members of this group are considered to be a cluster. The system can perform additional analysis on groups that are clusters.
     #[serde(default, rename = "isCluster")]
-    pub is_cluster: Option<bool>,
+    pub is_cluster: ::core::option::Option<bool>,
     /// Output only. The name of this group. The format is: projects/[PROJECT_ID_OR_NUMBER]/groups/[GROUP_ID] When creating a group, this field is ignored and a new name is created consisting of the project specified in the call to CreateGroup and a unique [GROUP_ID] that is generated automatically.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The name of the group''s parent, if it has one. The format is: projects/[PROJECT_ID_OR_NUMBER]/groups/[GROUP_ID] For groups with no parent, parent_name is the empty string, "".
     #[serde(default, rename = "parentName")]
-    pub parent_name: Option<String>,
+    pub parent_name: ::core::option::Option<String>,
 }
 
 /// Used to schedule the query to run every so many hours.
@@ -681,10 +687,10 @@ pub struct Group {
 pub struct Hourly {
     /// Optional. The number of minutes after the hour (in UTC) to run the query. Must be greater than or equal to 0 minutes and less than or equal to 59 minutes. If left unspecified, then an arbitrary offset is used.
     #[serde(default, rename = "minuteOffset")]
-    pub minute_offset: Option<i32>,
+    pub minute_offset: ::core::option::Option<i32>,
     /// Required. The number of hours between runs. Must be greater than or equal to 1 hour and less than or equal to 48 hours.
     #[serde(default)]
-    pub periodicity: Option<i32>,
+    pub periodicity: ::core::option::Option<i32>,
 }
 
 /// Information involved in an HTTP/HTTPS Uptime check request.
@@ -692,46 +698,48 @@ pub struct Hourly {
 pub struct HttpCheck {
     /// If present, the check will only pass if the HTTP response status code is in this set of status codes. If empty, the HTTP status code will only pass if the HTTP status code is 200-299.
     #[serde(default, rename = "acceptedResponseStatusCodes")]
-    pub accepted_response_status_codes: Option<Vec<ResponseStatusCode>>,
+    pub accepted_response_status_codes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResponseStatusCode>>>,
     /// The authentication information. Optional when creating an HTTP check; defaults to empty. Do not set both auth_method and auth_info.
     #[serde(default, rename = "authInfo")]
-    pub auth_info: Option<BasicAuthentication>,
+    pub auth_info: ::core::option::Option<::std::boxed::Box<BasicAuthentication>>,
     /// The request body associated with the HTTP POST request. If content_type is URL_ENCODED, the body passed in must be URL-encoded. Users can provide a Content-Length header via the headers field or the API will do so. If the request_method is GET and body is not empty, the API will return an error. The maximum byte size is 1 megabyte.Note: If client libraries aren''t used (which performs the conversion automatically) base64 encode your body data since the field is of bytes type.
     #[serde(default)]
-    pub body: Option<String>,
+    pub body: ::core::option::Option<String>,
     /// The content type header to use for the check. The following configurations result in errors: 1. Content type is specified in both the headers field and the content_type field. 2. Request method is GET and content_type is not TYPE_UNSPECIFIED 3. Request method is POST and content_type is TYPE_UNSPECIFIED. 4. Request method is POST and a "Content-Type" header is provided via headers field. The content_type field should be used instead. // TODO: enum values: ["TYPE_UNSPECIFIED", "URL_ENCODED", "USER_PROVIDED"]
     #[serde(default, rename = "contentType")]
-    pub content_type: Option<String>,
+    pub content_type: ::core::option::Option<String>,
     /// A user provided content type header to use for the check. The invalid configurations outlined in the content_type field apply to custom_content_type, as well as the following: 1. content_type is URL_ENCODED and custom_content_type is set. 2. content_type is USER_PROVIDED and custom_content_type is not set.
     #[serde(default, rename = "customContentType")]
-    pub custom_content_type: Option<String>,
+    pub custom_content_type: ::core::option::Option<String>,
     /// The list of headers to send as part of the Uptime check request. If two headers have the same key and different values, they should be entered as a single header, with the value being a comma-separated list of all the desired values as described at https://www.w3.org/Protocols/rfc2616/rfc2616.txt (page 31). Entering two separate headers with the same key in a Create call will cause the first to be overwritten by the second. The maximum number of headers allowed is 100.
     #[serde(default)]
-    pub headers: Option<serde_json::Value>,
+    pub headers: ::core::option::Option<serde_json::Value>,
     /// Boolean specifying whether to encrypt the header information. Encryption should be specified for any headers related to authentication that you do not wish to be seen when retrieving the configuration. The server will be responsible for encrypting the headers. On Get/List calls, if mask_headers is set to true then the headers will be obscured with ******.
     #[serde(default, rename = "maskHeaders")]
-    pub mask_headers: Option<bool>,
+    pub mask_headers: ::core::option::Option<bool>,
     /// Optional (defaults to "/"). The path to the page against which to run the check. Will be combined with the host (specified within the monitored_resource) and port to construct the full URL. If the provided path does not begin with "/", a "/" will be prepended automatically.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Contains information needed to add pings to an HTTP check.
     #[serde(default, rename = "pingConfig")]
-    pub ping_config: Option<PingConfig>,
+    pub ping_config: ::core::option::Option<::std::boxed::Box<PingConfig>>,
     /// Optional (defaults to 80 when use_ssl is false, and 443 when use_ssl is true). The TCP port on the HTTP server against which to run the check. Will be combined with host (specified within the monitored_resource) and path to construct the full URL.
     #[serde(default)]
-    pub port: Option<i32>,
+    pub port: ::core::option::Option<i32>,
     /// The HTTP request method to use for the check. If set to METHOD_UNSPECIFIED then request_method defaults to GET. // TODO: enum values: ["METHOD_UNSPECIFIED", "GET", "POST"]
     #[serde(default, rename = "requestMethod")]
-    pub request_method: Option<String>,
+    pub request_method: ::core::option::Option<String>,
     /// If specified, Uptime will generate and attach an OIDC JWT token for the Monitoring service agent service account as an Authorization header in the HTTP request when probing.
     #[serde(default, rename = "serviceAgentAuthentication")]
-    pub service_agent_authentication: Option<ServiceAgentAuthentication>,
+    pub service_agent_authentication:
+        ::core::option::Option<::std::boxed::Box<ServiceAgentAuthentication>>,
     /// If true, use HTTPS instead of HTTP to run the check.
     #[serde(default, rename = "useSsl")]
-    pub use_ssl: Option<bool>,
+    pub use_ssl: ::core::option::Option<bool>,
     /// Boolean specifying whether to include SSL certificate validation as a part of the Uptime check. Only applies to checks where monitored_resource is set to uptime_url. If use_ssl is false, setting validate_ssl to true has no effect.
     #[serde(default, rename = "validateSsl")]
-    pub validate_ssl: Option<bool>,
+    pub validate_ssl: ::core::option::Option<bool>,
 }
 
 /// An internal checker allows Uptime checks to run on private/internal GCP resources.
@@ -739,22 +747,22 @@ pub struct HttpCheck {
 pub struct InternalChecker {
     /// The checker''s human-readable name. The display name should be unique within a Cloud Monitoring Metrics Scope in order to make it easier to identify; however, uniqueness is not enforced.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The GCP zone the Uptime check should egress from. Only respected for internal Uptime checks, where internal_network is specified.
     #[serde(default, rename = "gcpZone")]
-    pub gcp_zone: Option<String>,
+    pub gcp_zone: ::core::option::Option<String>,
     /// A unique resource name for this InternalChecker. The format is: projects/[PROJECT_ID_OR_NUMBER]/internalCheckers/[INTERNAL_CHECKER_ID] [PROJECT_ID_OR_NUMBER] is the Cloud Monitoring Metrics Scope project for the Uptime check config associated with the internal checker.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The GCP VPC network (https://cloud.google.com/vpc/docs/vpc) where the internal resource lives (ex: "default").
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// The GCP project ID where the internal checker lives. Not necessary the same as the Metrics Scope project.
     #[serde(default, rename = "peerProjectId")]
-    pub peer_project_id: Option<String>,
+    pub peer_project_id: ::core::option::Option<String>,
     /// The current operational state of the internal checker. // TODO: enum values: ["UNSPECIFIED", "CREATING", "RUNNING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Canonical service scoped to an Istio mesh. Anthos clusters running ASM &gt;= 1.6.8 will have their services ingested as this type.
@@ -762,13 +770,13 @@ pub struct InternalChecker {
 pub struct IstioCanonicalService {
     /// The name of the canonical service underlying this service. Corresponds to the destination_canonical_service_name metric label in label in Istio metrics (https://cloud.google.com/monitoring/api/metrics_istio).
     #[serde(default, rename = "canonicalService")]
-    pub canonical_service: Option<String>,
+    pub canonical_service: ::core::option::Option<String>,
     /// The namespace of the canonical service underlying this service. Corresponds to the destination_canonical_service_namespace metric label in Istio metrics (https://cloud.google.com/monitoring/api/metrics_istio).
     #[serde(default, rename = "canonicalServiceNamespace")]
-    pub canonical_service_namespace: Option<String>,
+    pub canonical_service_namespace: ::core::option::Option<String>,
     /// Identifier for the Istio mesh in which this canonical service is defined. Corresponds to the mesh_uid metric label in Istio metrics (https://cloud.google.com/monitoring/api/metrics_istio).
     #[serde(default, rename = "meshUid")]
-    pub mesh_uid: Option<String>,
+    pub mesh_uid: ::core::option::Option<String>,
 }
 
 /// Information needed to perform a JSONPath content match. Used for ContentMatcherOption::MATCHES_JSON_PATH and ContentMatcherOption::NOT_MATCHES_JSON_PATH.
@@ -776,10 +784,10 @@ pub struct IstioCanonicalService {
 pub struct JsonPathMatcher {
     /// The type of JSONPath match that will be applied to the JSON output (ContentMatcher.content) // TODO: enum values: ["JSON_PATH_MATCHER_OPTION_UNSPECIFIED", "EXACT_MATCH", "REGEX_MATCH"]
     #[serde(default, rename = "jsonMatcher")]
-    pub json_matcher: Option<String>,
+    pub json_matcher: ::core::option::Option<String>,
     /// JSONPath within the response output pointing to the expected ContentMatcher::content to match against.
     #[serde(default, rename = "jsonPath")]
-    pub json_path: Option<String>,
+    pub json_path: ::core::option::Option<String>,
 }
 
 /// A description of a label.
@@ -787,13 +795,13 @@ pub struct JsonPathMatcher {
 pub struct LabelDescriptor {
     /// A human-readable description for the label.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The key for this label. The key must meet the following criteria: Does not exceed 100 characters. Matches the following regular expression: [a-zA-Z][a-zA-Z0-9_]* The first character must be an upper- or lower-case letter. The remaining characters must be letters, digits, or underscores.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The type of data that can be assigned to the label. // TODO: enum values: ["STRING", "BOOL", "INT64"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// A label value.
@@ -801,13 +809,13 @@ pub struct LabelDescriptor {
 pub struct LabelValue {
     /// A bool label value.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// An int64 label value.
     #[serde(default, rename = "int64Value")]
-    pub int64_value: Option<String>,
+    pub int64_value: ::core::option::Option<String>,
     /// A string label value.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// Parameters for a latency threshold SLI.
@@ -815,7 +823,7 @@ pub struct LabelValue {
 pub struct LatencyCriteria {
     /// Good service is defined to be the count of requests made to this service that return in no more than threshold.
     #[serde(default)]
-    pub threshold: Option<String>,
+    pub threshold: ::core::option::Option<String>,
 }
 
 /// Specifies a linear sequence of buckets that all have the same width (except overflow and underflow). Each bucket represents a constant absolute uncertainty on the specific value in the bucket.There are num_finite_buckets + 2 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): offset + (width * i).Lower bound (1 &lt;= i &lt; N): offset + (width * (i - 1)).
@@ -823,13 +831,13 @@ pub struct LatencyCriteria {
 pub struct Linear {
     /// Must be greater than 0.
     #[serde(default, rename = "numFiniteBuckets")]
-    pub num_finite_buckets: Option<i32>,
+    pub num_finite_buckets: ::core::option::Option<i32>,
     /// Lower bound of the first bucket.
     #[serde(default)]
-    pub offset: Option<f64>,
+    pub offset: ::core::option::Option<f64>,
     /// Must be greater than 0.
     #[serde(default)]
-    pub width: Option<f64>,
+    pub width: ::core::option::Option<f64>,
 }
 
 /// Links to content such as playbooks, repositories, and other resources.
@@ -837,10 +845,10 @@ pub struct Linear {
 pub struct Link {
     /// A short display name for the link. The display name must not be empty or exceed 63 characters. Example: "playbook".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The url of a webpage. A url can be templatized by using variables in the path or the query parameters. The total length of a URL should not exceed 2083 characters before and after variable expansion. Example: "https://my_domain.com/playbook?name=${resource.name}"
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// The protocol for the ListAlertPolicies response.
@@ -848,13 +856,13 @@ pub struct Link {
 pub struct ListAlertPoliciesResponse {
     /// The returned alert policies.
     #[serde(default, rename = "alertPolicies")]
-    pub alert_policies: Option<Vec<AlertPolicy>>,
+    pub alert_policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AlertPolicy>>>,
     /// If there might be more results than were returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The total number of alert policies in all pages. This number is only an estimate, and may change in subsequent pages. https://aip.dev/158
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// The ListAlerts response.
@@ -862,13 +870,13 @@ pub struct ListAlertPoliciesResponse {
 pub struct ListAlertsResponse {
     /// The list of alerts.
     #[serde(default)]
-    pub alerts: Option<Vec<Alert>>,
+    pub alerts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Alert>>>,
     /// If not empty, indicates that there may be more results that match the request. Use the value in the page_token field in a subsequent request to fetch the next set of results. The token is encrypted and only guaranteed to return correct results for 72 hours after it is created. If empty, all results have been returned.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The estimated total number of matching results for this query.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// The ListGroupMembers response.
@@ -876,13 +884,13 @@ pub struct ListAlertsResponse {
 pub struct ListGroupMembersResponse {
     /// A set of monitored resources in the group.
     #[serde(default)]
-    pub members: Option<Vec<MonitoredResource>>,
+    pub members: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MonitoredResource>>>,
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The total number of elements matching this request.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// The ListGroups response.
@@ -890,10 +898,10 @@ pub struct ListGroupMembersResponse {
 pub struct ListGroupsResponse {
     /// The groups that match the specified filters.
     #[serde(default)]
-    pub group: Option<Vec<Group>>,
+    pub group: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Group>>>,
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The ListMetricDescriptors response.
@@ -901,10 +909,11 @@ pub struct ListGroupsResponse {
 pub struct ListMetricDescriptorsResponse {
     /// The metric descriptors that are available to the project and that match the value of filter, if present.
     #[serde(default, rename = "metricDescriptors")]
-    pub metric_descriptors: Option<Vec<MetricDescriptor>>,
+    pub metric_descriptors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricDescriptor>>>,
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The ListMonitoredResourceDescriptors response.
@@ -912,10 +921,11 @@ pub struct ListMetricDescriptorsResponse {
 pub struct ListMonitoredResourceDescriptorsResponse {
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The monitored resource descriptors that are available to this project and that match filter, if present.
     #[serde(default, rename = "resourceDescriptors")]
-    pub resource_descriptors: Option<Vec<MonitoredResourceDescriptor>>,
+    pub resource_descriptors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MonitoredResourceDescriptor>>>,
 }
 
 /// The ListNotificationChannelDescriptors response.
@@ -923,10 +933,11 @@ pub struct ListMonitoredResourceDescriptorsResponse {
 pub struct ListNotificationChannelDescriptorsResponse {
     /// The monitored resource descriptors supported for the specified project, optionally filtered.
     #[serde(default, rename = "channelDescriptors")]
-    pub channel_descriptors: Option<Vec<NotificationChannelDescriptor>>,
+    pub channel_descriptors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NotificationChannelDescriptor>>>,
     /// If not empty, indicates that there may be more results that match the request. Use the value in the page_token field in a subsequent request to fetch the next set of results. If empty, all results have been returned.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The ListNotificationChannels response.
@@ -934,13 +945,14 @@ pub struct ListNotificationChannelDescriptorsResponse {
 pub struct ListNotificationChannelsResponse {
     /// If not empty, indicates that there may be more results that match the request. Use the value in the page_token field in a subsequent request to fetch the next set of results. If empty, all results have been returned.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The notification channels defined for the specified project.
     #[serde(default, rename = "notificationChannels")]
-    pub notification_channels: Option<Vec<NotificationChannel>>,
+    pub notification_channels:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NotificationChannel>>>,
     /// The total number of notification channels in all pages. This number is only an estimate, and may change in subsequent pages. https://aip.dev/158
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
 }
 
 /// The ListServiceLevelObjectives response.
@@ -948,10 +960,11 @@ pub struct ListNotificationChannelsResponse {
 pub struct ListServiceLevelObjectivesResponse {
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The ServiceLevelObjectives matching the specified filter.
     #[serde(default, rename = "serviceLevelObjectives")]
-    pub service_level_objectives: Option<Vec<ServiceLevelObjective>>,
+    pub service_level_objectives:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServiceLevelObjective>>>,
 }
 
 /// The ListServices response.
@@ -959,10 +972,10 @@ pub struct ListServiceLevelObjectivesResponse {
 pub struct ListServicesResponse {
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The Services matching the specified filter.
     #[serde(default)]
-    pub services: Option<Vec<Service>>,
+    pub services: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Service>>>,
 }
 
 /// The results of a successful ListSnoozes call, containing the matching Snoozes.
@@ -970,10 +983,10 @@ pub struct ListServicesResponse {
 pub struct ListSnoozesResponse {
     /// Page token for repeated calls to ListSnoozes, to fetch additional pages of results. If this is empty or missing, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Snoozes matching this list call.
     #[serde(default)]
-    pub snoozes: Option<Vec<Snooze>>,
+    pub snoozes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Snooze>>>,
 }
 
 /// The ListTimeSeries response.
@@ -981,19 +994,19 @@ pub struct ListSnoozesResponse {
 pub struct ListTimeSeriesResponse {
     /// Query execution errors that may have caused the time series data returned to be incomplete.
     #[serde(default, rename = "executionErrors")]
-    pub execution_errors: Option<Vec<Status>>,
+    pub execution_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// One or more time series that match the filter included in the request.
     #[serde(default, rename = "timeSeries")]
-    pub time_series: Option<Vec<TimeSeries>>,
+    pub time_series: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TimeSeries>>>,
     /// The unit in which all time_series point values are reported. unit follows the UCUM format for units as seen in https://unitsofmeasure.org/ucum.html. If different time_series have different units (for example, because they come from different metric types, or a unit is absent), then unit will be "{not_a_unit}".
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// Cloud regions that were unreachable which may have caused incomplete data to be returned.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The protocol for the ListUptimeCheckConfigs response.
@@ -1001,13 +1014,14 @@ pub struct ListTimeSeriesResponse {
 pub struct ListUptimeCheckConfigsResponse {
     /// This field represents the pagination token to retrieve the next page of results. If the value is empty, it means no further results for the request. To retrieve the next page of results, the value of the next_page_token is passed to the subsequent List method call (in the request message''s page_token field).
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The total number of Uptime check configurations for the project, irrespective of any pagination.
     #[serde(default, rename = "totalSize")]
-    pub total_size: Option<i32>,
+    pub total_size: ::core::option::Option<i32>,
     /// The returned Uptime check configurations.
     #[serde(default, rename = "uptimeCheckConfigs")]
-    pub uptime_check_configs: Option<Vec<UptimeCheckConfig>>,
+    pub uptime_check_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UptimeCheckConfig>>>,
 }
 
 /// The protocol for the ListUptimeCheckIps response.
@@ -1015,10 +1029,10 @@ pub struct ListUptimeCheckConfigsResponse {
 pub struct ListUptimeCheckIpsResponse {
     /// This field represents the pagination token to retrieve the next page of results. If the value is empty, it means no further results for the request. To retrieve the next page of results, the value of the next_page_token is passed to the subsequent List method call (in the request message''s page_token field). NOTE: this field is not yet implemented
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The returned list of IP addresses (including region and location) that the checkers run from.
     #[serde(default, rename = "uptimeCheckIps")]
-    pub uptime_check_ips: Option<Vec<UptimeCheckIp>>,
+    pub uptime_check_ips: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UptimeCheckIp>>>,
 }
 
 /// A condition type that checks whether a log message in the scoping project (https://cloud.google.com/monitoring/api/v3#project_name) satisfies the given filter. Logs from other projects in the metrics scope are not evaluated.
@@ -1026,10 +1040,10 @@ pub struct ListUptimeCheckIpsResponse {
 pub struct LogMatch {
     /// Required. A logs-based filter. See Advanced Logs Queries (https://cloud.google.com/logging/docs/view/advanced-queries) for how this filter should be constructed.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Optional. A map from a label key to an extractor expression, which is used to extract the value for this label key. Each entry in this map is a specification for how data should be extracted from log entries that match filter. Each combination of extracted values is treated as a separate rule for the purposes of triggering notifications. Label keys and corresponding values can be used in notifications generated by this condition.Please see the documentation on logs-based metric valueExtractors (https://cloud.google.com/logging/docs/reference/v2/rest/v2/projects.metrics#LogMetric.FIELDS.value_extractor) for syntax and examples.
     #[serde(default, rename = "labelExtractors")]
-    pub label_extractors: Option<serde_json::Value>,
+    pub label_extractors: ::core::option::Option<serde_json::Value>,
 }
 
 /// Istio service scoped to an Istio mesh. Anthos clusters running ASM &lt; 1.6.8 will have their services ingested as this type.
@@ -1037,13 +1051,13 @@ pub struct LogMatch {
 pub struct MeshIstio {
     /// Identifier for the mesh in which this Istio service is defined. Corresponds to the mesh_uid metric label in Istio metrics.
     #[serde(default, rename = "meshUid")]
-    pub mesh_uid: Option<String>,
+    pub mesh_uid: ::core::option::Option<String>,
     /// The name of the Istio service underlying this service. Corresponds to the destination_service_name metric label in Istio metrics.
     #[serde(default, rename = "serviceName")]
-    pub service_name: Option<String>,
+    pub service_name: ::core::option::Option<String>,
     /// The namespace of the Istio service underlying this service. Corresponds to the destination_service_namespace metric label in Istio metrics.
     #[serde(default, rename = "serviceNamespace")]
-    pub service_namespace: Option<String>,
+    pub service_namespace: ::core::option::Option<String>,
 }
 
 /// A specific metric, identified by specifying values for all of the labels of a MetricDescriptor.
@@ -1051,10 +1065,10 @@ pub struct MeshIstio {
 pub struct Metric {
     /// The set of label values that uniquely identify this metric. All labels listed in the MetricDescriptor must be assigned values.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// An existing metric type, see google.api.MetricDescriptor. For example, custom.googleapis.com/invoice/paid/amount.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A condition type that checks that monitored resources are reporting data. The configuration defines a metric and a set of monitored resources. The predicate is considered in violation when a time series for the specified metric of a monitored resource does not include any data in the specified duration.
@@ -1062,16 +1076,16 @@ pub struct Metric {
 pub struct MetricAbsence {
     /// Specifies the alignment of data points in individual time series as well as how to combine the retrieved time series together (such as when aggregating multiple streams on each resource to a single stream for each resource or when aggregating streams across all members of a group of resources). Multiple aggregations are applied in the order specified.This field is similar to the one in the ListTimeSeries request (https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.timeSeries/list). It is advisable to use the ListTimeSeries method when debugging this field.
     #[serde(default)]
-    pub aggregations: Option<Vec<Aggregation>>,
+    pub aggregations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Aggregation>>>,
     /// Required. The amount of time that a time series must fail to report new data to be considered failing. The minimum value of this field is 120 seconds. Larger values that are a multiple of a minute--for example, 240 or 300 seconds--are supported. If an invalid value is given, an error will be returned.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Required. A filter (https://cloud.google.com/monitoring/api/v3/filters) that identifies which time series should be compared with the threshold.The filter is similar to the one that is specified in the ListTimeSeries request (https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.timeSeries/list) (that call is useful to verify the time series that will be retrieved / processed). The filter must specify the metric type and the resource type. Optionally, it can specify resource labels and metric labels. This field must not exceed 2048 Unicode characters in length.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The number/percent of time series for which the comparison must hold in order for the condition to trigger. If unspecified, then the condition will trigger if the comparison is true for any of the time series that have been identified by filter and aggregations.
     #[serde(default)]
-    pub trigger: Option<Trigger>,
+    pub trigger: ::core::option::Option<::std::boxed::Box<Trigger>>,
 }
 
 /// Defines a metric type and its schema. Once a metric descriptor is created, deleting or altering it stops data collection and makes the metric type''s existing data unusable.
@@ -1079,37 +1093,37 @@ pub struct MetricAbsence {
 pub struct MetricDescriptor {
     /// A detailed description of the metric, which can be used in documentation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A concise name for the metric, which can be displayed in user interfaces. Use sentence case without an ending period, for example "Request count". This field is optional but it is recommended to be set for any metrics associated with user-visible concepts, such as Quota.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The set of labels that can be used to describe a specific instance of this metric type. For example, the appengine.googleapis.com/http/server/response_latencies metric type has a label for the HTTP response code, response_code, so you can look at latencies for successful responses or just for responses that failed.
     #[serde(default)]
-    pub labels: Option<Vec<LabelDescriptor>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelDescriptor>>>,
     /// Optional. The launch stage of the metric definition. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
     #[serde(default, rename = "launchStage")]
-    pub launch_stage: Option<String>,
+    pub launch_stage: ::core::option::Option<String>,
     /// Optional. Metadata which can be used to guide usage of the metric.
     #[serde(default)]
-    pub metadata: Option<MetricDescriptorMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<MetricDescriptorMetadata>>,
     /// Whether the metric records instantaneous values, changes to a value, etc. Some combinations of metric_kind and value_type might not be supported. // TODO: enum values: ["METRIC_KIND_UNSPECIFIED", "GAUGE", "DELTA", "CUMULATIVE"]
     #[serde(default, rename = "metricKind")]
-    pub metric_kind: Option<String>,
+    pub metric_kind: ::core::option::Option<String>,
     /// Read-only. If present, then a time series, which is identified partially by a metric type and a MonitoredResourceDescriptor, that is associated with this metric type can only be associated with one of the monitored resource types listed here.
     #[serde(default, rename = "monitoredResourceTypes")]
-    pub monitored_resource_types: Option<Vec<String>>,
+    pub monitored_resource_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// The resource name of the metric descriptor.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The metric type, including its DNS name prefix. The type is not URL-encoded. All user-defined metric types have the DNS name custom.googleapis.com or external.googleapis.com. Metric types should use a natural hierarchical grouping. For example: "custom.googleapis.com/invoice/paid/amount" "external.googleapis.com/prometheus/up" "appengine.googleapis.com/http/server/response_latencies"
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The units in which the metric value is reported. It is only applicable if the value_type is INT64, DOUBLE, or DISTRIBUTION. The unit defines the representation of the stored metric values.Different systems might scale the values to be more easily displayed (so a value of 0.02kBy might be displayed as 20By, and a value of 3523kBy might be displayed as 3.5MBy). However, if the unit is kBy, then the value of the metric is always in thousands of bytes, no matter how it might be displayed.If you want a custom metric to record the exact number of CPU-seconds used by a job, you can create an INT64 CUMULATIVE metric whose unit is s{CPU} (or equivalently 1s{CPU} or just s). If the job uses 12,005 CPU-seconds, then the value is written as 12005.Alternatively, if you want a custom metric to record data in a more granular way, you can create a DOUBLE CUMULATIVE metric whose unit is ks{CPU}, and then write the value 12.005 (which is 12005/1000), or use Kis{CPU} and write 11.723 (which is 12005/1024).The supported units are a subset of The Unified Code for Units of Measure (https://unitsofmeasure.org/ucum.html) standard:Basic units (UNIT) bit bit By byte s second min minute h hour d day 1 dimensionlessPrefixes (PREFIX) k kilo (10^3) M mega (10^6) G giga (10^9) T tera (10^12) P peta (10^15) E exa (10^18) Z zetta (10^21) Y yotta (10^24) m milli (10^-3) u micro (10^-6) n nano (10^-9) p pico (10^-12) f femto (10^-15) a atto (10^-18) z zepto (10^-21) y yocto (10^-24) Ki kibi (2^10) Mi mebi (2^20) Gi gibi (2^30) Ti tebi (2^40) Pi pebi (2^50)GrammarThe grammar also includes these connectors: / division or ratio (as an infix operator). For examples, kBy/{email} or MiBy/10ms (although you should almost never have /s in a metric unit; rates should always be computed at query time from the underlying cumulative or delta value). . multiplication or composition (as an infix operator). For examples, GBy.d or k{watt}.h.The grammar for a unit is as follows: Expression = Component { "." Component } { "/" Component } ; Component = ( [ PREFIX ] UNIT | "%" ) [ Annotation ] | Annotation | "1" ; Annotation = "{" NAME "}" ; Notes: Annotation is just a comment if it follows a UNIT. If the annotation is used alone, then the unit is equivalent to 1. For examples, {request}/s == 1/s, By{transmitted}/s == By/s. NAME is a sequence of non-blank printable ASCII characters not containing { or }. 1 represents a unitary dimensionless unit (https://en.wikipedia.org/wiki/Dimensionless_quantity) of 1, such as in 1/s. It is typically used when none of the basic units are appropriate. For example, "new users per day" can be represented as 1/d or {new-users}/d (and a metric value 5 would mean "5 new users). Alternatively, "thousands of page views per day" would be represented as 1000/d or k1/d or k{page_views}/d (and a metric value of 5.3 would mean "5300 page views per day"). % represents dimensionless value of 1/100, and annotates values giving a percentage (so the metric values are typically in the range of 0..100, and a metric value 3 means "3 percent"). 10^2.% indicates a metric contains a ratio, typically in the range 0..1, that will be multiplied by 100 and displayed as a percentage (so a metric value 0.03 means "3 percent").
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// Whether the measurement is an integer, a floating-point number, etc. Some combinations of metric_kind and value_type might not be supported. // TODO: enum values: ["VALUE_TYPE_UNSPECIFIED", "BOOL", "INT64", "DOUBLE", "STRING", "DISTRIBUTION", "MONEY"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// Additional annotations that can be used to guide the usage of a metric.
@@ -1117,16 +1131,16 @@ pub struct MetricDescriptor {
 pub struct MetricDescriptorMetadata {
     /// The delay of data points caused by ingestion. Data points older than this age are guaranteed to be ingested and available to be read, excluding data loss due to errors.
     #[serde(default, rename = "ingestDelay")]
-    pub ingest_delay: Option<String>,
+    pub ingest_delay: ::core::option::Option<String>,
     /// Deprecated. Must use the MetricDescriptor.launch_stage instead. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
     #[serde(default, rename = "launchStage")]
-    pub launch_stage: Option<String>,
+    pub launch_stage: ::core::option::Option<String>,
     /// The sampling period of metric data points. For metrics which are written periodically, consecutive data points are stored at this time interval, excluding data loss due to errors. Metrics with a higher granularity have a smaller sampling period.
     #[serde(default, rename = "samplePeriod")]
-    pub sample_period: Option<String>,
+    pub sample_period: ::core::option::Option<String>,
     /// The scope of the timeseries data of the metric.
     #[serde(default, rename = "timeSeriesResourceHierarchyLevel")]
-    pub time_series_resource_hierarchy_level: Option<Vec<String>>,
+    pub time_series_resource_hierarchy_level: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A MetricRange is used when each window is good when the value x of a single TimeSeries satisfies range.min &lt;= x &lt;= range.max. The provided TimeSeries must have ValueType = INT64 or ValueType = DOUBLE and MetricKind = GAUGE.
@@ -1134,10 +1148,10 @@ pub struct MetricDescriptorMetadata {
 pub struct MetricRange {
     /// Range of values considered "good." For a one-sided range, set one bound to an infinite value.
     #[serde(default)]
-    pub range: Option<GoogleMonitoringV3Range>,
+    pub range: ::core::option::Option<::std::boxed::Box<GoogleMonitoringV3Range>>,
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying the TimeSeries to use for evaluating window quality.
     #[serde(default, rename = "timeSeries")]
-    pub time_series: Option<String>,
+    pub time_series: ::core::option::Option<String>,
 }
 
 /// A condition type that compares a collection of time series against a threshold.
@@ -1145,34 +1159,35 @@ pub struct MetricRange {
 pub struct MetricThreshold {
     /// Specifies the alignment of data points in individual time series as well as how to combine the retrieved time series together (such as when aggregating multiple streams on each resource to a single stream for each resource or when aggregating streams across all members of a group of resources). Multiple aggregations are applied in the order specified.This field is similar to the one in the ListTimeSeries request (https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.timeSeries/list). It is advisable to use the ListTimeSeries method when debugging this field.
     #[serde(default)]
-    pub aggregations: Option<Vec<Aggregation>>,
+    pub aggregations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Aggregation>>>,
     /// The comparison to apply between the time series (indicated by filter and aggregation) and the threshold (indicated by threshold_value). The comparison is applied on each time series, with the time series on the left-hand side and the threshold on the right-hand side.Only COMPARISON_LT and COMPARISON_GT are supported currently. // TODO: enum values: ["COMPARISON_UNSPECIFIED", "COMPARISON_GT", "COMPARISON_GE", "COMPARISON_LT", "COMPARISON_LE", "COMPARISON_EQ", "COMPARISON_NE"]
     #[serde(default)]
-    pub comparison: Option<String>,
+    pub comparison: ::core::option::Option<String>,
     /// Specifies the alignment of data points in individual time series selected by denominatorFilter as well as how to combine the retrieved time series together (such as when aggregating multiple streams on each resource to a single stream for each resource or when aggregating streams across all members of a group of resources).When computing ratios, the aggregations and denominator_aggregations fields must use the same alignment period and produce time series that have the same periodicity and labels.
     #[serde(default, rename = "denominatorAggregations")]
-    pub denominator_aggregations: Option<Vec<Aggregation>>,
+    pub denominator_aggregations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Aggregation>>>,
     /// A filter (https://cloud.google.com/monitoring/api/v3/filters) that identifies a time series that should be used as the denominator of a ratio that will be compared with the threshold. If a denominator_filter is specified, the time series specified by the filter field will be used as the numerator.The filter must specify the metric type and optionally may contain restrictions on resource type, resource labels, and metric labels. This field may not exceed 2048 Unicode characters in length.
     #[serde(default, rename = "denominatorFilter")]
-    pub denominator_filter: Option<String>,
+    pub denominator_filter: ::core::option::Option<String>,
     /// Required. The amount of time that a time series must violate the threshold to be considered failing. Currently, only values that are a multiple of a minute--e.g., 0, 60, 120, or 300 seconds--are supported. If an invalid value is given, an error will be returned. When choosing a duration, it is useful to keep in mind the frequency of the underlying time series data (which may also be affected by any alignments specified in the aggregations field); a good duration is long enough so that a single outlier does not generate spurious alerts, but short enough that unhealthy states are detected and alerted on quickly.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// A condition control that determines how metric-threshold conditions are evaluated when data stops arriving. To use this control, the value of the duration field must be greater than or equal to 60 seconds. // TODO: enum values: ["EVALUATION_MISSING_DATA_UNSPECIFIED", "EVALUATION_MISSING_DATA_INACTIVE", "EVALUATION_MISSING_DATA_ACTIVE", "EVALUATION_MISSING_DATA_NO_OP"]
     #[serde(default, rename = "evaluationMissingData")]
-    pub evaluation_missing_data: Option<String>,
+    pub evaluation_missing_data: ::core::option::Option<String>,
     /// Required. A filter (https://cloud.google.com/monitoring/api/v3/filters) that identifies which time series should be compared with the threshold.The filter is similar to the one that is specified in the ListTimeSeries request (https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.timeSeries/list) (that call is useful to verify the time series that will be retrieved / processed). The filter must specify the metric type and the resource type. Optionally, it can specify resource labels and metric labels. This field must not exceed 2048 Unicode characters in length.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// When this field is present, the MetricThreshold condition forecasts whether the time series is predicted to violate the threshold within the forecast_horizon. When this field is not set, the MetricThreshold tests the current value of the timeseries against the threshold.
     #[serde(default, rename = "forecastOptions")]
-    pub forecast_options: Option<ForecastOptions>,
+    pub forecast_options: ::core::option::Option<::std::boxed::Box<ForecastOptions>>,
     /// A value against which to compare the time series.
     #[serde(default, rename = "thresholdValue")]
-    pub threshold_value: Option<f64>,
+    pub threshold_value: ::core::option::Option<f64>,
     /// The number/percent of time series for which the comparison must hold in order for the condition to trigger. If unspecified, then the condition will trigger if the comparison is true for any of the time series that have been identified by filter and aggregations, or by the ratio, if denominator_filter and denominator_aggregations are specified.
     #[serde(default)]
-    pub trigger: Option<Trigger>,
+    pub trigger: ::core::option::Option<::std::boxed::Box<Trigger>>,
 }
 
 /// Used to schedule the query to run every so many minutes.
@@ -1180,7 +1195,7 @@ pub struct MetricThreshold {
 pub struct Minutes {
     /// Required. Number of minutes between runs. The interval must be greater than or equal to 5 minutes and less than or equal to 1440 minutes.
     #[serde(default)]
-    pub periodicity: Option<i32>,
+    pub periodicity: ::core::option::Option<i32>,
 }
 
 /// An object representing a resource that can be used for monitoring, logging, billing, or other purposes. Examples include virtual machine instances, databases, and storage devices such as disks. The type field identifies a MonitoredResourceDescriptor object that describes the resource''s schema. Information in the labels field identifies the actual resource and its attributes according to the schema. For example, a particular Compute Engine VM instance could be represented by the following object, because the MonitoredResourceDescriptor for "gce_instance" has labels "project_id", "instance_id" and "zone": { "type": "gce_instance", "labels": { "project_id": "my-project", "instance_id": "12345678901234", "zone": "us-central1-a" }}
@@ -1188,10 +1203,10 @@ pub struct Minutes {
 pub struct MonitoredResource {
     /// Required. Values for all of the labels listed in the associated monitored resource descriptor. For example, Compute Engine VM instances use the labels "project_id", "instance_id", and "zone".
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. The monitored resource type. This field must match the type field of a MonitoredResourceDescriptor object. For example, the type of a Compute Engine VM instance is gce_instance. For a list of types, see Monitoring resource types (https://cloud.google.com/monitoring/api/resources) and Logging resource types (https://cloud.google.com/logging/docs/api/v2/resource-list).
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An object that describes the schema of a MonitoredResource object using a type name and a set of labels. For example, the monitored resource descriptor for Google Compute Engine VM instances has a type of "gce_instance" and specifies the use of the labels "instance_id" and "zone" to identify particular VM instances.Different APIs can support different monitored resource types. APIs generally provide a list method that returns the monitored resource descriptors used by the API.
@@ -1199,22 +1214,22 @@ pub struct MonitoredResource {
 pub struct MonitoredResourceDescriptor {
     /// Optional. A detailed description of the monitored resource type that might be used in documentation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. A concise name for the monitored resource type that might be displayed in user interfaces. It should be a Title Cased Noun Phrase, without any article or other determiners. For example, "Google Cloud SQL Database".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. A set of labels used to describe instances of this monitored resource type. For example, an individual Google Cloud SQL database is identified by values for the labels "database_id" and "zone".
     #[serde(default)]
-    pub labels: Option<Vec<LabelDescriptor>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelDescriptor>>>,
     /// Optional. The launch stage of the monitored resource definition. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
     #[serde(default, rename = "launchStage")]
-    pub launch_stage: Option<String>,
+    pub launch_stage: ::core::option::Option<String>,
     /// Optional. The resource name of the monitored resource descriptor: "projects/{project_id}/monitoredResourceDescriptors/{type}" where {type} is the value of the type field in this object and {project_id} is a project ID that provides API-specific context for accessing the type. APIs that do not use project information can use the resource name format "monitoredResourceDescriptors/{type}".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The monitored resource type. For example, the type "cloudsql_database" represents databases in Google Cloud SQL. For a list of types, see Monitored resource types (https://cloud.google.com/monitoring/api/resources) and Logging resource types (https://cloud.google.com/logging/docs/api/v2/resource-list).
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Auxiliary metadata for a MonitoredResource object. MonitoredResource objects contain the minimum set of information to uniquely identify a monitored resource instance. There is some other useful auxiliary metadata. Monitoring and Logging use an ingestion pipeline to extract metadata for cloud resources of all types, and store the metadata in this message.
@@ -1222,10 +1237,10 @@ pub struct MonitoredResourceDescriptor {
 pub struct MonitoredResourceMetadata {
     /// Output only. Values for predefined system metadata labels. System labels are a kind of metadata extracted by Google, including "machine_image", "vpc", "subnet_id", "security_group", "name", etc. System label values can be only strings, Boolean values, or a list of strings. For example: { "name": "my-test-instance", "security_group": ["a", "b", "c"], "spot_instance": false }
     #[serde(default, rename = "systemLabels")]
-    pub system_labels: Option<serde_json::Value>,
+    pub system_labels: ::core::option::Option<serde_json::Value>,
     /// Output only. A map of user-defined metadata labels.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// A condition type that allows alerting policies to be defined using Monitoring Query Language (https://cloud.google.com/monitoring/mql).
@@ -1233,16 +1248,16 @@ pub struct MonitoredResourceMetadata {
 pub struct MonitoringQueryLanguageCondition {
     /// Optional. The amount of time that a time series must violate the threshold to be considered failing. Currently, only values that are a multiple of a minute--e.g., 0, 60, 120, or 300 seconds--are supported. If an invalid value is given, an error will be returned. When choosing a duration, it is useful to keep in mind the frequency of the underlying time series data (which may also be affected by any alignments specified in the aggregations field); a good duration is long enough so that a single outlier does not generate spurious alerts, but short enough that unhealthy states are detected and alerted on quickly. The default value is zero.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// A condition control that determines how metric-threshold conditions are evaluated when data stops arriving. // TODO: enum values: ["EVALUATION_MISSING_DATA_UNSPECIFIED", "EVALUATION_MISSING_DATA_INACTIVE", "EVALUATION_MISSING_DATA_ACTIVE", "EVALUATION_MISSING_DATA_NO_OP"]
     #[serde(default, rename = "evaluationMissingData")]
-    pub evaluation_missing_data: Option<String>,
+    pub evaluation_missing_data: ::core::option::Option<String>,
     /// Monitoring Query Language (https://cloud.google.com/monitoring/mql) query that outputs a boolean stream.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// The number/percent of time series for which the comparison must hold in order for the condition to trigger. If unspecified, then the condition will trigger if the comparison is true for any of the time series that have been identified by filter and aggregations, or by the ratio, if denominator_filter and denominator_aggregations are specified.
     #[serde(default)]
-    pub trigger: Option<Trigger>,
+    pub trigger: ::core::option::Option<::std::boxed::Box<Trigger>>,
 }
 
 /// Describes a change made to a configuration.
@@ -1250,10 +1265,10 @@ pub struct MonitoringQueryLanguageCondition {
 pub struct MutationRecord {
     /// When the change occurred.
     #[serde(default, rename = "mutateTime")]
-    pub mutate_time: Option<String>,
+    pub mutate_time: ::core::option::Option<String>,
     /// The email address of the user making the change.
     #[serde(default, rename = "mutatedBy")]
-    pub mutated_by: Option<String>,
+    pub mutated_by: ::core::option::Option<String>,
 }
 
 /// A NotificationChannel is a medium through which an alert is delivered when a policy violation is detected. Examples of channels include email, SMS, and third-party messaging applications. Fields containing sensitive information like authentication tokens or contact info are only partially populated on retrieval.
@@ -1261,34 +1276,35 @@ pub struct MutationRecord {
 pub struct NotificationChannel {
     /// Record of the creation of this channel.
     #[serde(default, rename = "creationRecord")]
-    pub creation_record: Option<MutationRecord>,
+    pub creation_record: ::core::option::Option<::std::boxed::Box<MutationRecord>>,
     /// An optional human-readable description of this notification channel. This description may provide additional details, beyond the display name, for the channel. This may not exceed 1024 Unicode characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// An optional human-readable name for this notification channel. It is recommended that you specify a non-empty and unique name in order to make it easier to identify the channels in your project, though this is not enforced. The display name is limited to 512 Unicode characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Whether notifications are forwarded to the described channel. This makes it possible to disable delivery of notifications to a particular channel without removing the channel from all alerting policies that reference the channel. This is a more convenient approach when the change is temporary and you want to receive notifications from the same set of alerting policies on the channel at some point in the future.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// Configuration fields that define the channel and its behavior. The permissible and required labels are specified in the NotificationChannelDescriptor.labels of the NotificationChannelDescriptor corresponding to the type field.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Records of the modification of this channel.
     #[serde(default, rename = "mutationRecords")]
-    pub mutation_records: Option<Vec<MutationRecord>>,
+    pub mutation_records:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MutationRecord>>>,
     /// Identifier. The full REST resource name for this channel. The format is: projects/[PROJECT_ID_OR_NUMBER]/notificationChannels/[CHANNEL_ID] The [CHANNEL_ID] is automatically assigned by the server on creation.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The type of the notification channel. This field matches the value of the NotificationChannelDescriptor.type field.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// User-supplied key/value data that does not need to conform to the corresponding NotificationChannelDescriptor''s schema, unlike the labels field. This field is intended to be used for organizing and identifying the NotificationChannel objects.The field can contain up to 64 entries. Each key and value is limited to 63 Unicode characters or 128 bytes, whichever is smaller. Labels and values can contain only lowercase letters, numerals, underscores, and dashes. Keys must begin with a letter.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
     /// Indicates whether this channel has been verified or not. On a ListNotificationChannels or GetNotificationChannel operation, this field is expected to be populated.If the value is UNVERIFIED, then it indicates that the channel is non-functioning (it both requires verification and lacks verification); otherwise, it is assumed that the channel works.If the channel is neither VERIFIED nor UNVERIFIED, it implies that the channel is of a type that does not require verification or that this specific channel has been exempted from verification because it was created prior to verification being required for channels of this type.This field cannot be modified using a standard UpdateNotificationChannel operation. To change the value of this field, you must call VerifyNotificationChannel. // TODO: enum values: ["VERIFICATION_STATUS_UNSPECIFIED", "UNVERIFIED", "VERIFIED"]
     #[serde(default, rename = "verificationStatus")]
-    pub verification_status: Option<String>,
+    pub verification_status: ::core::option::Option<String>,
 }
 
 /// A description of a notification channel. The descriptor includes the properties of the channel and the set of labels or fields that must be specified to configure channels of a given type.
@@ -1296,25 +1312,25 @@ pub struct NotificationChannel {
 pub struct NotificationChannelDescriptor {
     /// A human-readable description of the notification channel type. The description may include a description of the properties of the channel and pointers to external documentation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A human-readable name for the notification channel type. This form of the name is suitable for a user interface.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The set of labels that must be defined to identify a particular channel of the corresponding type. Each label includes a description for how that field should be populated.
     #[serde(default)]
-    pub labels: Option<Vec<LabelDescriptor>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelDescriptor>>>,
     /// The product launch stage for channels of this type. // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
     #[serde(default, rename = "launchStage")]
-    pub launch_stage: Option<String>,
+    pub launch_stage: ::core::option::Option<String>,
     /// The full REST resource name for this descriptor. The format is: projects/[PROJECT_ID_OR_NUMBER]/notificationChannelDescriptors/[TYPE] In the above, [TYPE] is the value of the type field.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The tiers that support this notification channel; the project service tier must be one of the supported_tiers.
     #[serde(default, rename = "supportedTiers")]
-    pub supported_tiers: Option<Vec<String>>,
+    pub supported_tiers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of notification channel, such as "email" and "sms". To view the full list of channels, see Channel descriptors (https://cloud.google.com/monitoring/alerts/using-channels-api#ncd). Notification channel types are globally unique.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Control over how the notification channels in notification_channels are notified when this alert fires, on a per-channel basis.
@@ -1322,10 +1338,10 @@ pub struct NotificationChannelDescriptor {
 pub struct NotificationChannelStrategy {
     /// The full REST resource name for the notification channels that these settings apply to. Each of these correspond to the name field in one of the NotificationChannel objects referenced in the notification_channels field of this AlertPolicy. The format is: projects/[PROJECT_ID_OR_NUMBER]/notificationChannels/[CHANNEL_ID]
     #[serde(default, rename = "notificationChannelNames")]
-    pub notification_channel_names: Option<Vec<String>>,
+    pub notification_channel_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The frequency at which to send reminder notifications for open incidents. The value must be between 30 minutes and 24 hours.
     #[serde(default, rename = "renotifyInterval")]
-    pub renotify_interval: Option<String>,
+    pub renotify_interval: ::core::option::Option<String>,
 }
 
 /// Control over the rate of notifications sent to this alerting policy''s notification channels.
@@ -1333,7 +1349,7 @@ pub struct NotificationChannelStrategy {
 pub struct NotificationRateLimit {
     /// Not more than one notification per period.
     #[serde(default)]
-    pub period: Option<String>,
+    pub period: ::core::option::Option<String>,
 }
 
 /// Contains metadata for longrunning operation for the edit Metrics Scope endpoints.
@@ -1341,24 +1357,24 @@ pub struct NotificationRateLimit {
 pub struct OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATED", "RUNNING", "DONE", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the operation result was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A protocol buffer option, which can be attached to a message, field, enumeration, etc.New usages of this message as an alternative to FileOptions, MessageOptions, FieldOptions, EnumOptions, EnumValueOptions, ServiceOptions, or MethodOptions are strongly discouraged.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Option {
+pub struct ApiOption {
     /// The option''s name. For protobuf built-in options (options defined in descriptor.proto), this is the short name. For example, "map_entry". For custom options, it should be the fully-qualified name. For example, "google.api.http".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The option''s value packed in an Any message. If the value is a primitive, the corresponding wrapper type defined in google/protobuf/wrappers.proto should be used. If the value is an enum, it should be stored as an int32 value using the google.protobuf.Int32Value type.
     #[serde(default)]
-    pub value: Option<serde_json::Value>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// A PerformanceThreshold is used when each window is good when that window has a sufficiently high performance.
@@ -1366,13 +1382,13 @@ pub struct Option {
 pub struct PerformanceThreshold {
     /// BasicSli to evaluate to judge window quality.
     #[serde(default, rename = "basicSliPerformance")]
-    pub basic_sli_performance: Option<BasicSli>,
+    pub basic_sli_performance: ::core::option::Option<::std::boxed::Box<BasicSli>>,
     /// RequestBasedSli to evaluate to judge window quality.
     #[serde(default)]
-    pub performance: Option<RequestBasedSli>,
+    pub performance: ::core::option::Option<::std::boxed::Box<RequestBasedSli>>,
     /// If window performance &gt;= threshold, the window is counted as good.
     #[serde(default)]
-    pub threshold: Option<f64>,
+    pub threshold: ::core::option::Option<f64>,
 }
 
 /// Information involved in sending ICMP pings alongside public HTTP/TCP checks. For HTTP, the pings are performed for each part of the redirect chain.
@@ -1380,7 +1396,7 @@ pub struct PerformanceThreshold {
 pub struct PingConfig {
     /// Number of ICMP pings. A maximum of 3 ICMP pings is currently supported.
     #[serde(default, rename = "pingsCount")]
-    pub pings_count: Option<i32>,
+    pub pings_count: ::core::option::Option<i32>,
 }
 
 /// A single data point in a time series.
@@ -1388,10 +1404,10 @@ pub struct PingConfig {
 pub struct Point {
     /// The time interval to which the data point applies. For GAUGE metrics, the start time is optional, but if it is supplied, it must equal the end time. For DELTA metrics, the start and end time should specify a non-zero interval, with subsequent points specifying contiguous and non-overlapping intervals. For CUMULATIVE metrics, the start and end time should specify a non-zero interval, with subsequent points specifying the same start time and increasing end times, until an event resets the cumulative value to zero and sets a new start time for the following points.
     #[serde(default)]
-    pub interval: Option<TimeInterval>,
+    pub interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// The value of the data point.
     #[serde(default)]
-    pub value: Option<TypedValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<TypedValue>>,
 }
 
 /// A point''s value columns and time interval. Each point has one or more point values corresponding to the entries in point_descriptors field in the TimeSeriesDescriptor associated with this object.
@@ -1399,10 +1415,10 @@ pub struct Point {
 pub struct PointData {
     /// The time interval associated with the point.
     #[serde(default, rename = "timeInterval")]
-    pub time_interval: Option<TimeInterval>,
+    pub time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// The values that make up the point.
     #[serde(default)]
-    pub values: Option<Vec<TypedValue>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TypedValue>>>,
 }
 
 /// The state of the policy at the time the alert was generated.
@@ -1410,16 +1426,16 @@ pub struct PointData {
 pub struct PolicySnapshot {
     /// The display name of the alert policy.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The name of the alert policy resource. In the form of "projects/PROJECT_ID_OR_NUMBER/alertPolicies/ALERT_POLICY_ID".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The severity of the alert policy. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "ERROR", "WARNING"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// The user labels for the alert policy.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// A condition type that allows alerting policies to be defined using Prometheus Query Language (PromQL) (https://prometheus.io/docs/prometheus/latest/querying/basics/).The PrometheusQueryLanguageCondition message contains information from a Prometheus alerting rule and its associated rule group.A Prometheus alerting rule is described here (https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/). The semantics of a Prometheus alerting rule is described here (https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#rule).A Prometheus rule group is described here (https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/). The semantics of a Prometheus rule group is described here (https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#rule_group).Because Cloud Alerting has no representation of a Prometheus rule group resource, we must embed the information of the parent rule group inside each of the conditions that refer to it. We must also update the contents of all Prometheus alerts in case the information of their rule group changes.The PrometheusQueryLanguageCondition protocol buffer combines the information of the corresponding rule group and alerting rule. The structure of the PrometheusQueryLanguageCondition protocol buffer does NOT mimic the structure of the Prometheus rule group and alerting rule YAML declarations. The PrometheusQueryLanguageCondition protocol buffer may change in the future to support future rule group and/or alerting rule features. There are no new such features at the present time (2023-06-26).
@@ -1427,25 +1443,25 @@ pub struct PolicySnapshot {
 pub struct PrometheusQueryLanguageCondition {
     /// Optional. The alerting rule name of this alert in the corresponding Prometheus configuration file.Some external tools may require this field to be populated correctly in order to refer to the original Prometheus configuration file. The rule group name and the alert name are necessary to update the relevant AlertPolicies in case the definition of the rule group changes in the future.This field is optional. If this field is not empty, then it must be a valid Prometheus label name (https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels). This field may not exceed 2048 Unicode characters in length.
     #[serde(default, rename = "alertRule")]
-    pub alert_rule: Option<String>,
+    pub alert_rule: ::core::option::Option<String>,
     /// Optional. Whether to disable metric existence validation for this condition.This allows alerting policies to be defined on metrics that do not yet exist, improving advanced customer workflows such as configuring alerting policies using Terraform.Users with the monitoring.alertPolicyViewer role are able to see the name of the non-existent metric in the alerting policy condition.
     #[serde(default, rename = "disableMetricValidation")]
-    pub disable_metric_validation: Option<bool>,
+    pub disable_metric_validation: ::core::option::Option<bool>,
     /// Optional. Alerts are considered firing once their PromQL expression was evaluated to be "true" for this long. Alerts whose PromQL expression was not evaluated to be "true" for long enough are considered pending. Must be a non-negative duration or missing. This field is optional. Its default value is zero.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// Optional. How often this rule should be evaluated. Must be a positive multiple of 30 seconds or missing. This field is optional. Its default value is 30 seconds. If this PrometheusQueryLanguageCondition was generated from a Prometheus alerting rule, then this value should be taken from the enclosing rule group.
     #[serde(default, rename = "evaluationInterval")]
-    pub evaluation_interval: Option<String>,
+    pub evaluation_interval: ::core::option::Option<String>,
     /// Optional. Labels to add to or overwrite in the PromQL query result. Label names must be valid (https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels). Label values can be templatized by using variables (https://cloud.google.com/monitoring/alerts/doc-variables#doc-vars). The only available variable names are the names of the labels in the PromQL result, including "__name__" and "value". "labels" may be empty.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. The PromQL expression to evaluate. Every evaluation cycle this expression is evaluated at the current time, and all resultant time series become pending/firing alerts. This field must not be empty.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Optional. The rule group name of this alert in the corresponding Prometheus configuration file.Some external tools may require this field to be populated correctly in order to refer to the original Prometheus configuration file. The rule group name and the alert name are necessary to update the relevant AlertPolicies in case the definition of the rule group changes in the future.This field is optional. If this field is not empty, then it must contain a valid UTF-8 string. This field may not exceed 2048 Unicode characters in length.
     #[serde(default, rename = "ruleGroup")]
-    pub rule_group: Option<String>,
+    pub rule_group: ::core::option::Option<String>,
 }
 
 /// The QueryTimeSeries request. For information about the status of Monitoring Query Language (MQL), see the MQL deprecation notice (https://cloud.google.com/stackdriver/docs/deprecations/mql).
@@ -1453,13 +1469,13 @@ pub struct PrometheusQueryLanguageCondition {
 pub struct QueryTimeSeriesRequest {
     /// A positive number that is the maximum number of time_series_data to return.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// If this field is not empty then it must contain the nextPageToken value returned by a previous call to this method. Using this field causes the method to return additional results from the previous method call.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Required. The query in the Monitoring Query Language (https://cloud.google.com/monitoring/mql/reference) format. The default time zone is in UTC.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
 }
 
 /// The QueryTimeSeries response. For information about the status of Monitoring Query Language (MQL), see the MQL deprecation notice (https://cloud.google.com/stackdriver/docs/deprecations/mql).
@@ -1467,16 +1483,17 @@ pub struct QueryTimeSeriesRequest {
 pub struct QueryTimeSeriesResponse {
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Query execution errors that may have caused the time series data returned to be incomplete. The available data will be available in the response.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<Status>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// The time series data.
     #[serde(default, rename = "timeSeriesData")]
-    pub time_series_data: Option<Vec<TimeSeriesData>>,
+    pub time_series_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TimeSeriesData>>>,
     /// The descriptor for the time series data.
     #[serde(default, rename = "timeSeriesDescriptor")]
-    pub time_series_descriptor: Option<TimeSeriesDescriptor>,
+    pub time_series_descriptor: ::core::option::Option<::std::boxed::Box<TimeSeriesDescriptor>>,
 }
 
 /// The range of the population values.
@@ -1484,10 +1501,10 @@ pub struct QueryTimeSeriesResponse {
 pub struct Range {
     /// The maximum of the population values.
     #[serde(default)]
-    pub max: Option<f64>,
+    pub max: ::core::option::Option<f64>,
     /// The minimum of the population values.
     #[serde(default)]
-    pub min: Option<f64>,
+    pub min: ::core::option::Option<f64>,
 }
 
 /// Service Level Indicators for which atomic units of service are counted directly.
@@ -1495,10 +1512,10 @@ pub struct Range {
 pub struct RequestBasedSli {
     /// distribution_cut is used when good_service is a count of values aggregated in a Distribution that fall into a good range. The total_service is the total count of all values aggregated in the Distribution.
     #[serde(default, rename = "distributionCut")]
-    pub distribution_cut: Option<DistributionCut>,
+    pub distribution_cut: ::core::option::Option<::std::boxed::Box<DistributionCut>>,
     /// good_total_ratio is used when the ratio of good_service to total_service is computed from two TimeSeries.
     #[serde(default, rename = "goodTotalRatio")]
-    pub good_total_ratio: Option<TimeSeriesRatio>,
+    pub good_total_ratio: ::core::option::Option<::std::boxed::Box<TimeSeriesRatio>>,
 }
 
 /// The resource submessage for group checks. It can be used instead of a monitored resource, when multiple resources are being monitored.
@@ -1506,10 +1523,10 @@ pub struct RequestBasedSli {
 pub struct ResourceGroup {
     /// The group of resources being monitored. Should be only the [GROUP_ID], and not the full-path projects/[PROJECT_ID_OR_NUMBER]/groups/[GROUP_ID].
     #[serde(default, rename = "groupId")]
-    pub group_id: Option<String>,
+    pub group_id: ::core::option::Option<String>,
     /// The resource type of the group members. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "INSTANCE", "AWS_ELB_LOAD_BALANCER"]
     #[serde(default, rename = "resourceType")]
-    pub resource_type: Option<String>,
+    pub resource_type: ::core::option::Option<String>,
 }
 
 /// A status to accept. Either a status code class like "2xx", or an integer status code like "200".
@@ -1517,10 +1534,10 @@ pub struct ResourceGroup {
 pub struct ResponseStatusCode {
     /// A class of status codes to accept. // TODO: enum values: ["STATUS_CLASS_UNSPECIFIED", "STATUS_CLASS_1XX", "STATUS_CLASS_2XX", "STATUS_CLASS_3XX", "STATUS_CLASS_4XX", "STATUS_CLASS_5XX", "STATUS_CLASS_ANY"]
     #[serde(default, rename = "statusClass")]
-    pub status_class: Option<String>,
+    pub status_class: ::core::option::Option<String>,
     /// A status code to accept.
     #[serde(default, rename = "statusValue")]
-    pub status_value: Option<i32>,
+    pub status_value: ::core::option::Option<i32>,
 }
 
 /// A test that checks if the number of rows in the result set violates some threshold.
@@ -1528,10 +1545,10 @@ pub struct ResponseStatusCode {
 pub struct RowCountTest {
     /// Required. The comparison to apply between the number of rows returned by the query and the threshold. // TODO: enum values: ["COMPARISON_UNSPECIFIED", "COMPARISON_GT", "COMPARISON_GE", "COMPARISON_LT", "COMPARISON_LE", "COMPARISON_EQ", "COMPARISON_NE"]
     #[serde(default)]
-    pub comparison: Option<String>,
+    pub comparison: ::core::option::Option<String>,
     /// Required. The value against which to compare the row count.
     #[serde(default)]
-    pub threshold: Option<String>,
+    pub threshold: ::core::option::Option<String>,
 }
 
 /// A Service is a discrete, autonomous, and network-accessible unit, designed to solve an individual concern (Wikipedia (https://en.wikipedia.org/wiki/Service-orientation)). In Cloud Monitoring, a Service acts as the root resource under which operational aspects of the service are accessible.
@@ -1539,49 +1556,49 @@ pub struct RowCountTest {
 pub struct Service {
     /// Type used for App Engine services.
     #[serde(default, rename = "appEngine")]
-    pub app_engine: Option<AppEngine>,
+    pub app_engine: ::core::option::Option<::std::boxed::Box<AppEngine>>,
     /// Message that contains the service type and service labels of this service if it is a basic service. Documentation and examples here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).
     #[serde(default, rename = "basicService")]
-    pub basic_service: Option<BasicService>,
+    pub basic_service: ::core::option::Option<::std::boxed::Box<BasicService>>,
     /// Type used for Cloud Endpoints services.
     #[serde(default, rename = "cloudEndpoints")]
-    pub cloud_endpoints: Option<CloudEndpoints>,
+    pub cloud_endpoints: ::core::option::Option<::std::boxed::Box<CloudEndpoints>>,
     /// Type used for Cloud Run services.
     #[serde(default, rename = "cloudRun")]
-    pub cloud_run: Option<CloudRun>,
+    pub cloud_run: ::core::option::Option<::std::boxed::Box<CloudRun>>,
     /// Type used for Istio services that live in a Kubernetes cluster.
     #[serde(default, rename = "clusterIstio")]
-    pub cluster_istio: Option<ClusterIstio>,
+    pub cluster_istio: ::core::option::Option<::std::boxed::Box<ClusterIstio>>,
     /// Custom service type.
     #[serde(default)]
-    pub custom: Option<serde_json::Value>,
+    pub custom: ::core::option::Option<serde_json::Value>,
     /// Name used for UI elements listing this Service.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Type used for GKE Namespaces.
     #[serde(default, rename = "gkeNamespace")]
-    pub gke_namespace: Option<GkeNamespace>,
+    pub gke_namespace: ::core::option::Option<::std::boxed::Box<GkeNamespace>>,
     /// Type used for GKE Services (the Kubernetes concept of a service).
     #[serde(default, rename = "gkeService")]
-    pub gke_service: Option<GkeService>,
+    pub gke_service: ::core::option::Option<::std::boxed::Box<GkeService>>,
     /// Type used for GKE Workloads.
     #[serde(default, rename = "gkeWorkload")]
-    pub gke_workload: Option<GkeWorkload>,
+    pub gke_workload: ::core::option::Option<::std::boxed::Box<GkeWorkload>>,
     /// Type used for canonical services scoped to an Istio mesh. Metrics for Istio are documented here (https://istio.io/latest/docs/reference/config/metrics/)
     #[serde(default, rename = "istioCanonicalService")]
-    pub istio_canonical_service: Option<IstioCanonicalService>,
+    pub istio_canonical_service: ::core::option::Option<::std::boxed::Box<IstioCanonicalService>>,
     /// Type used for Istio services scoped to an Istio mesh.
     #[serde(default, rename = "meshIstio")]
-    pub mesh_istio: Option<MeshIstio>,
+    pub mesh_istio: ::core::option::Option<::std::boxed::Box<MeshIstio>>,
     /// Identifier. Resource name for this Service. The format is: projects/[PROJECT_ID_OR_NUMBER]/services/[SERVICE_ID]
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Configuration for how to query telemetry on a Service.
     #[serde(default)]
-    pub telemetry: Option<Telemetry>,
+    pub telemetry: ::core::option::Option<::std::boxed::Box<Telemetry>>,
     /// Labels which have been used to annotate the service. Label keys must start with a letter. Label keys and values may contain lowercase letters, numbers, underscores, and dashes. Label keys and values have a maximum length of 63 characters, and must be less than 128 bytes in size. Up to 64 label entries may be stored. For labels which do not have a semantic value, the empty string may be supplied for the label value.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Contains information needed for generating either an OpenID Connect token (https://developers.google.com/identity/protocols/OpenIDConnect) or OAuth token (https://developers.google.com/identity/protocols/oauth2). The token will be generated for the Monitoring service agent service account.
@@ -1589,7 +1606,7 @@ pub struct Service {
 pub struct ServiceAgentAuthentication {
     /// Type of authentication. // TODO: enum values: ["SERVICE_AGENT_AUTHENTICATION_TYPE_UNSPECIFIED", "OIDC_TOKEN"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A Service-Level Indicator (SLI) describes the "performance" of a service. For some services, the SLI is well-defined. In such cases, the SLI can be described easily by referencing the well-known SLI and providing the needed parameters. Alternatively, a "custom" SLI can be defined with a query to the underlying metric store. An SLI is defined to be good_service / total_service over any queried time interval. The value of performance always falls into the range 0 &lt;= performance &lt;= 1. A custom SLI describes how to compute this ratio, whether this is by dividing values from a pair of time series, cutting a Distribution into good and bad counts, or counting time windows in which the service complies with a criterion. For separation of concerns, a single Service-Level Indicator measures performance for only one aspect of service quality, such as fraction of successful queries or fast-enough queries.
@@ -1597,13 +1614,13 @@ pub struct ServiceAgentAuthentication {
 pub struct ServiceLevelIndicator {
     /// Basic SLI on a well-known service type.
     #[serde(default, rename = "basicSli")]
-    pub basic_sli: Option<BasicSli>,
+    pub basic_sli: ::core::option::Option<::std::boxed::Box<BasicSli>>,
     /// Request-based SLIs
     #[serde(default, rename = "requestBased")]
-    pub request_based: Option<RequestBasedSli>,
+    pub request_based: ::core::option::Option<::std::boxed::Box<RequestBasedSli>>,
     /// Windows-based SLIs
     #[serde(default, rename = "windowsBased")]
-    pub windows_based: Option<WindowsBasedSli>,
+    pub windows_based: ::core::option::Option<::std::boxed::Box<WindowsBasedSli>>,
 }
 
 /// A Service-Level Objective (SLO) describes a level of desired good service. It consists of a service-level indicator (SLI), a performance goal, and a period over which the objective is to be evaluated against that goal. The SLO can use SLIs defined in a number of different manners. Typical SLOs might include "99% of requests in each rolling week have latency below 200 milliseconds" or "99.5% of requests in each calendar month return successfully."
@@ -1611,25 +1628,25 @@ pub struct ServiceLevelIndicator {
 pub struct ServiceLevelObjective {
     /// A calendar period, semantically "since the start of the current ". At this time, only DAY, WEEK, FORTNIGHT, and MONTH are supported. // TODO: enum values: ["CALENDAR_PERIOD_UNSPECIFIED", "DAY", "WEEK", "FORTNIGHT", "MONTH", "QUARTER", "HALF", "YEAR"]
     #[serde(default, rename = "calendarPeriod")]
-    pub calendar_period: Option<String>,
+    pub calendar_period: ::core::option::Option<String>,
     /// Name used for UI elements listing this SLO.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The fraction of service that must be good in order for this objective to be met. 0 &lt; goal &lt;= 0.9999.
     #[serde(default)]
-    pub goal: Option<f64>,
+    pub goal: ::core::option::Option<f64>,
     /// Identifier. Resource name for this ServiceLevelObjective. The format is: projects/[PROJECT_ID_OR_NUMBER]/services/[SERVICE_ID]/serviceLevelObjectives/[SLO_NAME]
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A rolling time period, semantically "in the past ". Must be an integer multiple of 1 day no larger than 30 days.
     #[serde(default, rename = "rollingPeriod")]
-    pub rolling_period: Option<String>,
+    pub rolling_period: ::core::option::Option<String>,
     /// The definition of good service, used to measure and calculate the quality of the Service''s performance with respect to a single aspect of service quality.
     #[serde(default, rename = "serviceLevelIndicator")]
-    pub service_level_indicator: Option<ServiceLevelIndicator>,
+    pub service_level_indicator: ::core::option::Option<::std::boxed::Box<ServiceLevelIndicator>>,
     /// Labels which have been used to annotate the service-level objective. Label keys must start with a letter. Label keys and values may contain lowercase letters, numbers, underscores, and dashes. Label keys and values have a maximum length of 63 characters, and must be less than 128 bytes in size. Up to 64 label entries may be stored. For labels which do not have a semantic value, the empty string may be supplied for the label value.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// A Snooze will prevent any alerts from being opened, and close any that are already open. The Snooze will work on alerts that match the criteria defined in the Snooze. The Snooze will be active from interval.start_time through interval.end_time.
@@ -1637,16 +1654,16 @@ pub struct ServiceLevelObjective {
 pub struct Snooze {
     /// Required. This defines the criteria for applying the Snooze. See Criteria for more information.
     #[serde(default)]
-    pub criteria: Option<Criteria>,
+    pub criteria: ::core::option::Option<::std::boxed::Box<Criteria>>,
     /// Required. A display name for the Snooze. This can be, at most, 512 unicode characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. The Snooze will be active from interval.start_time through interval.end_time. interval.start_time cannot be in the past. There is a 15 second clock skew to account for the time it takes for a request to reach the API from the UI.
     #[serde(default)]
-    pub interval: Option<TimeInterval>,
+    pub interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// Required. Identifier. The name of the Snooze. The format is: projects/[PROJECT_ID_OR_NUMBER]/snoozes/[SNOOZE_ID] The ID of the Snooze will be generated by the system.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// SourceContext represents information about the source of a protobuf element, like the file in which it is defined.
@@ -1654,7 +1671,7 @@ pub struct Snooze {
 pub struct SourceContext {
     /// The path-qualified name of the .proto file that contained the associated protobuf element. For example: "google/protobuf/source_context.proto".
     #[serde(default, rename = "fileName")]
-    pub file_name: Option<String>,
+    pub file_name: ::core::option::Option<String>,
 }
 
 /// The context of a span. This is attached to an Exemplar in Distribution values during aggregation.It contains the name of a span with format: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID]
@@ -1662,7 +1679,7 @@ pub struct SourceContext {
 pub struct SpanContext {
     /// The resource name of the span. The format is: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID] [TRACE_ID] is a unique identifier for a trace within a project; it is a 32-character hexadecimal encoding of a 16-byte array.[SPAN_ID] is a unique identifier for a span within a trace; it is a 16-character hexadecimal encoding of an 8-byte array.
     #[serde(default, rename = "spanName")]
-    pub span_name: Option<String>,
+    pub span_name: ::core::option::Option<String>,
 }
 
 /// A condition that allows alerting policies to be defined using GoogleSQL. SQL conditions examine a sliding window of logs using GoogleSQL. Alert policies with SQL conditions may incur additional billing.
@@ -1670,22 +1687,22 @@ pub struct SpanContext {
 pub struct SqlCondition {
     /// Test the boolean value in the indicated column.
     #[serde(default, rename = "booleanTest")]
-    pub boolean_test: Option<BooleanTest>,
+    pub boolean_test: ::core::option::Option<::std::boxed::Box<BooleanTest>>,
     /// Schedule the query to execute every so many days.
     #[serde(default)]
-    pub daily: Option<Daily>,
+    pub daily: ::core::option::Option<::std::boxed::Box<Daily>>,
     /// Schedule the query to execute every so many hours.
     #[serde(default)]
-    pub hourly: Option<Hourly>,
+    pub hourly: ::core::option::Option<::std::boxed::Box<Hourly>>,
     /// Schedule the query to execute every so many minutes.
     #[serde(default)]
-    pub minutes: Option<Minutes>,
+    pub minutes: ::core::option::Option<::std::boxed::Box<Minutes>>,
     /// Required. The Log Analytics SQL query to run, as a string. The query must conform to the required shape. Specifically, the query must not try to filter the input by time. A filter will automatically be applied to filter the input so that the query receives all rows received since the last time the query was run.For example, the following query extracts all log entries containing an HTTP request: SELECT timestamp, log_name, severity, http_request, resource, labels FROM my-project.global._Default._AllLogs WHERE http_request IS NOT NULL
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Test the row count against a threshold.
     #[serde(default, rename = "rowCountTest")]
-    pub row_count_test: Option<RowCountTest>,
+    pub row_count_test: ::core::option::Option<::std::boxed::Box<RowCountTest>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
@@ -1693,13 +1710,13 @@ pub struct SqlCondition {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Describes a Synthetic Monitor to be invoked by Uptime.
@@ -1707,7 +1724,7 @@ pub struct Status {
 pub struct SyntheticMonitorTarget {
     /// Target a Synthetic Monitor GCFv2 instance.
     #[serde(default, rename = "cloudFunctionV2")]
-    pub cloud_function_v2: Option<CloudFunctionV2Target>,
+    pub cloud_function_v2: ::core::option::Option<::std::boxed::Box<CloudFunctionV2Target>>,
 }
 
 /// Information required for a TCP Uptime check request.
@@ -1715,10 +1732,10 @@ pub struct SyntheticMonitorTarget {
 pub struct TcpCheck {
     /// Contains information needed to add pings to a TCP check.
     #[serde(default, rename = "pingConfig")]
-    pub ping_config: Option<PingConfig>,
+    pub ping_config: ::core::option::Option<::std::boxed::Box<PingConfig>>,
     /// The TCP port on the server against which to run the check. Will be combined with host (specified within the monitored_resource) to construct the full URL. Required.
     #[serde(default)]
-    pub port: Option<i32>,
+    pub port: ::core::option::Option<i32>,
 }
 
 /// Configuration for how to query telemetry on a Service.
@@ -1726,7 +1743,7 @@ pub struct TcpCheck {
 pub struct Telemetry {
     /// The full name of the resource that defines this service. Formatted as described in https://cloud.google.com/apis/design/resource_names.
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
 }
 
 /// Describes a time interval: Reads: A half-open time interval. It includes the end time but excludes the start time: (startTime, endTime]. The start time must be specified, must be earlier than the end time, and should be no older than the data retention period for the metric. Writes: A closed time interval. It extends from the start time to the end time, and includes both: [startTime, endTime]. Valid time intervals depend on the MetricKind (https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors#MetricKind) of the metric value. The end time must not be earlier than the start time, and the end time must not be more than 25 hours in the past or more than five minutes in the future. For GAUGE metrics, the startTime value is technically optional; if no value is specified, the start time defaults to the value of the end time, and the interval represents a single point in time. If both start and end times are specified, they must be identical. Such an interval is valid only for GAUGE metrics, which are point-in-time measurements. The end time of a new interval must be at least a millisecond after the end time of the previous interval. For DELTA metrics, the start time and end time must specify a non-zero interval, with subsequent points specifying contiguous and non-overlapping intervals. For DELTA metrics, the start time of the next interval must be at least a millisecond after the end time of the previous interval. For CUMULATIVE metrics, the start time and end time must specify a non-zero interval, with subsequent points specifying the same start time and increasing end times, until an event resets the cumulative value to zero and sets a new start time for the following points. The new start time must be at least a millisecond after the end time of the previous interval. The start time of a new interval must be at least a millisecond after the end time of the previous interval because intervals are closed. If the start time of a new interval is the same as the end time of the previous interval, then data written at the new start time could overwrite data written at the previous end time.
@@ -1734,10 +1751,10 @@ pub struct Telemetry {
 pub struct TimeInterval {
     /// Required. The end of the time interval.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. The beginning of the time interval. The default value for the start time is the end time. The start time must not be later than the end time.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -1745,16 +1762,16 @@ pub struct TimeInterval {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// A collection of data points that describes the time-varying values of a metric. A time series is identified by a combination of a fully-specified monitored resource and a fully-specified metric. This type is used for both listing and creating time series.
@@ -1762,28 +1779,28 @@ pub struct TimeOfDay {
 pub struct TimeSeries {
     /// Input only. A detailed description of the time series that will be associated with the google.api.MetricDescriptor for the metric. Once set, this field cannot be changed through CreateTimeSeries.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The associated monitored resource metadata. When reading a time series, this field will include metadata labels that are explicitly named in the reduction. When creating a time series, this field is ignored.
     #[serde(default)]
-    pub metadata: Option<MonitoredResourceMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<MonitoredResourceMetadata>>,
     /// The associated metric. A fully-specified metric used to identify the time series.
     #[serde(default)]
-    pub metric: Option<Metric>,
+    pub metric: ::core::option::Option<::std::boxed::Box<Metric>>,
     /// The metric kind of the time series. When listing time series, this metric kind might be different from the metric kind of the associated metric if this time series is an alignment or reduction of other time series.When creating a time series, this field is optional. If present, it must be the same as the metric kind of the associated metric. If the associated metric''s descriptor must be auto-created, then this field specifies the metric kind of the new descriptor and must be either GAUGE (the default) or CUMULATIVE. // TODO: enum values: ["METRIC_KIND_UNSPECIFIED", "GAUGE", "DELTA", "CUMULATIVE"]
     #[serde(default, rename = "metricKind")]
-    pub metric_kind: Option<String>,
+    pub metric_kind: ::core::option::Option<String>,
     /// The data points of this time series. When listing time series, points are returned in reverse time order.When creating a time series, this field must contain exactly one point and the point''s type must be the same as the value type of the associated metric. If the associated metric''s descriptor must be auto-created, then the value type of the descriptor is determined by the point''s type, which must be BOOL, INT64, DOUBLE, or DISTRIBUTION.
     #[serde(default)]
-    pub points: Option<Vec<Point>>,
+    pub points: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Point>>>,
     /// The associated monitored resource. Custom metrics can use only certain monitored resource types in their time series data. For more information, see Monitored resources for custom metrics (https://cloud.google.com/monitoring/custom-metrics/creating-metrics#custom-metric-resources).
     #[serde(default)]
-    pub resource: Option<MonitoredResource>,
+    pub resource: ::core::option::Option<::std::boxed::Box<MonitoredResource>>,
     /// The units in which the metric value is reported. It is only applicable if the value_type is INT64, DOUBLE, or DISTRIBUTION. The unit defines the representation of the stored metric values. This field can only be changed through CreateTimeSeries when it is empty.
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// The value type of the time series. When listing time series, this value type might be different from the value type of the associated metric if this time series is an alignment or reduction of other time series.When creating a time series, this field is optional. If present, it must be the same as the type of the data in the points field. // TODO: enum values: ["VALUE_TYPE_UNSPECIFIED", "BOOL", "INT64", "DOUBLE", "STRING", "DISTRIBUTION", "MONEY"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// Represents the values of a time series associated with a TimeSeriesDescriptor.
@@ -1791,10 +1808,10 @@ pub struct TimeSeries {
 pub struct TimeSeriesData {
     /// The values of the labels in the time series identifier, given in the same order as the label_descriptors field of the TimeSeriesDescriptor associated with this object. Each value must have a value of the type given in the corresponding entry of label_descriptors.
     #[serde(default, rename = "labelValues")]
-    pub label_values: Option<Vec<LabelValue>>,
+    pub label_values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelValue>>>,
     /// The points in the time series.
     #[serde(default, rename = "pointData")]
-    pub point_data: Option<Vec<PointData>>,
+    pub point_data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PointData>>>,
 }
 
 /// A descriptor for the labels and points in a time series.
@@ -1802,10 +1819,12 @@ pub struct TimeSeriesData {
 pub struct TimeSeriesDescriptor {
     /// Descriptors for the labels.
     #[serde(default, rename = "labelDescriptors")]
-    pub label_descriptors: Option<Vec<LabelDescriptor>>,
+    pub label_descriptors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelDescriptor>>>,
     /// Descriptors for the point data value columns.
     #[serde(default, rename = "pointDescriptors")]
-    pub point_descriptors: Option<Vec<ValueDescriptor>>,
+    pub point_descriptors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueDescriptor>>>,
 }
 
 /// A TimeSeriesRatio specifies two TimeSeries to use for computing the good_service / total_service ratio. The specified TimeSeries must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE. The TimeSeriesRatio must specify exactly two of good, bad, and total, and the relationship good_service + bad_service = total_service will be assumed.
@@ -1813,13 +1832,13 @@ pub struct TimeSeriesDescriptor {
 pub struct TimeSeriesRatio {
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries quantifying bad service, either demanded service that was not provided or demanded service that was of inadequate quality. Must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE.
     #[serde(default, rename = "badServiceFilter")]
-    pub bad_service_filter: Option<String>,
+    pub bad_service_filter: ::core::option::Option<String>,
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries quantifying good service provided. Must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE.
     #[serde(default, rename = "goodServiceFilter")]
-    pub good_service_filter: Option<String>,
+    pub good_service_filter: ::core::option::Option<String>,
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries quantifying total demanded service. Must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE.
     #[serde(default, rename = "totalServiceFilter")]
-    pub total_service_filter: Option<String>,
+    pub total_service_filter: ::core::option::Option<String>,
 }
 
 /// Specifies how many time series must fail a predicate to trigger a condition. If not specified, then a {count: 1} trigger is used.
@@ -1827,10 +1846,10 @@ pub struct TimeSeriesRatio {
 pub struct Trigger {
     /// The absolute number of time series that must fail the predicate for the condition to be triggered.
     #[serde(default)]
-    pub count: Option<i32>,
+    pub count: ::core::option::Option<i32>,
     /// The percentage of time series that must fail the predicate for the condition to be triggered.
     #[serde(default)]
-    pub percent: Option<f64>,
+    pub percent: ::core::option::Option<f64>,
 }
 
 /// A protocol buffer message type.New usages of this message as an alternative to DescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
@@ -1838,25 +1857,25 @@ pub struct Trigger {
 pub struct Type {
     /// The source edition string, only valid when syntax is SYNTAX_EDITIONS.
     #[serde(default)]
-    pub edition: Option<String>,
+    pub edition: ::core::option::Option<String>,
     /// The list of fields.
     #[serde(default)]
-    pub fields: Option<Vec<Field>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Field>>>,
     /// The fully qualified message name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The list of types appearing in oneof definitions in this type.
     #[serde(default)]
-    pub oneofs: Option<Vec<String>>,
+    pub oneofs: ::core::option::Option<::std::vec::Vec<String>>,
     /// The protocol buffer options.
     #[serde(default)]
-    pub options: Option<Vec<Option>>,
+    pub options: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiOption>>>,
     /// The source context.
     #[serde(default, rename = "sourceContext")]
-    pub source_context: Option<SourceContext>,
+    pub source_context: ::core::option::Option<::std::boxed::Box<SourceContext>>,
     /// The source syntax. // TODO: enum values: ["SYNTAX_PROTO2", "SYNTAX_PROTO3", "SYNTAX_EDITIONS"]
     #[serde(default)]
-    pub syntax: Option<String>,
+    pub syntax: ::core::option::Option<String>,
 }
 
 /// A single strongly-typed value.
@@ -1864,19 +1883,19 @@ pub struct Type {
 pub struct TypedValue {
     /// A Boolean value: true or false.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// A distribution value.
     #[serde(default, rename = "distributionValue")]
-    pub distribution_value: Option<Distribution>,
+    pub distribution_value: ::core::option::Option<::std::boxed::Box<Distribution>>,
     /// A 64-bit double-precision floating-point number. Its magnitude is approximately ±10±300 and it has 16 significant digits of precision.
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// A 64-bit integer. Its range is approximately ±9.2x1018.
     #[serde(default, rename = "int64Value")]
-    pub int64_value: Option<String>,
+    pub int64_value: ::core::option::Option<String>,
     /// A variable-length string value.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// This message configures which resources and services to monitor for availability.
@@ -1884,55 +1903,57 @@ pub struct TypedValue {
 pub struct UptimeCheckConfig {
     /// The type of checkers to use to execute the Uptime check. // TODO: enum values: ["CHECKER_TYPE_UNSPECIFIED", "STATIC_IP_CHECKERS", "VPC_CHECKERS"]
     #[serde(default, rename = "checkerType")]
-    pub checker_type: Option<String>,
+    pub checker_type: ::core::option::Option<String>,
     /// The content that is expected to appear in the data returned by the target server against which the check is run. Currently, only the first entry in the content_matchers list is supported, and additional entries will be ignored. This field is optional and should only be specified if a content match is required as part of the/ Uptime check.
     #[serde(default, rename = "contentMatchers")]
-    pub content_matchers: Option<Vec<ContentMatcher>>,
+    pub content_matchers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ContentMatcher>>>,
     /// Whether the check is disabled or not.
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     /// A human-friendly name for the Uptime check configuration. The display name should be unique within a Cloud Monitoring Workspace in order to make it easier to identify; however, uniqueness is not enforced. Required.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Contains information needed to make an HTTP or HTTPS check.
     #[serde(default, rename = "httpCheck")]
-    pub http_check: Option<HttpCheck>,
+    pub http_check: ::core::option::Option<::std::boxed::Box<HttpCheck>>,
     /// The internal checkers that this check will egress from. If is_internal is true and this list is empty, the check will egress from all the InternalCheckers configured for the project that owns this UptimeCheckConfig.
     #[serde(default, rename = "internalCheckers")]
-    pub internal_checkers: Option<Vec<InternalChecker>>,
+    pub internal_checkers:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InternalChecker>>>,
     /// If this is true, then checks are made only from the ''internal_checkers''. If it is false, then checks are made only from the ''selected_regions''. It is an error to provide ''selected_regions'' when is_internal is true, or to provide ''internal_checkers'' when is_internal is false.
     #[serde(default, rename = "isInternal")]
-    pub is_internal: Option<bool>,
+    pub is_internal: ::core::option::Option<bool>,
     /// To specify whether to log the results of failed probes to Cloud Logging.
     #[serde(default, rename = "logCheckFailures")]
-    pub log_check_failures: Option<bool>,
+    pub log_check_failures: ::core::option::Option<bool>,
     /// The monitored resource (https://cloud.google.com/monitoring/api/resources) associated with the configuration. The following monitored resource types are valid for this field: uptime_url, gce_instance, gae_app, aws_ec2_instance, aws_elb_load_balancer k8s_service servicedirectory_service cloud_run_revision
     #[serde(default, rename = "monitoredResource")]
-    pub monitored_resource: Option<MonitoredResource>,
+    pub monitored_resource: ::core::option::Option<::std::boxed::Box<MonitoredResource>>,
     /// Identifier. A unique resource name for this Uptime check configuration. The format is: projects/[PROJECT_ID_OR_NUMBER]/uptimeCheckConfigs/[UPTIME_CHECK_ID] [PROJECT_ID_OR_NUMBER] is the Workspace host project associated with the Uptime check.This field should be omitted when creating the Uptime check configuration; on create, the resource name is assigned by the server and included in the response.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// How often, in seconds, the Uptime check is performed. Currently, the only supported values are 60s (1 minute), 300s (5 minutes), 600s (10 minutes), and 900s (15 minutes). Optional, defaults to 60s.
     #[serde(default)]
-    pub period: Option<String>,
+    pub period: ::core::option::Option<String>,
     /// The group resource associated with the configuration.
     #[serde(default, rename = "resourceGroup")]
-    pub resource_group: Option<ResourceGroup>,
+    pub resource_group: ::core::option::Option<::std::boxed::Box<ResourceGroup>>,
     /// The list of regions from which the check will be run. Some regions contain one location, and others contain more than one. If this field is specified, enough regions must be provided to include a minimum of 3 locations. Not specifying this field will result in Uptime checks running from all available regions.
     #[serde(default, rename = "selectedRegions")]
-    pub selected_regions: Option<Vec<String>>,
+    pub selected_regions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Specifies a Synthetic Monitor to invoke.
     #[serde(default, rename = "syntheticMonitor")]
-    pub synthetic_monitor: Option<SyntheticMonitorTarget>,
+    pub synthetic_monitor: ::core::option::Option<::std::boxed::Box<SyntheticMonitorTarget>>,
     /// Contains information needed to make a TCP check.
     #[serde(default, rename = "tcpCheck")]
-    pub tcp_check: Option<TcpCheck>,
+    pub tcp_check: ::core::option::Option<::std::boxed::Box<TcpCheck>>,
     /// The maximum amount of time to wait for the request to complete (must be between 1 and 60 seconds). Required.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
     /// User-supplied key/value data to be used for organizing and identifying the UptimeCheckConfig objects.The field can contain up to 64 entries. Each key and value is limited to 63 Unicode characters or 128 bytes, whichever is smaller. Labels and values can contain only lowercase letters, numerals, underscores, and dashes. Keys must begin with a letter.
     #[serde(default, rename = "userLabels")]
-    pub user_labels: Option<serde_json::Value>,
+    pub user_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Contains the region, location, and list of IP addresses where checkers in the location run from.
@@ -1940,13 +1961,13 @@ pub struct UptimeCheckConfig {
 pub struct UptimeCheckIp {
     /// The IP address from which the Uptime check originates. This is a fully specified IP address (not an IP address range). Most IP addresses, as of this publication, are in IPv4 format; however, one should not rely on the IP addresses being in IPv4 format indefinitely, and should support interpreting this field in either IPv4 or IPv6 format.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// A more specific location within the region that typically encodes a particular city/town/metro (and its containing state/province or country) within the broader umbrella region category.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// A broad region category in which the IP address is located. // TODO: enum values: ["REGION_UNSPECIFIED", "USA", "EUROPE", "SOUTH_AMERICA", "ASIA_PACIFIC", "USA_OREGON", "USA_IOWA", "USA_VIRGINIA"]
     #[serde(default)]
-    pub region: Option<String>,
+    pub region: ::core::option::Option<String>,
 }
 
 /// A descriptor for the value columns in a data point.
@@ -1954,16 +1975,16 @@ pub struct UptimeCheckIp {
 pub struct ValueDescriptor {
     /// The value key.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The value stream kind. // TODO: enum values: ["METRIC_KIND_UNSPECIFIED", "GAUGE", "DELTA", "CUMULATIVE"]
     #[serde(default, rename = "metricKind")]
-    pub metric_kind: Option<String>,
+    pub metric_kind: ::core::option::Option<String>,
     /// The unit in which time_series point values are reported. unit follows the UCUM format for units as seen in https://unitsofmeasure.org/ucum.html. unit is only valid if value_type is INTEGER, DOUBLE, DISTRIBUTION.
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
     /// The value type. // TODO: enum values: ["VALUE_TYPE_UNSPECIFIED", "BOOL", "INT64", "DOUBLE", "STRING", "DISTRIBUTION", "MONEY"]
     #[serde(default, rename = "valueType")]
-    pub value_type: Option<String>,
+    pub value_type: ::core::option::Option<String>,
 }
 
 /// The VerifyNotificationChannel request.
@@ -1971,7 +1992,7 @@ pub struct ValueDescriptor {
 pub struct VerifyNotificationChannelRequest {
     /// Required. The verification code that was delivered to the channel as a result of invoking the SendNotificationChannelVerificationCode API method or that was retrieved from a verified channel via GetNotificationChannelVerificationCode. For example, one might have "G-123456" or "TKNZGhhd2EyN3I1MnRnMjRv" (in general, one is only guaranteed that the code is valid UTF-8; one should not make any assumptions regarding the structure or format of the code).
     #[serde(default)]
-    pub code: Option<String>,
+    pub code: ::core::option::Option<String>,
 }
 
 /// A WindowsBasedSli defines good_service as the count of time windows for which the provided service was of good quality. Criteria for determining if service was good are embedded in the window_criterion.
@@ -1979,17 +2000,17 @@ pub struct VerifyNotificationChannelRequest {
 pub struct WindowsBasedSli {
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries with ValueType = BOOL. The window is good if any true values appear in the window.
     #[serde(default, rename = "goodBadMetricFilter")]
-    pub good_bad_metric_filter: Option<String>,
+    pub good_bad_metric_filter: ::core::option::Option<String>,
     /// A window is good if its performance is high enough.
     #[serde(default, rename = "goodTotalRatioThreshold")]
-    pub good_total_ratio_threshold: Option<PerformanceThreshold>,
+    pub good_total_ratio_threshold: ::core::option::Option<::std::boxed::Box<PerformanceThreshold>>,
     /// A window is good if the metric''s value is in a good range, averaged across returned streams.
     #[serde(default, rename = "metricMeanInRange")]
-    pub metric_mean_in_range: Option<MetricRange>,
+    pub metric_mean_in_range: ::core::option::Option<::std::boxed::Box<MetricRange>>,
     /// A window is good if the metric''s value is in a good range, summed across returned streams.
     #[serde(default, rename = "metricSumInRange")]
-    pub metric_sum_in_range: Option<MetricRange>,
+    pub metric_sum_in_range: ::core::option::Option<::std::boxed::Box<MetricRange>>,
     /// Duration over which window quality is evaluated. Must be an integer fraction of a day and at least 60s.
     #[serde(default, rename = "windowPeriod")]
-    pub window_period: Option<String>,
+    pub window_period: ::core::option::Option<String>,
 }

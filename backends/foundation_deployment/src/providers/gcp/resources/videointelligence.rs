@@ -10,15 +10,17 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudVideointelligenceV1AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
-    pub annotation_progress: Option<Vec<GoogleCloudVideointelligenceV1VideoAnnotationProgress>>,
+    pub annotation_progress: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoAnnotationProgress>>,
+    >,
 }
 
 /// Video annotation request.
@@ -26,22 +28,23 @@ pub struct GoogleCloudVideointelligenceV1AnnotateVideoProgress {
 pub struct GoogleCloudVideointelligenceV1AnnotateVideoRequest {
     /// Required. Requested video annotation features.
     #[serde(default)]
-    pub features: Option<Vec<String>>,
+    pub features: ::core::option::Option<::std::vec::Vec<String>>,
     /// The video data bytes. If unset, the input video(s) should be specified via the input_uri. If set, input_uri must be unset.
     #[serde(default, rename = "inputContent")]
-    pub input_content: Option<String>,
+    pub input_content: ::core::option::Option<String>,
     /// Input video location. Currently, only [Cloud Storage](https://cloud.google.com/storage/) URIs are supported. URIs must be specified in the following format: gs://bucket-id/object-id (other URI formats return google.rpc.Code.INVALID_ARGUMENT). For more information, see [Request URIs](https://cloud.google.com/storage/docs/request-endpoints). To identify multiple videos, a video URI may include wildcards in the object-id. Supported wildcards: ''*'' to match 0 or more characters; ''?'' to match 1 character. If unset, the input video should be embedded in the request as input_content. If set, input_content must be unset.
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Optional. Cloud region where annotation should take place. Supported cloud regions are: us-east1, us-west1, europe-west1, asia-east1. If no region is specified, the region will be determined based on video file location.
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Optional. Location where the output (in JSON format) should be stored. Currently, only [Cloud Storage](https://cloud.google.com/storage/) URIs are supported. These must be specified in the following format: gs://bucket-id/object-id (other URI formats return google.rpc.Code.INVALID_ARGUMENT). For more information, see [Request URIs](https://cloud.google.com/storage/docs/request-endpoints).
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
     /// Additional video context and/or feature-specific parameters.
     #[serde(default, rename = "videoContext")]
-    pub video_context: Option<GoogleCloudVideointelligenceV1VideoContext>,
+    pub video_context:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoContext>>,
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -49,7 +52,9 @@ pub struct GoogleCloudVideointelligenceV1AnnotateVideoRequest {
 pub struct GoogleCloudVideointelligenceV1AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
-    pub annotation_results: Option<Vec<GoogleCloudVideointelligenceV1VideoAnnotationResults>>,
+    pub annotation_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoAnnotationResults>>,
+    >,
 }
 
 /// A generic detected attribute represented by name in string format.
@@ -57,13 +62,13 @@ pub struct GoogleCloudVideointelligenceV1AnnotateVideoResponse {
 pub struct GoogleCloudVideointelligenceV1DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the attribute, for example, glasses, dark_glasses, mouth_open. A full list of supported type names will be provided in the document.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Text value of the detection result. For example, the value for "HairColor" can be "black", "blonde", etc.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
@@ -71,13 +76,14 @@ pub struct GoogleCloudVideointelligenceV1DetectedAttribute {
 pub struct GoogleCloudVideointelligenceV1DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of this landmark, for example, left_hand, right_shoulder.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The 2D point of the detected landmark using the normalized image coordinate system. The normalized coordinates have the range from 0 to 1.
     #[serde(default)]
-    pub point: Option<GoogleCloudVideointelligenceV1NormalizedVertex>,
+    pub point:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1NormalizedVertex>>,
 }
 
 /// Detected entity from video analysis.
@@ -85,13 +91,13 @@ pub struct GoogleCloudVideointelligenceV1DetectedLandmark {
 pub struct GoogleCloudVideointelligenceV1Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Language code for description in BCP-47 format.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
@@ -99,10 +105,12 @@ pub struct GoogleCloudVideointelligenceV1Entity {
 pub struct GoogleCloudVideointelligenceV1ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1ExplicitContentFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1ExplicitContentFrame>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Config for EXPLICIT_CONTENT_DETECTION.
@@ -110,7 +118,7 @@ pub struct GoogleCloudVideointelligenceV1ExplicitContentAnnotation {
 pub struct GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig {
     /// Model to use for explicit content detection. Supported values: "builtin/stable" (the default if unset) and "builtin/latest".
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for explicit content.
@@ -118,10 +126,10 @@ pub struct GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig {
 pub struct GoogleCloudVideointelligenceV1ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
-    pub pornography_likelihood: Option<String>,
+    pub pornography_likelihood: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Status of exporting annotation response to user specified output_uri.
@@ -129,10 +137,10 @@ pub struct GoogleCloudVideointelligenceV1ExplicitContentFrame {
 pub struct GoogleCloudVideointelligenceV1ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Only set if state is FAILED.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// Deprecated. No effect.
@@ -140,13 +148,17 @@ pub struct GoogleCloudVideointelligenceV1ExportToOutputUriStatus {
 pub struct GoogleCloudVideointelligenceV1FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1FaceFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1FaceFrame>>,
+    >,
     /// All video segments where a face was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1FaceSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1FaceSegment>>,
+    >,
     /// Thumbnail of a representative face view (in JPEG format).
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
 }
 
 /// Face detection annotation.
@@ -154,13 +166,15 @@ pub struct GoogleCloudVideointelligenceV1FaceAnnotation {
 pub struct GoogleCloudVideointelligenceV1FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
     /// The face tracks with attributes.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Config for FACE_DETECTION.
@@ -168,13 +182,13 @@ pub struct GoogleCloudVideointelligenceV1FaceDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1FaceDetectionConfig {
     /// Whether to enable face attributes detection, such as glasses, dark_glasses, mouth_open etc. Ignored if ''include_bounding_boxes'' is set to false.
     #[serde(default, rename = "includeAttributes")]
-    pub include_attributes: Option<bool>,
+    pub include_attributes: ::core::option::Option<bool>,
     /// Whether bounding boxes are included in the face annotation output.
     #[serde(default, rename = "includeBoundingBoxes")]
-    pub include_bounding_boxes: Option<bool>,
+    pub include_bounding_boxes: ::core::option::Option<bool>,
     /// Model to use for face detection. Supported values: "builtin/stable" (the default if unset) and "builtin/latest".
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Deprecated. No effect.
@@ -182,10 +196,12 @@ pub struct GoogleCloudVideointelligenceV1FaceDetectionConfig {
 pub struct GoogleCloudVideointelligenceV1FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
-    pub normalized_bounding_boxes: Option<Vec<GoogleCloudVideointelligenceV1NormalizedBoundingBox>>,
+    pub normalized_bounding_boxes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1NormalizedBoundingBox>>,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for face detection.
@@ -193,7 +209,8 @@ pub struct GoogleCloudVideointelligenceV1FaceFrame {
 pub struct GoogleCloudVideointelligenceV1FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
 }
 
 /// Label annotation.
@@ -201,19 +218,25 @@ pub struct GoogleCloudVideointelligenceV1FaceSegment {
 pub struct GoogleCloudVideointelligenceV1LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
-    pub category_entities: Option<Vec<GoogleCloudVideointelligenceV1Entity>>,
+    pub category_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1Entity>>,
+    >,
     /// Detected entity.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1Entity>,
+    pub entity: ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1Entity>>,
     /// All video frames where a label was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1LabelFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1LabelFrame>>,
+    >,
     /// All video segments where a label was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1LabelSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1LabelSegment>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Config for LABEL_DETECTION.
@@ -221,19 +244,19 @@ pub struct GoogleCloudVideointelligenceV1LabelAnnotation {
 pub struct GoogleCloudVideointelligenceV1LabelDetectionConfig {
     /// The confidence threshold we perform filtering on the labels from frame-level detection. If not set, it is set to 0.4 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: For best results, follow the default threshold. We will update the default threshold everytime when we release a new model.
     #[serde(default, rename = "frameConfidenceThreshold")]
-    pub frame_confidence_threshold: Option<f32>,
+    pub frame_confidence_threshold: ::core::option::Option<f32>,
     /// What labels should be detected with LABEL_DETECTION, in addition to video-level labels or segment-level labels. If unspecified, defaults to SHOT_MODE. // TODO: enum values: ["LABEL_DETECTION_MODE_UNSPECIFIED", "SHOT_MODE", "FRAME_MODE", "SHOT_AND_FRAME_MODE"]
     #[serde(default, rename = "labelDetectionMode")]
-    pub label_detection_mode: Option<String>,
+    pub label_detection_mode: ::core::option::Option<String>,
     /// Model to use for label detection. Supported values: "builtin/stable" (the default if unset) and "builtin/latest".
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// Whether the video has been shot from a stationary (i.e., non-moving) camera. When set to true, might improve detection accuracy for moving objects. Should be used with SHOT_AND_FRAME_MODE enabled.
     #[serde(default, rename = "stationaryCamera")]
-    pub stationary_camera: Option<bool>,
+    pub stationary_camera: ::core::option::Option<bool>,
     /// The confidence threshold we perform filtering on the labels from video-level and shot-level detections. If not set, it''s set to 0.3 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: For best results, follow the default threshold. We will update the default threshold everytime when we release a new model.
     #[serde(default, rename = "videoConfidenceThreshold")]
-    pub video_confidence_threshold: Option<f32>,
+    pub video_confidence_threshold: ::core::option::Option<f32>,
 }
 
 /// Video frame level annotation results for label detection.
@@ -241,10 +264,10 @@ pub struct GoogleCloudVideointelligenceV1LabelDetectionConfig {
 pub struct GoogleCloudVideointelligenceV1LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for label detection.
@@ -252,10 +275,11 @@ pub struct GoogleCloudVideointelligenceV1LabelFrame {
 pub struct GoogleCloudVideointelligenceV1LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment where a label was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
@@ -263,13 +287,17 @@ pub struct GoogleCloudVideointelligenceV1LabelSegment {
 pub struct GoogleCloudVideointelligenceV1LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1Entity>,
+    pub entity: ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1Entity>>,
     /// All video segments where the recognized logo appears. There might be multiple instances of the same logo class appearing in one VideoSegment.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1VideoSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
+    >,
     /// All logo tracks where the recognized logo appears. Each track corresponds to one logo instance appearing in consecutive frames.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1Track>>,
+    >,
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
@@ -277,16 +305,16 @@ pub struct GoogleCloudVideointelligenceV1LogoRecognitionAnnotation {
 pub struct GoogleCloudVideointelligenceV1NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
-    pub bottom: Option<f32>,
+    pub bottom: ::core::option::Option<f32>,
     /// Left X coordinate.
     #[serde(default)]
-    pub left: Option<f32>,
+    pub left: ::core::option::Option<f32>,
     /// Right X coordinate.
     #[serde(default)]
-    pub right: Option<f32>,
+    pub right: ::core::option::Option<f32>,
     /// Top Y coordinate.
     #[serde(default)]
-    pub top: Option<f32>,
+    pub top: ::core::option::Option<f32>,
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
@@ -294,7 +322,9 @@ pub struct GoogleCloudVideointelligenceV1NormalizedBoundingBox {
 pub struct GoogleCloudVideointelligenceV1NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVideointelligenceV1NormalizedVertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1NormalizedVertex>>,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -302,10 +332,10 @@ pub struct GoogleCloudVideointelligenceV1NormalizedBoundingPoly {
 pub struct GoogleCloudVideointelligenceV1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Annotations corresponding to one tracked object.
@@ -313,22 +343,25 @@ pub struct GoogleCloudVideointelligenceV1NormalizedVertex {
 pub struct GoogleCloudVideointelligenceV1ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity to specify the object category that this track is labeled as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1Entity>,
+    pub entity: ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1Entity>>,
     /// Information corresponding to all frames where this object track appears. Non-streaming batch mode: it may be one or multiple ObjectTrackingFrame messages in frames. Streaming mode: it can only be one ObjectTrackingFrame message in frames.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1ObjectTrackingFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1ObjectTrackingFrame>>,
+    >,
     /// Non-streaming batch mode ONLY. Each object track corresponds to one video segment where it appears.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
     /// Streaming mode ONLY. In streaming mode, we do not know the end time of a tracked object before it is completed. Hence, there is no VideoSegment info returned. Instead, we provide a unique identifiable integer track_id so that the customers can correlate the results of the ongoing ObjectTrackAnnotation of the same track_id over time.
     #[serde(default, rename = "trackId")]
-    pub track_id: Option<String>,
+    pub track_id: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Config for OBJECT_TRACKING.
@@ -336,7 +369,7 @@ pub struct GoogleCloudVideointelligenceV1ObjectTrackingAnnotation {
 pub struct GoogleCloudVideointelligenceV1ObjectTrackingConfig {
     /// Model to use for object tracking. Supported values: "builtin/stable" (the default if unset) and "builtin/latest".
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
@@ -344,10 +377,12 @@ pub struct GoogleCloudVideointelligenceV1ObjectTrackingConfig {
 pub struct GoogleCloudVideointelligenceV1ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1NormalizedBoundingBox>,
+    >,
     /// The timestamp of the frame in microseconds.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Person detection annotation per video.
@@ -355,10 +390,12 @@ pub struct GoogleCloudVideointelligenceV1ObjectTrackingFrame {
 pub struct GoogleCloudVideointelligenceV1PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Config for PERSON_DETECTION.
@@ -366,13 +403,13 @@ pub struct GoogleCloudVideointelligenceV1PersonDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1PersonDetectionConfig {
     /// Whether to enable person attributes detection, such as cloth color (black, blue, etc), type (coat, dress, etc), pattern (plain, floral, etc), hair, etc. Ignored if ''include_bounding_boxes'' is set to false.
     #[serde(default, rename = "includeAttributes")]
-    pub include_attributes: Option<bool>,
+    pub include_attributes: ::core::option::Option<bool>,
     /// Whether bounding boxes are included in the person detection annotation output.
     #[serde(default, rename = "includeBoundingBoxes")]
-    pub include_bounding_boxes: Option<bool>,
+    pub include_bounding_boxes: ::core::option::Option<bool>,
     /// Whether to enable pose landmarks detection. Ignored if ''include_bounding_boxes'' is set to false.
     #[serde(default, rename = "includePoseLandmarks")]
-    pub include_pose_landmarks: Option<bool>,
+    pub include_pose_landmarks: ::core::option::Option<bool>,
 }
 
 /// Config for SHOT_CHANGE_DETECTION.
@@ -380,7 +417,7 @@ pub struct GoogleCloudVideointelligenceV1PersonDetectionConfig {
 pub struct GoogleCloudVideointelligenceV1ShotChangeDetectionConfig {
     /// Model to use for shot change detection. Supported values: "builtin/stable" (the default if unset), "builtin/latest", and "builtin/legacy".
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Provides "hints" to the speech recognizer to favor specific words and phrases in the results.
@@ -388,7 +425,7 @@ pub struct GoogleCloudVideointelligenceV1ShotChangeDetectionConfig {
 pub struct GoogleCloudVideointelligenceV1SpeechContext {
     /// Optional. A list of strings containing words and phrases "hints" so that the speech recognition is more likely to recognize them. This can be used to improve the accuracy for specific words and phrases, for example, if specific commands are typically spoken by the user. This can also be used to add additional words to the vocabulary of the recognizer. See [usage limits](https://cloud.google.com/speech/limits#content).
     #[serde(default)]
-    pub phrases: Option<Vec<String>>,
+    pub phrases: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
@@ -396,13 +433,15 @@ pub struct GoogleCloudVideointelligenceV1SpeechContext {
 pub struct GoogleCloudVideointelligenceV1SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Transcript text representing the words that the user spoke.
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     /// Output only. A list of word-specific information for each recognized word. Note: When enable_speaker_diarization is set to true, you will see all the words from the beginning of the audio.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVideointelligenceV1WordInfo>>,
+    pub words: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1WordInfo>>,
+    >,
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
@@ -410,10 +449,14 @@ pub struct GoogleCloudVideointelligenceV1SpeechRecognitionAlternative {
 pub struct GoogleCloudVideointelligenceV1SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
-    pub alternatives: Option<Vec<GoogleCloudVideointelligenceV1SpeechRecognitionAlternative>>,
+    pub alternatives: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1SpeechRecognitionAlternative>,
+        >,
+    >,
     /// Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag of the language in this result. This language code was detected to have the most likelihood of being spoken in the audio.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Config for SPEECH_TRANSCRIPTION.
@@ -421,34 +464,36 @@ pub struct GoogleCloudVideointelligenceV1SpeechTranscription {
 pub struct GoogleCloudVideointelligenceV1SpeechTranscriptionConfig {
     /// Optional. Legacy field. This field must be a Cloud Storage URI prefix. (e.g., gs://bucket/path/).
     #[serde(default, rename = "audioOutputUriPrefix")]
-    pub audio_output_uri_prefix: Option<String>,
+    pub audio_output_uri_prefix: ::core::option::Option<String>,
     /// Optional. For file formats, such as MXF or MKV, supporting multiple audio tracks, specify up to two tracks. Default: track 0.
     #[serde(default, rename = "audioTracks")]
-    pub audio_tracks: Option<Vec<i32>>,
+    pub audio_tracks: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Optional. If set, specifies the estimated number of speakers in the conversation. If not set, defaults to ''2''. Ignored unless enable_speaker_diarization is set to true.
     #[serde(default, rename = "diarizationSpeakerCount")]
-    pub diarization_speaker_count: Option<i32>,
+    pub diarization_speaker_count: ::core::option::Option<i32>,
     /// Optional. If ''true'', adds punctuation to recognition result hypotheses. This feature is only available in select languages. Setting this for requests in other languages has no effect at all. The default ''false'' value does not add punctuation to result hypotheses. NOTE: "This is currently offered as an experimental service, complimentary to all users. In the future this may be exclusively available as a premium feature."
     #[serde(default, rename = "enableAutomaticPunctuation")]
-    pub enable_automatic_punctuation: Option<bool>,
+    pub enable_automatic_punctuation: ::core::option::Option<bool>,
     /// Optional. If ''true'', enables speaker detection for each recognized word in the top alternative of the recognition result using a speaker_tag provided in the WordInfo. Note: When this is true, we send all the words from the beginning of the audio for the top alternative in every consecutive response. This is done in order to improve our speaker tags as our models learn to identify the speakers in the conversation over time.
     #[serde(default, rename = "enableSpeakerDiarization")]
-    pub enable_speaker_diarization: Option<bool>,
+    pub enable_speaker_diarization: ::core::option::Option<bool>,
     /// Optional. If true, the top result includes a list of words and the confidence for those words. If false, no word-level confidence information is returned. The default is false.
     #[serde(default, rename = "enableWordConfidence")]
-    pub enable_word_confidence: Option<bool>,
+    pub enable_word_confidence: ::core::option::Option<bool>,
     /// Optional. If set to true, the server will attempt to filter out profanities, replacing all but the initial character in each filtered word with asterisks, e.g. "f***". If set to false or omitted, profanities won''t be filtered out.
     #[serde(default, rename = "filterProfanity")]
-    pub filter_profanity: Option<bool>,
+    pub filter_profanity: ::core::option::Option<bool>,
     /// Required. *Required* The language of the supplied audio as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag. Example: "en-US". See [Language Support](https://cloud.google.com/speech/docs/languages) for a list of the currently supported language codes.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Optional. Maximum number of recognition hypotheses to be returned. Specifically, the maximum number of SpeechRecognitionAlternative messages within each SpeechTranscription. The server may return fewer than max_alternatives. Valid values are 0-30. A value of 0 or 1 will return a maximum of one. If omitted, will return a maximum of one.
     #[serde(default, rename = "maxAlternatives")]
-    pub max_alternatives: Option<i32>,
+    pub max_alternatives: ::core::option::Option<i32>,
     /// Optional. A means to provide context to assist the speech recognition.
     #[serde(default, rename = "speechContexts")]
-    pub speech_contexts: Option<Vec<GoogleCloudVideointelligenceV1SpeechContext>>,
+    pub speech_contexts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1SpeechContext>>,
+    >,
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
@@ -456,13 +501,15 @@ pub struct GoogleCloudVideointelligenceV1SpeechTranscriptionConfig {
 pub struct GoogleCloudVideointelligenceV1TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1TextSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1TextSegment>>,
+    >,
     /// The detected text.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Config for TEXT_DETECTION.
@@ -470,10 +517,10 @@ pub struct GoogleCloudVideointelligenceV1TextAnnotation {
 pub struct GoogleCloudVideointelligenceV1TextDetectionConfig {
     /// Language hint can be specified if the language to be detected is known a priori. It can increase the accuracy of the detection. Language hint must be language code in BCP-47 format. Automatic language detection is performed if no hint is provided.
     #[serde(default, rename = "languageHints")]
-    pub language_hints: Option<Vec<String>>,
+    pub language_hints: ::core::option::Option<::std::vec::Vec<String>>,
     /// Model to use for text detection. Supported values: "builtin/stable" (the default if unset) and "builtin/latest".
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
@@ -481,10 +528,12 @@ pub struct GoogleCloudVideointelligenceV1TextDetectionConfig {
 pub struct GoogleCloudVideointelligenceV1TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
-    pub rotated_bounding_box: Option<GoogleCloudVideointelligenceV1NormalizedBoundingPoly>,
+    pub rotated_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1NormalizedBoundingPoly>,
+    >,
     /// Timestamp of this frame.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for text detection.
@@ -492,13 +541,16 @@ pub struct GoogleCloudVideointelligenceV1TextFrame {
 pub struct GoogleCloudVideointelligenceV1TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Information related to the frames where OCR detected text appears.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1TextFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1TextFrame>>,
+    >,
     /// Video segment where a text snippet was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
@@ -506,16 +558,22 @@ pub struct GoogleCloudVideointelligenceV1TextSegment {
 pub struct GoogleCloudVideointelligenceV1TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1DetectedAttribute>>,
+    >,
     /// Optional. The detected landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVideointelligenceV1DetectedLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1DetectedLandmark>>,
+    >,
     /// Normalized Bounding box in a frame, where the object is located.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1NormalizedBoundingBox>,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this object.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// A track of an object instance.
@@ -523,16 +581,21 @@ pub struct GoogleCloudVideointelligenceV1TimestampedObject {
 pub struct GoogleCloudVideointelligenceV1Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1DetectedAttribute>>,
+    >,
     /// Optional. The confidence score of the tracked object.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment of a track.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
     /// The object with timestamp and attributes per frame in the track.
     #[serde(default, rename = "timestampedObjects")]
-    pub timestamped_objects: Option<Vec<GoogleCloudVideointelligenceV1TimestampedObject>>,
+    pub timestamped_objects: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1TimestampedObject>>,
+    >,
 }
 
 /// Annotation progress for a single video.
@@ -540,25 +603,28 @@ pub struct GoogleCloudVideointelligenceV1Track {
 pub struct GoogleCloudVideointelligenceV1VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
-    pub export_status: Option<GoogleCloudVideointelligenceV1ExportToOutputUriStatus>,
+    pub export_status: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1ExportToOutputUriStatus>,
+    >,
     /// Specifies which feature is being tracked if the request contains more than one feature. // TODO: enum values: ["FEATURE_UNSPECIFIED", "LABEL_DETECTION", "SHOT_CHANGE_DETECTION", "EXPLICIT_CONTENT_DETECTION", "FACE_DETECTION", "SPEECH_TRANSCRIPTION", "TEXT_DETECTION", "OBJECT_TRACKING", "LOGO_RECOGNITION", "PERSON_DETECTION"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Approximate percentage processed thus far. Guaranteed to be 100 when fully processed.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Specifies which segment is being tracked if the request contains more than one segment.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
     /// Time when the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Time of the most recent update.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Annotation results for a single video.
@@ -566,59 +632,84 @@ pub struct GoogleCloudVideointelligenceV1VideoAnnotationProgress {
 pub struct GoogleCloudVideointelligenceV1VideoAnnotationResults {
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Explicit content annotation.
     #[serde(default, rename = "explicitAnnotation")]
-    pub explicit_annotation: Option<GoogleCloudVideointelligenceV1ExplicitContentAnnotation>,
+    pub explicit_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1ExplicitContentAnnotation>,
+    >,
     /// Deprecated. Please use face_detection_annotations instead.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVideointelligenceV1FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1FaceAnnotation>>,
+    >,
     /// Face detection annotations.
     #[serde(default, rename = "faceDetectionAnnotations")]
-    pub face_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1FaceDetectionAnnotation>>,
+    pub face_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1FaceDetectionAnnotation>>,
+    >,
     /// Label annotations on frame level. There is exactly one element for each unique label.
     #[serde(default, rename = "frameLabelAnnotations")]
-    pub frame_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    pub frame_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    >,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Annotations for list of logos detected, tracked and recognized in video.
     #[serde(default, rename = "logoRecognitionAnnotations")]
-    pub logo_recognition_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1LogoRecognitionAnnotation>>,
+    pub logo_recognition_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1LogoRecognitionAnnotation>>,
+    >,
     /// Annotations for list of objects detected and tracked in video.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations: Option<Vec<GoogleCloudVideointelligenceV1ObjectTrackingAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1ObjectTrackingAnnotation>>,
+    >,
     /// Person detection annotations.
     #[serde(default, rename = "personDetectionAnnotations")]
-    pub person_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1PersonDetectionAnnotation>>,
+    pub person_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1PersonDetectionAnnotation>>,
+    >,
     /// Video segment on which the annotation is run.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
     /// Topical label annotations on video level or user-specified segment level. There is exactly one element for each unique label.
     #[serde(default, rename = "segmentLabelAnnotations")]
-    pub segment_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    pub segment_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    >,
     /// Presence label annotations on video level or user-specified segment level. There is exactly one element for each unique label. Compared to the existing topical segment_label_annotations, this field presents more fine-grained, segment-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "segmentPresenceLabelAnnotations")]
-    pub segment_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    pub segment_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    >,
     /// Shot annotations. Each shot is represented as a video segment.
     #[serde(default, rename = "shotAnnotations")]
-    pub shot_annotations: Option<Vec<GoogleCloudVideointelligenceV1VideoSegment>>,
+    pub shot_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
+    >,
     /// Topical label annotations on shot level. There is exactly one element for each unique label.
     #[serde(default, rename = "shotLabelAnnotations")]
-    pub shot_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    pub shot_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    >,
     /// Presence label annotations on shot level. There is exactly one element for each unique label. Compared to the existing topical shot_label_annotations, this field presents more fine-grained, shot-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "shotPresenceLabelAnnotations")]
-    pub shot_presence_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    pub shot_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1LabelAnnotation>>,
+    >,
     /// Speech transcription.
     #[serde(default, rename = "speechTranscriptions")]
-    pub speech_transcriptions: Option<Vec<GoogleCloudVideointelligenceV1SpeechTranscription>>,
+    pub speech_transcriptions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1SpeechTranscription>>,
+    >,
     /// OCR text detection and tracking. Annotations for list of detected text snippets. Each will have list of frame information associated with it.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVideointelligenceV1TextAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1TextAnnotation>>,
+    >,
 }
 
 /// Video context and/or feature-specific parameters.
@@ -626,34 +717,49 @@ pub struct GoogleCloudVideointelligenceV1VideoAnnotationResults {
 pub struct GoogleCloudVideointelligenceV1VideoContext {
     /// Config for EXPLICIT_CONTENT_DETECTION.
     #[serde(default, rename = "explicitContentDetectionConfig")]
-    pub explicit_content_detection_config:
-        Option<GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig>,
+    pub explicit_content_detection_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig>,
+    >,
     /// Config for FACE_DETECTION.
     #[serde(default, rename = "faceDetectionConfig")]
-    pub face_detection_config: Option<GoogleCloudVideointelligenceV1FaceDetectionConfig>,
+    pub face_detection_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1FaceDetectionConfig>,
+    >,
     /// Config for LABEL_DETECTION.
     #[serde(default, rename = "labelDetectionConfig")]
-    pub label_detection_config: Option<GoogleCloudVideointelligenceV1LabelDetectionConfig>,
+    pub label_detection_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1LabelDetectionConfig>,
+    >,
     /// Config for OBJECT_TRACKING.
     #[serde(default, rename = "objectTrackingConfig")]
-    pub object_tracking_config: Option<GoogleCloudVideointelligenceV1ObjectTrackingConfig>,
+    pub object_tracking_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1ObjectTrackingConfig>,
+    >,
     /// Config for PERSON_DETECTION.
     #[serde(default, rename = "personDetectionConfig")]
-    pub person_detection_config: Option<GoogleCloudVideointelligenceV1PersonDetectionConfig>,
+    pub person_detection_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1PersonDetectionConfig>,
+    >,
     /// Video segments to annotate. The segments may overlap and are not required to be contiguous or span the whole video. If unspecified, each video is treated as a single segment.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1VideoSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1VideoSegment>>,
+    >,
     /// Config for SHOT_CHANGE_DETECTION.
     #[serde(default, rename = "shotChangeDetectionConfig")]
-    pub shot_change_detection_config:
-        Option<GoogleCloudVideointelligenceV1ShotChangeDetectionConfig>,
+    pub shot_change_detection_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1ShotChangeDetectionConfig>,
+    >,
     /// Config for SPEECH_TRANSCRIPTION.
     #[serde(default, rename = "speechTranscriptionConfig")]
-    pub speech_transcription_config:
-        Option<GoogleCloudVideointelligenceV1SpeechTranscriptionConfig>,
+    pub speech_transcription_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1SpeechTranscriptionConfig>,
+    >,
     /// Config for TEXT_DETECTION.
     #[serde(default, rename = "textDetectionConfig")]
-    pub text_detection_config: Option<GoogleCloudVideointelligenceV1TextDetectionConfig>,
+    pub text_detection_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1TextDetectionConfig>,
+    >,
 }
 
 /// Video segment.
@@ -661,10 +767,10 @@ pub struct GoogleCloudVideointelligenceV1VideoContext {
 pub struct GoogleCloudVideointelligenceV1VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
-    pub end_time_offset: Option<String>,
+    pub end_time_offset: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the start of the segment (inclusive).
     #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: Option<String>,
+    pub start_time_offset: ::core::option::Option<String>,
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
@@ -672,22 +778,22 @@ pub struct GoogleCloudVideointelligenceV1VideoSegment {
 pub struct GoogleCloudVideointelligenceV1WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the end of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. A distinct string value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word.
     #[serde(default, rename = "speakerLabel")]
-    pub speaker_label: Option<String>,
+    pub speaker_label: ::core::option::Option<String>,
     /// Output only. A distinct integer value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word. Value ranges from 1 up to diarization_speaker_count, and is only set if speaker diarization is enabled.
     #[serde(default, rename = "speakerTag")]
-    pub speaker_tag: Option<i32>,
+    pub speaker_tag: ::core::option::Option<i32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the start of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The word corresponding to this set of information.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -695,8 +801,11 @@ pub struct GoogleCloudVideointelligenceV1WordInfo {
 pub struct GoogleCloudVideointelligenceV1beta2AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
-    pub annotation_progress:
-        Option<Vec<GoogleCloudVideointelligenceV1beta2VideoAnnotationProgress>>,
+    pub annotation_progress: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoAnnotationProgress>,
+        >,
+    >,
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -704,7 +813,11 @@ pub struct GoogleCloudVideointelligenceV1beta2AnnotateVideoProgress {
 pub struct GoogleCloudVideointelligenceV1beta2AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
-    pub annotation_results: Option<Vec<GoogleCloudVideointelligenceV1beta2VideoAnnotationResults>>,
+    pub annotation_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoAnnotationResults>,
+        >,
+    >,
 }
 
 /// A generic detected attribute represented by name in string format.
@@ -712,13 +825,13 @@ pub struct GoogleCloudVideointelligenceV1beta2AnnotateVideoResponse {
 pub struct GoogleCloudVideointelligenceV1beta2DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the attribute, for example, glasses, dark_glasses, mouth_open. A full list of supported type names will be provided in the document.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Text value of the detection result. For example, the value for "HairColor" can be "black", "blonde", etc.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
@@ -726,13 +839,15 @@ pub struct GoogleCloudVideointelligenceV1beta2DetectedAttribute {
 pub struct GoogleCloudVideointelligenceV1beta2DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of this landmark, for example, left_hand, right_shoulder.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The 2D point of the detected landmark using the normalized image coordinate system. The normalized coordinates have the range from 0 to 1.
     #[serde(default)]
-    pub point: Option<GoogleCloudVideointelligenceV1beta2NormalizedVertex>,
+    pub point: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2NormalizedVertex>,
+    >,
 }
 
 /// Detected entity from video analysis.
@@ -740,13 +855,13 @@ pub struct GoogleCloudVideointelligenceV1beta2DetectedLandmark {
 pub struct GoogleCloudVideointelligenceV1beta2Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Language code for description in BCP-47 format.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
@@ -754,10 +869,12 @@ pub struct GoogleCloudVideointelligenceV1beta2Entity {
 pub struct GoogleCloudVideointelligenceV1beta2ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1beta2ExplicitContentFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2ExplicitContentFrame>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for explicit content.
@@ -765,10 +882,10 @@ pub struct GoogleCloudVideointelligenceV1beta2ExplicitContentAnnotation {
 pub struct GoogleCloudVideointelligenceV1beta2ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
-    pub pornography_likelihood: Option<String>,
+    pub pornography_likelihood: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Status of exporting annotation response to user specified output_uri.
@@ -776,10 +893,10 @@ pub struct GoogleCloudVideointelligenceV1beta2ExplicitContentFrame {
 pub struct GoogleCloudVideointelligenceV1beta2ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Only set if state is FAILED.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// Deprecated. No effect.
@@ -787,13 +904,17 @@ pub struct GoogleCloudVideointelligenceV1beta2ExportToOutputUriStatus {
 pub struct GoogleCloudVideointelligenceV1beta2FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1beta2FaceFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2FaceFrame>>,
+    >,
     /// All video segments where a face was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1beta2FaceSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2FaceSegment>>,
+    >,
     /// Thumbnail of a representative face view (in JPEG format).
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
 }
 
 /// Face detection annotation.
@@ -801,13 +922,15 @@ pub struct GoogleCloudVideointelligenceV1beta2FaceAnnotation {
 pub struct GoogleCloudVideointelligenceV1beta2FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
     /// The face tracks with attributes.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1beta2Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Deprecated. No effect.
@@ -815,11 +938,14 @@ pub struct GoogleCloudVideointelligenceV1beta2FaceDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1beta2FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
-    pub normalized_bounding_boxes:
-        Option<Vec<GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox>>,
+    pub normalized_bounding_boxes: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox>,
+        >,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for face detection.
@@ -827,7 +953,8 @@ pub struct GoogleCloudVideointelligenceV1beta2FaceFrame {
 pub struct GoogleCloudVideointelligenceV1beta2FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1beta2VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
 }
 
 /// Label annotation.
@@ -835,19 +962,26 @@ pub struct GoogleCloudVideointelligenceV1beta2FaceSegment {
 pub struct GoogleCloudVideointelligenceV1beta2LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
-    pub category_entities: Option<Vec<GoogleCloudVideointelligenceV1beta2Entity>>,
+    pub category_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2Entity>>,
+    >,
     /// Detected entity.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1beta2Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2Entity>>,
     /// All video frames where a label was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1beta2LabelFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2LabelFrame>>,
+    >,
     /// All video segments where a label was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1beta2LabelSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2LabelSegment>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for label detection.
@@ -855,10 +989,10 @@ pub struct GoogleCloudVideointelligenceV1beta2LabelAnnotation {
 pub struct GoogleCloudVideointelligenceV1beta2LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for label detection.
@@ -866,10 +1000,11 @@ pub struct GoogleCloudVideointelligenceV1beta2LabelFrame {
 pub struct GoogleCloudVideointelligenceV1beta2LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment where a label was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1beta2VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
@@ -877,13 +1012,18 @@ pub struct GoogleCloudVideointelligenceV1beta2LabelSegment {
 pub struct GoogleCloudVideointelligenceV1beta2LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1beta2Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2Entity>>,
     /// All video segments where the recognized logo appears. There might be multiple instances of the same logo class appearing in one VideoSegment.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
+    >,
     /// All logo tracks where the recognized logo appears. Each track corresponds to one logo instance appearing in consecutive frames.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1beta2Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2Track>>,
+    >,
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
@@ -891,16 +1031,16 @@ pub struct GoogleCloudVideointelligenceV1beta2LogoRecognitionAnnotation {
 pub struct GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
-    pub bottom: Option<f32>,
+    pub bottom: ::core::option::Option<f32>,
     /// Left X coordinate.
     #[serde(default)]
-    pub left: Option<f32>,
+    pub left: ::core::option::Option<f32>,
     /// Right X coordinate.
     #[serde(default)]
-    pub right: Option<f32>,
+    pub right: ::core::option::Option<f32>,
     /// Top Y coordinate.
     #[serde(default)]
-    pub top: Option<f32>,
+    pub top: ::core::option::Option<f32>,
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
@@ -908,7 +1048,9 @@ pub struct GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox {
 pub struct GoogleCloudVideointelligenceV1beta2NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVideointelligenceV1beta2NormalizedVertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2NormalizedVertex>>,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -916,10 +1058,10 @@ pub struct GoogleCloudVideointelligenceV1beta2NormalizedBoundingPoly {
 pub struct GoogleCloudVideointelligenceV1beta2NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Annotations corresponding to one tracked object.
@@ -927,22 +1069,26 @@ pub struct GoogleCloudVideointelligenceV1beta2NormalizedVertex {
 pub struct GoogleCloudVideointelligenceV1beta2ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity to specify the object category that this track is labeled as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1beta2Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2Entity>>,
     /// Information corresponding to all frames where this object track appears. Non-streaming batch mode: it may be one or multiple ObjectTrackingFrame messages in frames. Streaming mode: it can only be one ObjectTrackingFrame message in frames.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1beta2ObjectTrackingFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2ObjectTrackingFrame>>,
+    >,
     /// Non-streaming batch mode ONLY. Each object track corresponds to one video segment where it appears.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1beta2VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
     /// Streaming mode ONLY. In streaming mode, we do not know the end time of a tracked object before it is completed. Hence, there is no VideoSegment info returned. Instead, we provide a unique identifiable integer track_id so that the customers can correlate the results of the ongoing ObjectTrackAnnotation of the same track_id over time.
     #[serde(default, rename = "trackId")]
-    pub track_id: Option<String>,
+    pub track_id: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
@@ -950,10 +1096,12 @@ pub struct GoogleCloudVideointelligenceV1beta2ObjectTrackingAnnotation {
 pub struct GoogleCloudVideointelligenceV1beta2ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox>,
+    >,
     /// The timestamp of the frame in microseconds.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Person detection annotation per video.
@@ -961,10 +1109,12 @@ pub struct GoogleCloudVideointelligenceV1beta2ObjectTrackingFrame {
 pub struct GoogleCloudVideointelligenceV1beta2PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1beta2Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
@@ -972,13 +1122,15 @@ pub struct GoogleCloudVideointelligenceV1beta2PersonDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Transcript text representing the words that the user spoke.
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     /// Output only. A list of word-specific information for each recognized word. Note: When enable_speaker_diarization is set to true, you will see all the words from the beginning of the audio.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVideointelligenceV1beta2WordInfo>>,
+    pub words: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2WordInfo>>,
+    >,
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
@@ -986,10 +1138,14 @@ pub struct GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative {
 pub struct GoogleCloudVideointelligenceV1beta2SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
-    pub alternatives: Option<Vec<GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative>>,
+    pub alternatives: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative>,
+        >,
+    >,
     /// Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag of the language in this result. This language code was detected to have the most likelihood of being spoken in the audio.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
@@ -997,13 +1153,15 @@ pub struct GoogleCloudVideointelligenceV1beta2SpeechTranscription {
 pub struct GoogleCloudVideointelligenceV1beta2TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1beta2TextSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2TextSegment>>,
+    >,
     /// The detected text.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
@@ -1011,10 +1169,12 @@ pub struct GoogleCloudVideointelligenceV1beta2TextAnnotation {
 pub struct GoogleCloudVideointelligenceV1beta2TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
-    pub rotated_bounding_box: Option<GoogleCloudVideointelligenceV1beta2NormalizedBoundingPoly>,
+    pub rotated_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2NormalizedBoundingPoly>,
+    >,
     /// Timestamp of this frame.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for text detection.
@@ -1022,13 +1182,16 @@ pub struct GoogleCloudVideointelligenceV1beta2TextFrame {
 pub struct GoogleCloudVideointelligenceV1beta2TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Information related to the frames where OCR detected text appears.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1beta2TextFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2TextFrame>>,
+    >,
     /// Video segment where a text snippet was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1beta2VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
@@ -1036,16 +1199,22 @@ pub struct GoogleCloudVideointelligenceV1beta2TextSegment {
 pub struct GoogleCloudVideointelligenceV1beta2TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1beta2DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2DetectedAttribute>>,
+    >,
     /// Optional. The detected landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVideointelligenceV1beta2DetectedLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2DetectedLandmark>>,
+    >,
     /// Normalized Bounding box in a frame, where the object is located.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox>,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this object.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// A track of an object instance.
@@ -1053,16 +1222,21 @@ pub struct GoogleCloudVideointelligenceV1beta2TimestampedObject {
 pub struct GoogleCloudVideointelligenceV1beta2Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1beta2DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2DetectedAttribute>>,
+    >,
     /// Optional. The confidence score of the tracked object.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment of a track.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1beta2VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
     /// The object with timestamp and attributes per frame in the track.
     #[serde(default, rename = "timestampedObjects")]
-    pub timestamped_objects: Option<Vec<GoogleCloudVideointelligenceV1beta2TimestampedObject>>,
+    pub timestamped_objects: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2TimestampedObject>>,
+    >,
 }
 
 /// Annotation progress for a single video.
@@ -1070,25 +1244,28 @@ pub struct GoogleCloudVideointelligenceV1beta2Track {
 pub struct GoogleCloudVideointelligenceV1beta2VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
-    pub export_status: Option<GoogleCloudVideointelligenceV1beta2ExportToOutputUriStatus>,
+    pub export_status: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2ExportToOutputUriStatus>,
+    >,
     /// Specifies which feature is being tracked if the request contains more than one feature. // TODO: enum values: ["FEATURE_UNSPECIFIED", "LABEL_DETECTION", "SHOT_CHANGE_DETECTION", "EXPLICIT_CONTENT_DETECTION", "FACE_DETECTION", "SPEECH_TRANSCRIPTION", "TEXT_DETECTION", "OBJECT_TRACKING", "LOGO_RECOGNITION", "PERSON_DETECTION"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Approximate percentage processed thus far. Guaranteed to be 100 when fully processed.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Specifies which segment is being tracked if the request contains more than one segment.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1beta2VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
     /// Time when the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Time of the most recent update.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Annotation results for a single video.
@@ -1096,61 +1273,92 @@ pub struct GoogleCloudVideointelligenceV1beta2VideoAnnotationProgress {
 pub struct GoogleCloudVideointelligenceV1beta2VideoAnnotationResults {
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Explicit content annotation.
     #[serde(default, rename = "explicitAnnotation")]
-    pub explicit_annotation: Option<GoogleCloudVideointelligenceV1beta2ExplicitContentAnnotation>,
+    pub explicit_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2ExplicitContentAnnotation>,
+    >,
     /// Deprecated. Please use face_detection_annotations instead.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVideointelligenceV1beta2FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2FaceAnnotation>>,
+    >,
     /// Face detection annotations.
     #[serde(default, rename = "faceDetectionAnnotations")]
-    pub face_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1beta2FaceDetectionAnnotation>>,
+    pub face_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2FaceDetectionAnnotation>,
+        >,
+    >,
     /// Label annotations on frame level. There is exactly one element for each unique label.
     #[serde(default, rename = "frameLabelAnnotations")]
-    pub frame_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    pub frame_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    >,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Annotations for list of logos detected, tracked and recognized in video.
     #[serde(default, rename = "logoRecognitionAnnotations")]
-    pub logo_recognition_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1beta2LogoRecognitionAnnotation>>,
+    pub logo_recognition_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2LogoRecognitionAnnotation>,
+        >,
+    >,
     /// Annotations for list of objects detected and tracked in video.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1beta2ObjectTrackingAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2ObjectTrackingAnnotation>,
+        >,
+    >,
     /// Person detection annotations.
     #[serde(default, rename = "personDetectionAnnotations")]
-    pub person_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1beta2PersonDetectionAnnotation>>,
+    pub person_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1beta2PersonDetectionAnnotation>,
+        >,
+    >,
     /// Video segment on which the annotation is run.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1beta2VideoSegment>,
+    pub segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
     /// Topical label annotations on video level or user-specified segment level. There is exactly one element for each unique label.
     #[serde(default, rename = "segmentLabelAnnotations")]
-    pub segment_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    pub segment_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    >,
     /// Presence label annotations on video level or user-specified segment level. There is exactly one element for each unique label. Compared to the existing topical segment_label_annotations, this field presents more fine-grained, segment-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "segmentPresenceLabelAnnotations")]
-    pub segment_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    pub segment_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    >,
     /// Shot annotations. Each shot is represented as a video segment.
     #[serde(default, rename = "shotAnnotations")]
-    pub shot_annotations: Option<Vec<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
+    pub shot_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2VideoSegment>>,
+    >,
     /// Topical label annotations on shot level. There is exactly one element for each unique label.
     #[serde(default, rename = "shotLabelAnnotations")]
-    pub shot_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    pub shot_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    >,
     /// Presence label annotations on shot level. There is exactly one element for each unique label. Compared to the existing topical shot_label_annotations, this field presents more fine-grained, shot-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "shotPresenceLabelAnnotations")]
-    pub shot_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    pub shot_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2LabelAnnotation>>,
+    >,
     /// Speech transcription.
     #[serde(default, rename = "speechTranscriptions")]
-    pub speech_transcriptions: Option<Vec<GoogleCloudVideointelligenceV1beta2SpeechTranscription>>,
+    pub speech_transcriptions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2SpeechTranscription>>,
+    >,
     /// OCR text detection and tracking. Annotations for list of detected text snippets. Each will have list of frame information associated with it.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVideointelligenceV1beta2TextAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1beta2TextAnnotation>>,
+    >,
 }
 
 /// Video segment.
@@ -1158,10 +1366,10 @@ pub struct GoogleCloudVideointelligenceV1beta2VideoAnnotationResults {
 pub struct GoogleCloudVideointelligenceV1beta2VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
-    pub end_time_offset: Option<String>,
+    pub end_time_offset: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the start of the segment (inclusive).
     #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: Option<String>,
+    pub start_time_offset: ::core::option::Option<String>,
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
@@ -1169,22 +1377,22 @@ pub struct GoogleCloudVideointelligenceV1beta2VideoSegment {
 pub struct GoogleCloudVideointelligenceV1beta2WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the end of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. A distinct string value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word.
     #[serde(default, rename = "speakerLabel")]
-    pub speaker_label: Option<String>,
+    pub speaker_label: ::core::option::Option<String>,
     /// Output only. A distinct integer value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word. Value ranges from 1 up to diarization_speaker_count, and is only set if speaker diarization is enabled.
     #[serde(default, rename = "speakerTag")]
-    pub speaker_tag: Option<i32>,
+    pub speaker_tag: ::core::option::Option<i32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the start of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The word corresponding to this set of information.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -1192,8 +1400,11 @@ pub struct GoogleCloudVideointelligenceV1beta2WordInfo {
 pub struct GoogleCloudVideointelligenceV1p1beta1AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
-    pub annotation_progress:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1VideoAnnotationProgress>>,
+    pub annotation_progress: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoAnnotationProgress>,
+        >,
+    >,
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -1201,8 +1412,11 @@ pub struct GoogleCloudVideointelligenceV1p1beta1AnnotateVideoProgress {
 pub struct GoogleCloudVideointelligenceV1p1beta1AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
-    pub annotation_results:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1VideoAnnotationResults>>,
+    pub annotation_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoAnnotationResults>,
+        >,
+    >,
 }
 
 /// A generic detected attribute represented by name in string format.
@@ -1210,13 +1424,13 @@ pub struct GoogleCloudVideointelligenceV1p1beta1AnnotateVideoResponse {
 pub struct GoogleCloudVideointelligenceV1p1beta1DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the attribute, for example, glasses, dark_glasses, mouth_open. A full list of supported type names will be provided in the document.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Text value of the detection result. For example, the value for "HairColor" can be "black", "blonde", etc.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
@@ -1224,13 +1438,15 @@ pub struct GoogleCloudVideointelligenceV1p1beta1DetectedAttribute {
 pub struct GoogleCloudVideointelligenceV1p1beta1DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of this landmark, for example, left_hand, right_shoulder.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The 2D point of the detected landmark using the normalized image coordinate system. The normalized coordinates have the range from 0 to 1.
     #[serde(default)]
-    pub point: Option<GoogleCloudVideointelligenceV1p1beta1NormalizedVertex>,
+    pub point: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1NormalizedVertex>,
+    >,
 }
 
 /// Detected entity from video analysis.
@@ -1238,13 +1454,13 @@ pub struct GoogleCloudVideointelligenceV1p1beta1DetectedLandmark {
 pub struct GoogleCloudVideointelligenceV1p1beta1Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Language code for description in BCP-47 format.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
@@ -1252,10 +1468,14 @@ pub struct GoogleCloudVideointelligenceV1p1beta1Entity {
 pub struct GoogleCloudVideointelligenceV1p1beta1ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame>,
+        >,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for explicit content.
@@ -1263,10 +1483,10 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ExplicitContentAnnotation {
 pub struct GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
-    pub pornography_likelihood: Option<String>,
+    pub pornography_likelihood: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Status of exporting annotation response to user specified output_uri.
@@ -1274,10 +1494,10 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame {
 pub struct GoogleCloudVideointelligenceV1p1beta1ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Only set if state is FAILED.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// Deprecated. No effect.
@@ -1285,13 +1505,17 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ExportToOutputUriStatus {
 pub struct GoogleCloudVideointelligenceV1p1beta1FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p1beta1FaceFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1FaceFrame>>,
+    >,
     /// All video segments where a face was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p1beta1FaceSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1FaceSegment>>,
+    >,
     /// Thumbnail of a representative face view (in JPEG format).
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
 }
 
 /// Face detection annotation.
@@ -1299,13 +1523,15 @@ pub struct GoogleCloudVideointelligenceV1p1beta1FaceAnnotation {
 pub struct GoogleCloudVideointelligenceV1p1beta1FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
     /// The face tracks with attributes.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p1beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Deprecated. No effect.
@@ -1313,11 +1539,14 @@ pub struct GoogleCloudVideointelligenceV1p1beta1FaceDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p1beta1FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
-    pub normalized_bounding_boxes:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox>>,
+    pub normalized_bounding_boxes: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox>,
+        >,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for face detection.
@@ -1325,7 +1554,9 @@ pub struct GoogleCloudVideointelligenceV1p1beta1FaceFrame {
 pub struct GoogleCloudVideointelligenceV1p1beta1FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    >,
 }
 
 /// Label annotation.
@@ -1333,19 +1564,26 @@ pub struct GoogleCloudVideointelligenceV1p1beta1FaceSegment {
 pub struct GoogleCloudVideointelligenceV1p1beta1LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
-    pub category_entities: Option<Vec<GoogleCloudVideointelligenceV1p1beta1Entity>>,
+    pub category_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1Entity>>,
+    >,
     /// Detected entity.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p1beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1Entity>>,
     /// All video frames where a label was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p1beta1LabelFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1LabelFrame>>,
+    >,
     /// All video segments where a label was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p1beta1LabelSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1LabelSegment>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for label detection.
@@ -1353,10 +1591,10 @@ pub struct GoogleCloudVideointelligenceV1p1beta1LabelAnnotation {
 pub struct GoogleCloudVideointelligenceV1p1beta1LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for label detection.
@@ -1364,10 +1602,12 @@ pub struct GoogleCloudVideointelligenceV1p1beta1LabelFrame {
 pub struct GoogleCloudVideointelligenceV1p1beta1LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment where a label was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    >,
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
@@ -1375,13 +1615,18 @@ pub struct GoogleCloudVideointelligenceV1p1beta1LabelSegment {
 pub struct GoogleCloudVideointelligenceV1p1beta1LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p1beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1Entity>>,
     /// All video segments where the recognized logo appears. There might be multiple instances of the same logo class appearing in one VideoSegment.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p1beta1VideoSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>>,
+    >,
     /// All logo tracks where the recognized logo appears. Each track corresponds to one logo instance appearing in consecutive frames.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p1beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1Track>>,
+    >,
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
@@ -1389,16 +1634,16 @@ pub struct GoogleCloudVideointelligenceV1p1beta1LogoRecognitionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
-    pub bottom: Option<f32>,
+    pub bottom: ::core::option::Option<f32>,
     /// Left X coordinate.
     #[serde(default)]
-    pub left: Option<f32>,
+    pub left: ::core::option::Option<f32>,
     /// Right X coordinate.
     #[serde(default)]
-    pub right: Option<f32>,
+    pub right: ::core::option::Option<f32>,
     /// Top Y coordinate.
     #[serde(default)]
-    pub top: Option<f32>,
+    pub top: ::core::option::Option<f32>,
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
@@ -1406,7 +1651,9 @@ pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox {
 pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVideointelligenceV1p1beta1NormalizedVertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1NormalizedVertex>>,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -1414,10 +1661,10 @@ pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingPoly {
 pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Annotations corresponding to one tracked object.
@@ -1425,22 +1672,29 @@ pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedVertex {
 pub struct GoogleCloudVideointelligenceV1p1beta1ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity to specify the object category that this track is labeled as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p1beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1Entity>>,
     /// Information corresponding to all frames where this object track appears. Non-streaming batch mode: it may be one or multiple ObjectTrackingFrame messages in frames. Streaming mode: it can only be one ObjectTrackingFrame message in frames.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p1beta1ObjectTrackingFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1ObjectTrackingFrame>,
+        >,
+    >,
     /// Non-streaming batch mode ONLY. Each object track corresponds to one video segment where it appears.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    >,
     /// Streaming mode ONLY. In streaming mode, we do not know the end time of a tracked object before it is completed. Hence, there is no VideoSegment info returned. Instead, we provide a unique identifiable integer track_id so that the customers can correlate the results of the ongoing ObjectTrackAnnotation of the same track_id over time.
     #[serde(default, rename = "trackId")]
-    pub track_id: Option<String>,
+    pub track_id: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
@@ -1448,10 +1702,12 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ObjectTrackingAnnotation {
 pub struct GoogleCloudVideointelligenceV1p1beta1ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox>,
+    >,
     /// The timestamp of the frame in microseconds.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Person detection annotation per video.
@@ -1459,10 +1715,12 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ObjectTrackingFrame {
 pub struct GoogleCloudVideointelligenceV1p1beta1PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p1beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
@@ -1470,13 +1728,15 @@ pub struct GoogleCloudVideointelligenceV1p1beta1PersonDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Transcript text representing the words that the user spoke.
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     /// Output only. A list of word-specific information for each recognized word. Note: When enable_speaker_diarization is set to true, you will see all the words from the beginning of the audio.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVideointelligenceV1p1beta1WordInfo>>,
+    pub words: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1WordInfo>>,
+    >,
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
@@ -1484,11 +1744,14 @@ pub struct GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative {
 pub struct GoogleCloudVideointelligenceV1p1beta1SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
-    pub alternatives:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative>>,
+    pub alternatives: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative>,
+        >,
+    >,
     /// Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag of the language in this result. This language code was detected to have the most likelihood of being spoken in the audio.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
@@ -1496,13 +1759,15 @@ pub struct GoogleCloudVideointelligenceV1p1beta1SpeechTranscription {
 pub struct GoogleCloudVideointelligenceV1p1beta1TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p1beta1TextSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1TextSegment>>,
+    >,
     /// The detected text.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
@@ -1510,10 +1775,12 @@ pub struct GoogleCloudVideointelligenceV1p1beta1TextAnnotation {
 pub struct GoogleCloudVideointelligenceV1p1beta1TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
-    pub rotated_bounding_box: Option<GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingPoly>,
+    pub rotated_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingPoly>,
+    >,
     /// Timestamp of this frame.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for text detection.
@@ -1521,13 +1788,17 @@ pub struct GoogleCloudVideointelligenceV1p1beta1TextFrame {
 pub struct GoogleCloudVideointelligenceV1p1beta1TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Information related to the frames where OCR detected text appears.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p1beta1TextFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1TextFrame>>,
+    >,
     /// Video segment where a text snippet was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    >,
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
@@ -1535,16 +1806,22 @@ pub struct GoogleCloudVideointelligenceV1p1beta1TextSegment {
 pub struct GoogleCloudVideointelligenceV1p1beta1TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1p1beta1DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1DetectedAttribute>>,
+    >,
     /// Optional. The detected landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVideointelligenceV1p1beta1DetectedLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1DetectedLandmark>>,
+    >,
     /// Normalized Bounding box in a frame, where the object is located.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox>,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this object.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// A track of an object instance.
@@ -1552,16 +1829,22 @@ pub struct GoogleCloudVideointelligenceV1p1beta1TimestampedObject {
 pub struct GoogleCloudVideointelligenceV1p1beta1Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1p1beta1DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1DetectedAttribute>>,
+    >,
     /// Optional. The confidence score of the tracked object.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment of a track.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    >,
     /// The object with timestamp and attributes per frame in the track.
     #[serde(default, rename = "timestampedObjects")]
-    pub timestamped_objects: Option<Vec<GoogleCloudVideointelligenceV1p1beta1TimestampedObject>>,
+    pub timestamped_objects: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1TimestampedObject>>,
+    >,
 }
 
 /// Annotation progress for a single video.
@@ -1569,25 +1852,29 @@ pub struct GoogleCloudVideointelligenceV1p1beta1Track {
 pub struct GoogleCloudVideointelligenceV1p1beta1VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
-    pub export_status: Option<GoogleCloudVideointelligenceV1p1beta1ExportToOutputUriStatus>,
+    pub export_status: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1ExportToOutputUriStatus>,
+    >,
     /// Specifies which feature is being tracked if the request contains more than one feature. // TODO: enum values: ["FEATURE_UNSPECIFIED", "LABEL_DETECTION", "SHOT_CHANGE_DETECTION", "EXPLICIT_CONTENT_DETECTION", "FACE_DETECTION", "SPEECH_TRANSCRIPTION", "TEXT_DETECTION", "OBJECT_TRACKING", "LOGO_RECOGNITION", "PERSON_DETECTION"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Approximate percentage processed thus far. Guaranteed to be 100 when fully processed.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Specifies which segment is being tracked if the request contains more than one segment.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    >,
     /// Time when the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Time of the most recent update.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Annotation results for a single video.
@@ -1595,63 +1882,95 @@ pub struct GoogleCloudVideointelligenceV1p1beta1VideoAnnotationProgress {
 pub struct GoogleCloudVideointelligenceV1p1beta1VideoAnnotationResults {
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Explicit content annotation.
     #[serde(default, rename = "explicitAnnotation")]
-    pub explicit_annotation: Option<GoogleCloudVideointelligenceV1p1beta1ExplicitContentAnnotation>,
+    pub explicit_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1ExplicitContentAnnotation>,
+    >,
     /// Deprecated. Please use face_detection_annotations instead.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVideointelligenceV1p1beta1FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1FaceAnnotation>>,
+    >,
     /// Face detection annotations.
     #[serde(default, rename = "faceDetectionAnnotations")]
-    pub face_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1FaceDetectionAnnotation>>,
+    pub face_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1FaceDetectionAnnotation>,
+        >,
+    >,
     /// Label annotations on frame level. There is exactly one element for each unique label.
     #[serde(default, rename = "frameLabelAnnotations")]
-    pub frame_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    pub frame_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    >,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Annotations for list of logos detected, tracked and recognized in video.
     #[serde(default, rename = "logoRecognitionAnnotations")]
-    pub logo_recognition_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1LogoRecognitionAnnotation>>,
+    pub logo_recognition_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1LogoRecognitionAnnotation>,
+        >,
+    >,
     /// Annotations for list of objects detected and tracked in video.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1ObjectTrackingAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1ObjectTrackingAnnotation>,
+        >,
+    >,
     /// Person detection annotations.
     #[serde(default, rename = "personDetectionAnnotations")]
-    pub person_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1PersonDetectionAnnotation>>,
+    pub person_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1PersonDetectionAnnotation>,
+        >,
+    >,
     /// Video segment on which the annotation is run.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>,
+    >,
     /// Topical label annotations on video level or user-specified segment level. There is exactly one element for each unique label.
     #[serde(default, rename = "segmentLabelAnnotations")]
-    pub segment_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    pub segment_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    >,
     /// Presence label annotations on video level or user-specified segment level. There is exactly one element for each unique label. Compared to the existing topical segment_label_annotations, this field presents more fine-grained, segment-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "segmentPresenceLabelAnnotations")]
-    pub segment_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    pub segment_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    >,
     /// Shot annotations. Each shot is represented as a video segment.
     #[serde(default, rename = "shotAnnotations")]
-    pub shot_annotations: Option<Vec<GoogleCloudVideointelligenceV1p1beta1VideoSegment>>,
+    pub shot_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1VideoSegment>>,
+    >,
     /// Topical label annotations on shot level. There is exactly one element for each unique label.
     #[serde(default, rename = "shotLabelAnnotations")]
-    pub shot_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    pub shot_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    >,
     /// Presence label annotations on shot level. There is exactly one element for each unique label. Compared to the existing topical shot_label_annotations, this field presents more fine-grained, shot-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "shotPresenceLabelAnnotations")]
-    pub shot_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    pub shot_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1LabelAnnotation>>,
+    >,
     /// Speech transcription.
     #[serde(default, rename = "speechTranscriptions")]
-    pub speech_transcriptions:
-        Option<Vec<GoogleCloudVideointelligenceV1p1beta1SpeechTranscription>>,
+    pub speech_transcriptions: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1SpeechTranscription>,
+        >,
+    >,
     /// OCR text detection and tracking. Annotations for list of detected text snippets. Each will have list of frame information associated with it.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVideointelligenceV1p1beta1TextAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p1beta1TextAnnotation>>,
+    >,
 }
 
 /// Video segment.
@@ -1659,10 +1978,10 @@ pub struct GoogleCloudVideointelligenceV1p1beta1VideoAnnotationResults {
 pub struct GoogleCloudVideointelligenceV1p1beta1VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
-    pub end_time_offset: Option<String>,
+    pub end_time_offset: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the start of the segment (inclusive).
     #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: Option<String>,
+    pub start_time_offset: ::core::option::Option<String>,
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
@@ -1670,22 +1989,22 @@ pub struct GoogleCloudVideointelligenceV1p1beta1VideoSegment {
 pub struct GoogleCloudVideointelligenceV1p1beta1WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the end of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. A distinct string value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word.
     #[serde(default, rename = "speakerLabel")]
-    pub speaker_label: Option<String>,
+    pub speaker_label: ::core::option::Option<String>,
     /// Output only. A distinct integer value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word. Value ranges from 1 up to diarization_speaker_count, and is only set if speaker diarization is enabled.
     #[serde(default, rename = "speakerTag")]
-    pub speaker_tag: Option<i32>,
+    pub speaker_tag: ::core::option::Option<i32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the start of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The word corresponding to this set of information.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -1693,8 +2012,11 @@ pub struct GoogleCloudVideointelligenceV1p1beta1WordInfo {
 pub struct GoogleCloudVideointelligenceV1p2beta1AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
-    pub annotation_progress:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1VideoAnnotationProgress>>,
+    pub annotation_progress: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoAnnotationProgress>,
+        >,
+    >,
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -1702,8 +2024,11 @@ pub struct GoogleCloudVideointelligenceV1p2beta1AnnotateVideoProgress {
 pub struct GoogleCloudVideointelligenceV1p2beta1AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
-    pub annotation_results:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1VideoAnnotationResults>>,
+    pub annotation_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoAnnotationResults>,
+        >,
+    >,
 }
 
 /// A generic detected attribute represented by name in string format.
@@ -1711,13 +2036,13 @@ pub struct GoogleCloudVideointelligenceV1p2beta1AnnotateVideoResponse {
 pub struct GoogleCloudVideointelligenceV1p2beta1DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the attribute, for example, glasses, dark_glasses, mouth_open. A full list of supported type names will be provided in the document.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Text value of the detection result. For example, the value for "HairColor" can be "black", "blonde", etc.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
@@ -1725,13 +2050,15 @@ pub struct GoogleCloudVideointelligenceV1p2beta1DetectedAttribute {
 pub struct GoogleCloudVideointelligenceV1p2beta1DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of this landmark, for example, left_hand, right_shoulder.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The 2D point of the detected landmark using the normalized image coordinate system. The normalized coordinates have the range from 0 to 1.
     #[serde(default)]
-    pub point: Option<GoogleCloudVideointelligenceV1p2beta1NormalizedVertex>,
+    pub point: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1NormalizedVertex>,
+    >,
 }
 
 /// Detected entity from video analysis.
@@ -1739,13 +2066,13 @@ pub struct GoogleCloudVideointelligenceV1p2beta1DetectedLandmark {
 pub struct GoogleCloudVideointelligenceV1p2beta1Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Language code for description in BCP-47 format.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
@@ -1753,10 +2080,14 @@ pub struct GoogleCloudVideointelligenceV1p2beta1Entity {
 pub struct GoogleCloudVideointelligenceV1p2beta1ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p2beta1ExplicitContentFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1ExplicitContentFrame>,
+        >,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for explicit content.
@@ -1764,10 +2095,10 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ExplicitContentAnnotation {
 pub struct GoogleCloudVideointelligenceV1p2beta1ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
-    pub pornography_likelihood: Option<String>,
+    pub pornography_likelihood: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Status of exporting annotation response to user specified output_uri.
@@ -1775,10 +2106,10 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ExplicitContentFrame {
 pub struct GoogleCloudVideointelligenceV1p2beta1ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Only set if state is FAILED.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// Deprecated. No effect.
@@ -1786,13 +2117,17 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ExportToOutputUriStatus {
 pub struct GoogleCloudVideointelligenceV1p2beta1FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p2beta1FaceFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1FaceFrame>>,
+    >,
     /// All video segments where a face was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p2beta1FaceSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1FaceSegment>>,
+    >,
     /// Thumbnail of a representative face view (in JPEG format).
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
 }
 
 /// Face detection annotation.
@@ -1800,13 +2135,15 @@ pub struct GoogleCloudVideointelligenceV1p2beta1FaceAnnotation {
 pub struct GoogleCloudVideointelligenceV1p2beta1FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
     /// The face tracks with attributes.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p2beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Deprecated. No effect.
@@ -1814,11 +2151,14 @@ pub struct GoogleCloudVideointelligenceV1p2beta1FaceDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p2beta1FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
-    pub normalized_bounding_boxes:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox>>,
+    pub normalized_bounding_boxes: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox>,
+        >,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for face detection.
@@ -1826,7 +2166,9 @@ pub struct GoogleCloudVideointelligenceV1p2beta1FaceFrame {
 pub struct GoogleCloudVideointelligenceV1p2beta1FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    >,
 }
 
 /// Label annotation.
@@ -1834,19 +2176,26 @@ pub struct GoogleCloudVideointelligenceV1p2beta1FaceSegment {
 pub struct GoogleCloudVideointelligenceV1p2beta1LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
-    pub category_entities: Option<Vec<GoogleCloudVideointelligenceV1p2beta1Entity>>,
+    pub category_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1Entity>>,
+    >,
     /// Detected entity.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p2beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1Entity>>,
     /// All video frames where a label was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p2beta1LabelFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1LabelFrame>>,
+    >,
     /// All video segments where a label was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p2beta1LabelSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1LabelSegment>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for label detection.
@@ -1854,10 +2203,10 @@ pub struct GoogleCloudVideointelligenceV1p2beta1LabelAnnotation {
 pub struct GoogleCloudVideointelligenceV1p2beta1LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for label detection.
@@ -1865,10 +2214,12 @@ pub struct GoogleCloudVideointelligenceV1p2beta1LabelFrame {
 pub struct GoogleCloudVideointelligenceV1p2beta1LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment where a label was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    >,
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
@@ -1876,13 +2227,18 @@ pub struct GoogleCloudVideointelligenceV1p2beta1LabelSegment {
 pub struct GoogleCloudVideointelligenceV1p2beta1LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p2beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1Entity>>,
     /// All video segments where the recognized logo appears. There might be multiple instances of the same logo class appearing in one VideoSegment.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p2beta1VideoSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>>,
+    >,
     /// All logo tracks where the recognized logo appears. Each track corresponds to one logo instance appearing in consecutive frames.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p2beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1Track>>,
+    >,
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
@@ -1890,16 +2246,16 @@ pub struct GoogleCloudVideointelligenceV1p2beta1LogoRecognitionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
-    pub bottom: Option<f32>,
+    pub bottom: ::core::option::Option<f32>,
     /// Left X coordinate.
     #[serde(default)]
-    pub left: Option<f32>,
+    pub left: ::core::option::Option<f32>,
     /// Right X coordinate.
     #[serde(default)]
-    pub right: Option<f32>,
+    pub right: ::core::option::Option<f32>,
     /// Top Y coordinate.
     #[serde(default)]
-    pub top: Option<f32>,
+    pub top: ::core::option::Option<f32>,
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
@@ -1907,7 +2263,9 @@ pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox {
 pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVideointelligenceV1p2beta1NormalizedVertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1NormalizedVertex>>,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -1915,10 +2273,10 @@ pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingPoly {
 pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Annotations corresponding to one tracked object.
@@ -1926,22 +2284,29 @@ pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedVertex {
 pub struct GoogleCloudVideointelligenceV1p2beta1ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity to specify the object category that this track is labeled as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p2beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1Entity>>,
     /// Information corresponding to all frames where this object track appears. Non-streaming batch mode: it may be one or multiple ObjectTrackingFrame messages in frames. Streaming mode: it can only be one ObjectTrackingFrame message in frames.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p2beta1ObjectTrackingFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1ObjectTrackingFrame>,
+        >,
+    >,
     /// Non-streaming batch mode ONLY. Each object track corresponds to one video segment where it appears.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    >,
     /// Streaming mode ONLY. In streaming mode, we do not know the end time of a tracked object before it is completed. Hence, there is no VideoSegment info returned. Instead, we provide a unique identifiable integer track_id so that the customers can correlate the results of the ongoing ObjectTrackAnnotation of the same track_id over time.
     #[serde(default, rename = "trackId")]
-    pub track_id: Option<String>,
+    pub track_id: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
@@ -1949,10 +2314,12 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ObjectTrackingAnnotation {
 pub struct GoogleCloudVideointelligenceV1p2beta1ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox>,
+    >,
     /// The timestamp of the frame in microseconds.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Person detection annotation per video.
@@ -1960,10 +2327,12 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ObjectTrackingFrame {
 pub struct GoogleCloudVideointelligenceV1p2beta1PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p2beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
@@ -1971,13 +2340,15 @@ pub struct GoogleCloudVideointelligenceV1p2beta1PersonDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p2beta1SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Transcript text representing the words that the user spoke.
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     /// Output only. A list of word-specific information for each recognized word. Note: When enable_speaker_diarization is set to true, you will see all the words from the beginning of the audio.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVideointelligenceV1p2beta1WordInfo>>,
+    pub words: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1WordInfo>>,
+    >,
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
@@ -1985,11 +2356,14 @@ pub struct GoogleCloudVideointelligenceV1p2beta1SpeechRecognitionAlternative {
 pub struct GoogleCloudVideointelligenceV1p2beta1SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
-    pub alternatives:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1SpeechRecognitionAlternative>>,
+    pub alternatives: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1SpeechRecognitionAlternative>,
+        >,
+    >,
     /// Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag of the language in this result. This language code was detected to have the most likelihood of being spoken in the audio.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
@@ -1997,13 +2371,15 @@ pub struct GoogleCloudVideointelligenceV1p2beta1SpeechTranscription {
 pub struct GoogleCloudVideointelligenceV1p2beta1TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p2beta1TextSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1TextSegment>>,
+    >,
     /// The detected text.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
@@ -2011,10 +2387,12 @@ pub struct GoogleCloudVideointelligenceV1p2beta1TextAnnotation {
 pub struct GoogleCloudVideointelligenceV1p2beta1TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
-    pub rotated_bounding_box: Option<GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingPoly>,
+    pub rotated_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingPoly>,
+    >,
     /// Timestamp of this frame.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for text detection.
@@ -2022,13 +2400,17 @@ pub struct GoogleCloudVideointelligenceV1p2beta1TextFrame {
 pub struct GoogleCloudVideointelligenceV1p2beta1TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Information related to the frames where OCR detected text appears.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p2beta1TextFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1TextFrame>>,
+    >,
     /// Video segment where a text snippet was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    >,
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
@@ -2036,16 +2418,22 @@ pub struct GoogleCloudVideointelligenceV1p2beta1TextSegment {
 pub struct GoogleCloudVideointelligenceV1p2beta1TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1p2beta1DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1DetectedAttribute>>,
+    >,
     /// Optional. The detected landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVideointelligenceV1p2beta1DetectedLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1DetectedLandmark>>,
+    >,
     /// Normalized Bounding box in a frame, where the object is located.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox>,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this object.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// A track of an object instance.
@@ -2053,16 +2441,22 @@ pub struct GoogleCloudVideointelligenceV1p2beta1TimestampedObject {
 pub struct GoogleCloudVideointelligenceV1p2beta1Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1p2beta1DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1DetectedAttribute>>,
+    >,
     /// Optional. The confidence score of the tracked object.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment of a track.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    >,
     /// The object with timestamp and attributes per frame in the track.
     #[serde(default, rename = "timestampedObjects")]
-    pub timestamped_objects: Option<Vec<GoogleCloudVideointelligenceV1p2beta1TimestampedObject>>,
+    pub timestamped_objects: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1TimestampedObject>>,
+    >,
 }
 
 /// Annotation progress for a single video.
@@ -2070,25 +2464,29 @@ pub struct GoogleCloudVideointelligenceV1p2beta1Track {
 pub struct GoogleCloudVideointelligenceV1p2beta1VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
-    pub export_status: Option<GoogleCloudVideointelligenceV1p2beta1ExportToOutputUriStatus>,
+    pub export_status: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1ExportToOutputUriStatus>,
+    >,
     /// Specifies which feature is being tracked if the request contains more than one feature. // TODO: enum values: ["FEATURE_UNSPECIFIED", "LABEL_DETECTION", "SHOT_CHANGE_DETECTION", "EXPLICIT_CONTENT_DETECTION", "FACE_DETECTION", "SPEECH_TRANSCRIPTION", "TEXT_DETECTION", "OBJECT_TRACKING", "LOGO_RECOGNITION", "PERSON_DETECTION"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Approximate percentage processed thus far. Guaranteed to be 100 when fully processed.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Specifies which segment is being tracked if the request contains more than one segment.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    >,
     /// Time when the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Time of the most recent update.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Annotation results for a single video.
@@ -2096,63 +2494,95 @@ pub struct GoogleCloudVideointelligenceV1p2beta1VideoAnnotationProgress {
 pub struct GoogleCloudVideointelligenceV1p2beta1VideoAnnotationResults {
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Explicit content annotation.
     #[serde(default, rename = "explicitAnnotation")]
-    pub explicit_annotation: Option<GoogleCloudVideointelligenceV1p2beta1ExplicitContentAnnotation>,
+    pub explicit_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1ExplicitContentAnnotation>,
+    >,
     /// Deprecated. Please use face_detection_annotations instead.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVideointelligenceV1p2beta1FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1FaceAnnotation>>,
+    >,
     /// Face detection annotations.
     #[serde(default, rename = "faceDetectionAnnotations")]
-    pub face_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1FaceDetectionAnnotation>>,
+    pub face_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1FaceDetectionAnnotation>,
+        >,
+    >,
     /// Label annotations on frame level. There is exactly one element for each unique label.
     #[serde(default, rename = "frameLabelAnnotations")]
-    pub frame_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    pub frame_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    >,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Annotations for list of logos detected, tracked and recognized in video.
     #[serde(default, rename = "logoRecognitionAnnotations")]
-    pub logo_recognition_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1LogoRecognitionAnnotation>>,
+    pub logo_recognition_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1LogoRecognitionAnnotation>,
+        >,
+    >,
     /// Annotations for list of objects detected and tracked in video.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1ObjectTrackingAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1ObjectTrackingAnnotation>,
+        >,
+    >,
     /// Person detection annotations.
     #[serde(default, rename = "personDetectionAnnotations")]
-    pub person_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1PersonDetectionAnnotation>>,
+    pub person_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1PersonDetectionAnnotation>,
+        >,
+    >,
     /// Video segment on which the annotation is run.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>,
+    >,
     /// Topical label annotations on video level or user-specified segment level. There is exactly one element for each unique label.
     #[serde(default, rename = "segmentLabelAnnotations")]
-    pub segment_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    pub segment_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    >,
     /// Presence label annotations on video level or user-specified segment level. There is exactly one element for each unique label. Compared to the existing topical segment_label_annotations, this field presents more fine-grained, segment-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "segmentPresenceLabelAnnotations")]
-    pub segment_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    pub segment_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    >,
     /// Shot annotations. Each shot is represented as a video segment.
     #[serde(default, rename = "shotAnnotations")]
-    pub shot_annotations: Option<Vec<GoogleCloudVideointelligenceV1p2beta1VideoSegment>>,
+    pub shot_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1VideoSegment>>,
+    >,
     /// Topical label annotations on shot level. There is exactly one element for each unique label.
     #[serde(default, rename = "shotLabelAnnotations")]
-    pub shot_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    pub shot_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    >,
     /// Presence label annotations on shot level. There is exactly one element for each unique label. Compared to the existing topical shot_label_annotations, this field presents more fine-grained, shot-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "shotPresenceLabelAnnotations")]
-    pub shot_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    pub shot_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1LabelAnnotation>>,
+    >,
     /// Speech transcription.
     #[serde(default, rename = "speechTranscriptions")]
-    pub speech_transcriptions:
-        Option<Vec<GoogleCloudVideointelligenceV1p2beta1SpeechTranscription>>,
+    pub speech_transcriptions: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1SpeechTranscription>,
+        >,
+    >,
     /// OCR text detection and tracking. Annotations for list of detected text snippets. Each will have list of frame information associated with it.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVideointelligenceV1p2beta1TextAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p2beta1TextAnnotation>>,
+    >,
 }
 
 /// Video segment.
@@ -2160,10 +2590,10 @@ pub struct GoogleCloudVideointelligenceV1p2beta1VideoAnnotationResults {
 pub struct GoogleCloudVideointelligenceV1p2beta1VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
-    pub end_time_offset: Option<String>,
+    pub end_time_offset: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the start of the segment (inclusive).
     #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: Option<String>,
+    pub start_time_offset: ::core::option::Option<String>,
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
@@ -2171,22 +2601,22 @@ pub struct GoogleCloudVideointelligenceV1p2beta1VideoSegment {
 pub struct GoogleCloudVideointelligenceV1p2beta1WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the end of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. A distinct string value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word.
     #[serde(default, rename = "speakerLabel")]
-    pub speaker_label: Option<String>,
+    pub speaker_label: ::core::option::Option<String>,
     /// Output only. A distinct integer value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word. Value ranges from 1 up to diarization_speaker_count, and is only set if speaker diarization is enabled.
     #[serde(default, rename = "speakerTag")]
-    pub speaker_tag: Option<i32>,
+    pub speaker_tag: ::core::option::Option<i32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the start of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The word corresponding to this set of information.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -2194,8 +2624,11 @@ pub struct GoogleCloudVideointelligenceV1p2beta1WordInfo {
 pub struct GoogleCloudVideointelligenceV1p3beta1AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
-    pub annotation_progress:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1VideoAnnotationProgress>>,
+    pub annotation_progress: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoAnnotationProgress>,
+        >,
+    >,
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -2203,8 +2636,11 @@ pub struct GoogleCloudVideointelligenceV1p3beta1AnnotateVideoProgress {
 pub struct GoogleCloudVideointelligenceV1p3beta1AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
-    pub annotation_results:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1VideoAnnotationResults>>,
+    pub annotation_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoAnnotationResults>,
+        >,
+    >,
 }
 
 /// Celebrity definition.
@@ -2212,13 +2648,13 @@ pub struct GoogleCloudVideointelligenceV1p3beta1AnnotateVideoResponse {
 pub struct GoogleCloudVideointelligenceV1p3beta1Celebrity {
     /// Textual description of additional information about the celebrity, if applicable.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The celebrity name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the celebrity. Have the format video-intelligence/kg-mid indicates a celebrity from preloaded gallery. kg-mid is the id in Google knowledge graph, which is unique for the celebrity.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Celebrity recognition annotation per video.
@@ -2226,10 +2662,12 @@ pub struct GoogleCloudVideointelligenceV1p3beta1Celebrity {
 pub struct GoogleCloudVideointelligenceV1p3beta1CelebrityRecognitionAnnotation {
     /// The tracks detected from the input video, including recognized celebrities and other detected faces in the video.
     #[serde(default, rename = "celebrityTracks")]
-    pub celebrity_tracks: Option<Vec<GoogleCloudVideointelligenceV1p3beta1CelebrityTrack>>,
+    pub celebrity_tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1CelebrityTrack>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// The annotation result of a celebrity face track. RecognizedCelebrity field could be empty if the face track does not have any matched celebrities.
@@ -2237,10 +2675,15 @@ pub struct GoogleCloudVideointelligenceV1p3beta1CelebrityRecognitionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1CelebrityTrack {
     /// Top N match of the celebrities for the face in this track.
     #[serde(default)]
-    pub celebrities: Option<Vec<GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity>>,
+    pub celebrities: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity>,
+        >,
+    >,
     /// A track of a person''s face.
     #[serde(default, rename = "faceTrack")]
-    pub face_track: Option<GoogleCloudVideointelligenceV1p3beta1Track>,
+    pub face_track:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Track>>,
 }
 
 /// A generic detected attribute represented by name in string format.
@@ -2248,13 +2691,13 @@ pub struct GoogleCloudVideointelligenceV1p3beta1CelebrityTrack {
 pub struct GoogleCloudVideointelligenceV1p3beta1DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the attribute, for example, glasses, dark_glasses, mouth_open. A full list of supported type names will be provided in the document.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Text value of the detection result. For example, the value for "HairColor" can be "black", "blonde", etc.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
@@ -2262,13 +2705,15 @@ pub struct GoogleCloudVideointelligenceV1p3beta1DetectedAttribute {
 pub struct GoogleCloudVideointelligenceV1p3beta1DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of this landmark, for example, left_hand, right_shoulder.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The 2D point of the detected landmark using the normalized image coordinate system. The normalized coordinates have the range from 0 to 1.
     #[serde(default)]
-    pub point: Option<GoogleCloudVideointelligenceV1p3beta1NormalizedVertex>,
+    pub point: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1NormalizedVertex>,
+    >,
 }
 
 /// Detected entity from video analysis.
@@ -2276,13 +2721,13 @@ pub struct GoogleCloudVideointelligenceV1p3beta1DetectedLandmark {
 pub struct GoogleCloudVideointelligenceV1p3beta1Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Language code for description in BCP-47 format.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
@@ -2290,10 +2735,14 @@ pub struct GoogleCloudVideointelligenceV1p3beta1Entity {
 pub struct GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p3beta1ExplicitContentFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1ExplicitContentFrame>,
+        >,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for explicit content.
@@ -2301,10 +2750,10 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
-    pub pornography_likelihood: Option<String>,
+    pub pornography_likelihood: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Status of exporting annotation response to user specified output_uri.
@@ -2312,10 +2761,10 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ExplicitContentFrame {
 pub struct GoogleCloudVideointelligenceV1p3beta1ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Only set if state is FAILED.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// Deprecated. No effect.
@@ -2323,13 +2772,17 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ExportToOutputUriStatus {
 pub struct GoogleCloudVideointelligenceV1p3beta1FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p3beta1FaceFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1FaceFrame>>,
+    >,
     /// All video segments where a face was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p3beta1FaceSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1FaceSegment>>,
+    >,
     /// Thumbnail of a representative face view (in JPEG format).
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
 }
 
 /// Face detection annotation.
@@ -2337,13 +2790,15 @@ pub struct GoogleCloudVideointelligenceV1p3beta1FaceAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
     /// The face tracks with attributes.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p3beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Deprecated. No effect.
@@ -2351,11 +2806,14 @@ pub struct GoogleCloudVideointelligenceV1p3beta1FaceDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
-    pub normalized_bounding_boxes:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox>>,
+    pub normalized_bounding_boxes: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox>,
+        >,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for face detection.
@@ -2363,7 +2821,9 @@ pub struct GoogleCloudVideointelligenceV1p3beta1FaceFrame {
 pub struct GoogleCloudVideointelligenceV1p3beta1FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    >,
 }
 
 /// Label annotation.
@@ -2371,19 +2831,26 @@ pub struct GoogleCloudVideointelligenceV1p3beta1FaceSegment {
 pub struct GoogleCloudVideointelligenceV1p3beta1LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
-    pub category_entities: Option<Vec<GoogleCloudVideointelligenceV1p3beta1Entity>>,
+    pub category_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Entity>>,
+    >,
     /// Detected entity.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p3beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Entity>>,
     /// All video frames where a label was detected.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p3beta1LabelFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LabelFrame>>,
+    >,
     /// All video segments where a label was detected.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p3beta1LabelSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LabelSegment>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for label detection.
@@ -2391,10 +2858,10 @@ pub struct GoogleCloudVideointelligenceV1p3beta1LabelAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this location.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for label detection.
@@ -2402,10 +2869,12 @@ pub struct GoogleCloudVideointelligenceV1p3beta1LabelFrame {
 pub struct GoogleCloudVideointelligenceV1p3beta1LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment where a label was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    >,
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
@@ -2413,13 +2882,18 @@ pub struct GoogleCloudVideointelligenceV1p3beta1LabelSegment {
 pub struct GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p3beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Entity>>,
     /// All video segments where the recognized logo appears. There might be multiple instances of the same logo class appearing in one VideoSegment.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p3beta1VideoSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>>,
+    >,
     /// All logo tracks where the recognized logo appears. Each track corresponds to one logo instance appearing in consecutive frames.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p3beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Track>>,
+    >,
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
@@ -2427,16 +2901,16 @@ pub struct GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
-    pub bottom: Option<f32>,
+    pub bottom: ::core::option::Option<f32>,
     /// Left X coordinate.
     #[serde(default)]
-    pub left: Option<f32>,
+    pub left: ::core::option::Option<f32>,
     /// Right X coordinate.
     #[serde(default)]
-    pub right: Option<f32>,
+    pub right: ::core::option::Option<f32>,
     /// Top Y coordinate.
     #[serde(default)]
-    pub top: Option<f32>,
+    pub top: ::core::option::Option<f32>,
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
@@ -2444,7 +2918,9 @@ pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox {
 pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVideointelligenceV1p3beta1NormalizedVertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1NormalizedVertex>>,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -2452,10 +2928,10 @@ pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingPoly {
 pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Annotations corresponding to one tracked object.
@@ -2463,22 +2939,29 @@ pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedVertex {
 pub struct GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity to specify the object category that this track is labeled as.
     #[serde(default)]
-    pub entity: Option<GoogleCloudVideointelligenceV1p3beta1Entity>,
+    pub entity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Entity>>,
     /// Information corresponding to all frames where this object track appears. Non-streaming batch mode: it may be one or multiple ObjectTrackingFrame messages in frames. Streaming mode: it can only be one ObjectTrackingFrame message in frames.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p3beta1ObjectTrackingFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1ObjectTrackingFrame>,
+        >,
+    >,
     /// Non-streaming batch mode ONLY. Each object track corresponds to one video segment where it appears.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    >,
     /// Streaming mode ONLY. In streaming mode, we do not know the end time of a tracked object before it is completed. Hence, there is no VideoSegment info returned. Instead, we provide a unique identifiable integer track_id so that the customers can correlate the results of the ongoing ObjectTrackAnnotation of the same track_id over time.
     #[serde(default, rename = "trackId")]
-    pub track_id: Option<String>,
+    pub track_id: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
@@ -2486,10 +2969,12 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox>,
+    >,
     /// The timestamp of the frame in microseconds.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Person detection annotation per video.
@@ -2497,10 +2982,12 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ObjectTrackingFrame {
 pub struct GoogleCloudVideointelligenceV1p3beta1PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
-    pub tracks: Option<Vec<GoogleCloudVideointelligenceV1p3beta1Track>>,
+    pub tracks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Track>>,
+    >,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// The recognized celebrity with confidence score.
@@ -2508,10 +2995,11 @@ pub struct GoogleCloudVideointelligenceV1p3beta1PersonDetectionAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity {
     /// The recognized celebrity.
     #[serde(default)]
-    pub celebrity: Option<GoogleCloudVideointelligenceV1p3beta1Celebrity>,
+    pub celebrity:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1Celebrity>>,
     /// Recognition confidence. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
@@ -2519,13 +3007,15 @@ pub struct GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity {
 pub struct GoogleCloudVideointelligenceV1p3beta1SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Transcript text representing the words that the user spoke.
     #[serde(default)]
-    pub transcript: Option<String>,
+    pub transcript: ::core::option::Option<String>,
     /// Output only. A list of word-specific information for each recognized word. Note: When enable_speaker_diarization is set to true, you will see all the words from the beginning of the audio.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVideointelligenceV1p3beta1WordInfo>>,
+    pub words: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1WordInfo>>,
+    >,
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
@@ -2533,11 +3023,14 @@ pub struct GoogleCloudVideointelligenceV1p3beta1SpeechRecognitionAlternative {
 pub struct GoogleCloudVideointelligenceV1p3beta1SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
-    pub alternatives:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1SpeechRecognitionAlternative>>,
+    pub alternatives: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1SpeechRecognitionAlternative>,
+        >,
+    >,
     /// Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag of the language in this result. This language code was detected to have the most likelihood of being spoken in the audio.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// StreamingAnnotateVideoResponse is the only message returned to the client by StreamingAnnotateVideo. A series of zero or more StreamingAnnotateVideoResponse messages are streamed back to the client.
@@ -2545,14 +3038,15 @@ pub struct GoogleCloudVideointelligenceV1p3beta1SpeechTranscription {
 pub struct GoogleCloudVideointelligenceV1p3beta1StreamingAnnotateVideoResponse {
     /// Streaming annotation results.
     #[serde(default, rename = "annotationResults")]
-    pub annotation_results:
-        Option<GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults>,
+    pub annotation_results: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults>,
+    >,
     /// Google Cloud Storage URI that stores annotation results of one streaming session in JSON format. It is the annotation_result_storage_directory from the request followed by ''/cloud_project_number-session_id''.
     #[serde(default, rename = "annotationResultsUri")]
-    pub annotation_results_uri: Option<String>,
+    pub annotation_results_uri: ::core::option::Option<String>,
     /// If set, returns a google.rpc.Status message that specifies the error for the operation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// Streaming annotation results corresponding to a portion of the video that is currently being processed. Only ONE type of annotation will be specified in the response.
@@ -2560,20 +3054,29 @@ pub struct GoogleCloudVideointelligenceV1p3beta1StreamingAnnotateVideoResponse {
 pub struct GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults {
     /// Explicit content annotation results.
     #[serde(default, rename = "explicitAnnotation")]
-    pub explicit_annotation: Option<GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation>,
+    pub explicit_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation>,
+    >,
     /// Timestamp of the processed frame in microseconds.
     #[serde(default, rename = "frameTimestamp")]
-    pub frame_timestamp: Option<String>,
+    pub frame_timestamp: ::core::option::Option<String>,
     /// Label annotation results.
     #[serde(default, rename = "labelAnnotations")]
-    pub label_annotations: Option<Vec<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    pub label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    >,
     /// Object tracking results.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation>,
+        >,
+    >,
     /// Shot annotation results. Each shot is represented as a video segment.
     #[serde(default, rename = "shotAnnotations")]
-    pub shot_annotations: Option<Vec<GoogleCloudVideointelligenceV1p3beta1VideoSegment>>,
+    pub shot_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>>,
+    >,
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
@@ -2581,13 +3084,15 @@ pub struct GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults 
 pub struct GoogleCloudVideointelligenceV1p3beta1TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
-    pub segments: Option<Vec<GoogleCloudVideointelligenceV1p3beta1TextSegment>>,
+    pub segments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1TextSegment>>,
+    >,
     /// The detected text.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Feature version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
@@ -2595,10 +3100,12 @@ pub struct GoogleCloudVideointelligenceV1p3beta1TextAnnotation {
 pub struct GoogleCloudVideointelligenceV1p3beta1TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
-    pub rotated_bounding_box: Option<GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingPoly>,
+    pub rotated_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingPoly>,
+    >,
     /// Timestamp of this frame.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Video segment level annotation results for text detection.
@@ -2606,13 +3113,17 @@ pub struct GoogleCloudVideointelligenceV1p3beta1TextFrame {
 pub struct GoogleCloudVideointelligenceV1p3beta1TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Information related to the frames where OCR detected text appears.
     #[serde(default)]
-    pub frames: Option<Vec<GoogleCloudVideointelligenceV1p3beta1TextFrame>>,
+    pub frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1TextFrame>>,
+    >,
     /// Video segment where a text snippet was detected.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    >,
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
@@ -2620,16 +3131,22 @@ pub struct GoogleCloudVideointelligenceV1p3beta1TextSegment {
 pub struct GoogleCloudVideointelligenceV1p3beta1TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1p3beta1DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1DetectedAttribute>>,
+    >,
     /// Optional. The detected landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVideointelligenceV1p3beta1DetectedLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1DetectedLandmark>>,
+    >,
     /// Normalized Bounding box in a frame, where the object is located.
     #[serde(default, rename = "normalizedBoundingBox")]
-    pub normalized_bounding_box: Option<GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox>,
+    pub normalized_bounding_box: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox>,
+    >,
     /// Time-offset, relative to the beginning of the video, corresponding to the video frame for this object.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// A track of an object instance.
@@ -2637,16 +3154,22 @@ pub struct GoogleCloudVideointelligenceV1p3beta1TimestampedObject {
 pub struct GoogleCloudVideointelligenceV1p3beta1Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
-    pub attributes: Option<Vec<GoogleCloudVideointelligenceV1p3beta1DetectedAttribute>>,
+    pub attributes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1DetectedAttribute>>,
+    >,
     /// Optional. The confidence score of the tracked object.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Video segment of a track.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    >,
     /// The object with timestamp and attributes per frame in the track.
     #[serde(default, rename = "timestampedObjects")]
-    pub timestamped_objects: Option<Vec<GoogleCloudVideointelligenceV1p3beta1TimestampedObject>>,
+    pub timestamped_objects: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1TimestampedObject>>,
+    >,
 }
 
 /// Annotation progress for a single video.
@@ -2654,25 +3177,29 @@ pub struct GoogleCloudVideointelligenceV1p3beta1Track {
 pub struct GoogleCloudVideointelligenceV1p3beta1VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
-    pub export_status: Option<GoogleCloudVideointelligenceV1p3beta1ExportToOutputUriStatus>,
+    pub export_status: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1ExportToOutputUriStatus>,
+    >,
     /// Specifies which feature is being tracked if the request contains more than one feature. // TODO: enum values: ["FEATURE_UNSPECIFIED", "LABEL_DETECTION", "SHOT_CHANGE_DETECTION", "EXPLICIT_CONTENT_DETECTION", "FACE_DETECTION", "SPEECH_TRANSCRIPTION", "TEXT_DETECTION", "OBJECT_TRACKING", "LOGO_RECOGNITION", "CELEBRITY_RECOGNITION", "PERSON_DETECTION"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Approximate percentage processed thus far. Guaranteed to be 100 when fully processed.
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Specifies which segment is being tracked if the request contains more than one segment.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    >,
     /// Time when the request was received.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Time of the most recent update.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Annotation results for a single video.
@@ -2680,67 +3207,100 @@ pub struct GoogleCloudVideointelligenceV1p3beta1VideoAnnotationProgress {
 pub struct GoogleCloudVideointelligenceV1p3beta1VideoAnnotationResults {
     /// Celebrity recognition annotations.
     #[serde(default, rename = "celebrityRecognitionAnnotations")]
-    pub celebrity_recognition_annotations:
-        Option<GoogleCloudVideointelligenceV1p3beta1CelebrityRecognitionAnnotation>,
+    pub celebrity_recognition_annotations: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1CelebrityRecognitionAnnotation>,
+    >,
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Explicit content annotation.
     #[serde(default, rename = "explicitAnnotation")]
-    pub explicit_annotation: Option<GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation>,
+    pub explicit_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation>,
+    >,
     /// Deprecated. Please use face_detection_annotations instead.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVideointelligenceV1p3beta1FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1FaceAnnotation>>,
+    >,
     /// Face detection annotations.
     #[serde(default, rename = "faceDetectionAnnotations")]
-    pub face_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1FaceDetectionAnnotation>>,
+    pub face_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1FaceDetectionAnnotation>,
+        >,
+    >,
     /// Label annotations on frame level. There is exactly one element for each unique label.
     #[serde(default, rename = "frameLabelAnnotations")]
-    pub frame_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    pub frame_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    >,
     /// Video file location in [Cloud Storage](https://cloud.google.com/storage/).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Annotations for list of logos detected, tracked and recognized in video.
     #[serde(default, rename = "logoRecognitionAnnotations")]
-    pub logo_recognition_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation>>,
+    pub logo_recognition_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation>,
+        >,
+    >,
     /// Annotations for list of objects detected and tracked in video.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation>,
+        >,
+    >,
     /// Person detection annotations.
     #[serde(default, rename = "personDetectionAnnotations")]
-    pub person_detection_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1PersonDetectionAnnotation>>,
+    pub person_detection_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1PersonDetectionAnnotation>,
+        >,
+    >,
     /// Video segment on which the annotation is run.
     #[serde(default)]
-    pub segment: Option<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    pub segment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>,
+    >,
     /// Topical label annotations on video level or user-specified segment level. There is exactly one element for each unique label.
     #[serde(default, rename = "segmentLabelAnnotations")]
-    pub segment_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    pub segment_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    >,
     /// Presence label annotations on video level or user-specified segment level. There is exactly one element for each unique label. Compared to the existing topical segment_label_annotations, this field presents more fine-grained, segment-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "segmentPresenceLabelAnnotations")]
-    pub segment_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    pub segment_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    >,
     /// Shot annotations. Each shot is represented as a video segment.
     #[serde(default, rename = "shotAnnotations")]
-    pub shot_annotations: Option<Vec<GoogleCloudVideointelligenceV1p3beta1VideoSegment>>,
+    pub shot_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1VideoSegment>>,
+    >,
     /// Topical label annotations on shot level. There is exactly one element for each unique label.
     #[serde(default, rename = "shotLabelAnnotations")]
-    pub shot_label_annotations: Option<Vec<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    pub shot_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    >,
     /// Presence label annotations on shot level. There is exactly one element for each unique label. Compared to the existing topical shot_label_annotations, this field presents more fine-grained, shot-level labels detected in video content and is made available only when the client sets LabelDetectionConfig.model to "builtin/latest" in the request.
     #[serde(default, rename = "shotPresenceLabelAnnotations")]
-    pub shot_presence_label_annotations:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    pub shot_presence_label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1LabelAnnotation>>,
+    >,
     /// Speech transcription.
     #[serde(default, rename = "speechTranscriptions")]
-    pub speech_transcriptions:
-        Option<Vec<GoogleCloudVideointelligenceV1p3beta1SpeechTranscription>>,
+    pub speech_transcriptions: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1SpeechTranscription>,
+        >,
+    >,
     /// OCR text detection and tracking. Annotations for list of detected text snippets. Each will have list of frame information associated with it.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVideointelligenceV1p3beta1TextAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVideointelligenceV1p3beta1TextAnnotation>>,
+    >,
 }
 
 /// Video segment.
@@ -2748,10 +3308,10 @@ pub struct GoogleCloudVideointelligenceV1p3beta1VideoAnnotationResults {
 pub struct GoogleCloudVideointelligenceV1p3beta1VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
-    pub end_time_offset: Option<String>,
+    pub end_time_offset: ::core::option::Option<String>,
     /// Time-offset, relative to the beginning of the video, corresponding to the start of the segment (inclusive).
     #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: Option<String>,
+    pub start_time_offset: ::core::option::Option<String>,
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
@@ -2759,22 +3319,22 @@ pub struct GoogleCloudVideointelligenceV1p3beta1VideoSegment {
 pub struct GoogleCloudVideointelligenceV1p3beta1WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the end of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. A distinct string value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word.
     #[serde(default, rename = "speakerLabel")]
-    pub speaker_label: Option<String>,
+    pub speaker_label: ::core::option::Option<String>,
     /// Output only. A distinct integer value is assigned for every speaker within the audio. This field specifies which one of those speakers was detected to have spoken this word. Value ranges from 1 up to diarization_speaker_count, and is only set if speaker diarization is enabled.
     #[serde(default, rename = "speakerTag")]
-    pub speaker_tag: Option<i32>,
+    pub speaker_tag: ::core::option::Option<i32>,
     /// Time offset relative to the beginning of the audio, and corresponding to the start of the spoken word. This field is only set if enable_word_time_offsets=true and only in the top hypothesis. This is an experimental feature and the accuracy of the time offset can vary.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The word corresponding to this set of information.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -2782,13 +3342,14 @@ pub struct GoogleCloudVideointelligenceV1p3beta1WordInfo {
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -2796,19 +3357,19 @@ pub struct GoogleLongrunningListOperationsResponse {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2816,11 +3377,11 @@ pub struct GoogleLongrunningOperation {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }

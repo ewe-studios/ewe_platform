@@ -10,30 +10,30 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Artifacts are the container for task completed results. These are similar to Messages but are intended to be the product of a task, as opposed to point-to-point communication.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Artifact {
     /// Unique identifier (e.g. UUID) for the artifact. It must be at least unique within a task.
     #[serde(default, rename = "artifactId")]
-    pub artifact_id: Option<String>,
+    pub artifact_id: ::core::option::Option<String>,
     /// A human readable description of the artifact, optional.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The URIs of extensions that are present or contributed to this Artifact.
     #[serde(default)]
-    pub extensions: Option<Vec<String>>,
+    pub extensions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional metadata included with the artifact.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// A human readable name for the artifact.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The content of the artifact.
     #[serde(default)]
-    pub parts: Option<Vec<Part>>,
+    pub parts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Part>>>,
 }
 
 /// Defines authentication details, used for push notifications.
@@ -41,10 +41,10 @@ pub struct Artifact {
 pub struct AuthenticationInfo {
     /// Optional credentials
     #[serde(default)]
-    pub credentials: Option<String>,
+    pub credentials: ::core::option::Option<String>,
     /// Supported authentication schemes - e.g. Basic, Bearer, etc
     #[serde(default)]
-    pub schemes: Option<Vec<String>>,
+    pub schemes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// CancelTaskRequest resource type.
@@ -52,20 +52,20 @@ pub struct AuthenticationInfo {
 pub struct CancelTaskRequest {
     /// Optional tenant, provided as a path parameter. Experimental, might still change for 1.0 release.
     #[serde(default)]
-    pub tenant: Option<String>,
+    pub tenant: ::core::option::Option<String>,
 }
 
 /// FilePart represents the different ways files can be provided. If files are small, directly feeding the bytes is supported via file_with_bytes. If the file is large, the agent should read the content as appropriate directly from the file_with_uri source.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FilePart {
     #[serde(default, rename = "fileWithBytes")]
-    pub file_with_bytes: Option<String>,
+    pub file_with_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "fileWithUri")]
-    pub file_with_uri: Option<String>,
+    pub file_with_uri: ::core::option::Option<String>,
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The response message for SubscriptionsService.ListSubscriptions.
@@ -73,10 +73,10 @@ pub struct FilePart {
 pub struct ListSubscriptionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of subscriptions.
     #[serde(default)]
-    pub subscriptions: Option<Vec<Subscription>>,
+    pub subscriptions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Subscription>>>,
 }
 
 /// ListTaskPushNotificationConfigResponse resource type.
@@ -84,10 +84,11 @@ pub struct ListSubscriptionsResponse {
 pub struct ListTaskPushNotificationConfigResponse {
     /// The list of push notification configurations.
     #[serde(default)]
-    pub configs: Option<Vec<TaskPushNotificationConfig>>,
+    pub configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TaskPushNotificationConfig>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Message is one unit of communication between client and server. It is associated with a context and optionally a task. Since the server is responsible for the context definition, it must always provide a context_id in its messages. The client can optionally provide the context_id if it knows the context to associate the message to. Similarly for task_id, except the server decides if a task is created and whether to include the task_id.
@@ -95,25 +96,25 @@ pub struct ListTaskPushNotificationConfigResponse {
 pub struct Message {
     /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED Content is the container of the message content.
     #[serde(default)]
-    pub content: Option<Vec<Part>>,
+    pub content: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Part>>>,
     /// The context id of the message. This is optional and if set, the message will be associated with the given context.
     #[serde(default, rename = "contextId")]
-    pub context_id: Option<String>,
+    pub context_id: ::core::option::Option<String>,
     /// The URIs of extensions that are present or contributed to this Message.
     #[serde(default)]
-    pub extensions: Option<Vec<String>>,
+    pub extensions: ::core::option::Option<::std::vec::Vec<String>>,
     /// The unique identifier (e.g. UUID)of the message. This is required and created by the message creator.
     #[serde(default, rename = "messageId")]
-    pub message_id: Option<String>,
+    pub message_id: ::core::option::Option<String>,
     /// protolint:enable REPEATED_FIELD_NAMES_PLURALIZED Any optional metadata to provide along with the message.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// A role for the message. // TODO: enum values: ["ROLE_UNSPECIFIED", "ROLE_USER", "ROLE_AGENT"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// The task id of the message. This is optional and if set, the message will be associated with the given task.
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
 }
 
 /// The endpoint where the subscription delivers events.
@@ -121,7 +122,7 @@ pub struct Message {
 pub struct NotificationEndpoint {
     /// Immutable. The Pub/Sub topic that receives events for the subscription. Format: projects/{project}/topics/{topic} You must create the topic in the same Google Cloud project where you create this subscription. Note: The Google Workspace Events API uses [ordering keys](https://cloud.google.com/pubsub/docs/ordering) for the benefit of sequential events. If the Cloud Pub/Sub topic has a [message storage policy](https://cloud.google.com/pubsub/docs/resource-location-restriction#exceptions) configured to exclude the nearest Google Cloud region, publishing events with ordering keys will fail. When the topic receives events, the events are encoded as Pub/Sub messages. For details, see the [Google Cloud Pub/Sub Protocol Binding for CloudEvents](https://github.com/googleapis/google-cloudevents/blob/main/docs/spec/pubsub.md).
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -129,33 +130,33 @@ pub struct NotificationEndpoint {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Part represents a container for a section of communication content. Parts can be purely textual, some sort of file (image, video, etc) or a structured data blob (i.e. JSON).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Part {
     #[serde(default)]
-    pub data: Option<DataPart>,
+    pub data: ::core::option::Option<::std::boxed::Box<DataPart>>,
     #[serde(default)]
-    pub file: Option<FilePart>,
+    pub file: ::core::option::Option<::std::boxed::Box<FilePart>>,
     /// Optional metadata associated with this part.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.
@@ -163,10 +164,10 @@ pub struct Part {
 pub struct PayloadOptions {
     /// Optional. If include_resource is set to true, the list of fields to include in the event payload. Separate fields with a comma. For example, to include a Google Chat message''s sender and create time, enter message.sender,message.createTime. If omitted, the payload includes all fields for the resource. If you specify a field that doesn''t exist for the resource, the system ignores the field.
     #[serde(default, rename = "fieldMask")]
-    pub field_mask: Option<String>,
+    pub field_mask: ::core::option::Option<String>,
     /// Optional. Whether the event payload includes data about the resource that changed. For example, for an event where a Google Chat message was created, whether the payload contains data about the [Message](https://developers.google.com/chat/api/reference/rest/v1/spaces.messages) resource. If false, the event payload only includes the name of the changed resource.
     #[serde(default, rename = "includeResource")]
-    pub include_resource: Option<bool>,
+    pub include_resource: ::core::option::Option<bool>,
 }
 
 /// Configuration for setting up push notifications for task updates.
@@ -174,16 +175,16 @@ pub struct PayloadOptions {
 pub struct PushNotificationConfig {
     /// Information about the authentication to sent with the notification
     #[serde(default)]
-    pub authentication: Option<AuthenticationInfo>,
+    pub authentication: ::core::option::Option<::std::boxed::Box<AuthenticationInfo>>,
     /// A unique identifier (e.g. UUID) for this push notification.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Token unique for this task/session
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// Url to send the notification too
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Configuration of a send message request.
@@ -191,16 +192,16 @@ pub struct PushNotificationConfig {
 pub struct SendMessageConfiguration {
     /// The output modes that the agent is expected to respond with.
     #[serde(default, rename = "acceptedOutputModes")]
-    pub accepted_output_modes: Option<Vec<String>>,
+    pub accepted_output_modes: ::core::option::Option<::std::vec::Vec<String>>,
     /// If true, the message will be blocking until the task is completed. If false, the message will be non-blocking and the task will be returned immediately. It is the caller''s responsibility to check for any task updates.
     #[serde(default)]
-    pub blocking: Option<bool>,
+    pub blocking: ::core::option::Option<bool>,
     /// The maximum number of messages to include in the history. if 0, the history will be unlimited.
     #[serde(default, rename = "historyLength")]
-    pub history_length: Option<i32>,
+    pub history_length: ::core::option::Option<i32>,
     /// A configuration of a webhook that can be used to receive updates
     #[serde(default, rename = "pushNotification")]
-    pub push_notification: Option<PushNotificationConfig>,
+    pub push_notification: ::core::option::Option<::std::boxed::Box<PushNotificationConfig>>,
 }
 
 /// /////////// Request Messages ///////////
@@ -208,16 +209,16 @@ pub struct SendMessageConfiguration {
 pub struct SendMessageRequest {
     /// Configuration for the send request.
     #[serde(default)]
-    pub configuration: Option<SendMessageConfiguration>,
+    pub configuration: ::core::option::Option<::std::boxed::Box<SendMessageConfiguration>>,
     /// Required. The message to send to the agent.
     #[serde(default)]
-    pub message: Option<Message>,
+    pub message: ::core::option::Option<::std::boxed::Box<Message>>,
     /// Optional metadata for the request.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Optional tenant, provided as a path parameter. Experimental, might still change for 1.0 release.
     #[serde(default)]
-    pub tenant: Option<String>,
+    pub tenant: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -225,26 +226,26 @@ pub struct SendMessageRequest {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// The stream response for a message. The stream should be one of the following sequences: If the response is a message, the stream should contain one, and only one, message and then close If the response is a task lifecycle, the first response should be a Task object followed by zero or more TaskStatusUpdateEvents and TaskArtifactUpdateEvents. The stream should complete when the Task if in an interrupted or terminal state. A stream that ends before these conditions are met are
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamResponse {
     #[serde(default, rename = "artifactUpdate")]
-    pub artifact_update: Option<TaskArtifactUpdateEvent>,
+    pub artifact_update: ::core::option::Option<::std::boxed::Box<TaskArtifactUpdateEvent>>,
     #[serde(default)]
-    pub message: Option<Message>,
+    pub message: ::core::option::Option<::std::boxed::Box<Message>>,
     #[serde(default, rename = "statusUpdate")]
-    pub status_update: Option<TaskStatusUpdateEvent>,
+    pub status_update: ::core::option::Option<::std::boxed::Box<TaskStatusUpdateEvent>>,
     #[serde(default)]
-    pub task: Option<Task>,
+    pub task: ::core::option::Option<::std::boxed::Box<Task>>,
 }
 
 /// A subscription to receive events about a Google Workspace resource. To learn more about subscriptions, see the [Google Workspace Events API overview](https://developers.google.com/workspace/events).
@@ -252,55 +253,55 @@ pub struct StreamResponse {
 pub struct Subscription {
     /// Output only. The user who authorized the creation of the subscription. When a user authorizes the subscription, this field and the user_authority field have the same value and the format is: Format: users/{user} For Google Workspace users, the {user} value is the [user.id](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#User.FIELDS.ids) field from the Directory API. When a Chat app authorizes the subscription, only service_account_authority field populates and this field is empty.
     #[serde(default)]
-    pub authority: Option<String>,
+    pub authority: ::core::option::Option<String>,
     /// Output only. The time when the subscription is created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. This checksum is computed by the server based on the value of other fields, and might be sent on update requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Required. Unordered list. Input for creating a subscription. Otherwise, output only. One or more types of events to receive about the target resource. Formatted according to the CloudEvents specification. The supported event types depend on the target resource of your subscription. For details, see [Supported Google Workspace events](https://developers.google.com/workspace/events/guides#supported-events). By default, you also receive events about the [lifecycle of your subscription](https://developers.google.com/workspace/events/guides/events-lifecycle). You don''t need to specify lifecycle events for this field. If you specify an event type that doesn''t exist for the target resource, the request returns an HTTP 400 Bad Request status code.
     #[serde(default, rename = "eventTypes")]
-    pub event_types: Option<Vec<String>>,
+    pub event_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Non-empty default. The timestamp in UTC when the subscription expires. Always displayed on output, regardless of what was used on input.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Identifier. Resource name of the subscription. Format: subscriptions/{subscription}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Immutable. The endpoint where the subscription delivers events, such as a Pub/Sub topic.
     #[serde(default, rename = "notificationEndpoint")]
-    pub notification_endpoint: Option<NotificationEndpoint>,
+    pub notification_endpoint: ::core::option::Option<::std::boxed::Box<NotificationEndpoint>>,
     /// Optional. Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.
     #[serde(default, rename = "payloadOptions")]
-    pub payload_options: Option<PayloadOptions>,
+    pub payload_options: ::core::option::Option<::std::boxed::Box<PayloadOptions>>,
     /// Output only. If true, the subscription is in the process of being updated.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The service account that was used to authorize the creation of the subscription. This service account must be owned by the same Google Cloud project where you create this subscription. Format: projects/{project_id}/serviceAccounts/{service_account_id} [Developer Preview](https://developers.google.com/workspace/preview).
     #[serde(default, rename = "serviceAccountAuthority")]
-    pub service_account_authority: Option<String>,
+    pub service_account_authority: ::core::option::Option<String>,
     /// Output only. The state of the subscription. Determines whether the subscription can receive events and deliver them to the notification endpoint. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "SUSPENDED", "DELETED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The error that suspended the subscription. To reactivate the subscription, resolve the error and call the ReactivateSubscription method. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "USER_SCOPE_REVOKED", "APP_SCOPE_REVOKED", "RESOURCE_DELETED", "USER_AUTHORIZATION_FAILURE", "APP_AUTHORIZATION_FAILURE", "ENDPOINT_PERMISSION_DENIED", "ENDPOINT_NOT_FOUND", "ENDPOINT_RESOURCE_EXHAUSTED", "OTHER"]
     #[serde(default, rename = "suspensionReason")]
-    pub suspension_reason: Option<String>,
+    pub suspension_reason: ::core::option::Option<String>,
     /// Required. Immutable. The Google Workspace resource that''s monitored for events, formatted as the [full resource name](https://google.aip.dev/122#full-resource-names). To learn about target resources and the events that they support, see [Supported Google Workspace events](https://developers.google.com/workspace/events#supported-events). A user can only authorize your app to create one subscription for a given target resource. If your app tries to create another subscription with the same user credentials, the request returns an ALREADY_EXISTS error.
     #[serde(default, rename = "targetResource")]
-    pub target_resource: Option<String>,
+    pub target_resource: ::core::option::Option<String>,
     /// Input only. The time-to-live (TTL) or duration for the subscription. If unspecified or set to 0, uses the maximum possible duration.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Output only. System-assigned unique identifier for the subscription.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The last time that the subscription is updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The user who authorized the creation of the subscription. The user must be able to view the target_resource. For Google Workspace users, the {user} value is the [user.id](https://developers.google.com/workspace/admin/directory/reference/rest/v1/users#User.FIELDS.id) field from the Directory API. Format: users/{user} [Developer Preview](https://developers.google.com/workspace/preview).
     #[serde(default, rename = "userAuthority")]
-    pub user_authority: Option<String>,
+    pub user_authority: ::core::option::Option<String>,
 }
 
 /// Task is the core unit of action for A2A. It has a current status and when results are created for the task they are stored in the artifact. If there are multiple turns for a task, these are stored in history.
@@ -308,22 +309,22 @@ pub struct Subscription {
 pub struct Task {
     /// A set of output artifacts for a Task.
     #[serde(default)]
-    pub artifacts: Option<Vec<Artifact>>,
+    pub artifacts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Artifact>>>,
     /// Unique identifier (e.g. UUID) for the contextual collection of interactions (tasks and messages). Created by the A2A server.
     #[serde(default, rename = "contextId")]
-    pub context_id: Option<String>,
+    pub context_id: ::core::option::Option<String>,
     /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED The history of interactions from a task.
     #[serde(default)]
-    pub history: Option<Vec<Message>>,
+    pub history: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Unique identifier (e.g. UUID) for the task, generated by the server for a new task.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// protolint:enable REPEATED_FIELD_NAMES_PLURALIZED A key/value object to store custom metadata about a task.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The current status of a Task, including state and a message.
     #[serde(default)]
-    pub status: Option<TaskStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<TaskStatus>>,
 }
 
 /// TaskArtifactUpdateEvent represents a task delta where an artifact has been generated.
@@ -331,22 +332,22 @@ pub struct Task {
 pub struct TaskArtifactUpdateEvent {
     /// Whether this should be appended to a prior one produced
     #[serde(default)]
-    pub append: Option<bool>,
+    pub append: ::core::option::Option<bool>,
     /// The artifact itself
     #[serde(default)]
-    pub artifact: Option<Artifact>,
+    pub artifact: ::core::option::Option<::std::boxed::Box<Artifact>>,
     /// The id of the context that this task belongs too
     #[serde(default, rename = "contextId")]
-    pub context_id: Option<String>,
+    pub context_id: ::core::option::Option<String>,
     /// Whether this represents the last part of an artifact
     #[serde(default, rename = "lastChunk")]
-    pub last_chunk: Option<bool>,
+    pub last_chunk: ::core::option::Option<bool>,
     /// Optional metadata associated with the artifact update.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The id of the task for this artifact
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
 }
 
 /// TaskPushNotificationConfig resource type.
@@ -354,10 +355,10 @@ pub struct TaskArtifactUpdateEvent {
 pub struct TaskPushNotificationConfig {
     /// The resource name of the config. Format: tasks/{task_id}/pushNotificationConfigs/{config_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The push notification configuration details.
     #[serde(default, rename = "pushNotificationConfig")]
-    pub push_notification_config: Option<PushNotificationConfig>,
+    pub push_notification_config: ::core::option::Option<::std::boxed::Box<PushNotificationConfig>>,
 }
 
 /// A container for the status of a task
@@ -365,13 +366,13 @@ pub struct TaskPushNotificationConfig {
 pub struct TaskStatus {
     /// A message associated with the status.
     #[serde(default)]
-    pub message: Option<Message>,
+    pub message: ::core::option::Option<::std::boxed::Box<Message>>,
     /// The current state of this task // TODO: enum values: ["TASK_STATE_UNSPECIFIED", "TASK_STATE_SUBMITTED", "TASK_STATE_WORKING", "TASK_STATE_COMPLETED", "TASK_STATE_FAILED", "TASK_STATE_CANCELLED", "TASK_STATE_INPUT_REQUIRED", "TASK_STATE_REJECTED", "TASK_STATE_AUTH_REQUIRED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Timestamp when the status was recorded. Example: "2023-10-27T10:00:00Z"
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
 }
 
 /// TaskStatusUpdateEvent is a delta even on a task indicating that a task has changed.
@@ -379,17 +380,17 @@ pub struct TaskStatus {
 pub struct TaskStatusUpdateEvent {
     /// The id of the context that the task belongs to
     #[serde(default, rename = "contextId")]
-    pub context_id: Option<String>,
+    pub context_id: ::core::option::Option<String>,
     /// Whether this is the last status update expected for this task.
     #[serde(default, rename = "final")]
-    pub final_: Option<bool>,
+    pub final_: ::core::option::Option<bool>,
     /// Optional metadata to associate with the task update.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The new status of the task.
     #[serde(default)]
-    pub status: Option<TaskStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<TaskStatus>>,
     /// The id of the task that is changed
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
 }

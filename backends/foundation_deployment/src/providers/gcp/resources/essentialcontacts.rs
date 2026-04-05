@@ -10,18 +10,20 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Response message for the ComputeContacts method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudEssentialcontactsV1ComputeContactsResponse {
     /// All contacts for the resource that are subscribed to the specified notification categories, including contacts inherited from any parent resources.
     #[serde(default)]
-    pub contacts: Option<Vec<GoogleCloudEssentialcontactsV1Contact>>,
+    pub contacts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudEssentialcontactsV1Contact>>,
+    >,
     /// If there are more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token and the rest of the parameters the same as the original request.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A contact that will receive notifications from Google Cloud.
@@ -29,22 +31,22 @@ pub struct GoogleCloudEssentialcontactsV1ComputeContactsResponse {
 pub struct GoogleCloudEssentialcontactsV1Contact {
     /// Required. The email address to send notifications to. The email address does not need to be a Google Account.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Required. The preferred language for notifications, as a ISO 639-1 language code. See [Supported languages](https://cloud.google.com/resource-manager/docs/managing-notification-contacts#supported-languages) for a list of supported languages.
     #[serde(default, rename = "languageTag")]
-    pub language_tag: Option<String>,
+    pub language_tag: ::core::option::Option<String>,
     /// Output only. The identifier for the contact. Format: {resource_type}/{resource_id}/contacts/{contact_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The categories of notifications that the contact will receive communications for.
     #[serde(default, rename = "notificationCategorySubscriptions")]
-    pub notification_category_subscriptions: Option<Vec<String>>,
+    pub notification_category_subscriptions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The last time the validation_state was updated, either manually or automatically. A contact is considered stale if its validation state was updated more than 1 year ago.
     #[serde(default, rename = "validateTime")]
-    pub validate_time: Option<String>,
+    pub validate_time: ::core::option::Option<String>,
     /// Output only. The validity of the contact. A contact is considered valid if it is the correct recipient for notifications for a particular resource. // TODO: enum values: ["VALIDATION_STATE_UNSPECIFIED", "VALID", "INVALID"]
     #[serde(default, rename = "validationState")]
-    pub validation_state: Option<String>,
+    pub validation_state: ::core::option::Option<String>,
 }
 
 /// Response message for the ListContacts method.
@@ -52,10 +54,12 @@ pub struct GoogleCloudEssentialcontactsV1Contact {
 pub struct GoogleCloudEssentialcontactsV1ListContactsResponse {
     /// The contacts for the specified resource.
     #[serde(default)]
-    pub contacts: Option<Vec<GoogleCloudEssentialcontactsV1Contact>>,
+    pub contacts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudEssentialcontactsV1Contact>>,
+    >,
     /// If there are more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token and the rest of the parameters the same as the original request.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Request message for the SendTestMessage method.
@@ -63,8 +67,8 @@ pub struct GoogleCloudEssentialcontactsV1ListContactsResponse {
 pub struct GoogleCloudEssentialcontactsV1SendTestMessageRequest {
     /// Required. The list of names of the contacts to send a test message to. Format: organizations/{organization}/contacts/{contact}, folders/{folder}/contacts/{contact} or projects/{project}/contacts/{contact} (where {project} is the project number)
     #[serde(default)]
-    pub contacts: Option<Vec<String>>,
+    pub contacts: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The notification category to send the test message for. All contacts must be subscribed to this category. // TODO: enum values: ["NOTIFICATION_CATEGORY_UNSPECIFIED", "ALL", "SUSPENSION", "SECURITY", "TECHNICAL", "BILLING", "LEGAL", "PRODUCT_UPDATES", "TECHNICAL_INCIDENTS"]
     #[serde(default, rename = "notificationCategory")]
-    pub notification_category: Option<String>,
+    pub notification_category: ::core::option::Option<String>,
 }

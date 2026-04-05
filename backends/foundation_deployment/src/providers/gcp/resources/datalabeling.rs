@@ -10,21 +10,22 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Metadata of a CreateInstruction operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatalabelingV1alpha1CreateInstructionMetadata {
     /// Timestamp when create instruction request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The name of the created Instruction. projects/{project_id}/instructions/{instruction_id}
     #[serde(default)]
-    pub instruction: Option<String>,
+    pub instruction: ::core::option::Option<String>,
     /// Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Metadata of an ExportData operation.
@@ -32,16 +33,17 @@ pub struct GoogleCloudDatalabelingV1alpha1CreateInstructionMetadata {
 pub struct GoogleCloudDatalabelingV1alpha1ExportDataOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Output only. Timestamp when export dataset request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of dataset to be exported. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Response used for ExportDataset longrunning operation.
@@ -49,22 +51,24 @@ pub struct GoogleCloudDatalabelingV1alpha1ExportDataOperationMetadata {
 pub struct GoogleCloudDatalabelingV1alpha1ExportDataOperationResponse {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Ouptut only. The name of dataset. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Number of examples exported successfully.
     #[serde(default, rename = "exportCount")]
-    pub export_count: Option<i32>,
+    pub export_count: ::core::option::Option<i32>,
     /// Output only. Statistic infos of labels in the exported dataset.
     #[serde(default, rename = "labelStats")]
-    pub label_stats: Option<GoogleCloudDatalabelingV1alpha1LabelStats>,
+    pub label_stats:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelStats>>,
     /// Output only. output_config in the ExportData request.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudDatalabelingV1alpha1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1alpha1OutputConfig>>,
     /// Output only. Total number of examples requested to export
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<i32>,
+    pub total_count: ::core::option::Option<i32>,
 }
 
 /// Export destination of the data.Only gcs path is allowed in output_uri.
@@ -72,10 +76,10 @@ pub struct GoogleCloudDatalabelingV1alpha1ExportDataOperationResponse {
 pub struct GoogleCloudDatalabelingV1alpha1GcsDestination {
     /// Required. The format of the gcs destination. Only "text/csv" and "application/json" are supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Required. The output uri of destination file.
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
 }
 
 /// Export folder destination of the data.
@@ -83,7 +87,7 @@ pub struct GoogleCloudDatalabelingV1alpha1GcsDestination {
 pub struct GoogleCloudDatalabelingV1alpha1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
-    pub output_folder_uri: Option<String>,
+    pub output_folder_uri: ::core::option::Option<String>,
 }
 
 /// Configuration for how human labeling task should be done.
@@ -91,31 +95,31 @@ pub struct GoogleCloudDatalabelingV1alpha1GcsFolderDestination {
 pub struct GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig {
     /// Optional. A human-readable description for AnnotatedDataset. The description can be up to 10000 characters long.
     #[serde(default, rename = "annotatedDatasetDescription")]
-    pub annotated_dataset_description: Option<String>,
+    pub annotated_dataset_description: ::core::option::Option<String>,
     /// Required. A human-readable name for AnnotatedDataset defined by users. Maximum of 64 characters .
     #[serde(default, rename = "annotatedDatasetDisplayName")]
-    pub annotated_dataset_display_name: Option<String>,
+    pub annotated_dataset_display_name: ::core::option::Option<String>,
     /// Optional. If you want your own labeling contributors to manage and work on this labeling request, you can set these contributors here. We will give them access to the question types in crowdcompute. Note that these emails must be registered in crowdcompute worker UI: https://crowd-compute.appspot.com/
     #[serde(default, rename = "contributorEmails")]
-    pub contributor_emails: Option<Vec<String>>,
+    pub contributor_emails: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Instruction resource name.
     #[serde(default)]
-    pub instruction: Option<String>,
+    pub instruction: ::core::option::Option<String>,
     /// Optional. A human-readable label used to logically group labeling tasks. This string must match the regular expression [a-zA-Z\\d_-]{0,128}.
     #[serde(default, rename = "labelGroup")]
-    pub label_group: Option<String>,
+    pub label_group: ::core::option::Option<String>,
     /// Optional. The Language of this question, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US. Only need to set this when task is language related. For example, French text classification.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Optional. Maximum duration for contributors to answer a question. Maximum is 3600 seconds. Default is 3600 seconds.
     #[serde(default, rename = "questionDuration")]
-    pub question_duration: Option<String>,
+    pub question_duration: ::core::option::Option<String>,
     /// Optional. Replication of questions. Each question will be sent to up to this number of contributors to label. Aggregated answers will be returned. Default is set to 1. For image related labeling, valid values are 1, 3, 5.
     #[serde(default, rename = "replicaCount")]
-    pub replica_count: Option<i32>,
+    pub replica_count: ::core::option::Option<i32>,
     /// Email of the user who started the labeling task and should be notified by email. If empty no notification will be sent.
     #[serde(default, rename = "userEmailAddress")]
-    pub user_email_address: Option<String>,
+    pub user_email_address: ::core::option::Option<String>,
 }
 
 /// Metadata of an ImportData operation.
@@ -123,13 +127,14 @@ pub struct GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig {
 pub struct GoogleCloudDatalabelingV1alpha1ImportDataOperationMetadata {
     /// Output only. Timestamp when import dataset request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of imported dataset. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Response used for ImportData longrunning operation.
@@ -137,13 +142,13 @@ pub struct GoogleCloudDatalabelingV1alpha1ImportDataOperationMetadata {
 pub struct GoogleCloudDatalabelingV1alpha1ImportDataOperationResponse {
     /// Ouptut only. The name of imported dataset.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Number of examples imported successfully.
     #[serde(default, rename = "importCount")]
-    pub import_count: Option<i32>,
+    pub import_count: ::core::option::Option<i32>,
     /// Output only. Total number of examples requested to import
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<i32>,
+    pub total_count: ::core::option::Option<i32>,
 }
 
 /// Details of a LabelImageBoundingBox operation metadata.
@@ -151,7 +156,9 @@ pub struct GoogleCloudDatalabelingV1alpha1ImportDataOperationResponse {
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageBoundingBoxOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of LabelImageBoundingPoly operation metadata.
@@ -159,7 +166,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageBoundingBoxOperationMetadata
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageBoundingPolyOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Metadata of a LabelImageClassification operation.
@@ -167,7 +176,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageBoundingPolyOperationMetadat
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelImageOrientedBoundingBox operation metadata.
@@ -175,7 +186,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageClassificationOperationMetad
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageOrientedBoundingBoxOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of LabelImagePolyline operation metadata.
@@ -183,7 +196,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageOrientedBoundingBoxOperation
 pub struct GoogleCloudDatalabelingV1alpha1LabelImagePolylineOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelImageSegmentation operation metadata.
@@ -191,7 +206,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImagePolylineOperationMetadata {
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageSegmentationOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Metadata of a labeling operation, such as LabelImage or LabelVideo. Next tag: 23
@@ -199,67 +216,86 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageSegmentationOperationMetadat
 pub struct GoogleCloudDatalabelingV1alpha1LabelOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Output only. Timestamp when labeling request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of dataset to be labeled. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Details of label image bounding box operation.
     #[serde(default, rename = "imageBoundingBoxDetails")]
-    pub image_bounding_box_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelImageBoundingBoxOperationMetadata>,
+    pub image_bounding_box_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelImageBoundingBoxOperationMetadata>,
+    >,
     /// Details of label image bounding poly operation.
     #[serde(default, rename = "imageBoundingPolyDetails")]
-    pub image_bounding_poly_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelImageBoundingPolyOperationMetadata>,
+    pub image_bounding_poly_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelImageBoundingPolyOperationMetadata>,
+    >,
     /// Details of label image classification operation.
     #[serde(default, rename = "imageClassificationDetails")]
-    pub image_classification_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelImageClassificationOperationMetadata>,
+    pub image_classification_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelImageClassificationOperationMetadata>,
+    >,
     /// Details of label image oriented bounding box operation.
     #[serde(default, rename = "imageOrientedBoundingBoxDetails")]
-    pub image_oriented_bounding_box_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelImageOrientedBoundingBoxOperationMetadata>,
+    pub image_oriented_bounding_box_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1alpha1LabelImageOrientedBoundingBoxOperationMetadata,
+        >,
+    >,
     /// Details of label image polyline operation.
     #[serde(default, rename = "imagePolylineDetails")]
-    pub image_polyline_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelImagePolylineOperationMetadata>,
+    pub image_polyline_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelImagePolylineOperationMetadata>,
+    >,
     /// Details of label image segmentation operation.
     #[serde(default, rename = "imageSegmentationDetails")]
-    pub image_segmentation_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelImageSegmentationOperationMetadata>,
+    pub image_segmentation_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelImageSegmentationOperationMetadata>,
+    >,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. Progress of label operation. Range: [0, 100].
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Details of label text classification operation.
     #[serde(default, rename = "textClassificationDetails")]
-    pub text_classification_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelTextClassificationOperationMetadata>,
+    pub text_classification_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelTextClassificationOperationMetadata>,
+    >,
     /// Details of label text entity extraction operation.
     #[serde(default, rename = "textEntityExtractionDetails")]
-    pub text_entity_extraction_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelTextEntityExtractionOperationMetadata>,
+    pub text_entity_extraction_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1alpha1LabelTextEntityExtractionOperationMetadata,
+        >,
+    >,
     /// Details of label video classification operation.
     #[serde(default, rename = "videoClassificationDetails")]
-    pub video_classification_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelVideoClassificationOperationMetadata>,
+    pub video_classification_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelVideoClassificationOperationMetadata>,
+    >,
     /// Details of label video event operation.
     #[serde(default, rename = "videoEventDetails")]
-    pub video_event_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelVideoEventOperationMetadata>,
+    pub video_event_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelVideoEventOperationMetadata>,
+    >,
     /// Details of label video object detection operation.
     #[serde(default, rename = "videoObjectDetectionDetails")]
-    pub video_object_detection_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelVideoObjectDetectionOperationMetadata>,
+    pub video_object_detection_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1alpha1LabelVideoObjectDetectionOperationMetadata,
+        >,
+    >,
     /// Details of label video object tracking operation.
     #[serde(default, rename = "videoObjectTrackingDetails")]
-    pub video_object_tracking_details:
-        Option<GoogleCloudDatalabelingV1alpha1LabelVideoObjectTrackingOperationMetadata>,
+    pub video_object_tracking_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1LabelVideoObjectTrackingOperationMetadata>,
+    >,
 }
 
 /// Details of a LabelTextClassification operation metadata.
@@ -267,7 +303,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelOperationMetadata {
 pub struct GoogleCloudDatalabelingV1alpha1LabelTextClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelTextEntityExtraction operation metadata.
@@ -275,7 +313,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelTextClassificationOperationMetada
 pub struct GoogleCloudDatalabelingV1alpha1LabelTextEntityExtractionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoClassification operation metadata.
@@ -283,7 +323,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelTextEntityExtractionOperationMeta
 pub struct GoogleCloudDatalabelingV1alpha1LabelVideoClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoEvent operation metadata.
@@ -291,7 +333,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelVideoClassificationOperationMetad
 pub struct GoogleCloudDatalabelingV1alpha1LabelVideoEventOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoObjectDetection operation metadata.
@@ -299,7 +343,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelVideoEventOperationMetadata {
 pub struct GoogleCloudDatalabelingV1alpha1LabelVideoObjectDetectionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoObjectTracking operation metadata.
@@ -307,7 +353,9 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelVideoObjectDetectionOperationMeta
 pub struct GoogleCloudDatalabelingV1alpha1LabelVideoObjectTrackingOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// The configuration of output data.
@@ -315,10 +363,13 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelVideoObjectTrackingOperationMetad
 pub struct GoogleCloudDatalabelingV1alpha1OutputConfig {
     /// Output to a file in Cloud Storage. Should be used for labeling output other than image segmentation.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudDatalabelingV1alpha1GcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1alpha1GcsDestination>>,
     /// Output to a folder in Cloud Storage. Should be used for image segmentation or document de-identification labeling outputs.
     #[serde(default, rename = "gcsFolderDestination")]
-    pub gcs_folder_destination: Option<GoogleCloudDatalabelingV1alpha1GcsFolderDestination>,
+    pub gcs_folder_destination: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1alpha1GcsFolderDestination>,
+    >,
 }
 
 /// AnnotatedDataset is a set holding annotations for data in a Dataset. Each labeling task will generate an AnnotatedDataset under the Dataset that the task is requested for.
@@ -326,37 +377,40 @@ pub struct GoogleCloudDatalabelingV1alpha1OutputConfig {
 pub struct GoogleCloudDatalabelingV1beta1AnnotatedDataset {
     /// Output only. Source of the annotation. // TODO: enum values: ["ANNOTATION_SOURCE_UNSPECIFIED", "OPERATOR"]
     #[serde(default, rename = "annotationSource")]
-    pub annotation_source: Option<String>,
+    pub annotation_source: ::core::option::Option<String>,
     /// Output only. Type of the annotation. It is specified when starting labeling task. // TODO: enum values: ["ANNOTATION_TYPE_UNSPECIFIED", "IMAGE_CLASSIFICATION_ANNOTATION", "IMAGE_BOUNDING_BOX_ANNOTATION", "IMAGE_ORIENTED_BOUNDING_BOX_ANNOTATION", "IMAGE_BOUNDING_POLY_ANNOTATION", "IMAGE_POLYLINE_ANNOTATION", "IMAGE_SEGMENTATION_ANNOTATION", "VIDEO_SHOTS_CLASSIFICATION_ANNOTATION", "VIDEO_OBJECT_TRACKING_ANNOTATION", "VIDEO_OBJECT_DETECTION_ANNOTATION", "VIDEO_EVENT_ANNOTATION", "TEXT_CLASSIFICATION_ANNOTATION", "TEXT_ENTITY_EXTRACTION_ANNOTATION", "GENERAL_CLASSIFICATION_ANNOTATION"]
     #[serde(default, rename = "annotationType")]
-    pub annotation_type: Option<String>,
+    pub annotation_type: ::core::option::Option<String>,
     /// Output only. The names of any related resources that are blocking changes to the annotated dataset.
     #[serde(default, rename = "blockingResources")]
-    pub blocking_resources: Option<Vec<String>>,
+    pub blocking_resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Number of examples that have annotation in the annotated dataset.
     #[serde(default, rename = "completedExampleCount")]
-    pub completed_example_count: Option<String>,
+    pub completed_example_count: ::core::option::Option<String>,
     /// Output only. Time the AnnotatedDataset was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The description of the AnnotatedDataset. It is specified in HumanAnnotationConfig when user starts a labeling task. Maximum of 10000 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The display name of the AnnotatedDataset. It is specified in HumanAnnotationConfig when user starts a labeling task. Maximum of 64 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Number of examples in the annotated dataset.
     #[serde(default, rename = "exampleCount")]
-    pub example_count: Option<String>,
+    pub example_count: ::core::option::Option<String>,
     /// Output only. Per label statistics.
     #[serde(default, rename = "labelStats")]
-    pub label_stats: Option<GoogleCloudDatalabelingV1beta1LabelStats>,
+    pub label_stats:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelStats>>,
     /// Output only. Additional information about AnnotatedDataset.
     #[serde(default)]
-    pub metadata: Option<GoogleCloudDatalabelingV1beta1AnnotatedDatasetMetadata>,
+    pub metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotatedDatasetMetadata>,
+    >,
     /// Output only. AnnotatedDataset resource name in format of: projects/{project_id}/datasets/{dataset_id}/annotatedDatasets/ {annotated_dataset_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metadata on AnnotatedDataset.
@@ -364,40 +418,55 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotatedDataset {
 pub struct GoogleCloudDatalabelingV1beta1AnnotatedDatasetMetadata {
     /// Configuration for image bounding box and bounding poly task.
     #[serde(default, rename = "boundingPolyConfig")]
-    pub bounding_poly_config: Option<GoogleCloudDatalabelingV1beta1BoundingPolyConfig>,
+    pub bounding_poly_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1BoundingPolyConfig>>,
     /// Configuration for video event labeling task.
     #[serde(default, rename = "eventConfig")]
-    pub event_config: Option<GoogleCloudDatalabelingV1beta1EventConfig>,
+    pub event_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1EventConfig>>,
     /// HumanAnnotationConfig used when requesting the human labeling task for this AnnotatedDataset.
     #[serde(default, rename = "humanAnnotationConfig")]
-    pub human_annotation_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub human_annotation_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
     /// Configuration for image classification task.
     #[serde(default, rename = "imageClassificationConfig")]
-    pub image_classification_config:
-        Option<GoogleCloudDatalabelingV1beta1ImageClassificationConfig>,
+    pub image_classification_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImageClassificationConfig>,
+    >,
     /// Configuration for video object detection task.
     #[serde(default, rename = "objectDetectionConfig")]
-    pub object_detection_config: Option<GoogleCloudDatalabelingV1beta1ObjectDetectionConfig>,
+    pub object_detection_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ObjectDetectionConfig>,
+    >,
     /// Configuration for video object tracking task.
     #[serde(default, rename = "objectTrackingConfig")]
-    pub object_tracking_config: Option<GoogleCloudDatalabelingV1beta1ObjectTrackingConfig>,
+    pub object_tracking_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ObjectTrackingConfig>,
+    >,
     /// Configuration for image polyline task.
     #[serde(default, rename = "polylineConfig")]
-    pub polyline_config: Option<GoogleCloudDatalabelingV1beta1PolylineConfig>,
+    pub polyline_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1PolylineConfig>>,
     /// Configuration for image segmentation task.
     #[serde(default, rename = "segmentationConfig")]
-    pub segmentation_config: Option<GoogleCloudDatalabelingV1beta1SegmentationConfig>,
+    pub segmentation_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1SegmentationConfig>>,
     /// Configuration for text classification task.
     #[serde(default, rename = "textClassificationConfig")]
-    pub text_classification_config: Option<GoogleCloudDatalabelingV1beta1TextClassificationConfig>,
+    pub text_classification_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextClassificationConfig>,
+    >,
     /// Configuration for text entity extraction task.
     #[serde(default, rename = "textEntityExtractionConfig")]
-    pub text_entity_extraction_config:
-        Option<GoogleCloudDatalabelingV1beta1TextEntityExtractionConfig>,
+    pub text_entity_extraction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextEntityExtractionConfig>,
+    >,
     /// Configuration for video classification task.
     #[serde(default, rename = "videoClassificationConfig")]
-    pub video_classification_config:
-        Option<GoogleCloudDatalabelingV1beta1VideoClassificationConfig>,
+    pub video_classification_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1VideoClassificationConfig>,
+    >,
 }
 
 /// Annotation for Example. Each example may have one or more annotations. For example in image classification problem, each image might have one or more labels. We call labels binded with this image an Annotation.
@@ -405,19 +474,21 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotatedDatasetMetadata {
 pub struct GoogleCloudDatalabelingV1beta1Annotation {
     /// Output only. Annotation metadata, including information like votes for labels.
     #[serde(default, rename = "annotationMetadata")]
-    pub annotation_metadata: Option<GoogleCloudDatalabelingV1beta1AnnotationMetadata>,
+    pub annotation_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationMetadata>>,
     /// Output only. Sentiment for this annotation. // TODO: enum values: ["ANNOTATION_SENTIMENT_UNSPECIFIED", "NEGATIVE", "POSITIVE"]
     #[serde(default, rename = "annotationSentiment")]
-    pub annotation_sentiment: Option<String>,
+    pub annotation_sentiment: ::core::option::Option<String>,
     /// Output only. The source of the annotation. // TODO: enum values: ["ANNOTATION_SOURCE_UNSPECIFIED", "OPERATOR"]
     #[serde(default, rename = "annotationSource")]
-    pub annotation_source: Option<String>,
+    pub annotation_source: ::core::option::Option<String>,
     /// Output only. This is the actual annotation value, e.g classification, bounding box values are stored here.
     #[serde(default, rename = "annotationValue")]
-    pub annotation_value: Option<GoogleCloudDatalabelingV1beta1AnnotationValue>,
+    pub annotation_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationValue>>,
     /// Output only. Unique name of this annotation, format is: projects/{project_id}/datasets/{dataset_id}/annotatedDatasets/{annotated_dataset}/examples/{example_id}/annotations/{annotation_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Additional information associated with the annotation.
@@ -425,7 +496,8 @@ pub struct GoogleCloudDatalabelingV1beta1Annotation {
 pub struct GoogleCloudDatalabelingV1beta1AnnotationMetadata {
     /// Metadata related to human labeling.
     #[serde(default, rename = "operatorMetadata")]
-    pub operator_metadata: Option<GoogleCloudDatalabelingV1beta1OperatorMetadata>,
+    pub operator_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1OperatorMetadata>>,
 }
 
 /// Container of information related to one possible annotation that can be used in a labeling task. For example, an image classification task where images are labeled as dog or cat must reference an AnnotationSpec for dog and an AnnotationSpec for cat.
@@ -433,13 +505,13 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationMetadata {
 pub struct GoogleCloudDatalabelingV1beta1AnnotationSpec {
     /// Optional. User-provided description of the annotation specification. The description can be up to 10,000 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The display name of the AnnotationSpec. Maximum of 64 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. This is the integer index of the AnnotationSpec. The index for the whole AnnotationSpecSet is sequential starting from 0. For example, an AnnotationSpecSet with classes dog and cat, might contain one AnnotationSpec with { display_name: "dog", index: 0 } and one AnnotationSpec with { display_name: "cat", index: 1 }. This is especially useful for model training as it encodes the string labels into numeric values.
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
 }
 
 /// An AnnotationSpecSet is a collection of label definitions. For example, in image classification tasks, you define a set of possible labels for images as an AnnotationSpecSet. An AnnotationSpecSet is immutable upon creation.
@@ -447,19 +519,21 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationSpec {
 pub struct GoogleCloudDatalabelingV1beta1AnnotationSpecSet {
     /// Required. The array of AnnotationSpecs that you define when you create the AnnotationSpecSet. These are the possible labels for the labeling task.
     #[serde(default, rename = "annotationSpecs")]
-    pub annotation_specs: Option<Vec<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
+    pub annotation_specs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
+    >,
     /// Output only. The names of any related resources that are blocking changes to the annotation spec set.
     #[serde(default, rename = "blockingResources")]
-    pub blocking_resources: Option<Vec<String>>,
+    pub blocking_resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. User-provided description of the annotation specification set. The description can be up to 10,000 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The display name for AnnotationSpecSet that you define when you create it. Maximum of 64 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The AnnotationSpecSet resource name in the following format: "projects/{project_id}/annotationSpecSets/{annotation_spec_set_id}"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Annotation spec set with the setting of allowing multi labels or not.
@@ -467,10 +541,10 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationSpecSet {
 pub struct GoogleCloudDatalabelingV1beta1AnnotationSpecSetConfig {
     /// Optional. If allow_multi_label is true, contributors are able to choose multiple labels from one annotation spec set.
     #[serde(default, rename = "allowMultiLabel")]
-    pub allow_multi_label: Option<bool>,
+    pub allow_multi_label: ::core::option::Option<bool>,
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
 }
 
 /// Annotation value for an example.
@@ -478,48 +552,60 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationSpecSetConfig {
 pub struct GoogleCloudDatalabelingV1beta1AnnotationValue {
     /// Annotation value for image bounding box, oriented bounding box and polygon cases.
     #[serde(default, rename = "imageBoundingPolyAnnotation")]
-    pub image_bounding_poly_annotation:
-        Option<GoogleCloudDatalabelingV1beta1ImageBoundingPolyAnnotation>,
+    pub image_bounding_poly_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImageBoundingPolyAnnotation>,
+    >,
     /// Annotation value for image classification case.
     #[serde(default, rename = "imageClassificationAnnotation")]
-    pub image_classification_annotation:
-        Option<GoogleCloudDatalabelingV1beta1ImageClassificationAnnotation>,
+    pub image_classification_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImageClassificationAnnotation>,
+    >,
     /// Annotation value for image polyline cases. Polyline here is different from BoundingPoly. It is formed by line segments connected to each other but not closed form(Bounding Poly). The line segments can cross each other.
     #[serde(default, rename = "imagePolylineAnnotation")]
-    pub image_polyline_annotation: Option<GoogleCloudDatalabelingV1beta1ImagePolylineAnnotation>,
+    pub image_polyline_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImagePolylineAnnotation>,
+    >,
     /// Annotation value for image segmentation.
     #[serde(default, rename = "imageSegmentationAnnotation")]
-    pub image_segmentation_annotation:
-        Option<GoogleCloudDatalabelingV1beta1ImageSegmentationAnnotation>,
+    pub image_segmentation_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImageSegmentationAnnotation>,
+    >,
     /// Annotation value for text classification case.
     #[serde(default, rename = "textClassificationAnnotation")]
-    pub text_classification_annotation:
-        Option<GoogleCloudDatalabelingV1beta1TextClassificationAnnotation>,
+    pub text_classification_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextClassificationAnnotation>,
+    >,
     /// Annotation value for text entity extraction case.
     #[serde(default, rename = "textEntityExtractionAnnotation")]
-    pub text_entity_extraction_annotation:
-        Option<GoogleCloudDatalabelingV1beta1TextEntityExtractionAnnotation>,
+    pub text_entity_extraction_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextEntityExtractionAnnotation>,
+    >,
     /// Annotation value for video classification case.
     #[serde(default, rename = "videoClassificationAnnotation")]
-    pub video_classification_annotation:
-        Option<GoogleCloudDatalabelingV1beta1VideoClassificationAnnotation>,
+    pub video_classification_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1VideoClassificationAnnotation>,
+    >,
     /// Annotation value for video event case.
     #[serde(default, rename = "videoEventAnnotation")]
-    pub video_event_annotation: Option<GoogleCloudDatalabelingV1beta1VideoEventAnnotation>,
+    pub video_event_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1VideoEventAnnotation>,
+    >,
     /// Annotation value for video object detection and tracking case.
     #[serde(default, rename = "videoObjectTrackingAnnotation")]
-    pub video_object_tracking_annotation:
-        Option<GoogleCloudDatalabelingV1beta1VideoObjectTrackingAnnotation>,
+    pub video_object_tracking_annotation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1VideoObjectTrackingAnnotation>,
+    >,
 }
 
 /// Records a failed evaluation job run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatalabelingV1beta1Attempt {
     #[serde(default, rename = "attemptTime")]
-    pub attempt_time: Option<String>,
+    pub attempt_time: ::core::option::Option<String>,
     /// Details of errors that occurred.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// The BigQuery location for input data. If used in an EvaluationJob, this is where the service saves the prediction input and output sampled from the model version.
@@ -527,7 +613,7 @@ pub struct GoogleCloudDatalabelingV1beta1Attempt {
 pub struct GoogleCloudDatalabelingV1beta1BigQuerySource {
     /// Required. BigQuery URI to a table, up to 2,000 characters long. If you specify the URI of a table that does not exist, Data Labeling Service creates a table at the URI with the correct schema when you create your EvaluationJob. If you specify the URI of a table that already exists, it must have the [correct schema](/ml-engine/docs/continuous-evaluation/create-job#table-schema). Provide the table URI in the following format: "bq://{your_project_id}/ {your_dataset_name}/{your_table_name}" [Learn more](/ml-engine/docs/continuous-evaluation/create-job#table-schema).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
 }
 
 /// Options regarding evaluation between bounding boxes.
@@ -535,7 +621,7 @@ pub struct GoogleCloudDatalabelingV1beta1BigQuerySource {
 pub struct GoogleCloudDatalabelingV1beta1BoundingBoxEvaluationOptions {
     /// Minimum [intersection-over-union (IOU)](/vision/automl/object-detection/docs/evaluate#intersection-over-union) required for 2 bounding boxes to be considered a match. This must be a number between 0 and 1.
     #[serde(default, rename = "iouThreshold")]
-    pub iou_threshold: Option<f32>,
+    pub iou_threshold: ::core::option::Option<f32>,
 }
 
 /// A bounding polygon in the image.
@@ -543,7 +629,9 @@ pub struct GoogleCloudDatalabelingV1beta1BoundingBoxEvaluationOptions {
 pub struct GoogleCloudDatalabelingV1beta1BoundingPoly {
     /// The bounding polygon vertices.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudDatalabelingV1beta1Vertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Vertex>>,
+    >,
 }
 
 /// Config for image bounding poly (and bounding box) human labeling task.
@@ -551,10 +639,10 @@ pub struct GoogleCloudDatalabelingV1beta1BoundingPoly {
 pub struct GoogleCloudDatalabelingV1beta1BoundingPolyConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
     /// Optional. Instruction message showed on contributors UI.
     #[serde(default, rename = "instructionMessage")]
-    pub instruction_message: Option<String>,
+    pub instruction_message: ::core::option::Option<String>,
 }
 
 /// Metadata for classification annotations.
@@ -562,7 +650,7 @@ pub struct GoogleCloudDatalabelingV1beta1BoundingPolyConfig {
 pub struct GoogleCloudDatalabelingV1beta1ClassificationMetadata {
     /// Whether the classification task is multi-label or not.
     #[serde(default, rename = "isMultiLabel")]
-    pub is_multi_label: Option<bool>,
+    pub is_multi_label: ::core::option::Option<bool>,
 }
 
 /// Metrics calculated for a classification model.
@@ -570,10 +658,11 @@ pub struct GoogleCloudDatalabelingV1beta1ClassificationMetadata {
 pub struct GoogleCloudDatalabelingV1beta1ClassificationMetrics {
     /// Confusion matrix of predicted labels vs. ground truth labels.
     #[serde(default, rename = "confusionMatrix")]
-    pub confusion_matrix: Option<GoogleCloudDatalabelingV1beta1ConfusionMatrix>,
+    pub confusion_matrix:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1ConfusionMatrix>>,
     /// Precision-recall curve based on ground truth labels, predicted labels, and scores for the predicted labels.
     #[serde(default, rename = "prCurve")]
-    pub pr_curve: Option<GoogleCloudDatalabelingV1beta1PrCurve>,
+    pub pr_curve: ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1PrCurve>>,
 }
 
 /// GoogleCloudDatalabelingV1beta1ConfidenceMetricsEntry resource type.
@@ -581,41 +670,43 @@ pub struct GoogleCloudDatalabelingV1beta1ClassificationMetrics {
 pub struct GoogleCloudDatalabelingV1beta1ConfidenceMetricsEntry {
     /// Threshold used for this entry. For classification tasks, this is a classification threshold: a predicted label is categorized as positive or negative (in the context of this point on the PR curve) based on whether the label''s score meets this threshold. For image object detection (bounding box) tasks, this is the [intersection-over-union (IOU)](/vision/automl/object-detection/docs/evaluate#intersection-over-union) threshold for the context of this point on the PR curve.
     #[serde(default, rename = "confidenceThreshold")]
-    pub confidence_threshold: Option<f32>,
+    pub confidence_threshold: ::core::option::Option<f32>,
     /// Harmonic mean of recall and precision.
     #[serde(default, rename = "f1Score")]
-    pub f1_score: Option<f32>,
+    pub f1_score: ::core::option::Option<f32>,
     /// The harmonic mean of recall_at1 and precision_at1.
     #[serde(default, rename = "f1ScoreAt1")]
-    pub f1_score_at1: Option<f32>,
+    pub f1_score_at1: ::core::option::Option<f32>,
     /// The harmonic mean of recall_at5 and precision_at5.
     #[serde(default, rename = "f1ScoreAt5")]
-    pub f1_score_at5: Option<f32>,
+    pub f1_score_at5: ::core::option::Option<f32>,
     /// Precision value.
     #[serde(default)]
-    pub precision: Option<f32>,
+    pub precision: ::core::option::Option<f32>,
     /// Precision value for entries with label that has highest score.
     #[serde(default, rename = "precisionAt1")]
-    pub precision_at1: Option<f32>,
+    pub precision_at1: ::core::option::Option<f32>,
     /// Precision value for entries with label that has highest 5 scores.
     #[serde(default, rename = "precisionAt5")]
-    pub precision_at5: Option<f32>,
+    pub precision_at5: ::core::option::Option<f32>,
     /// Recall value.
     #[serde(default)]
-    pub recall: Option<f32>,
+    pub recall: ::core::option::Option<f32>,
     /// Recall value for entries with label that has highest score.
     #[serde(default, rename = "recallAt1")]
-    pub recall_at1: Option<f32>,
+    pub recall_at1: ::core::option::Option<f32>,
     /// Recall value for entries with label that has highest 5 scores.
     #[serde(default, rename = "recallAt5")]
-    pub recall_at5: Option<f32>,
+    pub recall_at5: ::core::option::Option<f32>,
 }
 
 /// Confusion matrix of the model running the classification. Only applicable when the metrics entry aggregates multiple labels. Not applicable when the entry is for a single label.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatalabelingV1beta1ConfusionMatrix {
     #[serde(default)]
-    pub row: Option<Vec<GoogleCloudDatalabelingV1beta1Row>>,
+    pub row: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Row>>,
+    >,
 }
 
 /// GoogleCloudDatalabelingV1beta1ConfusionMatrixEntry resource type.
@@ -623,10 +714,11 @@ pub struct GoogleCloudDatalabelingV1beta1ConfusionMatrix {
 pub struct GoogleCloudDatalabelingV1beta1ConfusionMatrixEntry {
     /// The annotation spec of a predicted label.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     /// Number of items predicted to have this label. (The ground truth label for these items is the Row.annotationSpec of this entry''s parent.)
     #[serde(default, rename = "itemCount")]
-    pub item_count: Option<i32>,
+    pub item_count: ::core::option::Option<i32>,
 }
 
 /// Request message for CreateAnnotationSpecSet.
@@ -634,7 +726,8 @@ pub struct GoogleCloudDatalabelingV1beta1ConfusionMatrixEntry {
 pub struct GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest {
     /// Required. Annotation spec set to create. Annotation specs must be included. Only one annotation spec will be accepted for annotation specs with same display_name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>,
+    pub annotation_spec_set:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>>,
 }
 
 /// Request message for CreateDataset.
@@ -642,7 +735,7 @@ pub struct GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest {
 pub struct GoogleCloudDatalabelingV1beta1CreateDatasetRequest {
     /// Required. The dataset to be created.
     #[serde(default)]
-    pub dataset: Option<GoogleCloudDatalabelingV1beta1Dataset>,
+    pub dataset: ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Dataset>>,
 }
 
 ///  Request message for CreateEvaluationJob.
@@ -650,7 +743,7 @@ pub struct GoogleCloudDatalabelingV1beta1CreateDatasetRequest {
 pub struct GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest {
     /// Required. The evaluation job to create.
     #[serde(default)]
-    pub job: Option<GoogleCloudDatalabelingV1beta1EvaluationJob>,
+    pub job: ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1EvaluationJob>>,
 }
 
 /// Metadata of a CreateInstruction operation.
@@ -658,13 +751,14 @@ pub struct GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest {
 pub struct GoogleCloudDatalabelingV1beta1CreateInstructionMetadata {
     /// Timestamp when create instruction request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The name of the created Instruction. projects/{project_id}/instructions/{instruction_id}
     #[serde(default)]
-    pub instruction: Option<String>,
+    pub instruction: ::core::option::Option<String>,
     /// Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Request message for CreateInstruction.
@@ -672,7 +766,8 @@ pub struct GoogleCloudDatalabelingV1beta1CreateInstructionMetadata {
 pub struct GoogleCloudDatalabelingV1beta1CreateInstructionRequest {
     /// Required. Instruction of how to perform the labeling task.
     #[serde(default)]
-    pub instruction: Option<GoogleCloudDatalabelingV1beta1Instruction>,
+    pub instruction:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Instruction>>,
 }
 
 /// Deprecated: this instruction format is not supported any more. Instruction from a CSV file.
@@ -680,7 +775,7 @@ pub struct GoogleCloudDatalabelingV1beta1CreateInstructionRequest {
 pub struct GoogleCloudDatalabelingV1beta1CsvInstruction {
     /// CSV file for the instruction. Only gcs path is allowed.
     #[serde(default, rename = "gcsFileUri")]
-    pub gcs_file_uri: Option<String>,
+    pub gcs_file_uri: ::core::option::Option<String>,
 }
 
 /// DataItem is a piece of data, without annotation. For example, an image.
@@ -688,16 +783,19 @@ pub struct GoogleCloudDatalabelingV1beta1CsvInstruction {
 pub struct GoogleCloudDatalabelingV1beta1DataItem {
     /// The image payload, a container of the image bytes/uri.
     #[serde(default, rename = "imagePayload")]
-    pub image_payload: Option<GoogleCloudDatalabelingV1beta1ImagePayload>,
+    pub image_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImagePayload>>,
     /// Output only. Name of the data item, in format of: projects/{project_id}/datasets/{dataset_id}/dataItems/{data_item_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The text payload, a container of text content.
     #[serde(default, rename = "textPayload")]
-    pub text_payload: Option<GoogleCloudDatalabelingV1beta1TextPayload>,
+    pub text_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextPayload>>,
     /// The video payload, a container of the video uri.
     #[serde(default, rename = "videoPayload")]
-    pub video_payload: Option<GoogleCloudDatalabelingV1beta1VideoPayload>,
+    pub video_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1VideoPayload>>,
 }
 
 /// Dataset is the resource to hold your data. You can request multiple labeling tasks for a dataset while each one will generate an AnnotatedDataset.
@@ -705,28 +803,30 @@ pub struct GoogleCloudDatalabelingV1beta1DataItem {
 pub struct GoogleCloudDatalabelingV1beta1Dataset {
     /// Output only. The names of any related resources that are blocking changes to the dataset.
     #[serde(default, rename = "blockingResources")]
-    pub blocking_resources: Option<Vec<String>>,
+    pub blocking_resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Time the dataset is created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The number of data items in the dataset.
     #[serde(default, rename = "dataItemCount")]
-    pub data_item_count: Option<String>,
+    pub data_item_count: ::core::option::Option<String>,
     /// Optional. User-provided description of the annotation specification set. The description can be up to 10000 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The display name of the dataset. Maximum of 64 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. This is populated with the original input configs where ImportData is called. It is available only after the clients import data to this dataset.
     #[serde(default, rename = "inputConfigs")]
-    pub input_configs: Option<Vec<GoogleCloudDatalabelingV1beta1InputConfig>>,
+    pub input_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1InputConfig>>,
+    >,
     /// Last time that the Dataset is migrated to AI Platform V2. If any of the AnnotatedDataset is migrated, the last_migration_time in Dataset is also updated.
     #[serde(default, rename = "lastMigrateTime")]
-    pub last_migrate_time: Option<String>,
+    pub last_migrate_time: ::core::option::Option<String>,
     /// Output only. Dataset resource name, format is: projects/{project_id}/datasets/{dataset_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Describes an evaluation between a machine learning model''s predictions and ground truth labels. Created when an EvaluationJob runs successfully.
@@ -734,25 +834,27 @@ pub struct GoogleCloudDatalabelingV1beta1Dataset {
 pub struct GoogleCloudDatalabelingV1beta1Evaluation {
     /// Output only. Type of task that the model version being evaluated performs, as defined in the evaluationJobConfig.inputConfig.annotationType field of the evaluation job that created this evaluation. // TODO: enum values: ["ANNOTATION_TYPE_UNSPECIFIED", "IMAGE_CLASSIFICATION_ANNOTATION", "IMAGE_BOUNDING_BOX_ANNOTATION", "IMAGE_ORIENTED_BOUNDING_BOX_ANNOTATION", "IMAGE_BOUNDING_POLY_ANNOTATION", "IMAGE_POLYLINE_ANNOTATION", "IMAGE_SEGMENTATION_ANNOTATION", "VIDEO_SHOTS_CLASSIFICATION_ANNOTATION", "VIDEO_OBJECT_TRACKING_ANNOTATION", "VIDEO_OBJECT_DETECTION_ANNOTATION", "VIDEO_EVENT_ANNOTATION", "TEXT_CLASSIFICATION_ANNOTATION", "TEXT_ENTITY_EXTRACTION_ANNOTATION", "GENERAL_CLASSIFICATION_ANNOTATION"]
     #[serde(default, rename = "annotationType")]
-    pub annotation_type: Option<String>,
+    pub annotation_type: ::core::option::Option<String>,
     /// Output only. Options used in the evaluation job that created this evaluation.
     #[serde(default)]
-    pub config: Option<GoogleCloudDatalabelingV1beta1EvaluationConfig>,
+    pub config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1EvaluationConfig>>,
     /// Output only. Timestamp for when this evaluation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The number of items in the ground truth dataset that were used for this evaluation. Only populated when the evaulation is for certain AnnotationTypes.
     #[serde(default, rename = "evaluatedItemCount")]
-    pub evaluated_item_count: Option<String>,
+    pub evaluated_item_count: ::core::option::Option<String>,
     /// Output only. Timestamp for when the evaluation job that created this evaluation ran.
     #[serde(default, rename = "evaluationJobRunTime")]
-    pub evaluation_job_run_time: Option<String>,
+    pub evaluation_job_run_time: ::core::option::Option<String>,
     /// Output only. Metrics comparing predictions to ground truth labels.
     #[serde(default, rename = "evaluationMetrics")]
-    pub evaluation_metrics: Option<GoogleCloudDatalabelingV1beta1EvaluationMetrics>,
+    pub evaluation_metrics:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1EvaluationMetrics>>,
     /// Output only. Resource name of an evaluation. The name has the following format: "projects/{project_id}/datasets/{dataset_id}/evaluations/ {evaluation_id}''
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Configuration details used for calculating evaluation metrics and creating an Evaluation.
@@ -760,8 +862,9 @@ pub struct GoogleCloudDatalabelingV1beta1Evaluation {
 pub struct GoogleCloudDatalabelingV1beta1EvaluationConfig {
     /// Only specify this field if the related model performs image object detection (IMAGE_BOUNDING_BOX_ANNOTATION). Describes how to evaluate bounding boxes.
     #[serde(default, rename = "boundingBoxEvaluationOptions")]
-    pub bounding_box_evaluation_options:
-        Option<GoogleCloudDatalabelingV1beta1BoundingBoxEvaluationOptions>,
+    pub bounding_box_evaluation_options: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1BoundingBoxEvaluationOptions>,
+    >,
 }
 
 /// Defines an evaluation job that runs periodically to generate Evaluations. [Creating an evaluation job](/ml-engine/docs/continuous-evaluation/create-job) is the starting point for using continuous evaluation.
@@ -769,34 +872,38 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationConfig {
 pub struct GoogleCloudDatalabelingV1beta1EvaluationJob {
     /// Required. Name of the AnnotationSpecSet describing all the labels that your machine learning model outputs. You must create this resource before you create an evaluation job and provide its name in the following format: "projects/{project_id}/annotationSpecSets/{annotation_spec_set_id}"
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
     /// Output only. Every time the evaluation job runs and an error occurs, the failed attempt is appended to this array.
     #[serde(default)]
-    pub attempts: Option<Vec<GoogleCloudDatalabelingV1beta1Attempt>>,
+    pub attempts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Attempt>>,
+    >,
     /// Output only. Timestamp of when this evaluation job was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. Description of the job. The description can be up to 25,000 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Configuration details for the evaluation job.
     #[serde(default, rename = "evaluationJobConfig")]
-    pub evaluation_job_config: Option<GoogleCloudDatalabelingV1beta1EvaluationJobConfig>,
+    pub evaluation_job_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1EvaluationJobConfig>,
+    >,
     /// Required. Whether you want Data Labeling Service to provide ground truth labels for prediction input. If you want the service to assign human labelers to annotate your data, set this to true. If you want to provide your own ground truth labels in the evaluation job''s BigQuery table, set this to false.
     #[serde(default, rename = "labelMissingGroundTruth")]
-    pub label_missing_ground_truth: Option<bool>,
+    pub label_missing_ground_truth: ::core::option::Option<bool>,
     /// Required. The [AI Platform Prediction model version](/ml-engine/docs/prediction-overview) to be evaluated. Prediction input and output is sampled from this model version. When creating an evaluation job, specify the model version in the following format: "projects/{project_id}/models/{model_name}/versions/{version_name}" There can only be one evaluation job per model version.
     #[serde(default, rename = "modelVersion")]
-    pub model_version: Option<String>,
+    pub model_version: ::core::option::Option<String>,
     /// Output only. After you create a job, Data Labeling Service assigns a name to the job with the following format: "projects/{project_id}/evaluationJobs/ {evaluation_job_id}"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Describes the interval at which the job runs. This interval must be at least 1 day, and it is rounded to the nearest day. For example, if you specify a 50-hour interval, the job runs every 2 days. You can provide the schedule in [crontab format](/scheduler/docs/configuring/cron-job-schedules) or in an [English-like format](/appengine/docs/standard/python/config/cronref#schedule_format). Regardless of what you specify, the job will run at 10:00 AM UTC. Only the interval from this schedule is used, not the specific time of day.
     #[serde(default)]
-    pub schedule: Option<String>,
+    pub schedule: ::core::option::Option<String>,
     /// Output only. Describes the current state of the job. // TODO: enum values: ["STATE_UNSPECIFIED", "SCHEDULED", "RUNNING", "PAUSED", "STOPPED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Provides details for how an evaluation job sends email alerts based on the results of a run.
@@ -804,10 +911,10 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationJob {
 pub struct GoogleCloudDatalabelingV1beta1EvaluationJobAlertConfig {
     /// Required. An email address to send alerts to.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Required. A number between 0 and 1 that describes a minimum mean average precision threshold. When the evaluation job runs, if it calculates that your model version''s predictions from the recent interval have meanAveragePrecision below this threshold, then it sends an alert to your specified email.
     #[serde(default, rename = "minAcceptableMeanAveragePrecision")]
-    pub min_acceptable_mean_average_precision: Option<f64>,
+    pub min_acceptable_mean_average_precision: ::core::option::Option<f64>,
 }
 
 /// Configures specific details of how a continuous evaluation job works. Provide this configuration when you create an EvaluationJob.
@@ -815,44 +922,58 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationJobAlertConfig {
 pub struct GoogleCloudDatalabelingV1beta1EvaluationJobConfig {
     /// Required. Prediction keys that tell Data Labeling Service where to find the data for evaluation in your BigQuery table. When the service samples prediction input and output from your model version and saves it to BigQuery, the data gets stored as JSON strings in the BigQuery table. These keys tell Data Labeling Service how to parse the JSON. You can provide the following entries in this field: * data_json_key: the data key for prediction input. You must provide either this key or reference_json_key. * reference_json_key: the data reference key for prediction input. You must provide either this key or data_json_key. * label_json_key: the label key for prediction output. Required. * label_score_json_key: the score key for prediction output. Required. * bounding_box_json_key: the bounding box key for prediction output. Required if your model version perform image object detection. Learn [how to configure prediction keys](/ml-engine/docs/continuous-evaluation/create-job#prediction-keys).
     #[serde(default, rename = "bigqueryImportKeys")]
-    pub bigquery_import_keys: Option<serde_json::Value>,
+    pub bigquery_import_keys: ::core::option::Option<serde_json::Value>,
     /// Specify this field if your model version performs image object detection (bounding box detection). annotationSpecSet in this configuration must match EvaluationJob.annotationSpecSet.
     #[serde(default, rename = "boundingPolyConfig")]
-    pub bounding_poly_config: Option<GoogleCloudDatalabelingV1beta1BoundingPolyConfig>,
+    pub bounding_poly_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1BoundingPolyConfig>>,
     /// Required. Details for calculating evaluation metrics and creating Evaulations. If your model version performs image object detection, you must specify the boundingBoxEvaluationOptions field within this configuration. Otherwise, provide an empty object for this configuration.
     #[serde(default, rename = "evaluationConfig")]
-    pub evaluation_config: Option<GoogleCloudDatalabelingV1beta1EvaluationConfig>,
+    pub evaluation_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1EvaluationConfig>>,
     /// Optional. Configuration details for evaluation job alerts. Specify this field if you want to receive email alerts if the evaluation job finds that your predictions have low mean average precision during a run.
     #[serde(default, rename = "evaluationJobAlertConfig")]
-    pub evaluation_job_alert_config: Option<GoogleCloudDatalabelingV1beta1EvaluationJobAlertConfig>,
+    pub evaluation_job_alert_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1EvaluationJobAlertConfig>,
+    >,
     /// Required. The maximum number of predictions to sample and save to BigQuery during each evaluation interval. This limit overrides example_sample_percentage: even if the service has not sampled enough predictions to fulfill example_sample_perecentage during an interval, it stops sampling predictions when it meets this limit.
     #[serde(default, rename = "exampleCount")]
-    pub example_count: Option<i32>,
+    pub example_count: ::core::option::Option<i32>,
     /// Required. Fraction of predictions to sample and save to BigQuery during each evaluation interval. For example, 0.1 means 10% of predictions served by your model version get saved to BigQuery.
     #[serde(default, rename = "exampleSamplePercentage")]
-    pub example_sample_percentage: Option<f64>,
+    pub example_sample_percentage: ::core::option::Option<f64>,
     /// Optional. Details for human annotation of your data. If you set labelMissingGroundTruth to true for this evaluation job, then you must specify this field. If you plan to provide your own ground truth labels, then omit this field. Note that you must create an Instruction resource before you can specify this field. Provide the name of the instruction resource in the instruction field within this configuration.
     #[serde(default, rename = "humanAnnotationConfig")]
-    pub human_annotation_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub human_annotation_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
     /// Specify this field if your model version performs image classification or general classification. annotationSpecSet in this configuration must match EvaluationJob.annotationSpecSet. allowMultiLabel in this configuration must match classificationMetadata.isMultiLabel in input_config.
     #[serde(default, rename = "imageClassificationConfig")]
-    pub image_classification_config:
-        Option<GoogleCloudDatalabelingV1beta1ImageClassificationConfig>,
+    pub image_classification_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImageClassificationConfig>,
+    >,
     /// Rquired. Details for the sampled prediction input. Within this configuration, there are requirements for several fields: * dataType must be one of IMAGE, TEXT, or GENERAL_DATA. * annotationType must be one of IMAGE_CLASSIFICATION_ANNOTATION, TEXT_CLASSIFICATION_ANNOTATION, GENERAL_CLASSIFICATION_ANNOTATION, or IMAGE_BOUNDING_BOX_ANNOTATION (image object detection). * If your machine learning model performs classification, you must specify classificationMetadata.isMultiLabel. * You must specify bigquerySource (not gcsSource).
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudDatalabelingV1beta1InputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1InputConfig>>,
     /// Specify this field if your model version performs text classification. annotationSpecSet in this configuration must match EvaluationJob.annotationSpecSet. allowMultiLabel in this configuration must match classificationMetadata.isMultiLabel in input_config.
     #[serde(default, rename = "textClassificationConfig")]
-    pub text_classification_config: Option<GoogleCloudDatalabelingV1beta1TextClassificationConfig>,
+    pub text_classification_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextClassificationConfig>,
+    >,
 }
 
 /// GoogleCloudDatalabelingV1beta1EvaluationMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatalabelingV1beta1EvaluationMetrics {
     #[serde(default, rename = "classificationMetrics")]
-    pub classification_metrics: Option<GoogleCloudDatalabelingV1beta1ClassificationMetrics>,
+    pub classification_metrics: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ClassificationMetrics>,
+    >,
     #[serde(default, rename = "objectDetectionMetrics")]
-    pub object_detection_metrics: Option<GoogleCloudDatalabelingV1beta1ObjectDetectionMetrics>,
+    pub object_detection_metrics: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ObjectDetectionMetrics>,
+    >,
 }
 
 /// Config for video event human labeling task.
@@ -860,13 +981,13 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationMetrics {
 pub struct GoogleCloudDatalabelingV1beta1EventConfig {
     /// Required. The list of annotation spec set resource name. Similar to video classification, we support selecting event from multiple AnnotationSpecSet at the same time.
     #[serde(default, rename = "annotationSpecSets")]
-    pub annotation_spec_sets: Option<Vec<String>>,
+    pub annotation_spec_sets: ::core::option::Option<::std::vec::Vec<String>>,
     /// Videos will be cut to smaller clips to make it easier for labelers to work on. Users can configure is field in seconds, if not set, default value is 60s.
     #[serde(default, rename = "clipLength")]
-    pub clip_length: Option<i32>,
+    pub clip_length: ::core::option::Option<i32>,
     /// The overlap length between different video clips. Users can configure is field in seconds, if not set, default value is 1s.
     #[serde(default, rename = "overlapLength")]
-    pub overlap_length: Option<i32>,
+    pub overlap_length: ::core::option::Option<i32>,
 }
 
 /// An Example is a piece of data and its annotation. For example, an image with label "house".
@@ -874,19 +995,24 @@ pub struct GoogleCloudDatalabelingV1beta1EventConfig {
 pub struct GoogleCloudDatalabelingV1beta1Example {
     /// Output only. Annotations for the piece of data in Example. One piece of data can have multiple annotations.
     #[serde(default)]
-    pub annotations: Option<Vec<GoogleCloudDatalabelingV1beta1Annotation>>,
+    pub annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Annotation>>,
+    >,
     /// The image payload, a container of the image bytes/uri.
     #[serde(default, rename = "imagePayload")]
-    pub image_payload: Option<GoogleCloudDatalabelingV1beta1ImagePayload>,
+    pub image_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImagePayload>>,
     /// Output only. Name of the example, in format of: projects/{project_id}/datasets/{dataset_id}/annotatedDatasets/ {annotated_dataset_id}/examples/{example_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The text payload, a container of the text content.
     #[serde(default, rename = "textPayload")]
-    pub text_payload: Option<GoogleCloudDatalabelingV1beta1TextPayload>,
+    pub text_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextPayload>>,
     /// The video payload, a container of the video uri.
     #[serde(default, rename = "videoPayload")]
-    pub video_payload: Option<GoogleCloudDatalabelingV1beta1VideoPayload>,
+    pub video_payload:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1VideoPayload>>,
 }
 
 /// Example comparisons comparing ground truth output and predictions for a specific input.
@@ -894,10 +1020,13 @@ pub struct GoogleCloudDatalabelingV1beta1Example {
 pub struct GoogleCloudDatalabelingV1beta1ExampleComparison {
     /// The ground truth output for the input.
     #[serde(default, rename = "groundTruthExample")]
-    pub ground_truth_example: Option<GoogleCloudDatalabelingV1beta1Example>,
+    pub ground_truth_example:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Example>>,
     /// Predictions by the model for the input.
     #[serde(default, rename = "modelCreatedExamples")]
-    pub model_created_examples: Option<Vec<GoogleCloudDatalabelingV1beta1Example>>,
+    pub model_created_examples: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Example>>,
+    >,
 }
 
 /// Metadata of an ExportData operation.
@@ -905,16 +1034,17 @@ pub struct GoogleCloudDatalabelingV1beta1ExampleComparison {
 pub struct GoogleCloudDatalabelingV1beta1ExportDataOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Output only. Timestamp when export dataset request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of dataset to be exported. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Response used for ExportDataset longrunning operation.
@@ -922,22 +1052,24 @@ pub struct GoogleCloudDatalabelingV1beta1ExportDataOperationMetadata {
 pub struct GoogleCloudDatalabelingV1beta1ExportDataOperationResponse {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Ouptut only. The name of dataset. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Number of examples exported successfully.
     #[serde(default, rename = "exportCount")]
-    pub export_count: Option<i32>,
+    pub export_count: ::core::option::Option<i32>,
     /// Output only. Statistic infos of labels in the exported dataset.
     #[serde(default, rename = "labelStats")]
-    pub label_stats: Option<GoogleCloudDatalabelingV1beta1LabelStats>,
+    pub label_stats:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelStats>>,
     /// Output only. output_config in the ExportData request.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudDatalabelingV1beta1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1OutputConfig>>,
     /// Output only. Total number of examples requested to export
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<i32>,
+    pub total_count: ::core::option::Option<i32>,
 }
 
 /// Request message for ExportData API.
@@ -945,16 +1077,17 @@ pub struct GoogleCloudDatalabelingV1beta1ExportDataOperationResponse {
 pub struct GoogleCloudDatalabelingV1beta1ExportDataRequest {
     /// Required. Annotated dataset resource name. DataItem in Dataset and their annotations in specified annotated dataset will be exported. It''s in format of projects/{project_id}/datasets/{dataset_id}/annotatedDatasets/ {annotated_dataset_id}
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Optional. Filter is not supported at this moment.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. Specify the output destination.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudDatalabelingV1beta1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1OutputConfig>>,
     /// Email of the user who started the export task and should be notified by email. If empty no notification will be sent.
     #[serde(default, rename = "userEmailAddress")]
-    pub user_email_address: Option<String>,
+    pub user_email_address: ::core::option::Option<String>,
 }
 
 /// A feedback message inside a feedback thread.
@@ -962,20 +1095,20 @@ pub struct GoogleCloudDatalabelingV1beta1ExportDataRequest {
 pub struct GoogleCloudDatalabelingV1beta1FeedbackMessage {
     /// String content of the feedback. Maximum of 10000 characters.
     #[serde(default)]
-    pub body: Option<String>,
+    pub body: ::core::option::Option<String>,
     /// Create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The image storing this feedback if the feedback is an image representing operator''s comments.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// Name of the feedback message in a feedback thread. Format: ''project/{project_id}/datasets/{dataset_id}/annotatedDatasets/{annotated_dataset_id}/feedbackThreads/{feedback_thread_id}/feedbackMessage/{feedback_message_id}''
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "operatorFeedbackMetadata")]
-    pub operator_feedback_metadata: Option<serde_json::Value>,
+    pub operator_feedback_metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "requesterFeedbackMetadata")]
-    pub requester_feedback_metadata: Option<serde_json::Value>,
+    pub requester_feedback_metadata: ::core::option::Option<serde_json::Value>,
 }
 
 /// A feedback thread of a certain labeling task on a certain annotated dataset.
@@ -983,10 +1116,12 @@ pub struct GoogleCloudDatalabelingV1beta1FeedbackMessage {
 pub struct GoogleCloudDatalabelingV1beta1FeedbackThread {
     /// Metadata regarding the feedback thread.
     #[serde(default, rename = "feedbackThreadMetadata")]
-    pub feedback_thread_metadata: Option<GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata>,
+    pub feedback_thread_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata>,
+    >,
     /// Name of the feedback thread. Format: ''project/{project_id}/datasets/{dataset_id}/annotatedDatasets/{annotated_dataset_id}/feedbackThreads/{feedback_thread_id}''
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata resource type.
@@ -994,16 +1129,16 @@ pub struct GoogleCloudDatalabelingV1beta1FeedbackThread {
 pub struct GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata {
     /// When the thread is created
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// When the thread is last updated.
     #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: Option<String>,
+    pub last_update_time: ::core::option::Option<String>,
     /// TODO: enum values: ["FEEDBACK_THREAD_STATUS_UNSPECIFIED", "NEW", "REPLIED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// An image thumbnail of this thread.
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
 }
 
 /// Export destination of the data.Only gcs path is allowed in output_uri.
@@ -1011,10 +1146,10 @@ pub struct GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata {
 pub struct GoogleCloudDatalabelingV1beta1GcsDestination {
     /// Required. The format of the gcs destination. Only "text/csv" and "application/json" are supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Required. The output uri of destination file.
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
 }
 
 /// Export folder destination of the data.
@@ -1022,7 +1157,7 @@ pub struct GoogleCloudDatalabelingV1beta1GcsDestination {
 pub struct GoogleCloudDatalabelingV1beta1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
-    pub output_folder_uri: Option<String>,
+    pub output_folder_uri: ::core::option::Option<String>,
 }
 
 /// Source of the Cloud Storage file to be imported.
@@ -1030,10 +1165,10 @@ pub struct GoogleCloudDatalabelingV1beta1GcsFolderDestination {
 pub struct GoogleCloudDatalabelingV1beta1GcsSource {
     /// Required. The input URI of source file. This must be a Cloud Storage path (gs://...).
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
     /// Required. The format of the source file. Only "text/csv" is supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Configuration for how human labeling task should be done.
@@ -1041,31 +1176,31 @@ pub struct GoogleCloudDatalabelingV1beta1GcsSource {
 pub struct GoogleCloudDatalabelingV1beta1HumanAnnotationConfig {
     /// Optional. A human-readable description for AnnotatedDataset. The description can be up to 10000 characters long.
     #[serde(default, rename = "annotatedDatasetDescription")]
-    pub annotated_dataset_description: Option<String>,
+    pub annotated_dataset_description: ::core::option::Option<String>,
     /// Required. A human-readable name for AnnotatedDataset defined by users. Maximum of 64 characters .
     #[serde(default, rename = "annotatedDatasetDisplayName")]
-    pub annotated_dataset_display_name: Option<String>,
+    pub annotated_dataset_display_name: ::core::option::Option<String>,
     /// Optional. If you want your own labeling contributors to manage and work on this labeling request, you can set these contributors here. We will give them access to the question types in crowdcompute. Note that these emails must be registered in crowdcompute worker UI: https://crowd-compute.appspot.com/
     #[serde(default, rename = "contributorEmails")]
-    pub contributor_emails: Option<Vec<String>>,
+    pub contributor_emails: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Instruction resource name.
     #[serde(default)]
-    pub instruction: Option<String>,
+    pub instruction: ::core::option::Option<String>,
     /// Optional. A human-readable label used to logically group labeling tasks. This string must match the regular expression [a-zA-Z\\d_-]{0,128}.
     #[serde(default, rename = "labelGroup")]
-    pub label_group: Option<String>,
+    pub label_group: ::core::option::Option<String>,
     /// Optional. The Language of this question, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US. Only need to set this when task is language related. For example, French text classification.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Optional. Maximum duration for contributors to answer a question. Maximum is 3600 seconds. Default is 3600 seconds.
     #[serde(default, rename = "questionDuration")]
-    pub question_duration: Option<String>,
+    pub question_duration: ::core::option::Option<String>,
     /// Optional. Replication of questions. Each question will be sent to up to this number of contributors to label. Aggregated answers will be returned. Default is set to 1. For image related labeling, valid values are 1, 3, 5.
     #[serde(default, rename = "replicaCount")]
-    pub replica_count: Option<i32>,
+    pub replica_count: ::core::option::Option<i32>,
     /// Email of the user who started the labeling task and should be notified by email. If empty no notification will be sent.
     #[serde(default, rename = "userEmailAddress")]
-    pub user_email_address: Option<String>,
+    pub user_email_address: ::core::option::Option<String>,
 }
 
 /// Image bounding poly annotation. It represents a polygon including bounding box in the image.
@@ -1073,11 +1208,15 @@ pub struct GoogleCloudDatalabelingV1beta1HumanAnnotationConfig {
 pub struct GoogleCloudDatalabelingV1beta1ImageBoundingPolyAnnotation {
     /// Label of object in this bounding polygon.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudDatalabelingV1beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1BoundingPoly>>,
     #[serde(default, rename = "normalizedBoundingPoly")]
-    pub normalized_bounding_poly: Option<GoogleCloudDatalabelingV1beta1NormalizedBoundingPoly>,
+    pub normalized_bounding_poly: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1NormalizedBoundingPoly>,
+    >,
 }
 
 /// Image classification annotation definition.
@@ -1085,7 +1224,8 @@ pub struct GoogleCloudDatalabelingV1beta1ImageBoundingPolyAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1ImageClassificationAnnotation {
     /// Label of image.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
 }
 
 /// Config for image classification human labeling task.
@@ -1093,13 +1233,13 @@ pub struct GoogleCloudDatalabelingV1beta1ImageClassificationAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1ImageClassificationConfig {
     /// Optional. If allow_multi_label is true, contributors are able to choose multiple labels for one image.
     #[serde(default, rename = "allowMultiLabel")]
-    pub allow_multi_label: Option<bool>,
+    pub allow_multi_label: ::core::option::Option<bool>,
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
     /// Optional. The type of how to aggregate answers. // TODO: enum values: ["STRING_AGGREGATION_TYPE_UNSPECIFIED", "MAJORITY_VOTE", "UNANIMOUS_VOTE", "NO_AGGREGATION"]
     #[serde(default, rename = "answerAggregationType")]
-    pub answer_aggregation_type: Option<String>,
+    pub answer_aggregation_type: ::core::option::Option<String>,
 }
 
 /// Container of information about an image.
@@ -1107,16 +1247,16 @@ pub struct GoogleCloudDatalabelingV1beta1ImageClassificationConfig {
 pub struct GoogleCloudDatalabelingV1beta1ImagePayload {
     /// A byte string of a thumbnail image.
     #[serde(default, rename = "imageThumbnail")]
-    pub image_thumbnail: Option<String>,
+    pub image_thumbnail: ::core::option::Option<String>,
     /// Image uri from the user bucket.
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
     /// Image format.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Signed uri of the image file in the service bucket.
     #[serde(default, rename = "signedUri")]
-    pub signed_uri: Option<String>,
+    pub signed_uri: ::core::option::Option<String>,
 }
 
 /// A polyline for the image annotation.
@@ -1124,11 +1264,13 @@ pub struct GoogleCloudDatalabelingV1beta1ImagePayload {
 pub struct GoogleCloudDatalabelingV1beta1ImagePolylineAnnotation {
     /// Label of this polyline.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     #[serde(default, rename = "normalizedPolyline")]
-    pub normalized_polyline: Option<GoogleCloudDatalabelingV1beta1NormalizedPolyline>,
+    pub normalized_polyline:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1NormalizedPolyline>>,
     #[serde(default)]
-    pub polyline: Option<GoogleCloudDatalabelingV1beta1Polyline>,
+    pub polyline: ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Polyline>>,
 }
 
 /// Image segmentation annotation.
@@ -1136,13 +1278,13 @@ pub struct GoogleCloudDatalabelingV1beta1ImagePolylineAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1ImageSegmentationAnnotation {
     /// The mapping between rgb color and annotation spec. The key is the rgb color represented in format of rgb(0, 0, 0). The value is the AnnotationSpec.
     #[serde(default, rename = "annotationColors")]
-    pub annotation_colors: Option<serde_json::Value>,
+    pub annotation_colors: ::core::option::Option<serde_json::Value>,
     /// A byte string of a full image''s color map.
     #[serde(default, rename = "imageBytes")]
-    pub image_bytes: Option<String>,
+    pub image_bytes: ::core::option::Option<String>,
     /// Image format.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Metadata of an ImportData operation.
@@ -1150,13 +1292,14 @@ pub struct GoogleCloudDatalabelingV1beta1ImageSegmentationAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1ImportDataOperationMetadata {
     /// Output only. Timestamp when import dataset request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of imported dataset. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Response used for ImportData longrunning operation.
@@ -1164,13 +1307,13 @@ pub struct GoogleCloudDatalabelingV1beta1ImportDataOperationMetadata {
 pub struct GoogleCloudDatalabelingV1beta1ImportDataOperationResponse {
     /// Ouptut only. The name of imported dataset.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Number of examples imported successfully.
     #[serde(default, rename = "importCount")]
-    pub import_count: Option<i32>,
+    pub import_count: ::core::option::Option<i32>,
     /// Output only. Total number of examples requested to import
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<i32>,
+    pub total_count: ::core::option::Option<i32>,
 }
 
 /// Request message for ImportData API.
@@ -1178,10 +1321,11 @@ pub struct GoogleCloudDatalabelingV1beta1ImportDataOperationResponse {
 pub struct GoogleCloudDatalabelingV1beta1ImportDataRequest {
     /// Required. Specify the input source of the data.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudDatalabelingV1beta1InputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1InputConfig>>,
     /// Email of the user who started the import task and should be notified by email. If empty no notification will be sent.
     #[serde(default, rename = "userEmailAddress")]
-    pub user_email_address: Option<String>,
+    pub user_email_address: ::core::option::Option<String>,
 }
 
 /// The configuration of input data, including data type, location, etc.
@@ -1189,22 +1333,27 @@ pub struct GoogleCloudDatalabelingV1beta1ImportDataRequest {
 pub struct GoogleCloudDatalabelingV1beta1InputConfig {
     /// Optional. The type of annotation to be performed on this data. You must specify this field if you are using this InputConfig in an EvaluationJob. // TODO: enum values: ["ANNOTATION_TYPE_UNSPECIFIED", "IMAGE_CLASSIFICATION_ANNOTATION", "IMAGE_BOUNDING_BOX_ANNOTATION", "IMAGE_ORIENTED_BOUNDING_BOX_ANNOTATION", "IMAGE_BOUNDING_POLY_ANNOTATION", "IMAGE_POLYLINE_ANNOTATION", "IMAGE_SEGMENTATION_ANNOTATION", "VIDEO_SHOTS_CLASSIFICATION_ANNOTATION", "VIDEO_OBJECT_TRACKING_ANNOTATION", "VIDEO_OBJECT_DETECTION_ANNOTATION", "VIDEO_EVENT_ANNOTATION", "TEXT_CLASSIFICATION_ANNOTATION", "TEXT_ENTITY_EXTRACTION_ANNOTATION", "GENERAL_CLASSIFICATION_ANNOTATION"]
     #[serde(default, rename = "annotationType")]
-    pub annotation_type: Option<String>,
+    pub annotation_type: ::core::option::Option<String>,
     /// Source located in BigQuery. You must specify this field if you are using this InputConfig in an EvaluationJob.
     #[serde(default, rename = "bigquerySource")]
-    pub bigquery_source: Option<GoogleCloudDatalabelingV1beta1BigQuerySource>,
+    pub bigquery_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1BigQuerySource>>,
     /// Optional. Metadata about annotations for the input. You must specify this field if you are using this InputConfig in an EvaluationJob for a model version that performs classification.
     #[serde(default, rename = "classificationMetadata")]
-    pub classification_metadata: Option<GoogleCloudDatalabelingV1beta1ClassificationMetadata>,
+    pub classification_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ClassificationMetadata>,
+    >,
     /// Required. Data type must be specifed when user tries to import data. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "IMAGE", "VIDEO", "TEXT", "GENERAL_DATA"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
     /// Source located in Cloud Storage.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudDatalabelingV1beta1GcsSource>,
+    pub gcs_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1GcsSource>>,
     /// Required for text import, as language code must be specified.
     #[serde(default, rename = "textMetadata")]
-    pub text_metadata: Option<GoogleCloudDatalabelingV1beta1TextMetadata>,
+    pub text_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextMetadata>>,
 }
 
 /// Instruction of how to perform the labeling task for human operators. Currently only PDF instruction is supported.
@@ -1212,31 +1361,33 @@ pub struct GoogleCloudDatalabelingV1beta1InputConfig {
 pub struct GoogleCloudDatalabelingV1beta1Instruction {
     /// Output only. The names of any related resources that are blocking changes to the instruction.
     #[serde(default, rename = "blockingResources")]
-    pub blocking_resources: Option<Vec<String>>,
+    pub blocking_resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Creation time of instruction.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Deprecated: this instruction format is not supported any more. Instruction from a CSV file, such as for classification task. The CSV file should have exact two columns, in the following format: * The first column is labeled data, such as an image reference, text. * The second column is comma separated labels associated with data.
     #[serde(default, rename = "csvInstruction")]
-    pub csv_instruction: Option<GoogleCloudDatalabelingV1beta1CsvInstruction>,
+    pub csv_instruction:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1CsvInstruction>>,
     /// Required. The data type of this instruction. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "IMAGE", "VIDEO", "TEXT", "GENERAL_DATA"]
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<String>,
+    pub data_type: ::core::option::Option<String>,
     /// Optional. User-provided description of the instruction. The description can be up to 10000 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The display name of the instruction. Maximum of 64 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Instruction resource name, format: projects/{project_id}/instructions/{instruction_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Instruction from a PDF document. The PDF should be in a Cloud Storage bucket.
     #[serde(default, rename = "pdfInstruction")]
-    pub pdf_instruction: Option<GoogleCloudDatalabelingV1beta1PdfInstruction>,
+    pub pdf_instruction:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1PdfInstruction>>,
     /// Output only. Last update time of instruction.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Details of a LabelImageBoundingBox operation metadata.
@@ -1244,7 +1395,9 @@ pub struct GoogleCloudDatalabelingV1beta1Instruction {
 pub struct GoogleCloudDatalabelingV1beta1LabelImageBoundingBoxOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of LabelImageBoundingPoly operation metadata.
@@ -1252,7 +1405,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageBoundingBoxOperationMetadata 
 pub struct GoogleCloudDatalabelingV1beta1LabelImageBoundingPolyOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Metadata of a LabelImageClassification operation.
@@ -1260,7 +1415,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageBoundingPolyOperationMetadata
 pub struct GoogleCloudDatalabelingV1beta1LabelImageClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelImageOrientedBoundingBox operation metadata.
@@ -1268,7 +1425,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageClassificationOperationMetada
 pub struct GoogleCloudDatalabelingV1beta1LabelImageOrientedBoundingBoxOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of LabelImagePolyline operation metadata.
@@ -1276,7 +1435,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageOrientedBoundingBoxOperationM
 pub struct GoogleCloudDatalabelingV1beta1LabelImagePolylineOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 ///  Request message for starting an image labeling task.
@@ -1284,23 +1445,29 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImagePolylineOperationMetadata {
 pub struct GoogleCloudDatalabelingV1beta1LabelImageRequest {
     /// Required. Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
     /// Configuration for bounding box and bounding poly task. One of image_classification_config, bounding_poly_config, polyline_config and segmentation_config are required.
     #[serde(default, rename = "boundingPolyConfig")]
-    pub bounding_poly_config: Option<GoogleCloudDatalabelingV1beta1BoundingPolyConfig>,
+    pub bounding_poly_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1BoundingPolyConfig>>,
     /// Required. The type of image labeling task. // TODO: enum values: ["FEATURE_UNSPECIFIED", "CLASSIFICATION", "BOUNDING_BOX", "ORIENTED_BOUNDING_BOX", "BOUNDING_POLY", "POLYLINE", "SEGMENTATION"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// Configuration for image classification task. One of image_classification_config, bounding_poly_config, polyline_config and segmentation_config are required.
     #[serde(default, rename = "imageClassificationConfig")]
-    pub image_classification_config:
-        Option<GoogleCloudDatalabelingV1beta1ImageClassificationConfig>,
+    pub image_classification_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ImageClassificationConfig>,
+    >,
     /// Configuration for polyline task. One of image_classification_config, bounding_poly_config, polyline_config and segmentation_config are required.
     #[serde(default, rename = "polylineConfig")]
-    pub polyline_config: Option<GoogleCloudDatalabelingV1beta1PolylineConfig>,
+    pub polyline_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1PolylineConfig>>,
     /// Configuration for segmentation task. One of image_classification_config, bounding_poly_config, polyline_config and segmentation_config are required.
     #[serde(default, rename = "segmentationConfig")]
-    pub segmentation_config: Option<GoogleCloudDatalabelingV1beta1SegmentationConfig>,
+    pub segmentation_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1SegmentationConfig>>,
 }
 
 /// Details of a LabelImageSegmentation operation metadata.
@@ -1308,7 +1475,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageRequest {
 pub struct GoogleCloudDatalabelingV1beta1LabelImageSegmentationOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Metadata of a labeling operation, such as LabelImage or LabelVideo. Next tag: 23
@@ -1316,66 +1485,82 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageSegmentationOperationMetadata
 pub struct GoogleCloudDatalabelingV1beta1LabelOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Output only. Timestamp when labeling request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of dataset to be labeled. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Details of label image bounding box operation.
     #[serde(default, rename = "imageBoundingBoxDetails")]
-    pub image_bounding_box_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelImageBoundingBoxOperationMetadata>,
+    pub image_bounding_box_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelImageBoundingBoxOperationMetadata>,
+    >,
     /// Details of label image bounding poly operation.
     #[serde(default, rename = "imageBoundingPolyDetails")]
-    pub image_bounding_poly_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelImageBoundingPolyOperationMetadata>,
+    pub image_bounding_poly_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelImageBoundingPolyOperationMetadata>,
+    >,
     /// Details of label image classification operation.
     #[serde(default, rename = "imageClassificationDetails")]
-    pub image_classification_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelImageClassificationOperationMetadata>,
+    pub image_classification_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelImageClassificationOperationMetadata>,
+    >,
     /// Details of label image oriented bounding box operation.
     #[serde(default, rename = "imageOrientedBoundingBoxDetails")]
-    pub image_oriented_bounding_box_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelImageOrientedBoundingBoxOperationMetadata>,
+    pub image_oriented_bounding_box_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1beta1LabelImageOrientedBoundingBoxOperationMetadata,
+        >,
+    >,
     /// Details of label image polyline operation.
     #[serde(default, rename = "imagePolylineDetails")]
-    pub image_polyline_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelImagePolylineOperationMetadata>,
+    pub image_polyline_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelImagePolylineOperationMetadata>,
+    >,
     /// Details of label image segmentation operation.
     #[serde(default, rename = "imageSegmentationDetails")]
-    pub image_segmentation_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelImageSegmentationOperationMetadata>,
+    pub image_segmentation_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelImageSegmentationOperationMetadata>,
+    >,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. Progress of label operation. Range: [0, 100].
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Details of label text classification operation.
     #[serde(default, rename = "textClassificationDetails")]
-    pub text_classification_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelTextClassificationOperationMetadata>,
+    pub text_classification_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelTextClassificationOperationMetadata>,
+    >,
     /// Details of label text entity extraction operation.
     #[serde(default, rename = "textEntityExtractionDetails")]
-    pub text_entity_extraction_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelTextEntityExtractionOperationMetadata>,
+    pub text_entity_extraction_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelTextEntityExtractionOperationMetadata>,
+    >,
     /// Details of label video classification operation.
     #[serde(default, rename = "videoClassificationDetails")]
-    pub video_classification_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelVideoClassificationOperationMetadata>,
+    pub video_classification_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelVideoClassificationOperationMetadata>,
+    >,
     /// Details of label video event operation.
     #[serde(default, rename = "videoEventDetails")]
-    pub video_event_details: Option<GoogleCloudDatalabelingV1beta1LabelVideoEventOperationMetadata>,
+    pub video_event_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelVideoEventOperationMetadata>,
+    >,
     /// Details of label video object detection operation.
     #[serde(default, rename = "videoObjectDetectionDetails")]
-    pub video_object_detection_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelVideoObjectDetectionOperationMetadata>,
+    pub video_object_detection_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelVideoObjectDetectionOperationMetadata>,
+    >,
     /// Details of label video object tracking operation.
     #[serde(default, rename = "videoObjectTrackingDetails")]
-    pub video_object_tracking_details:
-        Option<GoogleCloudDatalabelingV1beta1LabelVideoObjectTrackingOperationMetadata>,
+    pub video_object_tracking_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1LabelVideoObjectTrackingOperationMetadata>,
+    >,
 }
 
 /// Details of a LabelTextClassification operation metadata.
@@ -1383,7 +1568,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelOperationMetadata {
 pub struct GoogleCloudDatalabelingV1beta1LabelTextClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelTextEntityExtraction operation metadata.
@@ -1391,7 +1578,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelTextClassificationOperationMetadat
 pub struct GoogleCloudDatalabelingV1beta1LabelTextEntityExtractionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Request message for LabelText.
@@ -1399,17 +1588,22 @@ pub struct GoogleCloudDatalabelingV1beta1LabelTextEntityExtractionOperationMetad
 pub struct GoogleCloudDatalabelingV1beta1LabelTextRequest {
     /// Required. Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
     /// Required. The type of text labeling task. // TODO: enum values: ["FEATURE_UNSPECIFIED", "TEXT_CLASSIFICATION", "TEXT_ENTITY_EXTRACTION"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// Configuration for text classification task. One of text_classification_config and text_entity_extraction_config is required.
     #[serde(default, rename = "textClassificationConfig")]
-    pub text_classification_config: Option<GoogleCloudDatalabelingV1beta1TextClassificationConfig>,
+    pub text_classification_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextClassificationConfig>,
+    >,
     /// Configuration for entity extraction task. One of text_classification_config and text_entity_extraction_config is required.
     #[serde(default, rename = "textEntityExtractionConfig")]
-    pub text_entity_extraction_config:
-        Option<GoogleCloudDatalabelingV1beta1TextEntityExtractionConfig>,
+    pub text_entity_extraction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1TextEntityExtractionConfig>,
+    >,
 }
 
 /// Details of a LabelVideoClassification operation metadata.
@@ -1417,7 +1611,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelTextRequest {
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoEvent operation metadata.
@@ -1425,7 +1621,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoClassificationOperationMetada
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoEventOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoObjectDetection operation metadata.
@@ -1433,7 +1631,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoEventOperationMetadata {
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoObjectDetectionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoObjectTracking operation metadata.
@@ -1441,7 +1641,9 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoObjectDetectionOperationMetad
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoObjectTrackingOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
 }
 
 ///  Request message for LabelVideo.
@@ -1449,23 +1651,31 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoObjectTrackingOperationMetada
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoRequest {
     /// Required. Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1HumanAnnotationConfig>,
+    >,
     /// Configuration for video event task. One of video_classification_config, object_detection_config, object_tracking_config and event_config is required.
     #[serde(default, rename = "eventConfig")]
-    pub event_config: Option<GoogleCloudDatalabelingV1beta1EventConfig>,
+    pub event_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1EventConfig>>,
     /// Required. The type of video labeling task. // TODO: enum values: ["FEATURE_UNSPECIFIED", "CLASSIFICATION", "OBJECT_DETECTION", "OBJECT_TRACKING", "EVENT"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// Configuration for video object detection task. One of video_classification_config, object_detection_config, object_tracking_config and event_config is required.
     #[serde(default, rename = "objectDetectionConfig")]
-    pub object_detection_config: Option<GoogleCloudDatalabelingV1beta1ObjectDetectionConfig>,
+    pub object_detection_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ObjectDetectionConfig>,
+    >,
     /// Configuration for video object tracking task. One of video_classification_config, object_detection_config, object_tracking_config and event_config is required.
     #[serde(default, rename = "objectTrackingConfig")]
-    pub object_tracking_config: Option<GoogleCloudDatalabelingV1beta1ObjectTrackingConfig>,
+    pub object_tracking_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1ObjectTrackingConfig>,
+    >,
     /// Configuration for video classification task. One of video_classification_config, object_detection_config, object_tracking_config and event_config is required.
     #[serde(default, rename = "videoClassificationConfig")]
-    pub video_classification_config:
-        Option<GoogleCloudDatalabelingV1beta1VideoClassificationConfig>,
+    pub video_classification_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1VideoClassificationConfig>,
+    >,
 }
 
 /// Results of listing annotated datasets for a dataset.
@@ -1473,10 +1683,12 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoRequest {
 pub struct GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse {
     /// The list of annotated datasets to return.
     #[serde(default, rename = "annotatedDatasets")]
-    pub annotated_datasets: Option<Vec<GoogleCloudDatalabelingV1beta1AnnotatedDataset>>,
+    pub annotated_datasets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotatedDataset>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Results of listing annotation spec set under a project.
@@ -1484,10 +1696,12 @@ pub struct GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse {
 pub struct GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse {
     /// The list of annotation spec sets.
     #[serde(default, rename = "annotationSpecSets")]
-    pub annotation_spec_sets: Option<Vec<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>>,
+    pub annotation_spec_sets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Results of listing data items in a dataset.
@@ -1495,10 +1709,12 @@ pub struct GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse {
 pub struct GoogleCloudDatalabelingV1beta1ListDataItemsResponse {
     /// The list of data items to return.
     #[serde(default, rename = "dataItems")]
-    pub data_items: Option<Vec<GoogleCloudDatalabelingV1beta1DataItem>>,
+    pub data_items: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1DataItem>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Results of listing datasets within a project.
@@ -1506,10 +1722,12 @@ pub struct GoogleCloudDatalabelingV1beta1ListDataItemsResponse {
 pub struct GoogleCloudDatalabelingV1beta1ListDatasetsResponse {
     /// The list of datasets to return.
     #[serde(default)]
-    pub datasets: Option<Vec<GoogleCloudDatalabelingV1beta1Dataset>>,
+    pub datasets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Dataset>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Results for listing evaluation jobs.
@@ -1517,10 +1735,12 @@ pub struct GoogleCloudDatalabelingV1beta1ListDatasetsResponse {
 pub struct GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse {
     /// The list of evaluation jobs to return.
     #[serde(default, rename = "evaluationJobs")]
-    pub evaluation_jobs: Option<Vec<GoogleCloudDatalabelingV1beta1EvaluationJob>>,
+    pub evaluation_jobs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1EvaluationJob>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Results of listing Examples in and annotated dataset.
@@ -1528,10 +1748,12 @@ pub struct GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse {
 pub struct GoogleCloudDatalabelingV1beta1ListExamplesResponse {
     /// The list of examples to return.
     #[serde(default)]
-    pub examples: Option<Vec<GoogleCloudDatalabelingV1beta1Example>>,
+    pub examples: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Example>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Results for listing FeedbackMessages.
@@ -1539,10 +1761,12 @@ pub struct GoogleCloudDatalabelingV1beta1ListExamplesResponse {
 pub struct GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse {
     /// The list of feedback messages to return.
     #[serde(default, rename = "feedbackMessages")]
-    pub feedback_messages: Option<Vec<GoogleCloudDatalabelingV1beta1FeedbackMessage>>,
+    pub feedback_messages: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1FeedbackMessage>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Results for listing FeedbackThreads.
@@ -1550,10 +1774,12 @@ pub struct GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse {
 pub struct GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse {
     /// The list of feedback threads to return.
     #[serde(default, rename = "feedbackThreads")]
-    pub feedback_threads: Option<Vec<GoogleCloudDatalabelingV1beta1FeedbackThread>>,
+    pub feedback_threads: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1FeedbackThread>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Results of listing instructions under a project.
@@ -1561,10 +1787,12 @@ pub struct GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse {
 pub struct GoogleCloudDatalabelingV1beta1ListInstructionsResponse {
     /// The list of Instructions to return.
     #[serde(default)]
-    pub instructions: Option<Vec<GoogleCloudDatalabelingV1beta1Instruction>>,
+    pub instructions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Instruction>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Normalized bounding polygon.
@@ -1572,7 +1800,9 @@ pub struct GoogleCloudDatalabelingV1beta1ListInstructionsResponse {
 pub struct GoogleCloudDatalabelingV1beta1NormalizedBoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices: Option<Vec<GoogleCloudDatalabelingV1beta1NormalizedVertex>>,
+    pub normalized_vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1NormalizedVertex>>,
+    >,
 }
 
 /// Normalized polyline.
@@ -1580,7 +1810,9 @@ pub struct GoogleCloudDatalabelingV1beta1NormalizedBoundingPoly {
 pub struct GoogleCloudDatalabelingV1beta1NormalizedPolyline {
     /// The normalized polyline vertices.
     #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices: Option<Vec<GoogleCloudDatalabelingV1beta1NormalizedVertex>>,
+    pub normalized_vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1NormalizedVertex>>,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -1588,10 +1820,10 @@ pub struct GoogleCloudDatalabelingV1beta1NormalizedPolyline {
 pub struct GoogleCloudDatalabelingV1beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Config for video object detection human labeling task. Object detection will be conducted on the images extracted from the video, and those objects will be labeled with bounding boxes. User need to specify the number of images to be extracted per second as the extraction frame rate.
@@ -1599,10 +1831,10 @@ pub struct GoogleCloudDatalabelingV1beta1NormalizedVertex {
 pub struct GoogleCloudDatalabelingV1beta1ObjectDetectionConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
     /// Required. Number of frames per second to be extracted from the video.
     #[serde(default, rename = "extractionFrameRate")]
-    pub extraction_frame_rate: Option<f64>,
+    pub extraction_frame_rate: ::core::option::Option<f64>,
 }
 
 /// Metrics calculated for an image object detection (bounding box) model.
@@ -1610,7 +1842,7 @@ pub struct GoogleCloudDatalabelingV1beta1ObjectDetectionConfig {
 pub struct GoogleCloudDatalabelingV1beta1ObjectDetectionMetrics {
     /// Precision-recall curve.
     #[serde(default, rename = "prCurve")]
-    pub pr_curve: Option<GoogleCloudDatalabelingV1beta1PrCurve>,
+    pub pr_curve: ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1PrCurve>>,
 }
 
 /// Config for video object tracking human labeling task.
@@ -1618,25 +1850,28 @@ pub struct GoogleCloudDatalabelingV1beta1ObjectDetectionMetrics {
 pub struct GoogleCloudDatalabelingV1beta1ObjectTrackingConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
     /// Videos will be cut to smaller clips to make it easier for labelers to work on. Users can configure is field in seconds, if not set, default value is 20s.
     #[serde(default, rename = "clipLength")]
-    pub clip_length: Option<i32>,
+    pub clip_length: ::core::option::Option<i32>,
     /// The overlap length between different video clips. Users can configure is field in seconds, if not set, default value is 0.3s.
     #[serde(default, rename = "overlapLength")]
-    pub overlap_length: Option<i32>,
+    pub overlap_length: ::core::option::Option<i32>,
 }
 
 /// Video frame level annotation for object detection and tracking.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatalabelingV1beta1ObjectTrackingFrame {
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudDatalabelingV1beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1BoundingPoly>>,
     #[serde(default, rename = "normalizedBoundingPoly")]
-    pub normalized_bounding_poly: Option<GoogleCloudDatalabelingV1beta1NormalizedBoundingPoly>,
+    pub normalized_bounding_poly: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1NormalizedBoundingPoly>,
+    >,
     /// The time offset of this frame relative to the beginning of the video.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// General information useful for labels coming from contributors.
@@ -1644,16 +1879,16 @@ pub struct GoogleCloudDatalabelingV1beta1ObjectTrackingFrame {
 pub struct GoogleCloudDatalabelingV1beta1OperatorMetadata {
     /// Comments from contributors.
     #[serde(default)]
-    pub comments: Option<Vec<String>>,
+    pub comments: ::core::option::Option<::std::vec::Vec<String>>,
     /// The total number of contributors that choose this label.
     #[serde(default, rename = "labelVotes")]
-    pub label_votes: Option<i32>,
+    pub label_votes: ::core::option::Option<i32>,
     /// Confidence score corresponding to a label. For examle, if 3 contributors have answered the question and 2 of them agree on the final label, the confidence score will be 0.67 (2/3).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The total number of contributors that answer this question.
     #[serde(default, rename = "totalVotes")]
-    pub total_votes: Option<i32>,
+    pub total_votes: ::core::option::Option<i32>,
 }
 
 /// The configuration of output data.
@@ -1661,10 +1896,13 @@ pub struct GoogleCloudDatalabelingV1beta1OperatorMetadata {
 pub struct GoogleCloudDatalabelingV1beta1OutputConfig {
     /// Output to a file in Cloud Storage. Should be used for labeling output other than image segmentation.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudDatalabelingV1beta1GcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1GcsDestination>>,
     /// Output to a folder in Cloud Storage. Should be used for image segmentation or document de-identification labeling outputs.
     #[serde(default, rename = "gcsFolderDestination")]
-    pub gcs_folder_destination: Option<GoogleCloudDatalabelingV1beta1GcsFolderDestination>,
+    pub gcs_folder_destination: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1beta1GcsFolderDestination>,
+    >,
 }
 
 /// Instruction from a PDF file.
@@ -1672,7 +1910,7 @@ pub struct GoogleCloudDatalabelingV1beta1OutputConfig {
 pub struct GoogleCloudDatalabelingV1beta1PdfInstruction {
     /// PDF file for the instruction. Only gcs path is allowed.
     #[serde(default, rename = "gcsFileUri")]
-    pub gcs_file_uri: Option<String>,
+    pub gcs_file_uri: ::core::option::Option<String>,
 }
 
 /// A line with multiple line segments.
@@ -1680,7 +1918,9 @@ pub struct GoogleCloudDatalabelingV1beta1PdfInstruction {
 pub struct GoogleCloudDatalabelingV1beta1Polyline {
     /// The polyline vertices.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudDatalabelingV1beta1Vertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Vertex>>,
+    >,
 }
 
 /// Config for image polyline human labeling task.
@@ -1688,10 +1928,10 @@ pub struct GoogleCloudDatalabelingV1beta1Polyline {
 pub struct GoogleCloudDatalabelingV1beta1PolylineConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
     /// Optional. Instruction message showed on contributors UI.
     #[serde(default, rename = "instructionMessage")]
-    pub instruction_message: Option<String>,
+    pub instruction_message: ::core::option::Option<String>,
 }
 
 /// GoogleCloudDatalabelingV1beta1PrCurve resource type.
@@ -1699,17 +1939,19 @@ pub struct GoogleCloudDatalabelingV1beta1PolylineConfig {
 pub struct GoogleCloudDatalabelingV1beta1PrCurve {
     /// The annotation spec of the label for which the precision-recall curve calculated. If this field is empty, that means the precision-recall curve is an aggregate curve for all labels.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     /// Area under the precision-recall curve. Not to be confused with area under a receiver operating characteristic (ROC) curve.
     #[serde(default, rename = "areaUnderCurve")]
-    pub area_under_curve: Option<f32>,
+    pub area_under_curve: ::core::option::Option<f32>,
     /// Entries that make up the precision-recall graph. Each entry is a "point" on the graph drawn for a different confidence_threshold.
     #[serde(default, rename = "confidenceMetricsEntries")]
-    pub confidence_metrics_entries:
-        Option<Vec<GoogleCloudDatalabelingV1beta1ConfidenceMetricsEntry>>,
+    pub confidence_metrics_entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1ConfidenceMetricsEntry>>,
+    >,
     /// Mean average prcision of this curve.
     #[serde(default, rename = "meanAveragePrecision")]
-    pub mean_average_precision: Option<f32>,
+    pub mean_average_precision: ::core::option::Option<f32>,
 }
 
 /// A row in the confusion matrix. Each entry in this row has the same ground truth label.
@@ -1717,10 +1959,13 @@ pub struct GoogleCloudDatalabelingV1beta1PrCurve {
 pub struct GoogleCloudDatalabelingV1beta1Row {
     /// The annotation spec of the ground truth label for this row.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     /// A list of the confusion matrix entries. One entry for each possible predicted label.
     #[serde(default)]
-    pub entries: Option<Vec<GoogleCloudDatalabelingV1beta1ConfusionMatrixEntry>>,
+    pub entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1ConfusionMatrixEntry>>,
+    >,
 }
 
 /// Results of searching evaluations.
@@ -1728,10 +1973,12 @@ pub struct GoogleCloudDatalabelingV1beta1Row {
 pub struct GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse {
     /// The list of evaluations matching the search.
     #[serde(default)]
-    pub evaluations: Option<Vec<GoogleCloudDatalabelingV1beta1Evaluation>>,
+    pub evaluations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1Evaluation>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Request message of SearchExampleComparisons.
@@ -1739,10 +1986,10 @@ pub struct GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse {
 pub struct GoogleCloudDatalabelingV1beta1SearchExampleComparisonsRequest {
     /// Optional. Requested page size. Server may return fewer results than requested. Default value is 100.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// Optional. A token identifying a page of results for the server to return. Typically obtained by the nextPageToken of the response to a previous search rquest. If you don''t specify this field, the API call requests the first page of the search.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
 }
 
 /// Results of searching example comparisons.
@@ -1750,10 +1997,12 @@ pub struct GoogleCloudDatalabelingV1beta1SearchExampleComparisonsRequest {
 pub struct GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse {
     /// A list of example comparisons matching the search criteria.
     #[serde(default, rename = "exampleComparisons")]
-    pub example_comparisons: Option<Vec<GoogleCloudDatalabelingV1beta1ExampleComparison>>,
+    pub example_comparisons: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1ExampleComparison>>,
+    >,
     /// A token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Config for image segmentation
@@ -1761,10 +2010,10 @@ pub struct GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse {
 pub struct GoogleCloudDatalabelingV1beta1SegmentationConfig {
     /// Required. Annotation spec set resource name. format: projects/{project_id}/annotationSpecSets/{annotation_spec_set_id}
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
     /// Instruction message showed on labelers UI.
     #[serde(default, rename = "instructionMessage")]
-    pub instruction_message: Option<String>,
+    pub instruction_message: ::core::option::Option<String>,
 }
 
 /// Config for setting up sentiments.
@@ -1772,7 +2021,7 @@ pub struct GoogleCloudDatalabelingV1beta1SegmentationConfig {
 pub struct GoogleCloudDatalabelingV1beta1SentimentConfig {
     /// If set to true, contributors will have the option to select sentiment of the label they selected, to mark it as negative or positive label. Default is false.
     #[serde(default, rename = "enableLabelSentimentSelection")]
-    pub enable_label_sentiment_selection: Option<bool>,
+    pub enable_label_sentiment_selection: ::core::option::Option<bool>,
 }
 
 /// Start and end position in a sequence (e.g. text segment).
@@ -1780,10 +2029,10 @@ pub struct GoogleCloudDatalabelingV1beta1SentimentConfig {
 pub struct GoogleCloudDatalabelingV1beta1SequentialSegment {
     /// End position (exclusive).
     #[serde(default)]
-    pub end: Option<i32>,
+    pub end: ::core::option::Option<i32>,
     /// Start position (inclusive).
     #[serde(default)]
-    pub start: Option<i32>,
+    pub start: ::core::option::Option<i32>,
 }
 
 /// Text classification annotation.
@@ -1791,7 +2040,8 @@ pub struct GoogleCloudDatalabelingV1beta1SequentialSegment {
 pub struct GoogleCloudDatalabelingV1beta1TextClassificationAnnotation {
     /// Label of the text.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
 }
 
 /// Config for text classification human labeling task.
@@ -1799,13 +2049,14 @@ pub struct GoogleCloudDatalabelingV1beta1TextClassificationAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1TextClassificationConfig {
     /// Optional. If allow_multi_label is true, contributors are able to choose multiple labels for one text segment.
     #[serde(default, rename = "allowMultiLabel")]
-    pub allow_multi_label: Option<bool>,
+    pub allow_multi_label: ::core::option::Option<bool>,
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
     /// Optional. Configs for sentiment selection. We deprecate sentiment analysis in data labeling side as it is incompatible with uCAIP.
     #[serde(default, rename = "sentimentConfig")]
-    pub sentiment_config: Option<GoogleCloudDatalabelingV1beta1SentimentConfig>,
+    pub sentiment_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1SentimentConfig>>,
 }
 
 /// Text entity extraction annotation.
@@ -1813,10 +2064,12 @@ pub struct GoogleCloudDatalabelingV1beta1TextClassificationConfig {
 pub struct GoogleCloudDatalabelingV1beta1TextEntityExtractionAnnotation {
     /// Label of the text entities.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     /// Position of the entity.
     #[serde(default, rename = "sequentialSegment")]
-    pub sequential_segment: Option<GoogleCloudDatalabelingV1beta1SequentialSegment>,
+    pub sequential_segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1SequentialSegment>>,
 }
 
 /// Config for text entity extraction human labeling task.
@@ -1824,7 +2077,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextEntityExtractionAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1TextEntityExtractionConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
-    pub annotation_spec_set: Option<String>,
+    pub annotation_spec_set: ::core::option::Option<String>,
 }
 
 /// Metadata for the text.
@@ -1832,7 +2085,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextEntityExtractionConfig {
 pub struct GoogleCloudDatalabelingV1beta1TextMetadata {
     /// The language of this text, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Container of information about a piece of text.
@@ -1840,7 +2093,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextMetadata {
 pub struct GoogleCloudDatalabelingV1beta1TextPayload {
     /// Text content.
     #[serde(default, rename = "textContent")]
-    pub text_content: Option<String>,
+    pub text_content: ::core::option::Option<String>,
 }
 
 /// A time period inside of an example that has a time dimension (e.g. video).
@@ -1848,10 +2101,10 @@ pub struct GoogleCloudDatalabelingV1beta1TextPayload {
 pub struct GoogleCloudDatalabelingV1beta1TimeSegment {
     /// End of the time segment (exclusive), represented as the duration since the example start.
     #[serde(default, rename = "endTimeOffset")]
-    pub end_time_offset: Option<String>,
+    pub end_time_offset: ::core::option::Option<String>,
     /// Start of the time segment (inclusive), represented as the duration since the example start.
     #[serde(default, rename = "startTimeOffset")]
-    pub start_time_offset: Option<String>,
+    pub start_time_offset: ::core::option::Option<String>,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
@@ -1859,10 +2112,10 @@ pub struct GoogleCloudDatalabelingV1beta1TimeSegment {
 pub struct GoogleCloudDatalabelingV1beta1Vertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<i32>,
+    pub x: ::core::option::Option<i32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<i32>,
+    pub y: ::core::option::Option<i32>,
 }
 
 /// Video classification annotation.
@@ -1870,10 +2123,12 @@ pub struct GoogleCloudDatalabelingV1beta1Vertex {
 pub struct GoogleCloudDatalabelingV1beta1VideoClassificationAnnotation {
     /// Label of the segment specified by time_segment.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     /// The time segment of the video to which the annotation applies.
     #[serde(default, rename = "timeSegment")]
-    pub time_segment: Option<GoogleCloudDatalabelingV1beta1TimeSegment>,
+    pub time_segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1TimeSegment>>,
 }
 
 /// Config for video classification human labeling task. Currently two types of video classification are supported: 1. Assign labels on the entire video. 2. Split the video into multiple video clips based on camera shot, and assign labels on each video clip.
@@ -1881,11 +2136,12 @@ pub struct GoogleCloudDatalabelingV1beta1VideoClassificationAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1VideoClassificationConfig {
     /// Required. The list of annotation spec set configs. Since watching a video clip takes much longer time than an image, we support label with multiple AnnotationSpecSet at the same time. Labels in each AnnotationSpecSet will be shown in a group to contributors. Contributors can select one or more (depending on whether to allow multi label) from each group.
     #[serde(default, rename = "annotationSpecSetConfigs")]
-    pub annotation_spec_set_configs:
-        Option<Vec<GoogleCloudDatalabelingV1beta1AnnotationSpecSetConfig>>,
+    pub annotation_spec_set_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpecSetConfig>>,
+    >,
     /// Optional. Option to apply shot detection on the video.
     #[serde(default, rename = "applyShotDetection")]
-    pub apply_shot_detection: Option<bool>,
+    pub apply_shot_detection: ::core::option::Option<bool>,
 }
 
 /// Video event annotation.
@@ -1893,10 +2149,12 @@ pub struct GoogleCloudDatalabelingV1beta1VideoClassificationConfig {
 pub struct GoogleCloudDatalabelingV1beta1VideoEventAnnotation {
     /// Label of the event in this annotation.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     /// The time segment of the video to which the annotation applies.
     #[serde(default, rename = "timeSegment")]
-    pub time_segment: Option<GoogleCloudDatalabelingV1beta1TimeSegment>,
+    pub time_segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1TimeSegment>>,
 }
 
 /// Video object tracking annotation.
@@ -1904,13 +2162,17 @@ pub struct GoogleCloudDatalabelingV1beta1VideoEventAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1VideoObjectTrackingAnnotation {
     /// Label of the object tracked in this annotation.
     #[serde(default, rename = "annotationSpec")]
-    pub annotation_spec: Option<GoogleCloudDatalabelingV1beta1AnnotationSpec>,
+    pub annotation_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1AnnotationSpec>>,
     /// The list of frames where this object track appears.
     #[serde(default, rename = "objectTrackingFrames")]
-    pub object_tracking_frames: Option<Vec<GoogleCloudDatalabelingV1beta1ObjectTrackingFrame>>,
+    pub object_tracking_frames: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1ObjectTrackingFrame>>,
+    >,
     /// The time segment of the video to which object tracking applies.
     #[serde(default, rename = "timeSegment")]
-    pub time_segment: Option<GoogleCloudDatalabelingV1beta1TimeSegment>,
+    pub time_segment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1beta1TimeSegment>>,
 }
 
 /// Container of information of a video.
@@ -1918,19 +2180,21 @@ pub struct GoogleCloudDatalabelingV1beta1VideoObjectTrackingAnnotation {
 pub struct GoogleCloudDatalabelingV1beta1VideoPayload {
     /// FPS of the video.
     #[serde(default, rename = "frameRate")]
-    pub frame_rate: Option<f32>,
+    pub frame_rate: ::core::option::Option<f32>,
     /// Video format.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Signed uri of the video file in the service bucket.
     #[serde(default, rename = "signedUri")]
-    pub signed_uri: Option<String>,
+    pub signed_uri: ::core::option::Option<String>,
     /// The list of video thumbnails.
     #[serde(default, rename = "videoThumbnails")]
-    pub video_thumbnails: Option<Vec<GoogleCloudDatalabelingV1beta1VideoThumbnail>>,
+    pub video_thumbnails: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatalabelingV1beta1VideoThumbnail>>,
+    >,
     /// Video uri from the user bucket.
     #[serde(default, rename = "videoUri")]
-    pub video_uri: Option<String>,
+    pub video_uri: ::core::option::Option<String>,
 }
 
 /// Container of information of a video thumbnail.
@@ -1938,10 +2202,10 @@ pub struct GoogleCloudDatalabelingV1beta1VideoPayload {
 pub struct GoogleCloudDatalabelingV1beta1VideoThumbnail {
     /// A byte string of the video frame.
     #[serde(default)]
-    pub thumbnail: Option<String>,
+    pub thumbnail: ::core::option::Option<String>,
     /// Time offset relative to the beginning of the video, corresponding to the video frame where the thumbnail has been extracted from.
     #[serde(default, rename = "timeOffset")]
-    pub time_offset: Option<String>,
+    pub time_offset: ::core::option::Option<String>,
 }
 
 /// Metadata of a CreateInstruction operation.
@@ -1949,13 +2213,14 @@ pub struct GoogleCloudDatalabelingV1beta1VideoThumbnail {
 pub struct GoogleCloudDatalabelingV1p1alpha1CreateInstructionMetadata {
     /// Timestamp when create instruction request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The name of the created Instruction. projects/{project_id}/instructions/{instruction_id}
     #[serde(default)]
-    pub instruction: Option<String>,
+    pub instruction: ::core::option::Option<String>,
     /// Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Metadata of an ExportData operation.
@@ -1963,16 +2228,17 @@ pub struct GoogleCloudDatalabelingV1p1alpha1CreateInstructionMetadata {
 pub struct GoogleCloudDatalabelingV1p1alpha1ExportDataOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Output only. Timestamp when export dataset request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of dataset to be exported. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Response used for ExportDataset longrunning operation.
@@ -1980,22 +2246,24 @@ pub struct GoogleCloudDatalabelingV1p1alpha1ExportDataOperationMetadata {
 pub struct GoogleCloudDatalabelingV1p1alpha1ExportDataOperationResponse {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Ouptut only. The name of dataset. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Number of examples exported successfully.
     #[serde(default, rename = "exportCount")]
-    pub export_count: Option<i32>,
+    pub export_count: ::core::option::Option<i32>,
     /// Output only. Statistic infos of labels in the exported dataset.
     #[serde(default, rename = "labelStats")]
-    pub label_stats: Option<GoogleCloudDatalabelingV1p1alpha1LabelStats>,
+    pub label_stats:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1LabelStats>>,
     /// Output only. output_config in the ExportData request.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudDatalabelingV1p1alpha1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1OutputConfig>>,
     /// Output only. Total number of examples requested to export
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<i32>,
+    pub total_count: ::core::option::Option<i32>,
 }
 
 /// Export destination of the data.Only gcs path is allowed in output_uri.
@@ -2003,10 +2271,10 @@ pub struct GoogleCloudDatalabelingV1p1alpha1ExportDataOperationResponse {
 pub struct GoogleCloudDatalabelingV1p1alpha1GcsDestination {
     /// Required. The format of the gcs destination. Only "text/csv" and "application/json" are supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Required. The output uri of destination file.
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
 }
 
 /// Export folder destination of the data.
@@ -2014,7 +2282,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1GcsDestination {
 pub struct GoogleCloudDatalabelingV1p1alpha1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
-    pub output_folder_uri: Option<String>,
+    pub output_folder_uri: ::core::option::Option<String>,
 }
 
 /// Metadata of an GenerateAnalysisReport operation.
@@ -2022,10 +2290,10 @@ pub struct GoogleCloudDatalabelingV1p1alpha1GcsFolderDestination {
 pub struct GoogleCloudDatalabelingV1p1alpha1GenerateAnalysisReportOperationMetadata {
     /// Timestamp when generate report request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The name of the dataset for which the analysis report is generated. Format: "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
 }
 
 /// Configuration for how human labeling task should be done.
@@ -2033,31 +2301,31 @@ pub struct GoogleCloudDatalabelingV1p1alpha1GenerateAnalysisReportOperationMetad
 pub struct GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig {
     /// Optional. A human-readable description for AnnotatedDataset. The description can be up to 10000 characters long.
     #[serde(default, rename = "annotatedDatasetDescription")]
-    pub annotated_dataset_description: Option<String>,
+    pub annotated_dataset_description: ::core::option::Option<String>,
     /// Required. A human-readable name for AnnotatedDataset defined by users. Maximum of 64 characters .
     #[serde(default, rename = "annotatedDatasetDisplayName")]
-    pub annotated_dataset_display_name: Option<String>,
+    pub annotated_dataset_display_name: ::core::option::Option<String>,
     /// Optional. If you want your own labeling contributors to manage and work on this labeling request, you can set these contributors here. We will give them access to the question types in crowdcompute. Note that these emails must be registered in crowdcompute worker UI: https://crowd-compute.appspot.com/
     #[serde(default, rename = "contributorEmails")]
-    pub contributor_emails: Option<Vec<String>>,
+    pub contributor_emails: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Instruction resource name.
     #[serde(default)]
-    pub instruction: Option<String>,
+    pub instruction: ::core::option::Option<String>,
     /// Optional. A human-readable label used to logically group labeling tasks. This string must match the regular expression [a-zA-Z\\d_-]{0,128}.
     #[serde(default, rename = "labelGroup")]
-    pub label_group: Option<String>,
+    pub label_group: ::core::option::Option<String>,
     /// Optional. The Language of this question, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US. Only need to set this when task is language related. For example, French text classification.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Optional. Maximum duration for contributors to answer a question. Maximum is 3600 seconds. Default is 3600 seconds.
     #[serde(default, rename = "questionDuration")]
-    pub question_duration: Option<String>,
+    pub question_duration: ::core::option::Option<String>,
     /// Optional. Replication of questions. Each question will be sent to up to this number of contributors to label. Aggregated answers will be returned. Default is set to 1. For image related labeling, valid values are 1, 3, 5.
     #[serde(default, rename = "replicaCount")]
-    pub replica_count: Option<i32>,
+    pub replica_count: ::core::option::Option<i32>,
     /// Email of the user who started the labeling task and should be notified by email. If empty no notification will be sent.
     #[serde(default, rename = "userEmailAddress")]
-    pub user_email_address: Option<String>,
+    pub user_email_address: ::core::option::Option<String>,
 }
 
 /// Metadata of an ImportData operation.
@@ -2065,13 +2333,14 @@ pub struct GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig {
 pub struct GoogleCloudDatalabelingV1p1alpha1ImportDataOperationMetadata {
     /// Output only. Timestamp when import dataset request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of imported dataset. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Response used for ImportData longrunning operation.
@@ -2079,13 +2348,13 @@ pub struct GoogleCloudDatalabelingV1p1alpha1ImportDataOperationMetadata {
 pub struct GoogleCloudDatalabelingV1p1alpha1ImportDataOperationResponse {
     /// Ouptut only. The name of imported dataset.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Number of examples imported successfully.
     #[serde(default, rename = "importCount")]
-    pub import_count: Option<i32>,
+    pub import_count: ::core::option::Option<i32>,
     /// Output only. Total number of examples requested to import
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<i32>,
+    pub total_count: ::core::option::Option<i32>,
 }
 
 /// Details of a LabelImageBoundingBox operation metadata.
@@ -2093,7 +2362,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1ImportDataOperationResponse {
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingBoxOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of LabelImageBoundingPoly operation metadata.
@@ -2101,7 +2372,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingBoxOperationMetada
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingPolyOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Metadata of a LabelImageClassification operation.
@@ -2109,7 +2382,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingPolyOperationMetad
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelImageOrientedBoundingBox operation metadata.
@@ -2117,7 +2392,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageClassificationOperationMet
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageOrientedBoundingBoxOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of LabelImagePolyline operation metadata.
@@ -2125,7 +2402,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageOrientedBoundingBoxOperati
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImagePolylineOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelImageSegmentation operation metadata.
@@ -2133,7 +2412,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImagePolylineOperationMetadata 
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageSegmentationOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Metadata of a labeling operation, such as LabelImage or LabelVideo. Next tag: 23
@@ -2141,67 +2422,94 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageSegmentationOperationMetad
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Output only. Timestamp when labeling request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of dataset to be labeled. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Details of label image bounding box operation.
     #[serde(default, rename = "imageBoundingBoxDetails")]
-    pub image_bounding_box_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingBoxOperationMetadata>,
+    pub image_bounding_box_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingBoxOperationMetadata>,
+    >,
     /// Details of label image bounding poly operation.
     #[serde(default, rename = "imageBoundingPolyDetails")]
-    pub image_bounding_poly_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingPolyOperationMetadata>,
+    pub image_bounding_poly_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingPolyOperationMetadata>,
+    >,
     /// Details of label image classification operation.
     #[serde(default, rename = "imageClassificationDetails")]
-    pub image_classification_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelImageClassificationOperationMetadata>,
+    pub image_classification_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p1alpha1LabelImageClassificationOperationMetadata,
+        >,
+    >,
     /// Details of label image oriented bounding box operation.
     #[serde(default, rename = "imageOrientedBoundingBoxDetails")]
-    pub image_oriented_bounding_box_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelImageOrientedBoundingBoxOperationMetadata>,
+    pub image_oriented_bounding_box_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p1alpha1LabelImageOrientedBoundingBoxOperationMetadata,
+        >,
+    >,
     /// Details of label image polyline operation.
     #[serde(default, rename = "imagePolylineDetails")]
-    pub image_polyline_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelImagePolylineOperationMetadata>,
+    pub image_polyline_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1LabelImagePolylineOperationMetadata>,
+    >,
     /// Details of label image segmentation operation.
     #[serde(default, rename = "imageSegmentationDetails")]
-    pub image_segmentation_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelImageSegmentationOperationMetadata>,
+    pub image_segmentation_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1LabelImageSegmentationOperationMetadata>,
+    >,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. Progress of label operation. Range: [0, 100].
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Details of label text classification operation.
     #[serde(default, rename = "textClassificationDetails")]
-    pub text_classification_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelTextClassificationOperationMetadata>,
+    pub text_classification_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p1alpha1LabelTextClassificationOperationMetadata,
+        >,
+    >,
     /// Details of label text entity extraction operation.
     #[serde(default, rename = "textEntityExtractionDetails")]
-    pub text_entity_extraction_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelTextEntityExtractionOperationMetadata>,
+    pub text_entity_extraction_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p1alpha1LabelTextEntityExtractionOperationMetadata,
+        >,
+    >,
     /// Details of label video classification operation.
     #[serde(default, rename = "videoClassificationDetails")]
-    pub video_classification_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelVideoClassificationOperationMetadata>,
+    pub video_classification_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p1alpha1LabelVideoClassificationOperationMetadata,
+        >,
+    >,
     /// Details of label video event operation.
     #[serde(default, rename = "videoEventDetails")]
-    pub video_event_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelVideoEventOperationMetadata>,
+    pub video_event_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1LabelVideoEventOperationMetadata>,
+    >,
     /// Details of label video object detection operation.
     #[serde(default, rename = "videoObjectDetectionDetails")]
-    pub video_object_detection_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectDetectionOperationMetadata>,
+    pub video_object_detection_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectDetectionOperationMetadata,
+        >,
+    >,
     /// Details of label video object tracking operation.
     #[serde(default, rename = "videoObjectTrackingDetails")]
-    pub video_object_tracking_details:
-        Option<GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectTrackingOperationMetadata>,
+    pub video_object_tracking_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectTrackingOperationMetadata,
+        >,
+    >,
 }
 
 /// Details of a LabelTextClassification operation metadata.
@@ -2209,7 +2517,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelOperationMetadata {
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelTextClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelTextEntityExtraction operation metadata.
@@ -2217,7 +2527,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelTextClassificationOperationMeta
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelTextEntityExtractionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoClassification operation metadata.
@@ -2225,7 +2537,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelTextEntityExtractionOperationMe
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoEvent operation metadata.
@@ -2233,7 +2547,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoClassificationOperationMet
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoEventOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoObjectDetection operation metadata.
@@ -2241,7 +2557,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoEventOperationMetadata {
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectDetectionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoObjectTracking operation metadata.
@@ -2249,7 +2567,9 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectDetectionOperationMe
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectTrackingOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// The configuration of output data.
@@ -2257,10 +2577,13 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectTrackingOperationMet
 pub struct GoogleCloudDatalabelingV1p1alpha1OutputConfig {
     /// Output to a file in Cloud Storage. Should be used for labeling output other than image segmentation.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudDatalabelingV1p1alpha1GcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1GcsDestination>>,
     /// Output to a folder in Cloud Storage. Should be used for image segmentation or document de-identification labeling outputs.
     #[serde(default, rename = "gcsFolderDestination")]
-    pub gcs_folder_destination: Option<GoogleCloudDatalabelingV1p1alpha1GcsFolderDestination>,
+    pub gcs_folder_destination: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p1alpha1GcsFolderDestination>,
+    >,
 }
 
 /// Metadata of a CreateInstruction operation.
@@ -2268,13 +2591,14 @@ pub struct GoogleCloudDatalabelingV1p1alpha1OutputConfig {
 pub struct GoogleCloudDatalabelingV1p2alpha1CreateInstructionMetadata {
     /// Timestamp when create instruction request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The name of the created Instruction. projects/{project_id}/instructions/{instruction_id}
     #[serde(default)]
-    pub instruction: Option<String>,
+    pub instruction: ::core::option::Option<String>,
     /// Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Metadata of an ExportData operation.
@@ -2282,16 +2606,17 @@ pub struct GoogleCloudDatalabelingV1p2alpha1CreateInstructionMetadata {
 pub struct GoogleCloudDatalabelingV1p2alpha1ExportDataOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Output only. Timestamp when export dataset request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of dataset to be exported. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Response used for ExportDataset longrunning operation.
@@ -2299,22 +2624,24 @@ pub struct GoogleCloudDatalabelingV1p2alpha1ExportDataOperationMetadata {
 pub struct GoogleCloudDatalabelingV1p2alpha1ExportDataOperationResponse {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Ouptut only. The name of dataset. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Number of examples exported successfully.
     #[serde(default, rename = "exportCount")]
-    pub export_count: Option<i32>,
+    pub export_count: ::core::option::Option<i32>,
     /// Output only. Statistic infos of labels in the exported dataset.
     #[serde(default, rename = "labelStats")]
-    pub label_stats: Option<GoogleCloudDatalabelingV1p2alpha1LabelStats>,
+    pub label_stats:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1LabelStats>>,
     /// Output only. output_config in the ExportData request.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudDatalabelingV1p2alpha1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1OutputConfig>>,
     /// Output only. Total number of examples requested to export
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<i32>,
+    pub total_count: ::core::option::Option<i32>,
 }
 
 /// Export destination of the data.Only gcs path is allowed in output_uri.
@@ -2322,10 +2649,10 @@ pub struct GoogleCloudDatalabelingV1p2alpha1ExportDataOperationResponse {
 pub struct GoogleCloudDatalabelingV1p2alpha1GcsDestination {
     /// Required. The format of the gcs destination. Only "text/csv" and "application/json" are supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Required. The output uri of destination file.
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
 }
 
 /// Export folder destination of the data.
@@ -2333,7 +2660,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1GcsDestination {
 pub struct GoogleCloudDatalabelingV1p2alpha1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
-    pub output_folder_uri: Option<String>,
+    pub output_folder_uri: ::core::option::Option<String>,
 }
 
 /// Configuration for how human labeling task should be done.
@@ -2341,31 +2668,31 @@ pub struct GoogleCloudDatalabelingV1p2alpha1GcsFolderDestination {
 pub struct GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig {
     /// Optional. A human-readable description for AnnotatedDataset. The description can be up to 10000 characters long.
     #[serde(default, rename = "annotatedDatasetDescription")]
-    pub annotated_dataset_description: Option<String>,
+    pub annotated_dataset_description: ::core::option::Option<String>,
     /// Required. A human-readable name for AnnotatedDataset defined by users. Maximum of 64 characters .
     #[serde(default, rename = "annotatedDatasetDisplayName")]
-    pub annotated_dataset_display_name: Option<String>,
+    pub annotated_dataset_display_name: ::core::option::Option<String>,
     /// Optional. If you want your own labeling contributors to manage and work on this labeling request, you can set these contributors here. We will give them access to the question types in crowdcompute. Note that these emails must be registered in crowdcompute worker UI: https://crowd-compute.appspot.com/
     #[serde(default, rename = "contributorEmails")]
-    pub contributor_emails: Option<Vec<String>>,
+    pub contributor_emails: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Instruction resource name.
     #[serde(default)]
-    pub instruction: Option<String>,
+    pub instruction: ::core::option::Option<String>,
     /// Optional. A human-readable label used to logically group labeling tasks. This string must match the regular expression [a-zA-Z\\d_-]{0,128}.
     #[serde(default, rename = "labelGroup")]
-    pub label_group: Option<String>,
+    pub label_group: ::core::option::Option<String>,
     /// Optional. The Language of this question, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US. Only need to set this when task is language related. For example, French text classification.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Optional. Maximum duration for contributors to answer a question. Maximum is 3600 seconds. Default is 3600 seconds.
     #[serde(default, rename = "questionDuration")]
-    pub question_duration: Option<String>,
+    pub question_duration: ::core::option::Option<String>,
     /// Optional. Replication of questions. Each question will be sent to up to this number of contributors to label. Aggregated answers will be returned. Default is set to 1. For image related labeling, valid values are 1, 3, 5.
     #[serde(default, rename = "replicaCount")]
-    pub replica_count: Option<i32>,
+    pub replica_count: ::core::option::Option<i32>,
     /// Email of the user who started the labeling task and should be notified by email. If empty no notification will be sent.
     #[serde(default, rename = "userEmailAddress")]
-    pub user_email_address: Option<String>,
+    pub user_email_address: ::core::option::Option<String>,
 }
 
 /// Metadata of an ImportData operation.
@@ -2373,13 +2700,14 @@ pub struct GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig {
 pub struct GoogleCloudDatalabelingV1p2alpha1ImportDataOperationMetadata {
     /// Output only. Timestamp when import dataset request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of imported dataset. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Response used for ImportData longrunning operation.
@@ -2387,13 +2715,13 @@ pub struct GoogleCloudDatalabelingV1p2alpha1ImportDataOperationMetadata {
 pub struct GoogleCloudDatalabelingV1p2alpha1ImportDataOperationResponse {
     /// Ouptut only. The name of imported dataset.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Output only. Number of examples imported successfully.
     #[serde(default, rename = "importCount")]
-    pub import_count: Option<i32>,
+    pub import_count: ::core::option::Option<i32>,
     /// Output only. Total number of examples requested to import
     #[serde(default, rename = "totalCount")]
-    pub total_count: Option<i32>,
+    pub total_count: ::core::option::Option<i32>,
 }
 
 /// Details of a LabelImageBoundingBox operation metadata.
@@ -2401,7 +2729,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1ImportDataOperationResponse {
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingBoxOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of LabelImageBoundingPoly operation metadata.
@@ -2409,7 +2739,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingBoxOperationMetada
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingPolyOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Metadata of a LabelImageClassification operation.
@@ -2417,7 +2749,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingPolyOperationMetad
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelImageOrientedBoundingBox operation metadata.
@@ -2425,7 +2759,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageClassificationOperationMet
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageOrientedBoundingBoxOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of LabelImagePolyline operation metadata.
@@ -2433,7 +2769,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageOrientedBoundingBoxOperati
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImagePolylineOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelImageSegmentation operation metadata.
@@ -2441,7 +2779,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImagePolylineOperationMetadata 
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageSegmentationOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Metadata of a labeling operation, such as LabelImage or LabelVideo. Next tag: 23
@@ -2449,67 +2789,94 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageSegmentationOperationMetad
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
-    pub annotated_dataset: Option<String>,
+    pub annotated_dataset: ::core::option::Option<String>,
     /// Output only. Timestamp when labeling request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The name of dataset to be labeled. "projects/*/datasets/*"
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Details of label image bounding box operation.
     #[serde(default, rename = "imageBoundingBoxDetails")]
-    pub image_bounding_box_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingBoxOperationMetadata>,
+    pub image_bounding_box_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingBoxOperationMetadata>,
+    >,
     /// Details of label image bounding poly operation.
     #[serde(default, rename = "imageBoundingPolyDetails")]
-    pub image_bounding_poly_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingPolyOperationMetadata>,
+    pub image_bounding_poly_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingPolyOperationMetadata>,
+    >,
     /// Details of label image classification operation.
     #[serde(default, rename = "imageClassificationDetails")]
-    pub image_classification_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelImageClassificationOperationMetadata>,
+    pub image_classification_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p2alpha1LabelImageClassificationOperationMetadata,
+        >,
+    >,
     /// Details of label image oriented bounding box operation.
     #[serde(default, rename = "imageOrientedBoundingBoxDetails")]
-    pub image_oriented_bounding_box_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelImageOrientedBoundingBoxOperationMetadata>,
+    pub image_oriented_bounding_box_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p2alpha1LabelImageOrientedBoundingBoxOperationMetadata,
+        >,
+    >,
     /// Details of label image polyline operation.
     #[serde(default, rename = "imagePolylineDetails")]
-    pub image_polyline_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelImagePolylineOperationMetadata>,
+    pub image_polyline_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1LabelImagePolylineOperationMetadata>,
+    >,
     /// Details of label image segmentation operation.
     #[serde(default, rename = "imageSegmentationDetails")]
-    pub image_segmentation_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelImageSegmentationOperationMetadata>,
+    pub image_segmentation_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1LabelImageSegmentationOperationMetadata>,
+    >,
     /// Output only. Partial failures encountered. E.g. single files that couldn''t be read. Status details field will contain standard GCP error details.
     #[serde(default, rename = "partialFailures")]
-    pub partial_failures: Option<Vec<GoogleRpcStatus>>,
+    pub partial_failures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. Progress of label operation. Range: [0, 100].
     #[serde(default, rename = "progressPercent")]
-    pub progress_percent: Option<i32>,
+    pub progress_percent: ::core::option::Option<i32>,
     /// Details of label text classification operation.
     #[serde(default, rename = "textClassificationDetails")]
-    pub text_classification_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelTextClassificationOperationMetadata>,
+    pub text_classification_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p2alpha1LabelTextClassificationOperationMetadata,
+        >,
+    >,
     /// Details of label text entity extraction operation.
     #[serde(default, rename = "textEntityExtractionDetails")]
-    pub text_entity_extraction_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelTextEntityExtractionOperationMetadata>,
+    pub text_entity_extraction_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p2alpha1LabelTextEntityExtractionOperationMetadata,
+        >,
+    >,
     /// Details of label video classification operation.
     #[serde(default, rename = "videoClassificationDetails")]
-    pub video_classification_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelVideoClassificationOperationMetadata>,
+    pub video_classification_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p2alpha1LabelVideoClassificationOperationMetadata,
+        >,
+    >,
     /// Details of label video event operation.
     #[serde(default, rename = "videoEventDetails")]
-    pub video_event_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelVideoEventOperationMetadata>,
+    pub video_event_details: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1LabelVideoEventOperationMetadata>,
+    >,
     /// Details of label video object detection operation.
     #[serde(default, rename = "videoObjectDetectionDetails")]
-    pub video_object_detection_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectDetectionOperationMetadata>,
+    pub video_object_detection_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectDetectionOperationMetadata,
+        >,
+    >,
     /// Details of label video object tracking operation.
     #[serde(default, rename = "videoObjectTrackingDetails")]
-    pub video_object_tracking_details:
-        Option<GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectTrackingOperationMetadata>,
+    pub video_object_tracking_details: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectTrackingOperationMetadata,
+        >,
+    >,
 }
 
 /// Details of a LabelTextClassification operation metadata.
@@ -2517,7 +2884,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelOperationMetadata {
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelTextClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelTextEntityExtraction operation metadata.
@@ -2525,7 +2894,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelTextClassificationOperationMeta
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelTextEntityExtractionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoClassification operation metadata.
@@ -2533,7 +2904,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelTextEntityExtractionOperationMe
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoEvent operation metadata.
@@ -2541,7 +2914,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoClassificationOperationMet
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoEventOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoObjectDetection operation metadata.
@@ -2549,7 +2924,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoEventOperationMetadata {
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectDetectionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// Details of a LabelVideoObjectTracking operation metadata.
@@ -2557,7 +2934,9 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectDetectionOperationMe
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectTrackingOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
-    pub basic_config: Option<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    pub basic_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig>,
+    >,
 }
 
 /// The configuration of output data.
@@ -2565,10 +2944,13 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectTrackingOperationMet
 pub struct GoogleCloudDatalabelingV1p2alpha1OutputConfig {
     /// Output to a file in Cloud Storage. Should be used for labeling output other than image segmentation.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudDatalabelingV1p2alpha1GcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1GcsDestination>>,
     /// Output to a folder in Cloud Storage. Should be used for image segmentation or document de-identification labeling outputs.
     #[serde(default, rename = "gcsFolderDestination")]
-    pub gcs_folder_destination: Option<GoogleCloudDatalabelingV1p2alpha1GcsFolderDestination>,
+    pub gcs_folder_destination: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatalabelingV1p2alpha1GcsFolderDestination>,
+    >,
 }
 
 /// The response message for Operations.ListOperations.
@@ -2576,13 +2958,14 @@ pub struct GoogleCloudDatalabelingV1p2alpha1OutputConfig {
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -2590,19 +2973,19 @@ pub struct GoogleLongrunningListOperationsResponse {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2610,11 +2993,11 @@ pub struct GoogleLongrunningOperation {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }

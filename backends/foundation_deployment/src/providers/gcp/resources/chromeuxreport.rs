@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A bin is a discrete portion of data spanning from start to end, or if no end is given, then from start to +inf. A bin''s start and end values are given in the value type of the metric it represents. For example, "first contentful paint" is measured in milliseconds and exposed as ints, therefore its metric bins will use int32s for its start and end types. However, "cumulative layout shift" is measured in unitless decimals and is exposed as a decimal encoded as a string, therefore its metric bins will use strings for its value type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bin {
     /// The proportion of users that experienced this bin''s value for the given metric.
     #[serde(default)]
-    pub density: Option<serde_json::Value>,
+    pub density: ::core::option::Option<serde_json::Value>,
     /// End is the end of the data bin. If end is not populated, then the bin has no end and is valid from start to +inf.
     #[serde(default)]
-    pub end: Option<serde_json::Value>,
+    pub end: ::core::option::Option<serde_json::Value>,
     /// Start is the beginning of the data bin.
     #[serde(default)]
-    pub start: Option<serde_json::Value>,
+    pub start: ::core::option::Option<serde_json::Value>,
 }
 
 /// The collection period is a date range which includes the first and last day.
@@ -32,10 +32,10 @@ pub struct Bin {
 pub struct CollectionPeriod {
     /// The first day in the collection period, inclusive.
     #[serde(default, rename = "firstDate")]
-    pub first_date: Option<Date>,
+    pub first_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The last day in the collection period, inclusive.
     #[serde(default, rename = "lastDate")]
-    pub last_date: Option<Date>,
+    pub last_date: ::core::option::Option<::std::boxed::Box<Date>>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -43,13 +43,13 @@ pub struct CollectionPeriod {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// For enum metrics, provides fraction timeseries which add up to approximately 1.0 per entry (k-th element into the repeated fractions field for any k &lt;= len) across fraction_timeseries.
@@ -57,7 +57,7 @@ pub struct Date {
 pub struct FractionTimeseries {
     /// Values between 0.0 and 1.0 (inclusive) and NaN.
     #[serde(default)]
-    pub fractions: Option<Vec<f64>>,
+    pub fractions: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Key defines all the dimensions that identify this record as unique.
@@ -65,13 +65,13 @@ pub struct FractionTimeseries {
 pub struct HistoryKey {
     /// The form factor is the device class that all users used to access the site for this record. If the form factor is unspecified, then aggregated data over all form factors will be returned. // TODO: enum values: ["ALL_FORM_FACTORS", "PHONE", "DESKTOP", "TABLET"]
     #[serde(default, rename = "formFactor")]
-    pub form_factor: Option<String>,
+    pub form_factor: ::core::option::Option<String>,
     /// Origin specifies the origin that this record is for. Note: When specifying an origin, data for loads under this origin over all pages are aggregated into origin level user experience data.
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
     /// Url specifies a specific url that this record is for. This url should be normalized, following the normalization actions taken in the request to increase the chances of successful lookup. Note: When specifying a "url" only data for that specific url will be aggregated.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// HistoryRecord is a timeseries of Chrome UX Report data. It contains user experience statistics for a single url pattern and a set of dimensions.
@@ -79,13 +79,14 @@ pub struct HistoryKey {
 pub struct HistoryRecord {
     /// The collection periods indicate when each of the data points reflected in the time series data in metrics was collected. Note that all the time series share the same collection periods, and it is enforced in the CrUX pipeline that every time series has the same number of data points.
     #[serde(default, rename = "collectionPeriods")]
-    pub collection_periods: Option<Vec<CollectionPeriod>>,
+    pub collection_periods:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CollectionPeriod>>>,
     /// Key defines all of the unique querying parameters needed to look up a user experience history record.
     #[serde(default)]
-    pub key: Option<HistoryKey>,
+    pub key: ::core::option::Option<::std::boxed::Box<HistoryKey>>,
     /// Metrics is the map of user experience time series data available for the record defined in the key field. Metrics are keyed on the metric name. Allowed key values: ["first_contentful_paint", "first_input_delay", "largest_contentful_paint", "cumulative_layout_shift", "experimental_time_to_first_byte", "experimental_interaction_to_next_paint"]
     #[serde(default)]
-    pub metrics: Option<serde_json::Value>,
+    pub metrics: ::core::option::Option<serde_json::Value>,
 }
 
 /// Key defines all the dimensions that identify this record as unique.
@@ -93,16 +94,16 @@ pub struct HistoryRecord {
 pub struct Key {
     /// The effective connection type is the general connection class that all users experienced for this record. This field uses the values ["offline", "slow-2G", "2G", "3G", "4G"] as specified in: https://wicg.github.io/netinfo/#effective-connection-types If the effective connection type is unspecified, then aggregated data over all effective connection types will be returned.
     #[serde(default, rename = "effectiveConnectionType")]
-    pub effective_connection_type: Option<String>,
+    pub effective_connection_type: ::core::option::Option<String>,
     /// The form factor is the device class that all users used to access the site for this record. If the form factor is unspecified, then aggregated data over all form factors will be returned. // TODO: enum values: ["ALL_FORM_FACTORS", "PHONE", "DESKTOP", "TABLET"]
     #[serde(default, rename = "formFactor")]
-    pub form_factor: Option<String>,
+    pub form_factor: ::core::option::Option<String>,
     /// Origin specifies the origin that this record is for. Note: When specifying an origin, data for loads under this origin over all pages are aggregated into origin level user experience data.
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
     /// Url specifies a specific url that this record is for. Note: When specifying a "url" only data for that specific url will be aggregated.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A metric is a set of user experience data for a single web performance metric, like "first contentful paint". It contains a summary histogram of real world Chrome usage as a series of bins.
@@ -110,13 +111,13 @@ pub struct Key {
 pub struct Metric {
     /// For enum metrics, provides fractions which add up to approximately 1.0.
     #[serde(default)]
-    pub fractions: Option<serde_json::Value>,
+    pub fractions: ::core::option::Option<serde_json::Value>,
     /// The histogram of user experiences for a metric. The histogram will have at least one bin and the densities of all bins will add up to ~1.
     #[serde(default)]
-    pub histogram: Option<Vec<Bin>>,
+    pub histogram: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Bin>>>,
     /// Commonly useful percentiles of the Metric. The value type for the percentiles will be the same as the value types given for the Histogram bins.
     #[serde(default)]
-    pub percentiles: Option<Percentiles>,
+    pub percentiles: ::core::option::Option<::std::boxed::Box<Percentiles>>,
 }
 
 /// A metric timeseries is a set of user experience data for a single web performance metric, like "first contentful paint". It contains a summary histogram of real world Chrome usage as a series of bins, where each bin has density values for a particular time period.
@@ -124,13 +125,14 @@ pub struct Metric {
 pub struct MetricTimeseries {
     /// Mapping from labels to timeseries of fractions attributed to this label.
     #[serde(default, rename = "fractionTimeseries")]
-    pub fraction_timeseries: Option<serde_json::Value>,
+    pub fraction_timeseries: ::core::option::Option<serde_json::Value>,
     /// The histogram of user experiences for a metric. The histogram will have at least one bin and the densities of all bins will add up to ~1, for each timeseries entry.
     #[serde(default, rename = "histogramTimeseries")]
-    pub histogram_timeseries: Option<Vec<TimeseriesBin>>,
+    pub histogram_timeseries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TimeseriesBin>>>,
     /// Commonly useful percentiles of the Metric. The value type for the percentiles will be the same as the value types given for the Histogram bins.
     #[serde(default, rename = "percentilesTimeseries")]
-    pub percentiles_timeseries: Option<TimeseriesPercentiles>,
+    pub percentiles_timeseries: ::core::option::Option<::std::boxed::Box<TimeseriesPercentiles>>,
 }
 
 /// Request payload sent by a physical web client. This request includes all necessary context to load a particular user experience history record.
@@ -138,19 +140,19 @@ pub struct MetricTimeseries {
 pub struct QueryHistoryRequest {
     /// The number of collection periods to return. If not specified, the default is 25. If present, must be in the range [1, 40].
     #[serde(default, rename = "collectionPeriodCount")]
-    pub collection_period_count: Option<i32>,
+    pub collection_period_count: ::core::option::Option<i32>,
     /// The form factor is a query dimension that specifies the device class that the record''s data should belong to. Note: If no form factor is specified, then a special record with aggregated data over all form factors will be returned. // TODO: enum values: ["ALL_FORM_FACTORS", "PHONE", "DESKTOP", "TABLET"]
     #[serde(default, rename = "formFactor")]
-    pub form_factor: Option<String>,
+    pub form_factor: ::core::option::Option<String>,
     /// The metrics that should be included in the response. If none are specified then any metrics found will be returned. Allowed values: ["first_contentful_paint", "first_input_delay", "largest_contentful_paint", "cumulative_layout_shift", "experimental_time_to_first_byte", "experimental_interaction_to_next_paint"]
     #[serde(default)]
-    pub metrics: Option<Vec<String>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
     /// The url pattern "origin" refers to a url pattern that is the origin of a website. Examples: "https://example.com", "https://cloud.google.com"
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
     /// The url pattern "url" refers to a url pattern that is any arbitrary url. Examples: "https://example.com/", "https://cloud.google.com/why-google-cloud/"
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Response payload sent back to a physical web client. This response contains the record found based on the identiers present in a QueryHistoryRequest. The returned response will have a history record, and sometimes details on normalization actions taken on the request that were necessary to make the request successful.
@@ -158,10 +160,10 @@ pub struct QueryHistoryRequest {
 pub struct QueryHistoryResponse {
     /// The record that was found.
     #[serde(default)]
-    pub record: Option<HistoryRecord>,
+    pub record: ::core::option::Option<::std::boxed::Box<HistoryRecord>>,
     /// These are details about automated normalization actions that were taken in order to make the requested url_pattern valid.
     #[serde(default, rename = "urlNormalizationDetails")]
-    pub url_normalization_details: Option<UrlNormalization>,
+    pub url_normalization_details: ::core::option::Option<::std::boxed::Box<UrlNormalization>>,
 }
 
 /// Request payload sent by a physical web client. This request includes all necessary context to load a particular user experience record.
@@ -169,19 +171,19 @@ pub struct QueryHistoryResponse {
 pub struct QueryRequest {
     /// The effective connection type is a query dimension that specifies the effective network class that the record''s data should belong to. This field uses the values ["offline", "slow-2G", "2G", "3G", "4G"] as specified in: https://wicg.github.io/netinfo/#effective-connection-types Note: If no effective connection type is specified, then a special record with aggregated data over all effective connection types will be returned.
     #[serde(default, rename = "effectiveConnectionType")]
-    pub effective_connection_type: Option<String>,
+    pub effective_connection_type: ::core::option::Option<String>,
     /// The form factor is a query dimension that specifies the device class that the record''s data should belong to. Note: If no form factor is specified, then a special record with aggregated data over all form factors will be returned. // TODO: enum values: ["ALL_FORM_FACTORS", "PHONE", "DESKTOP", "TABLET"]
     #[serde(default, rename = "formFactor")]
-    pub form_factor: Option<String>,
+    pub form_factor: ::core::option::Option<String>,
     /// The metrics that should be included in the response. If none are specified then any metrics found will be returned. Allowed values: ["first_contentful_paint", "first_input_delay", "largest_contentful_paint", "cumulative_layout_shift", "experimental_time_to_first_byte", "experimental_interaction_to_next_paint"]
     #[serde(default)]
-    pub metrics: Option<Vec<String>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
     /// The url pattern "origin" refers to a url pattern that is the origin of a website. Examples: "https://example.com", "https://cloud.google.com"
     #[serde(default)]
-    pub origin: Option<String>,
+    pub origin: ::core::option::Option<String>,
     /// The url pattern "url" refers to a url pattern that is any arbitrary url. Examples: "https://example.com/", "https://cloud.google.com/why-google-cloud/"
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Response payload sent back to a physical web client. This response contains the record found based on the identiers present in a QueryRequest. The returned response will have a record, and sometimes details on normalization actions taken on the request that were necessary to make the request successful.
@@ -189,10 +191,10 @@ pub struct QueryRequest {
 pub struct QueryResponse {
     /// The record that was found.
     #[serde(default)]
-    pub record: Option<Record>,
+    pub record: ::core::option::Option<::std::boxed::Box<Record>>,
     /// These are details about automated normalization actions that were taken in order to make the requested url_pattern valid.
     #[serde(default, rename = "urlNormalizationDetails")]
-    pub url_normalization_details: Option<UrlNormalization>,
+    pub url_normalization_details: ::core::option::Option<::std::boxed::Box<UrlNormalization>>,
 }
 
 /// Record is a single Chrome UX report data record. It contains use experience statistics for a single url pattern and set of dimensions.
@@ -200,13 +202,13 @@ pub struct QueryResponse {
 pub struct Record {
     /// The collection period indicates when the data reflected in this record was collected.
     #[serde(default, rename = "collectionPeriod")]
-    pub collection_period: Option<CollectionPeriod>,
+    pub collection_period: ::core::option::Option<::std::boxed::Box<CollectionPeriod>>,
     /// Key defines all of the unique querying parameters needed to look up a user experience record.
     #[serde(default)]
-    pub key: Option<Key>,
+    pub key: ::core::option::Option<::std::boxed::Box<Key>>,
     /// Metrics is the map of user experience data available for the record defined in the key field. Metrics are keyed on the metric name. Allowed key values: ["first_contentful_paint", "first_input_delay", "largest_contentful_paint", "cumulative_layout_shift", "experimental_time_to_first_byte", "experimental_interaction_to_next_paint"]
     #[serde(default)]
-    pub metrics: Option<serde_json::Value>,
+    pub metrics: ::core::option::Option<serde_json::Value>,
 }
 
 /// A bin is a discrete portion of data spanning from start to end, or if no end is given, then from start to +inf. A bin''s start and end values are given in the value type of the metric it represents. For example, "first contentful paint" is measured in milliseconds and exposed as ints, therefore its metric bins will use int32s for its start and end types. However, "cumulative layout shift" is measured in unitless decimals and is exposed as a decimal encoded as a string, therefore its metric bins will use strings for its value type.
@@ -214,13 +216,13 @@ pub struct Record {
 pub struct TimeseriesBin {
     /// The proportion of users that experienced this bin''s value for the given metric in a given collection period; the index for each of these entries corresponds to an entry in the CollectionPeriods field in the HistoryRecord message, which describes when the density was observed in the field. Thus, the length of this list of densities is equal to the length of the CollectionPeriods field in the HistoryRecord message.
     #[serde(default)]
-    pub densities: Option<Vec<f64>>,
+    pub densities: ::core::option::Option<::std::vec::Vec<f64>>,
     /// End is the end of the data bin. If end is not populated, then the bin has no end and is valid from start to +inf.
     #[serde(default)]
-    pub end: Option<serde_json::Value>,
+    pub end: ::core::option::Option<serde_json::Value>,
     /// Start is the beginning of the data bin.
     #[serde(default)]
-    pub start: Option<serde_json::Value>,
+    pub start: ::core::option::Option<serde_json::Value>,
 }
 
 /// Percentiles contains synthetic values of a metric at a given statistical percentile. These are used for estimating a metric''s value as experienced by a percentage of users out of the total number of users.
@@ -228,7 +230,7 @@ pub struct TimeseriesBin {
 pub struct TimeseriesPercentiles {
     /// 75% of users experienced the given metric at or below this value. The length of this list of densities is equal to the length of the CollectionPeriods field in the HistoryRecord message, which describes when the density was observed in the field.
     #[serde(default)]
-    pub p75s: Option<Vec<serde_json::Value>>,
+    pub p75s: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// Object representing the normalization actions taken to normalize a url to achieve a higher chance of successful lookup. These are simple automated changes that are taken when looking up the provided url_patten would be known to fail. Complex actions like following redirects are not handled.
@@ -236,8 +238,8 @@ pub struct TimeseriesPercentiles {
 pub struct UrlNormalization {
     /// The URL after any normalization actions. This is a valid user experience URL that could reasonably be looked up.
     #[serde(default, rename = "normalizedUrl")]
-    pub normalized_url: Option<String>,
+    pub normalized_url: ::core::option::Option<String>,
     /// The original requested URL prior to any normalization actions.
     #[serde(default, rename = "originalUrl")]
-    pub original_url: Option<String>,
+    pub original_url: ::core::option::Option<String>,
 }

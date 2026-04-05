@@ -626,11 +626,19 @@ impl ResourceGenerator {
         }
 
         let rust_name = self.to_pascal_case(schema_name);
-        // Rename structs that conflict with imported types (e.g., serde_json::Value)
-        let rust_name = if rust_name == "Value" {
-            "ApiValue".to_string()
-        } else {
-            rust_name
+        // Rename types that conflict with Rust built-ins and keywords
+        let rust_name = match rust_name.as_str() {
+            "Option" => "ApiOption".to_string(),
+            "Value" => "ApiValue".to_string(),
+            "Result" => "ApiResult".to_string(),
+            "Ok" => "ApiOk".to_string(),
+            "Err" => "ApiErr".to_string(),
+            "Some" => "ApiSome".to_string(),
+            "None" => "ApiNone".to_string(),
+            "Box" => "ApiBox".to_string(),
+            "Vec" => "ApiVec".to_string(),
+            "String" => "ApiString".to_string(),
+            _ => rust_name,
         };
         let description = schema.description.clone();
 
@@ -698,13 +706,13 @@ impl ResourceGenerator {
             Some("array") => {
                 if let Some(items) = &schema.items {
                     let inner_ty = self.schema_to_rust_type(items, object_schemas);
-                    format!("Vec<{inner_ty}>")
+                    format!("::std::vec::Vec<{inner_ty}>")
                 } else {
-                    "Vec<serde_json::Value>".to_string()
+                    "::std::vec::Vec<serde_json::Value>".to_string()
                 }
             }
             Some("object") => "serde_json::Value".to_string(),
-            Some(null) if null == "null" => "Option<serde_json::Value>".to_string(),
+            Some(null) if null == "null" => "::core::option::Option<serde_json::Value>".to_string(),
             None => {
                 // Could be a reference or complex type
                 if let Some(ref_path) = &schema.ref_path {
@@ -741,11 +749,19 @@ impl ResourceGenerator {
         let ref_name = ref_name.trim_start_matches("#/schemas/");
         if object_schemas.contains(ref_name) {
             let ty = self.to_pascal_case(ref_name);
-            // Rename types that conflict with imported types
-            if ty == "Value" {
-                "ApiValue".to_string()
-            } else {
-                ty
+            // Rename types that conflict with Rust built-ins
+            match ty.as_str() {
+                "Option" => "ApiOption".to_string(),
+                "Value" => "ApiValue".to_string(),
+                "Result" => "ApiResult".to_string(),
+                "Ok" => "ApiOk".to_string(),
+                "Err" => "ApiErr".to_string(),
+                "Some" => "ApiSome".to_string(),
+                "None" => "ApiNone".to_string(),
+                "Box" => "ApiBox".to_string(),
+                "Vec" => "ApiVec".to_string(),
+                "String" => "ApiString".to_string(),
+                _ => ty,
             }
         } else {
             "serde_json::Value".to_string()
@@ -875,7 +891,6 @@ impl ResourceGenerator {
              #![allow(unused_imports)]\n\
              \n\
              use serde::{{Deserialize, Serialize}};\n\
-             use serde_json::Value;\n\
              use super::*;\n\
              "
         )
@@ -985,7 +1000,7 @@ impl ResourceGenerator {
             let field_ty = if field.required {
                 field.ty.clone()
             } else {
-                format!("Option<{}>", field.ty)
+                format!("::core::option::Option<{}>", field.ty)
             };
             writeln!(out, "    pub {}: {},", field.name, field_ty).map_err(|e| {
                 GenResourceError::WriteFile {

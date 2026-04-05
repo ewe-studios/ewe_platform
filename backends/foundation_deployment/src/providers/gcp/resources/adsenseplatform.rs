@@ -10,33 +10,33 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Representation of an Account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     /// Output only. Creation time of the account.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. An opaque token that uniquely identifies the account among all the platform''s accounts. This string may contain at most 64 non-whitespace ASCII characters, but otherwise has no predefined structure. However, it is expected to be a platform-specific identifier for the user creating the account, so that only a single account can be created for any given user. This field must not contain any information that is recognizable as personally identifiable information. e.g. it should not be an email address or login name. Once an account has been created, a second attempt to create an account using the same creation_request_id will result in an ALREADY_EXISTS error.
     #[serde(default, rename = "creationRequestId")]
-    pub creation_request_id: Option<String>,
+    pub creation_request_id: ::core::option::Option<String>,
     /// Display name of this account.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Resource name of the account. Format: platforms/pub-[0-9]+/accounts/pub-[0-9]+
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Input only. CLDR region code of the country/region of the address. Set this to country code of the child account if known, otherwise to your own country code.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
     /// Output only. Approval state of the account. // TODO: enum values: ["STATE_UNSPECIFIED", "UNCHECKED", "APPROVED", "DISAPPROVED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Required. The IANA TZ timezone code of this account. For more information, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. This field is used for reporting. It is recommended to set it to the same value for all child accounts.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<TimeZone>,
+    pub time_zone: ::core::option::Option<::std::boxed::Box<TimeZone>>,
 }
 
 /// Address data.
@@ -44,34 +44,34 @@ pub struct Account {
 pub struct Address {
     /// First line of address. Max length 64 bytes or 30 characters.
     #[serde(default)]
-    pub address1: Option<String>,
+    pub address1: ::core::option::Option<String>,
     /// Second line of address. Max length 64 bytes or 30 characters.
     #[serde(default)]
-    pub address2: Option<String>,
+    pub address2: ::core::option::Option<String>,
     /// City. Max length 60 bytes or 30 characters.
     #[serde(default)]
-    pub city: Option<String>,
+    pub city: ::core::option::Option<String>,
     /// Name of the company. Max length 255 bytes or 34 characters.
     #[serde(default)]
-    pub company: Option<String>,
+    pub company: ::core::option::Option<String>,
     /// Contact name of the company. Max length 128 bytes or 34 characters.
     #[serde(default)]
-    pub contact: Option<String>,
+    pub contact: ::core::option::Option<String>,
     /// Fax number with international code (i.e. +441234567890).
     #[serde(default)]
-    pub fax: Option<String>,
+    pub fax: ::core::option::Option<String>,
     /// Phone number with international code (i.e. +441234567890).
     #[serde(default)]
-    pub phone: Option<String>,
+    pub phone: ::core::option::Option<String>,
     /// Country/Region code. The region is specified as a CLDR region code (e.g. "US", "FR").
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
     /// State. Max length 60 bytes or 30 characters.
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Zip/post code. Max length 10 bytes or 10 characters.
     #[serde(default)]
-    pub zip: Option<String>,
+    pub zip: ::core::option::Option<String>,
 }
 
 /// A platform sub-account event to record spam signals.
@@ -79,13 +79,13 @@ pub struct Address {
 pub struct Event {
     /// Required. Information associated with the event.
     #[serde(default, rename = "eventInfo")]
-    pub event_info: Option<EventInfo>,
+    pub event_info: ::core::option::Option<::std::boxed::Box<EventInfo>>,
     /// Required. Event timestamp.
     #[serde(default, rename = "eventTime")]
-    pub event_time: Option<String>,
+    pub event_time: ::core::option::Option<String>,
     /// Required. Event type. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "LOG_IN_VIA_PLATFORM", "SIGN_UP_VIA_PLATFORM"]
     #[serde(default, rename = "eventType")]
-    pub event_type: Option<String>,
+    pub event_type: ::core::option::Option<String>,
 }
 
 /// Private information for partner recorded events (PII).
@@ -93,10 +93,10 @@ pub struct Event {
 pub struct EventInfo {
     /// The billing address of the publisher associated with this event, if available.
     #[serde(default, rename = "billingAddress")]
-    pub billing_address: Option<Address>,
+    pub billing_address: ::core::option::Option<::std::boxed::Box<Address>>,
     /// Required. The email address that is associated with the publisher when performing the event.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// Response definition for the list accounts rpc.
@@ -104,10 +104,10 @@ pub struct EventInfo {
 pub struct ListAccountsResponse {
     /// The Accounts returned in the list response. Represented by a partial view of the Account resource, populating name and creation_request_id.
     #[serde(default)]
-    pub accounts: Option<Vec<Account>>,
+    pub accounts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Account>>>,
     /// Continuation token used to page through accounts. To retrieve the next page of the results, set the next request''s "page_token" value to this.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response definition for the site list rpc.
@@ -115,10 +115,10 @@ pub struct ListAccountsResponse {
 pub struct ListSitesResponse {
     /// Continuation token used to page through sites. To retrieve the next page of the results, set the next request''s "page_token" value to this.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The sites returned in this list response.
     #[serde(default)]
-    pub sites: Option<Vec<Site>>,
+    pub sites: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Site>>>,
 }
 
 /// Response definition for the lookup account rpc.
@@ -126,7 +126,7 @@ pub struct ListSitesResponse {
 pub struct LookupAccountResponse {
     /// The name of the Account Format: platforms/{platform}/accounts/{account_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Representation of a Site.
@@ -134,13 +134,13 @@ pub struct LookupAccountResponse {
 pub struct Site {
     /// Domain/sub-domain of the site. Must be a valid domain complying with [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt) and formatted as punycode [RFC 3492](https://www.ietf.org/rfc/rfc3492.txt) in case the domain contains unicode characters.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Output only. Resource name of a site. Format: platforms/{platform}/accounts/{account}/sites/{site}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. State of a site. // TODO: enum values: ["STATE_UNSPECIFIED", "REQUIRES_REVIEW", "GETTING_READY", "READY", "NEEDS_ATTENTION"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
@@ -148,8 +148,8 @@ pub struct Site {
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. IANA Time Zone Database version number. For example "2019a".
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }

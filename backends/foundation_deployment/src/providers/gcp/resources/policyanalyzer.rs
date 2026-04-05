@@ -10,24 +10,25 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents Activity on a GCP resource over specific observation period.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudPolicyanalyzerV1Activity {
     /// A struct of custom fields to explain the activity.
     #[serde(default)]
-    pub activity: Option<serde_json::Value>,
+    pub activity: ::core::option::Option<serde_json::Value>,
     /// The type of the activity.
     #[serde(default, rename = "activityType")]
-    pub activity_type: Option<String>,
+    pub activity_type: ::core::option::Option<String>,
     /// The full resource name that identifies the resource. For examples of full resource names for Google Cloud services, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names.
     #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: Option<String>,
+    pub full_resource_name: ::core::option::Option<String>,
     /// The data observation period to build the activity.
     #[serde(default, rename = "observationPeriod")]
-    pub observation_period: Option<GoogleCloudPolicyanalyzerV1ObservationPeriod>,
+    pub observation_period:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudPolicyanalyzerV1ObservationPeriod>>,
 }
 
 /// Represents data observation period.
@@ -35,10 +36,10 @@ pub struct GoogleCloudPolicyanalyzerV1Activity {
 pub struct GoogleCloudPolicyanalyzerV1ObservationPeriod {
     /// The observation end time. The time in this timestamp is always 07:00:00Z.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The observation start time. The time in this timestamp is always 07:00:00Z.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Response to the QueryActivity method.
@@ -46,8 +47,10 @@ pub struct GoogleCloudPolicyanalyzerV1ObservationPeriod {
 pub struct GoogleCloudPolicyanalyzerV1QueryActivityResponse {
     /// The set of activities that match the filter included in the request.
     #[serde(default)]
-    pub activities: Option<Vec<GoogleCloudPolicyanalyzerV1Activity>>,
+    pub activities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudPolicyanalyzerV1Activity>>,
+    >,
     /// If there might be more results than those appearing in this response, then nextPageToken is included. To get the next set of results, call this method again using the value of nextPageToken as pageToken.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }

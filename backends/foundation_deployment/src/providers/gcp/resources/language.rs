@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The entity analysis request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalyzeEntitiesRequest {
     /// Required. Input document.
     #[serde(default)]
-    pub document: Option<Document>,
+    pub document: ::core::option::Option<::std::boxed::Box<Document>>,
     /// The encoding type used by the API to calculate offsets. // TODO: enum values: ["NONE", "UTF8", "UTF16", "UTF32"]
     #[serde(default, rename = "encodingType")]
-    pub encoding_type: Option<String>,
+    pub encoding_type: ::core::option::Option<String>,
 }
 
 /// The entity analysis response message.
@@ -29,13 +29,13 @@ pub struct AnalyzeEntitiesRequest {
 pub struct AnalyzeEntitiesResponse {
     /// The recognized entities in the input document.
     #[serde(default)]
-    pub entities: Option<Vec<Entity>>,
+    pub entities: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entity>>>,
     /// The language of the text, which will be the same as the language specified in the request or, if not specified, the automatically-detected language. See Document.language_code field for more details.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Whether the language is officially supported. The API may still return a response when the language is not supported, but it is on a best effort basis.
     #[serde(default, rename = "languageSupported")]
-    pub language_supported: Option<bool>,
+    pub language_supported: ::core::option::Option<bool>,
 }
 
 /// The sentiment analysis request message.
@@ -43,10 +43,10 @@ pub struct AnalyzeEntitiesResponse {
 pub struct AnalyzeSentimentRequest {
     /// Required. Input document.
     #[serde(default)]
-    pub document: Option<Document>,
+    pub document: ::core::option::Option<::std::boxed::Box<Document>>,
     /// The encoding type used by the API to calculate sentence offsets. // TODO: enum values: ["NONE", "UTF8", "UTF16", "UTF32"]
     #[serde(default, rename = "encodingType")]
-    pub encoding_type: Option<String>,
+    pub encoding_type: ::core::option::Option<String>,
 }
 
 /// The sentiment analysis response message.
@@ -54,16 +54,16 @@ pub struct AnalyzeSentimentRequest {
 pub struct AnalyzeSentimentResponse {
     /// The overall sentiment of the input document.
     #[serde(default, rename = "documentSentiment")]
-    pub document_sentiment: Option<Sentiment>,
+    pub document_sentiment: ::core::option::Option<::std::boxed::Box<Sentiment>>,
     /// The language of the text, which will be the same as the language specified in the request or, if not specified, the automatically-detected language. See Document.language_code field for more details.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Whether the language is officially supported. The API may still return a response when the language is not supported, but it is on a best effort basis.
     #[serde(default, rename = "languageSupported")]
-    pub language_supported: Option<bool>,
+    pub language_supported: ::core::option::Option<bool>,
     /// The sentiment for all the sentences in the document.
     #[serde(default)]
-    pub sentences: Option<Vec<Sentence>>,
+    pub sentences: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Sentence>>>,
 }
 
 /// The request message for the text annotation API, which can perform multiple analysis types in one call.
@@ -71,13 +71,13 @@ pub struct AnalyzeSentimentResponse {
 pub struct AnnotateTextRequest {
     /// Required. Input document.
     #[serde(default)]
-    pub document: Option<Document>,
+    pub document: ::core::option::Option<::std::boxed::Box<Document>>,
     /// The encoding type used by the API to calculate offsets. // TODO: enum values: ["NONE", "UTF8", "UTF16", "UTF32"]
     #[serde(default, rename = "encodingType")]
-    pub encoding_type: Option<String>,
+    pub encoding_type: ::core::option::Option<String>,
     /// Required. The enabled features.
     #[serde(default)]
-    pub features: Option<AnnotateTextRequestFeatures>,
+    pub features: ::core::option::Option<::std::boxed::Box<AnnotateTextRequestFeatures>>,
 }
 
 /// All available features. Setting each one to true will enable that specific analysis for the input.
@@ -85,16 +85,16 @@ pub struct AnnotateTextRequest {
 pub struct AnnotateTextRequestFeatures {
     /// Optional. Classify the full document into categories.
     #[serde(default, rename = "classifyText")]
-    pub classify_text: Option<bool>,
+    pub classify_text: ::core::option::Option<bool>,
     /// Optional. Extract document-level sentiment.
     #[serde(default, rename = "extractDocumentSentiment")]
-    pub extract_document_sentiment: Option<bool>,
+    pub extract_document_sentiment: ::core::option::Option<bool>,
     /// Optional. Extract entities.
     #[serde(default, rename = "extractEntities")]
-    pub extract_entities: Option<bool>,
+    pub extract_entities: ::core::option::Option<bool>,
     /// Optional. Moderate the document for harmful and sensitive categories.
     #[serde(default, rename = "moderateText")]
-    pub moderate_text: Option<bool>,
+    pub moderate_text: ::core::option::Option<bool>,
 }
 
 /// The text annotations response message.
@@ -102,25 +102,27 @@ pub struct AnnotateTextRequestFeatures {
 pub struct AnnotateTextResponse {
     /// Categories identified in the input document.
     #[serde(default)]
-    pub categories: Option<Vec<ClassificationCategory>>,
+    pub categories:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClassificationCategory>>>,
     /// The overall sentiment for the document. Populated if the user enables AnnotateTextRequest.Features.extract_document_sentiment.
     #[serde(default, rename = "documentSentiment")]
-    pub document_sentiment: Option<Sentiment>,
+    pub document_sentiment: ::core::option::Option<::std::boxed::Box<Sentiment>>,
     /// Entities, along with their semantic information, in the input document. Populated if the user enables AnnotateTextRequest.Features.extract_entities .
     #[serde(default)]
-    pub entities: Option<Vec<Entity>>,
+    pub entities: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entity>>>,
     /// The language of the text, which will be the same as the language specified in the request or, if not specified, the automatically-detected language. See Document.language_code field for more details.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Whether the language is officially supported by all requested features. The API may still return a response when the language is not supported, but it is on a best effort basis.
     #[serde(default, rename = "languageSupported")]
-    pub language_supported: Option<bool>,
+    pub language_supported: ::core::option::Option<bool>,
     /// Harmful and sensitive categories identified in the input document.
     #[serde(default, rename = "moderationCategories")]
-    pub moderation_categories: Option<Vec<ClassificationCategory>>,
+    pub moderation_categories:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClassificationCategory>>>,
     /// Sentences in the input document. Populated if the user enables AnnotateTextRequest.Features.extract_document_sentiment.
     #[serde(default)]
-    pub sentences: Option<Vec<Sentence>>,
+    pub sentences: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Sentence>>>,
 }
 
 /// Represents a category returned from the text classifier.
@@ -128,13 +130,13 @@ pub struct AnnotateTextResponse {
 pub struct ClassificationCategory {
     /// The classifier''s confidence of the category. Number represents how certain the classifier is that this category represents the given text.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the category representing the document.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The classifier''s severity of the category. This is only present when the ModerateTextRequest.ModelVersion is set to MODEL_VERSION_2, and the corresponding category has a severity score.
     #[serde(default)]
-    pub severity: Option<f32>,
+    pub severity: ::core::option::Option<f32>,
 }
 
 /// The document classification request message.
@@ -142,7 +144,7 @@ pub struct ClassificationCategory {
 pub struct ClassifyTextRequest {
     /// Required. Input document.
     #[serde(default)]
-    pub document: Option<Document>,
+    pub document: ::core::option::Option<::std::boxed::Box<Document>>,
 }
 
 /// The document classification response message.
@@ -150,13 +152,14 @@ pub struct ClassifyTextRequest {
 pub struct ClassifyTextResponse {
     /// Categories representing the input document.
     #[serde(default)]
-    pub categories: Option<Vec<ClassificationCategory>>,
+    pub categories:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClassificationCategory>>>,
     /// The language of the text, which will be the same as the language specified in the request or, if not specified, the automatically-detected language. See Document.language_code field for more details.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Whether the language is officially supported. The API may still return a response when the language is not supported, but it is on a best effort basis.
     #[serde(default, rename = "languageSupported")]
-    pub language_supported: Option<bool>,
+    pub language_supported: ::core::option::Option<bool>,
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
@@ -164,16 +167,16 @@ pub struct ClassifyTextResponse {
 pub struct Color {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
-    pub alpha: Option<f32>,
+    pub alpha: ::core::option::Option<f32>,
     /// The amount of blue in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub blue: Option<f32>,
+    pub blue: ::core::option::Option<f32>,
     /// The amount of green in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub green: Option<f32>,
+    pub green: ::core::option::Option<f32>,
     /// The amount of red in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub red: Option<f32>,
+    pub red: ::core::option::Option<f32>,
 }
 
 /// Metric for billing reports.
@@ -181,19 +184,19 @@ pub struct Color {
 pub struct CpuMetric {
     /// Required. Number of CPU cores.
     #[serde(default, rename = "coreNumber")]
-    pub core_number: Option<String>,
+    pub core_number: ::core::option::Option<String>,
     /// Required. Total seconds of core usage, e.g. 4.
     #[serde(default, rename = "coreSec")]
-    pub core_sec: Option<String>,
+    pub core_sec: ::core::option::Option<String>,
     /// Required. Type of cpu, e.g. N2. // TODO: enum values: ["UNKNOWN_CPU_TYPE", "A2", "A3", "A4", "A4X", "C2", "C2D", "CUSTOM", "E2", "G2", "G4", "C3", "C4", "C4A", "C4D", "N4", "N4A", "C3D", "M2", "M1", "N1", "N2_CUSTOM", "N2", "N2D"]
     #[serde(default, rename = "cpuType")]
-    pub cpu_type: Option<String>,
+    pub cpu_type: ::core::option::Option<String>,
     /// Required. Machine spec, e.g. N1_STANDARD_4. // TODO: enum values: ["UNKNOWN_MACHINE_SPEC", "N1_STANDARD_2", "N1_STANDARD_4", "N1_STANDARD_8", "N1_STANDARD_16", "N1_STANDARD_32", "N1_STANDARD_64", "N1_STANDARD_96", "N1_HIGHMEM_2", "N1_HIGHMEM_4", "N1_HIGHMEM_8", "N1_HIGHMEM_16", "N1_HIGHMEM_32", "N1_HIGHMEM_64", "N1_HIGHMEM_96", "N1_HIGHCPU_2", "N1_HIGHCPU_4", "N1_HIGHCPU_8", "N1_HIGHCPU_16", "N1_HIGHCPU_32", "N1_HIGHCPU_64", "N1_HIGHCPU_96", "A2_HIGHGPU_1G", "A2_HIGHGPU_2G", "A2_HIGHGPU_4G", "A2_HIGHGPU_8G", "A2_MEGAGPU_16G", "A2_ULTRAGPU_1G", "A2_ULTRAGPU_2G", "A2_ULTRAGPU_4G", "A2_ULTRAGPU_8G", "A3_HIGHGPU_1G", "A3_HIGHGPU_2G", "A3_HIGHGPU_4G", "A3_HIGHGPU_8G", "A3_MEGAGPU_8G", "A3_ULTRAGPU_8G", "A3_EDGEGPU_8G", "A4_HIGHGPU_8G", "A4X_HIGHGPU_4G", "E2_STANDARD_2", "E2_STANDARD_4", "E2_STANDARD_8", "E2_STANDARD_16", "E2_STANDARD_32", "E2_HIGHMEM_2", "E2_HIGHMEM_4", "E2_HIGHMEM_8", "E2_HIGHMEM_16", "E2_HIGHCPU_2", "E2_HIGHCPU_4", "E2_HIGHCPU_8", "E2_HIGHCPU_16", "E2_HIGHCPU_32", "N2_STANDARD_2", "N2_STANDARD_4", "N2_STANDARD_8", "N2_STANDARD_16", "N2_STANDARD_32", "N2_STANDARD_48", "N2_STANDARD_64", "N2_STANDARD_80", "N2_STANDARD_96", "N2_STANDARD_128", "N2_HIGHMEM_2", "N2_HIGHMEM_4", "N2_HIGHMEM_8", "N2_HIGHMEM_16", "N2_HIGHMEM_32", "N2_HIGHMEM_48", "N2_HIGHMEM_64", "N2_HIGHMEM_80", "N2_HIGHMEM_96", "N2_HIGHMEM_128", "N2_HIGHCPU_2", "N2_HIGHCPU_4", "N2_HIGHCPU_8", "N2_HIGHCPU_16", "N2_HIGHCPU_32", "N2_HIGHCPU_48", "N2_HIGHCPU_64", "N2_HIGHCPU_80", "N2_HIGHCPU_96", "N2D_STANDARD_2", "N2D_STANDARD_4", "N2D_STANDARD_8", "N2D_STANDARD_16", "N2D_STANDARD_32", "N2D_STANDARD_48", "N2D_STANDARD_64", "N2D_STANDARD_80", "N2D_STANDARD_96", "N2D_STANDARD_128", "N2D_STANDARD_224", "N2D_HIGHMEM_2", "N2D_HIGHMEM_4", "N2D_HIGHMEM_8", "N2D_HIGHMEM_16", "N2D_HIGHMEM_32", "N2D_HIGHMEM_48", "N2D_HIGHMEM_64", "N2D_HIGHMEM_80", "N2D_HIGHMEM_96", "N2D_HIGHCPU_2", "N2D_HIGHCPU_4", "N2D_HIGHCPU_8", "N2D_HIGHCPU_16", "N2D_HIGHCPU_32", "N2D_HIGHCPU_48", "N2D_HIGHCPU_64", "N2D_HIGHCPU_80", "N2D_HIGHCPU_96", "N2D_HIGHCPU_128", "N2D_HIGHCPU_224", "C2_STANDARD_4", "C2_STANDARD_8", "C2_STANDARD_16", "C2_STANDARD_30", "C2_STANDARD_60", "C2D_STANDARD_2", "C2D_STANDARD_4", "C2D_STANDARD_8", "C2D_STANDARD_16", "C2D_STANDARD_32", "C2D_STANDARD_56", "C2D_STANDARD_112", "C2D_HIGHCPU_2", "C2D_HIGHCPU_4", "C2D_HIGHCPU_8", "C2D_HIGHCPU_16", "C2D_HIGHCPU_32", "C2D_HIGHCPU_56", "C2D_HIGHCPU_112", "C2D_HIGHMEM_2", "C2D_HIGHMEM_4", "C2D_HIGHMEM_8", "C2D_HIGHMEM_16", "C2D_HIGHMEM_32", "C2D_HIGHMEM_56", "C2D_HIGHMEM_112", "G2_STANDARD_4", "G2_STANDARD_8", "G2_STANDARD_12", "G2_STANDARD_16", "G2_STANDARD_24", "G2_STANDARD_32", "G2_STANDARD_48", "G2_STANDARD_96", "G4_STANDARD_48", "C3_STANDARD_4", "C3_STANDARD_8", "C3_STANDARD_22", "C3_STANDARD_44", "C3_STANDARD_88", "C3_STANDARD_176", "C3_HIGHCPU_4", "C3_HIGHCPU_8", "C3_HIGHCPU_22", "C3_HIGHCPU_44", "C3_HIGHCPU_88", "C3_HIGHCPU_176", "C3_HIGHMEM_4", "C3_HIGHMEM_8", "C3_HIGHMEM_22", "C3_HIGHMEM_44", "C3_HIGHMEM_88", "C3_HIGHMEM_176", "C4_STANDARD_8", "C4_STANDARD_16", "C4_STANDARD_24", "C4_STANDARD_32", "C4_STANDARD_48", "C4_STANDARD_96", "C4_STANDARD_144", "C4_STANDARD_192", "C4_STANDARD_288", "C4_HIGHCPU_8", "C4_HIGHCPU_16", "C4_HIGHCPU_24", "C4_HIGHCPU_32", "C4_HIGHCPU_48", "C4_HIGHCPU_96", "C4_HIGHCPU_144", "C4_HIGHCPU_192", "C4_HIGHCPU_288", "C4_HIGHMEM_8", "C4_HIGHMEM_16", "C4_HIGHMEM_24", "C4_HIGHMEM_32", "C4_HIGHMEM_48", "C4_HIGHMEM_96", "C4_HIGHMEM_144", "C4_HIGHMEM_192", "C4_HIGHMEM_288", "C4A_STANDARD_8", "C4A_STANDARD_16", "C4A_STANDARD_32", "C4A_STANDARD_48", "C4A_STANDARD_64", "C4A_STANDARD_72", "C4A_HIGHCPU_8", "C4A_HIGHCPU_16", "C4A_HIGHCPU_32", "C4A_HIGHCPU_48", "C4A_HIGHCPU_64", "C4A_HIGHCPU_72", "C4A_HIGHMEM_8", "C4A_HIGHMEM_16", "C4A_HIGHMEM_32", "C4A_HIGHMEM_48", "C4A_HIGHMEM_64", "C4A_HIGHMEM_72", "C4D_STANDARD_8", "C4D_STANDARD_16", "C4D_STANDARD_32", "C4D_STANDARD_48", "C4D_STANDARD_64", "C4D_STANDARD_96", "C4D_STANDARD_192", "C4D_STANDARD_384", "C4D_HIGHCPU_8", "C4D_HIGHCPU_16", "C4D_HIGHCPU_32", "C4D_HIGHCPU_48", "C4D_HIGHCPU_64", "C4D_HIGHCPU_96", "C4D_HIGHCPU_192", "C4D_HIGHCPU_384", "C4D_HIGHMEM_8", "C4D_HIGHMEM_16", "C4D_HIGHMEM_32", "C4D_HIGHMEM_48", "C4D_HIGHMEM_64", "C4D_HIGHMEM_96", "C4D_HIGHMEM_192", "C4D_HIGHMEM_384", "N4_STANDARD_2", "N4_STANDARD_4", "N4_STANDARD_8", "N4_STANDARD_16", "N4_STANDARD_32", "N4_STANDARD_48", "N4_STANDARD_64", "N4_STANDARD_80", "N4_HIGHCPU_2", "N4_HIGHCPU_4", "N4_HIGHCPU_8", "N4_HIGHCPU_16", "N4_HIGHCPU_32", "N4_HIGHCPU_48", "N4_HIGHCPU_64", "N4_HIGHCPU_80", "N4_HIGHMEM_2", "N4_HIGHMEM_4", "N4_HIGHMEM_8", "N4_HIGHMEM_16", "N4_HIGHMEM_32", "N4_HIGHMEM_48", "N4_HIGHMEM_64", "N4_HIGHMEM_80", "N4A_STANDARD_8", "N4A_STANDARD_16", "N4A_STANDARD_32", "N4A_STANDARD_48", "N4A_STANDARD_64", "N4A_HIGHCPU_8", "N4A_HIGHCPU_16", "N4A_HIGHCPU_32", "N4A_HIGHCPU_48", "N4A_HIGHCPU_64", "N4A_HIGHMEM_8", "N4A_HIGHMEM_16", "N4A_HIGHMEM_32", "N4A_HIGHMEM_48", "N4A_HIGHMEM_64", "C3D_STANDARD_8", "C3D_STANDARD_16", "C3D_STANDARD_30", "C3D_STANDARD_60", "C3D_STANDARD_90", "C3D_STANDARD_180", "C3D_STANDARD_360", "C3D_HIGHCPU_8", "C3D_HIGHCPU_16", "C3D_HIGHCPU_30", "C3D_HIGHCPU_60", "C3D_HIGHCPU_90", "C3D_HIGHCPU_180", "C3D_HIGHCPU_360", "C3D_HIGHMEM_8", "C3D_HIGHMEM_16", "C3D_HIGHMEM_30", "C3D_HIGHMEM_60", "C3D_HIGHMEM_90", "C3D_HIGHMEM_180", "C3D_HIGHMEM_360"]
     #[serde(default, rename = "machineSpec")]
-    pub machine_spec: Option<String>,
+    pub machine_spec: ::core::option::Option<String>,
     /// Billing tracking labels. They do not contain any user data but only the labels set by Vertex Core Infra itself. Tracking labels'' keys are defined with special format: goog-[\p{Ll}\p{N}]+ E.g. "key": "goog-k8s-cluster-name","value": "us-east1-b4rk"
     #[serde(default, rename = "trackingLabels")]
-    pub tracking_labels: Option<serde_json::Value>,
+    pub tracking_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// DiskMetric resource type.
@@ -201,10 +204,10 @@ pub struct CpuMetric {
 pub struct DiskMetric {
     /// Required. Type of Disk, e.g. REGIONAL_SSD. // TODO: enum values: ["UNKNOWN_DISK_TYPE", "REGIONAL_SSD", "REGIONAL_STORAGE", "PD_SSD", "PD_STANDARD", "STORAGE_SNAPSHOT"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Required. Seconds of physical disk usage, e.g. 3600.
     #[serde(default, rename = "gibSec")]
-    pub gib_sec: Option<String>,
+    pub gib_sec: ::core::option::Option<String>,
 }
 
 /// Represents the input to API methods.
@@ -212,16 +215,16 @@ pub struct DiskMetric {
 pub struct Document {
     /// The content of the input in string format. Cloud audit logging exempt since it is based on user data.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The Google Cloud Storage URI where the file content is located. This URI must be of the form: gs://bucket_name/object_name. For more details, see https://cloud.google.com/storage/docs/reference-uris. NOTE: Cloud Storage object versioning is not supported.
     #[serde(default, rename = "gcsContentUri")]
-    pub gcs_content_uri: Option<String>,
+    pub gcs_content_uri: ::core::option::Option<String>,
     /// Optional. The language of the document (if not specified, the language is automatically detected). Both ISO and BCP-47 language codes are accepted. [Language Support](https://cloud.google.com/natural-language/docs/languages) lists currently supported languages for each API method. If the language (either specified by the caller or automatically detected) is not supported by the called API method, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Required. If the type is not set or is TYPE_UNSPECIFIED, returns an INVALID_ARGUMENT error. // TODO: enum values: ["TYPE_UNSPECIFIED", "PLAIN_TEXT", "HTML"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a phrase in the text that is a known entity, such as a person, an organization, or location. The API associates information, such as probability and mentions, with entities.
@@ -229,19 +232,19 @@ pub struct Document {
 pub struct Entity {
     /// The mentions of this entity in the input document. The API currently supports proper noun mentions.
     #[serde(default)]
-    pub mentions: Option<Vec<EntityMention>>,
+    pub mentions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EntityMention>>>,
     /// Metadata associated with the entity. For the metadata associated with other entity types, see the Type table below.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The representative name for the entity.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// For calls to AnalyzeEntitySentiment this field will contain the aggregate sentiment expressed for this entity in the provided document.
     #[serde(default)]
-    pub sentiment: Option<Sentiment>,
+    pub sentiment: ::core::option::Option<::std::boxed::Box<Sentiment>>,
     /// The entity type. // TODO: enum values: ["UNKNOWN", "PERSON", "LOCATION", "ORGANIZATION", "EVENT", "WORK_OF_ART", "CONSUMER_GOOD", "OTHER", "PHONE_NUMBER", "ADDRESS", "DATE", "NUMBER", "PRICE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a mention for an entity in the text. Currently, proper noun mentions are supported.
@@ -249,16 +252,16 @@ pub struct Entity {
 pub struct EntityMention {
     /// Probability score associated with the entity. The score shows the probability of the entity mention being the entity type. The score is in (0, 1] range.
     #[serde(default)]
-    pub probability: Option<f32>,
+    pub probability: ::core::option::Option<f32>,
     /// For calls to AnalyzeEntitySentiment this field will contain the sentiment expressed for this mention of the entity in the provided document.
     #[serde(default)]
-    pub sentiment: Option<Sentiment>,
+    pub sentiment: ::core::option::Option<::std::boxed::Box<Sentiment>>,
     /// The mention text.
     #[serde(default)]
-    pub text: Option<TextSpan>,
+    pub text: ::core::option::Option<::std::boxed::Box<TextSpan>>,
     /// The type of the entity mention. // TODO: enum values: ["TYPE_UNKNOWN", "PROPER", "COMMON"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GpuMetric resource type.
@@ -266,16 +269,16 @@ pub struct EntityMention {
 pub struct GpuMetric {
     /// Required. Seconds of GPU usage, e.g. 3600.
     #[serde(default, rename = "gpuSec")]
-    pub gpu_sec: Option<String>,
+    pub gpu_sec: ::core::option::Option<String>,
     /// Required. Type of GPU, e.g. NVIDIA_TESLA_V100. // TODO: enum values: ["UNKNOWN_GPU_TYPE", "NVIDIA_TESLA_A100", "NVIDIA_A100_80GB", "NVIDIA_B200", "NVIDIA_GB200", "NVIDIA_TESLA_K80", "NVIDIA_L4", "NVIDIA_TESLA_P100", "NVIDIA_TESLA_P4", "NVIDIA_TESLA_T4", "NVIDIA_TESLA_V100", "NVIDIA_H100_80GB", "NVIDIA_H100_MEGA_80GB", "NVIDIA_H200_141GB", "NVIDIA_RTX_PRO_6000"]
     #[serde(default, rename = "gpuType")]
-    pub gpu_type: Option<String>,
+    pub gpu_type: ::core::option::Option<String>,
     /// Required. Machine spec, e.g. N1_STANDARD_4. // TODO: enum values: ["UNKNOWN_MACHINE_SPEC", "N1_STANDARD_2", "N1_STANDARD_4", "N1_STANDARD_8", "N1_STANDARD_16", "N1_STANDARD_32", "N1_STANDARD_64", "N1_STANDARD_96", "N1_HIGHMEM_2", "N1_HIGHMEM_4", "N1_HIGHMEM_8", "N1_HIGHMEM_16", "N1_HIGHMEM_32", "N1_HIGHMEM_64", "N1_HIGHMEM_96", "N1_HIGHCPU_2", "N1_HIGHCPU_4", "N1_HIGHCPU_8", "N1_HIGHCPU_16", "N1_HIGHCPU_32", "N1_HIGHCPU_64", "N1_HIGHCPU_96", "A2_HIGHGPU_1G", "A2_HIGHGPU_2G", "A2_HIGHGPU_4G", "A2_HIGHGPU_8G", "A2_MEGAGPU_16G", "A2_ULTRAGPU_1G", "A2_ULTRAGPU_2G", "A2_ULTRAGPU_4G", "A2_ULTRAGPU_8G", "A3_HIGHGPU_1G", "A3_HIGHGPU_2G", "A3_HIGHGPU_4G", "A3_HIGHGPU_8G", "A3_MEGAGPU_8G", "A3_ULTRAGPU_8G", "A3_EDGEGPU_8G", "A4_HIGHGPU_8G", "A4X_HIGHGPU_4G", "E2_STANDARD_2", "E2_STANDARD_4", "E2_STANDARD_8", "E2_STANDARD_16", "E2_STANDARD_32", "E2_HIGHMEM_2", "E2_HIGHMEM_4", "E2_HIGHMEM_8", "E2_HIGHMEM_16", "E2_HIGHCPU_2", "E2_HIGHCPU_4", "E2_HIGHCPU_8", "E2_HIGHCPU_16", "E2_HIGHCPU_32", "N2_STANDARD_2", "N2_STANDARD_4", "N2_STANDARD_8", "N2_STANDARD_16", "N2_STANDARD_32", "N2_STANDARD_48", "N2_STANDARD_64", "N2_STANDARD_80", "N2_STANDARD_96", "N2_STANDARD_128", "N2_HIGHMEM_2", "N2_HIGHMEM_4", "N2_HIGHMEM_8", "N2_HIGHMEM_16", "N2_HIGHMEM_32", "N2_HIGHMEM_48", "N2_HIGHMEM_64", "N2_HIGHMEM_80", "N2_HIGHMEM_96", "N2_HIGHMEM_128", "N2_HIGHCPU_2", "N2_HIGHCPU_4", "N2_HIGHCPU_8", "N2_HIGHCPU_16", "N2_HIGHCPU_32", "N2_HIGHCPU_48", "N2_HIGHCPU_64", "N2_HIGHCPU_80", "N2_HIGHCPU_96", "N2D_STANDARD_2", "N2D_STANDARD_4", "N2D_STANDARD_8", "N2D_STANDARD_16", "N2D_STANDARD_32", "N2D_STANDARD_48", "N2D_STANDARD_64", "N2D_STANDARD_80", "N2D_STANDARD_96", "N2D_STANDARD_128", "N2D_STANDARD_224", "N2D_HIGHMEM_2", "N2D_HIGHMEM_4", "N2D_HIGHMEM_8", "N2D_HIGHMEM_16", "N2D_HIGHMEM_32", "N2D_HIGHMEM_48", "N2D_HIGHMEM_64", "N2D_HIGHMEM_80", "N2D_HIGHMEM_96", "N2D_HIGHCPU_2", "N2D_HIGHCPU_4", "N2D_HIGHCPU_8", "N2D_HIGHCPU_16", "N2D_HIGHCPU_32", "N2D_HIGHCPU_48", "N2D_HIGHCPU_64", "N2D_HIGHCPU_80", "N2D_HIGHCPU_96", "N2D_HIGHCPU_128", "N2D_HIGHCPU_224", "C2_STANDARD_4", "C2_STANDARD_8", "C2_STANDARD_16", "C2_STANDARD_30", "C2_STANDARD_60", "C2D_STANDARD_2", "C2D_STANDARD_4", "C2D_STANDARD_8", "C2D_STANDARD_16", "C2D_STANDARD_32", "C2D_STANDARD_56", "C2D_STANDARD_112", "C2D_HIGHCPU_2", "C2D_HIGHCPU_4", "C2D_HIGHCPU_8", "C2D_HIGHCPU_16", "C2D_HIGHCPU_32", "C2D_HIGHCPU_56", "C2D_HIGHCPU_112", "C2D_HIGHMEM_2", "C2D_HIGHMEM_4", "C2D_HIGHMEM_8", "C2D_HIGHMEM_16", "C2D_HIGHMEM_32", "C2D_HIGHMEM_56", "C2D_HIGHMEM_112", "G2_STANDARD_4", "G2_STANDARD_8", "G2_STANDARD_12", "G2_STANDARD_16", "G2_STANDARD_24", "G2_STANDARD_32", "G2_STANDARD_48", "G2_STANDARD_96", "G4_STANDARD_48", "C3_STANDARD_4", "C3_STANDARD_8", "C3_STANDARD_22", "C3_STANDARD_44", "C3_STANDARD_88", "C3_STANDARD_176", "C3_HIGHCPU_4", "C3_HIGHCPU_8", "C3_HIGHCPU_22", "C3_HIGHCPU_44", "C3_HIGHCPU_88", "C3_HIGHCPU_176", "C3_HIGHMEM_4", "C3_HIGHMEM_8", "C3_HIGHMEM_22", "C3_HIGHMEM_44", "C3_HIGHMEM_88", "C3_HIGHMEM_176", "C4_STANDARD_8", "C4_STANDARD_16", "C4_STANDARD_24", "C4_STANDARD_32", "C4_STANDARD_48", "C4_STANDARD_96", "C4_STANDARD_144", "C4_STANDARD_192", "C4_STANDARD_288", "C4_HIGHCPU_8", "C4_HIGHCPU_16", "C4_HIGHCPU_24", "C4_HIGHCPU_32", "C4_HIGHCPU_48", "C4_HIGHCPU_96", "C4_HIGHCPU_144", "C4_HIGHCPU_192", "C4_HIGHCPU_288", "C4_HIGHMEM_8", "C4_HIGHMEM_16", "C4_HIGHMEM_24", "C4_HIGHMEM_32", "C4_HIGHMEM_48", "C4_HIGHMEM_96", "C4_HIGHMEM_144", "C4_HIGHMEM_192", "C4_HIGHMEM_288", "C4A_STANDARD_8", "C4A_STANDARD_16", "C4A_STANDARD_32", "C4A_STANDARD_48", "C4A_STANDARD_64", "C4A_STANDARD_72", "C4A_HIGHCPU_8", "C4A_HIGHCPU_16", "C4A_HIGHCPU_32", "C4A_HIGHCPU_48", "C4A_HIGHCPU_64", "C4A_HIGHCPU_72", "C4A_HIGHMEM_8", "C4A_HIGHMEM_16", "C4A_HIGHMEM_32", "C4A_HIGHMEM_48", "C4A_HIGHMEM_64", "C4A_HIGHMEM_72", "C4D_STANDARD_8", "C4D_STANDARD_16", "C4D_STANDARD_32", "C4D_STANDARD_48", "C4D_STANDARD_64", "C4D_STANDARD_96", "C4D_STANDARD_192", "C4D_STANDARD_384", "C4D_HIGHCPU_8", "C4D_HIGHCPU_16", "C4D_HIGHCPU_32", "C4D_HIGHCPU_48", "C4D_HIGHCPU_64", "C4D_HIGHCPU_96", "C4D_HIGHCPU_192", "C4D_HIGHCPU_384", "C4D_HIGHMEM_8", "C4D_HIGHMEM_16", "C4D_HIGHMEM_32", "C4D_HIGHMEM_48", "C4D_HIGHMEM_64", "C4D_HIGHMEM_96", "C4D_HIGHMEM_192", "C4D_HIGHMEM_384", "N4_STANDARD_2", "N4_STANDARD_4", "N4_STANDARD_8", "N4_STANDARD_16", "N4_STANDARD_32", "N4_STANDARD_48", "N4_STANDARD_64", "N4_STANDARD_80", "N4_HIGHCPU_2", "N4_HIGHCPU_4", "N4_HIGHCPU_8", "N4_HIGHCPU_16", "N4_HIGHCPU_32", "N4_HIGHCPU_48", "N4_HIGHCPU_64", "N4_HIGHCPU_80", "N4_HIGHMEM_2", "N4_HIGHMEM_4", "N4_HIGHMEM_8", "N4_HIGHMEM_16", "N4_HIGHMEM_32", "N4_HIGHMEM_48", "N4_HIGHMEM_64", "N4_HIGHMEM_80", "N4A_STANDARD_8", "N4A_STANDARD_16", "N4A_STANDARD_32", "N4A_STANDARD_48", "N4A_STANDARD_64", "N4A_HIGHCPU_8", "N4A_HIGHCPU_16", "N4A_HIGHCPU_32", "N4A_HIGHCPU_48", "N4A_HIGHCPU_64", "N4A_HIGHMEM_8", "N4A_HIGHMEM_16", "N4A_HIGHMEM_32", "N4A_HIGHMEM_48", "N4A_HIGHMEM_64", "C3D_STANDARD_8", "C3D_STANDARD_16", "C3D_STANDARD_30", "C3D_STANDARD_60", "C3D_STANDARD_90", "C3D_STANDARD_180", "C3D_STANDARD_360", "C3D_HIGHCPU_8", "C3D_HIGHCPU_16", "C3D_HIGHCPU_30", "C3D_HIGHCPU_60", "C3D_HIGHCPU_90", "C3D_HIGHCPU_180", "C3D_HIGHCPU_360", "C3D_HIGHMEM_8", "C3D_HIGHMEM_16", "C3D_HIGHMEM_30", "C3D_HIGHMEM_60", "C3D_HIGHMEM_90", "C3D_HIGHMEM_180", "C3D_HIGHMEM_360"]
     #[serde(default, rename = "machineSpec")]
-    pub machine_spec: Option<String>,
+    pub machine_spec: ::core::option::Option<String>,
     /// Billing tracking labels. They do not contain any user data but only the labels set by Vertex Core Infra itself. Tracking labels'' keys are defined with special format: goog-[\p{Ll}\p{N}]+ E.g. "key": "goog-k8s-cluster-name","value": "us-east1-b4rk"
     #[serde(default, rename = "trackingLabels")]
-    pub tracking_labels: Option<serde_json::Value>,
+    pub tracking_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// LINT: LEGACY_NAMES Infra Usage of billing metrics.
@@ -283,19 +286,19 @@ pub struct GpuMetric {
 pub struct InfraUsage {
     /// Aggregated core metrics since requested start_time.
     #[serde(default, rename = "cpuMetrics")]
-    pub cpu_metrics: Option<Vec<CpuMetric>>,
+    pub cpu_metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CpuMetric>>>,
     /// Aggregated persistent disk metrics since requested start_time.
     #[serde(default, rename = "diskMetrics")]
-    pub disk_metrics: Option<Vec<DiskMetric>>,
+    pub disk_metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DiskMetric>>>,
     /// Aggregated gpu metrics since requested start_time.
     #[serde(default, rename = "gpuMetrics")]
-    pub gpu_metrics: Option<Vec<GpuMetric>>,
+    pub gpu_metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GpuMetric>>>,
     /// Aggregated ram metrics since requested start_time.
     #[serde(default, rename = "ramMetrics")]
-    pub ram_metrics: Option<Vec<RamMetric>>,
+    pub ram_metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RamMetric>>>,
     /// Aggregated tpu metrics since requested start_time.
     #[serde(default, rename = "tpuMetrics")]
-    pub tpu_metrics: Option<Vec<TpuMetric>>,
+    pub tpu_metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TpuMetric>>>,
 }
 
 /// The document moderation request message.
@@ -303,10 +306,10 @@ pub struct InfraUsage {
 pub struct ModerateTextRequest {
     /// Required. Input document.
     #[serde(default)]
-    pub document: Option<Document>,
+    pub document: ::core::option::Option<::std::boxed::Box<Document>>,
     /// Optional. The model version to use for ModerateText. // TODO: enum values: ["MODEL_VERSION_UNSPECIFIED", "MODEL_VERSION_1", "MODEL_VERSION_2"]
     #[serde(default, rename = "modelVersion")]
-    pub model_version: Option<String>,
+    pub model_version: ::core::option::Option<String>,
 }
 
 /// The document moderation response message.
@@ -314,13 +317,14 @@ pub struct ModerateTextRequest {
 pub struct ModerateTextResponse {
     /// The language of the text, which will be the same as the language specified in the request or, if not specified, the automatically-detected language. See Document.language_code field for more details.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Whether the language is officially supported. The API may still return a response when the language is not supported, but it is on a best effort basis.
     #[serde(default, rename = "languageSupported")]
-    pub language_supported: Option<bool>,
+    pub language_supported: ::core::option::Option<bool>,
     /// Harmful and sensitive categories representing the input document.
     #[serde(default, rename = "moderationCategories")]
-    pub moderation_categories: Option<Vec<ClassificationCategory>>,
+    pub moderation_categories:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClassificationCategory>>>,
 }
 
 /// RamMetric resource type.
@@ -328,19 +332,19 @@ pub struct ModerateTextResponse {
 pub struct RamMetric {
     /// Required. VM memory in Gigabyte second, e.g. 3600. Using int64 type to match billing metrics definition.
     #[serde(default, rename = "gibSec")]
-    pub gib_sec: Option<String>,
+    pub gib_sec: ::core::option::Option<String>,
     /// Required. Machine spec, e.g. N1_STANDARD_4. // TODO: enum values: ["UNKNOWN_MACHINE_SPEC", "N1_STANDARD_2", "N1_STANDARD_4", "N1_STANDARD_8", "N1_STANDARD_16", "N1_STANDARD_32", "N1_STANDARD_64", "N1_STANDARD_96", "N1_HIGHMEM_2", "N1_HIGHMEM_4", "N1_HIGHMEM_8", "N1_HIGHMEM_16", "N1_HIGHMEM_32", "N1_HIGHMEM_64", "N1_HIGHMEM_96", "N1_HIGHCPU_2", "N1_HIGHCPU_4", "N1_HIGHCPU_8", "N1_HIGHCPU_16", "N1_HIGHCPU_32", "N1_HIGHCPU_64", "N1_HIGHCPU_96", "A2_HIGHGPU_1G", "A2_HIGHGPU_2G", "A2_HIGHGPU_4G", "A2_HIGHGPU_8G", "A2_MEGAGPU_16G", "A2_ULTRAGPU_1G", "A2_ULTRAGPU_2G", "A2_ULTRAGPU_4G", "A2_ULTRAGPU_8G", "A3_HIGHGPU_1G", "A3_HIGHGPU_2G", "A3_HIGHGPU_4G", "A3_HIGHGPU_8G", "A3_MEGAGPU_8G", "A3_ULTRAGPU_8G", "A3_EDGEGPU_8G", "A4_HIGHGPU_8G", "A4X_HIGHGPU_4G", "E2_STANDARD_2", "E2_STANDARD_4", "E2_STANDARD_8", "E2_STANDARD_16", "E2_STANDARD_32", "E2_HIGHMEM_2", "E2_HIGHMEM_4", "E2_HIGHMEM_8", "E2_HIGHMEM_16", "E2_HIGHCPU_2", "E2_HIGHCPU_4", "E2_HIGHCPU_8", "E2_HIGHCPU_16", "E2_HIGHCPU_32", "N2_STANDARD_2", "N2_STANDARD_4", "N2_STANDARD_8", "N2_STANDARD_16", "N2_STANDARD_32", "N2_STANDARD_48", "N2_STANDARD_64", "N2_STANDARD_80", "N2_STANDARD_96", "N2_STANDARD_128", "N2_HIGHMEM_2", "N2_HIGHMEM_4", "N2_HIGHMEM_8", "N2_HIGHMEM_16", "N2_HIGHMEM_32", "N2_HIGHMEM_48", "N2_HIGHMEM_64", "N2_HIGHMEM_80", "N2_HIGHMEM_96", "N2_HIGHMEM_128", "N2_HIGHCPU_2", "N2_HIGHCPU_4", "N2_HIGHCPU_8", "N2_HIGHCPU_16", "N2_HIGHCPU_32", "N2_HIGHCPU_48", "N2_HIGHCPU_64", "N2_HIGHCPU_80", "N2_HIGHCPU_96", "N2D_STANDARD_2", "N2D_STANDARD_4", "N2D_STANDARD_8", "N2D_STANDARD_16", "N2D_STANDARD_32", "N2D_STANDARD_48", "N2D_STANDARD_64", "N2D_STANDARD_80", "N2D_STANDARD_96", "N2D_STANDARD_128", "N2D_STANDARD_224", "N2D_HIGHMEM_2", "N2D_HIGHMEM_4", "N2D_HIGHMEM_8", "N2D_HIGHMEM_16", "N2D_HIGHMEM_32", "N2D_HIGHMEM_48", "N2D_HIGHMEM_64", "N2D_HIGHMEM_80", "N2D_HIGHMEM_96", "N2D_HIGHCPU_2", "N2D_HIGHCPU_4", "N2D_HIGHCPU_8", "N2D_HIGHCPU_16", "N2D_HIGHCPU_32", "N2D_HIGHCPU_48", "N2D_HIGHCPU_64", "N2D_HIGHCPU_80", "N2D_HIGHCPU_96", "N2D_HIGHCPU_128", "N2D_HIGHCPU_224", "C2_STANDARD_4", "C2_STANDARD_8", "C2_STANDARD_16", "C2_STANDARD_30", "C2_STANDARD_60", "C2D_STANDARD_2", "C2D_STANDARD_4", "C2D_STANDARD_8", "C2D_STANDARD_16", "C2D_STANDARD_32", "C2D_STANDARD_56", "C2D_STANDARD_112", "C2D_HIGHCPU_2", "C2D_HIGHCPU_4", "C2D_HIGHCPU_8", "C2D_HIGHCPU_16", "C2D_HIGHCPU_32", "C2D_HIGHCPU_56", "C2D_HIGHCPU_112", "C2D_HIGHMEM_2", "C2D_HIGHMEM_4", "C2D_HIGHMEM_8", "C2D_HIGHMEM_16", "C2D_HIGHMEM_32", "C2D_HIGHMEM_56", "C2D_HIGHMEM_112", "G2_STANDARD_4", "G2_STANDARD_8", "G2_STANDARD_12", "G2_STANDARD_16", "G2_STANDARD_24", "G2_STANDARD_32", "G2_STANDARD_48", "G2_STANDARD_96", "G4_STANDARD_48", "C3_STANDARD_4", "C3_STANDARD_8", "C3_STANDARD_22", "C3_STANDARD_44", "C3_STANDARD_88", "C3_STANDARD_176", "C3_HIGHCPU_4", "C3_HIGHCPU_8", "C3_HIGHCPU_22", "C3_HIGHCPU_44", "C3_HIGHCPU_88", "C3_HIGHCPU_176", "C3_HIGHMEM_4", "C3_HIGHMEM_8", "C3_HIGHMEM_22", "C3_HIGHMEM_44", "C3_HIGHMEM_88", "C3_HIGHMEM_176", "C4_STANDARD_8", "C4_STANDARD_16", "C4_STANDARD_24", "C4_STANDARD_32", "C4_STANDARD_48", "C4_STANDARD_96", "C4_STANDARD_144", "C4_STANDARD_192", "C4_STANDARD_288", "C4_HIGHCPU_8", "C4_HIGHCPU_16", "C4_HIGHCPU_24", "C4_HIGHCPU_32", "C4_HIGHCPU_48", "C4_HIGHCPU_96", "C4_HIGHCPU_144", "C4_HIGHCPU_192", "C4_HIGHCPU_288", "C4_HIGHMEM_8", "C4_HIGHMEM_16", "C4_HIGHMEM_24", "C4_HIGHMEM_32", "C4_HIGHMEM_48", "C4_HIGHMEM_96", "C4_HIGHMEM_144", "C4_HIGHMEM_192", "C4_HIGHMEM_288", "C4A_STANDARD_8", "C4A_STANDARD_16", "C4A_STANDARD_32", "C4A_STANDARD_48", "C4A_STANDARD_64", "C4A_STANDARD_72", "C4A_HIGHCPU_8", "C4A_HIGHCPU_16", "C4A_HIGHCPU_32", "C4A_HIGHCPU_48", "C4A_HIGHCPU_64", "C4A_HIGHCPU_72", "C4A_HIGHMEM_8", "C4A_HIGHMEM_16", "C4A_HIGHMEM_32", "C4A_HIGHMEM_48", "C4A_HIGHMEM_64", "C4A_HIGHMEM_72", "C4D_STANDARD_8", "C4D_STANDARD_16", "C4D_STANDARD_32", "C4D_STANDARD_48", "C4D_STANDARD_64", "C4D_STANDARD_96", "C4D_STANDARD_192", "C4D_STANDARD_384", "C4D_HIGHCPU_8", "C4D_HIGHCPU_16", "C4D_HIGHCPU_32", "C4D_HIGHCPU_48", "C4D_HIGHCPU_64", "C4D_HIGHCPU_96", "C4D_HIGHCPU_192", "C4D_HIGHCPU_384", "C4D_HIGHMEM_8", "C4D_HIGHMEM_16", "C4D_HIGHMEM_32", "C4D_HIGHMEM_48", "C4D_HIGHMEM_64", "C4D_HIGHMEM_96", "C4D_HIGHMEM_192", "C4D_HIGHMEM_384", "N4_STANDARD_2", "N4_STANDARD_4", "N4_STANDARD_8", "N4_STANDARD_16", "N4_STANDARD_32", "N4_STANDARD_48", "N4_STANDARD_64", "N4_STANDARD_80", "N4_HIGHCPU_2", "N4_HIGHCPU_4", "N4_HIGHCPU_8", "N4_HIGHCPU_16", "N4_HIGHCPU_32", "N4_HIGHCPU_48", "N4_HIGHCPU_64", "N4_HIGHCPU_80", "N4_HIGHMEM_2", "N4_HIGHMEM_4", "N4_HIGHMEM_8", "N4_HIGHMEM_16", "N4_HIGHMEM_32", "N4_HIGHMEM_48", "N4_HIGHMEM_64", "N4_HIGHMEM_80", "N4A_STANDARD_8", "N4A_STANDARD_16", "N4A_STANDARD_32", "N4A_STANDARD_48", "N4A_STANDARD_64", "N4A_HIGHCPU_8", "N4A_HIGHCPU_16", "N4A_HIGHCPU_32", "N4A_HIGHCPU_48", "N4A_HIGHCPU_64", "N4A_HIGHMEM_8", "N4A_HIGHMEM_16", "N4A_HIGHMEM_32", "N4A_HIGHMEM_48", "N4A_HIGHMEM_64", "C3D_STANDARD_8", "C3D_STANDARD_16", "C3D_STANDARD_30", "C3D_STANDARD_60", "C3D_STANDARD_90", "C3D_STANDARD_180", "C3D_STANDARD_360", "C3D_HIGHCPU_8", "C3D_HIGHCPU_16", "C3D_HIGHCPU_30", "C3D_HIGHCPU_60", "C3D_HIGHCPU_90", "C3D_HIGHCPU_180", "C3D_HIGHCPU_360", "C3D_HIGHMEM_8", "C3D_HIGHMEM_16", "C3D_HIGHMEM_30", "C3D_HIGHMEM_60", "C3D_HIGHMEM_90", "C3D_HIGHMEM_180", "C3D_HIGHMEM_360"]
     #[serde(default, rename = "machineSpec")]
-    pub machine_spec: Option<String>,
+    pub machine_spec: ::core::option::Option<String>,
     /// Required. VM memory in gb.
     #[serde(default)]
-    pub memories: Option<f64>,
+    pub memories: ::core::option::Option<f64>,
     /// Required. Type of ram. // TODO: enum values: ["UNKNOWN_RAM_TYPE", "A2", "A3", "A4", "A4X", "C2", "C2D", "CUSTOM", "E2", "G2", "G4", "C4", "C4A", "C4D", "N4", "N4A", "C3D", "C3", "M2", "M1", "N1", "N2_CUSTOM", "N2", "N2D"]
     #[serde(default, rename = "ramType")]
-    pub ram_type: Option<String>,
+    pub ram_type: ::core::option::Option<String>,
     /// Billing tracking labels. They do not contain any user data but only the labels set by Vertex Core Infra itself. Tracking labels'' keys are defined with special format: goog-[\p{Ll}\p{N}]+ E.g. "key": "goog-k8s-cluster-name","value": "us-east1-b4rk"
     #[serde(default, rename = "trackingLabels")]
-    pub tracking_labels: Option<serde_json::Value>,
+    pub tracking_labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents a sentence in the input document.
@@ -348,10 +352,10 @@ pub struct RamMetric {
 pub struct Sentence {
     /// For calls to AnalyzeSentiment or if AnnotateTextRequest.Features.extract_document_sentiment is set to true, this field will contain the sentiment for the sentence.
     #[serde(default)]
-    pub sentiment: Option<Sentiment>,
+    pub sentiment: ::core::option::Option<::std::boxed::Box<Sentiment>>,
     /// The sentence text.
     #[serde(default)]
-    pub text: Option<TextSpan>,
+    pub text: ::core::option::Option<::std::boxed::Box<TextSpan>>,
 }
 
 /// Represents the feeling associated with the entire text or entities in the text.
@@ -359,10 +363,10 @@ pub struct Sentence {
 pub struct Sentiment {
     /// A non-negative number in the [0, +inf] range, which represents the absolute magnitude of sentiment regardless of score (positive or negative).
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     /// Sentiment score between -1.0 (negative sentiment) and 1.0 (positive sentiment).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -370,13 +374,13 @@ pub struct Sentiment {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a text span in the input document.
@@ -384,10 +388,10 @@ pub struct Status {
 pub struct TextSpan {
     /// The API calculates the beginning offset of the content in the original document according to the EncodingType specified in the API request.
     #[serde(default, rename = "beginOffset")]
-    pub begin_offset: Option<i32>,
+    pub begin_offset: ::core::option::Option<i32>,
     /// The content of the text span, which is a substring of the document.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
 }
 
 /// TpuMetric resource type.
@@ -395,20 +399,20 @@ pub struct TextSpan {
 pub struct TpuMetric {
     /// Required. Seconds of TPU usage, e.g. 3600.
     #[serde(default, rename = "tpuSec")]
-    pub tpu_sec: Option<String>,
+    pub tpu_sec: ::core::option::Option<String>,
     /// Required. Type of TPU, e.g. TPU_V2, TPU_V3_POD. // TODO: enum values: ["UNKNOWN_TPU_TYPE", "TPU_V2_POD", "TPU_V2", "TPU_V3_POD", "TPU_V3", "TPU_V5_LITEPOD"]
     #[serde(default, rename = "tpuType")]
-    pub tpu_type: Option<String>,
+    pub tpu_type: ::core::option::Option<String>,
 }
 
 /// The data statistics of a series of ARRAY values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSArrayStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// Stats of all the values of all arrays, as if they were a single long series of data. The type depends on the element type of the array.
     #[serde(default, rename = "memberStats")]
-    pub member_stats: Option<XPSDataStats>,
+    pub member_stats: ::core::option::Option<::std::boxed::Box<XPSDataStats>>,
 }
 
 /// XPSBatchPredictResponse resource type.
@@ -416,7 +420,7 @@ pub struct XPSArrayStats {
 pub struct XPSBatchPredictResponse {
     /// Examples for batch prediction result. Under full API implementation, results are stored in shared RecordIO of AnnotatedExample protobufs, the annotations field of which is populated by XPS backend.
     #[serde(default, rename = "exampleSet")]
-    pub example_set: Option<XPSExampleSet>,
+    pub example_set: ::core::option::Option<::std::boxed::Box<XPSExampleSet>>,
 }
 
 /// Bounding box matching model metrics for a single intersection-over-union threshold and multiple label match confidence thresholds.
@@ -424,13 +428,15 @@ pub struct XPSBatchPredictResponse {
 pub struct XPSBoundingBoxMetricsEntry {
     /// Metrics for each label-match confidence_threshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99.
     #[serde(default, rename = "confidenceMetricsEntries")]
-    pub confidence_metrics_entries: Option<Vec<XPSBoundingBoxMetricsEntryConfidenceMetricsEntry>>,
+    pub confidence_metrics_entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSBoundingBoxMetricsEntryConfidenceMetricsEntry>>,
+    >,
     /// The intersection-over-union threshold value used to compute this metrics entry.
     #[serde(default, rename = "iouThreshold")]
-    pub iou_threshold: Option<f32>,
+    pub iou_threshold: ::core::option::Option<f32>,
     /// The mean average precision.
     #[serde(default, rename = "meanAveragePrecision")]
-    pub mean_average_precision: Option<f32>,
+    pub mean_average_precision: ::core::option::Option<f32>,
 }
 
 /// Metrics for a single confidence threshold.
@@ -438,26 +444,28 @@ pub struct XPSBoundingBoxMetricsEntry {
 pub struct XPSBoundingBoxMetricsEntryConfidenceMetricsEntry {
     /// The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
-    pub confidence_threshold: Option<f32>,
+    pub confidence_threshold: ::core::option::Option<f32>,
     /// The harmonic mean of recall and precision.
     #[serde(default, rename = "f1Score")]
-    pub f1_score: Option<f32>,
+    pub f1_score: ::core::option::Option<f32>,
     /// Precision for the given confidence threshold.
     #[serde(default)]
-    pub precision: Option<f32>,
+    pub precision: ::core::option::Option<f32>,
     /// Recall for the given confidence threshold.
     #[serde(default)]
-    pub recall: Option<f32>,
+    pub recall: ::core::option::Option<f32>,
 }
 
 /// The data statistics of a series of CATEGORY values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSCategoryStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// The statistics of the top 20 CATEGORY values, ordered by CategoryStats.SingleCategoryStats.count.
     #[serde(default, rename = "topCategoryStats")]
-    pub top_category_stats: Option<Vec<XPSCategoryStatsSingleCategoryStats>>,
+    pub top_category_stats: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSCategoryStatsSingleCategoryStats>>,
+    >,
 }
 
 /// The statistics of a single CATEGORY value.
@@ -465,10 +473,10 @@ pub struct XPSCategoryStats {
 pub struct XPSCategoryStatsSingleCategoryStats {
     /// The number of occurrences of this value in the series.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// The CATEGORY value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Model evaluation metrics for classification problems. It can be used for image and video classification. Next tag: 9.
@@ -476,25 +484,26 @@ pub struct XPSCategoryStatsSingleCategoryStats {
 pub struct XPSClassificationEvaluationMetrics {
     /// The Area under precision recall curve metric.
     #[serde(default, rename = "auPrc")]
-    pub au_prc: Option<f32>,
+    pub au_prc: ::core::option::Option<f32>,
     /// The Area Under Receiver Operating Characteristic curve metric. Micro-averaged for the overall evaluation.
     #[serde(default, rename = "auRoc")]
-    pub au_roc: Option<f32>,
+    pub au_roc: ::core::option::Option<f32>,
     /// The Area under precision recall curve metric based on priors.
     #[serde(default, rename = "baseAuPrc")]
-    pub base_au_prc: Option<f32>,
+    pub base_au_prc: ::core::option::Option<f32>,
     /// Metrics that have confidence thresholds. Precision-recall curve can be derived from it.
     #[serde(default, rename = "confidenceMetricsEntries")]
-    pub confidence_metrics_entries: Option<Vec<XPSConfidenceMetricsEntry>>,
+    pub confidence_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSConfidenceMetricsEntry>>>,
     /// Confusion matrix of the evaluation. Only set for MULTICLASS classification problems where number of annotation specs is no more than 10. Only set for model level evaluation, not for evaluation per label.
     #[serde(default, rename = "confusionMatrix")]
-    pub confusion_matrix: Option<XPSConfusionMatrix>,
+    pub confusion_matrix: ::core::option::Option<::std::boxed::Box<XPSConfusionMatrix>>,
     /// The number of examples used for model evaluation.
     #[serde(default, rename = "evaluatedExamplesCount")]
-    pub evaluated_examples_count: Option<i32>,
+    pub evaluated_examples_count: ::core::option::Option<i32>,
     /// The Log Loss metric.
     #[serde(default, rename = "logLoss")]
-    pub log_loss: Option<f32>,
+    pub log_loss: ::core::option::Option<f32>,
 }
 
 /// Map from color to display name. Will only be used by Image Segmentation for uCAIP.
@@ -502,15 +511,15 @@ pub struct XPSClassificationEvaluationMetrics {
 pub struct XPSColorMap {
     /// Should be used during training.
     #[serde(default, rename = "annotationSpecIdToken")]
-    pub annotation_spec_id_token: Option<String>,
+    pub annotation_spec_id_token: ::core::option::Option<String>,
     /// This type is deprecated in favor of the IntColor below. This is because google.type.Color represent color has a float which semantically does not reflect discrete classes/categories concept. Moreover, to handle it well we need to have some tolerance when converting to a discretized color. As such, the recommendation is to have API surface still use google.type.Color while internally IntColor is used.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// Should be used during preprocessing.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "intColor")]
-    pub int_color: Option<XPSColorMapIntColor>,
+    pub int_color: ::core::option::Option<::std::boxed::Box<XPSColorMapIntColor>>,
 }
 
 /// RGB color and each channel is represented by an integer.
@@ -518,13 +527,13 @@ pub struct XPSColorMap {
 pub struct XPSColorMapIntColor {
     /// The value should be in range of [0, 255].
     #[serde(default)]
-    pub blue: Option<i32>,
+    pub blue: ::core::option::Option<i32>,
     /// The value should be in range of [0, 255].
     #[serde(default)]
-    pub green: Option<i32>,
+    pub green: ::core::option::Option<i32>,
     /// The value should be in range of [0, 255].
     #[serde(default)]
-    pub red: Option<i32>,
+    pub red: ::core::option::Option<i32>,
 }
 
 /// XPSColumnSpec resource type.
@@ -532,30 +541,32 @@ pub struct XPSColorMapIntColor {
 pub struct XPSColumnSpec {
     /// The unique id of the column. When Preprocess, the Tables BE will popuate the order id of the column, which reflects the order of the column inside the table, i.e. 0 means the first column in the table, N-1 means the last column. AutoML BE will persist this order id in Spanner and set the order id here when calling RefreshTablesStats and Train. Note: it''s different than the column_spec_id that is generated in AutoML BE.
     #[serde(default, rename = "columnId")]
-    pub column_id: Option<i32>,
+    pub column_id: ::core::option::Option<i32>,
     /// The data stats of the column. It''s outputed in RefreshTablesStats and a required input for Train.
     #[serde(default, rename = "dataStats")]
-    pub data_stats: Option<XPSDataStats>,
+    pub data_stats: ::core::option::Option<::std::boxed::Box<XPSDataStats>>,
     /// The data type of the column. It''s outputed in Preprocess rpc and a required input for RefreshTablesStats and Train.
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<XPSDataType>,
+    pub data_type: ::core::option::Option<::std::boxed::Box<XPSDataType>>,
     /// The display name of the column. It''s outputed in Preprocess and a required input for RefreshTablesStats and Train.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     #[serde(default, rename = "forecastingMetadata")]
-    pub forecasting_metadata: Option<XPSColumnSpecForecastingMetadata>,
+    pub forecasting_metadata:
+        ::core::option::Option<::std::boxed::Box<XPSColumnSpecForecastingMetadata>>,
     /// It''s outputed in RefreshTablesStats, and a required input in Train.
     #[serde(default, rename = "topCorrelatedColumns")]
-    pub top_correlated_columns: Option<Vec<XPSColumnSpecCorrelatedColumn>>,
+    pub top_correlated_columns:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSColumnSpecCorrelatedColumn>>>,
 }
 
 /// Identifies a table''s column, and its correlation with the column this ColumnSpec describes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSColumnSpecCorrelatedColumn {
     #[serde(default, rename = "columnId")]
-    pub column_id: Option<i32>,
+    pub column_id: ::core::option::Option<i32>,
     #[serde(default, rename = "correlationStats")]
-    pub correlation_stats: Option<XPSCorrelationStats>,
+    pub correlation_stats: ::core::option::Option<::std::boxed::Box<XPSCorrelationStats>>,
 }
 
 /// XPSColumnSpecForecastingMetadata resource type.
@@ -563,18 +574,18 @@ pub struct XPSColumnSpecCorrelatedColumn {
 pub struct XPSColumnSpecForecastingMetadata {
     /// The type of the column for FORECASTING model training purposes. // TODO: enum values: ["COLUMN_TYPE_UNSPECIFIED", "KEY", "KEY_METADATA", "TIME_SERIES_AVAILABLE_PAST_ONLY", "TIME_SERIES_AVAILABLE_PAST_AND_FUTURE"]
     #[serde(default, rename = "columnType")]
-    pub column_type: Option<String>,
+    pub column_type: ::core::option::Option<String>,
 }
 
 /// Common statistics for a column with a specified data type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSCommonStats {
     #[serde(default, rename = "distinctValueCount")]
-    pub distinct_value_count: Option<String>,
+    pub distinct_value_count: ::core::option::Option<String>,
     #[serde(default, rename = "nullValueCount")]
-    pub null_value_count: Option<String>,
+    pub null_value_count: ::core::option::Option<String>,
     #[serde(default, rename = "validValueCount")]
-    pub valid_value_count: Option<String>,
+    pub valid_value_count: ::core::option::Option<String>,
 }
 
 /// ConfidenceMetricsEntry includes generic precision, recall, f1 score etc. Next tag: 16.
@@ -582,46 +593,46 @@ pub struct XPSCommonStats {
 pub struct XPSConfidenceMetricsEntry {
     /// Metrics are computed with an assumption that the model never return predictions with score lower than this value.
     #[serde(default, rename = "confidenceThreshold")]
-    pub confidence_threshold: Option<f32>,
+    pub confidence_threshold: ::core::option::Option<f32>,
     /// The harmonic mean of recall and precision.
     #[serde(default, rename = "f1Score")]
-    pub f1_score: Option<f32>,
+    pub f1_score: ::core::option::Option<f32>,
     /// The harmonic mean of recall_at1 and precision_at1.
     #[serde(default, rename = "f1ScoreAt1")]
-    pub f1_score_at1: Option<f32>,
+    pub f1_score_at1: ::core::option::Option<f32>,
     /// The number of ground truth labels that are not matched by a model created label.
     #[serde(default, rename = "falseNegativeCount")]
-    pub false_negative_count: Option<String>,
+    pub false_negative_count: ::core::option::Option<String>,
     /// The number of model created labels that do not match a ground truth label.
     #[serde(default, rename = "falsePositiveCount")]
-    pub false_positive_count: Option<String>,
+    pub false_positive_count: ::core::option::Option<String>,
     /// False Positive Rate for the given confidence threshold.
     #[serde(default, rename = "falsePositiveRate")]
-    pub false_positive_rate: Option<f32>,
+    pub false_positive_rate: ::core::option::Option<f32>,
     /// The False Positive Rate when only considering the label that has the highest prediction score and not below the confidence threshold for each example.
     #[serde(default, rename = "falsePositiveRateAt1")]
-    pub false_positive_rate_at1: Option<f32>,
+    pub false_positive_rate_at1: ::core::option::Option<f32>,
     /// Metrics are computed with an assumption that the model always returns at most this many predictions (ordered by their score, descendingly), but they all still need to meet the confidence_threshold.
     #[serde(default, rename = "positionThreshold")]
-    pub position_threshold: Option<i32>,
+    pub position_threshold: ::core::option::Option<i32>,
     /// Precision for the given confidence threshold.
     #[serde(default)]
-    pub precision: Option<f32>,
+    pub precision: ::core::option::Option<f32>,
     /// The precision when only considering the label that has the highest prediction score and not below the confidence threshold for each example.
     #[serde(default, rename = "precisionAt1")]
-    pub precision_at1: Option<f32>,
+    pub precision_at1: ::core::option::Option<f32>,
     /// Recall (true positive rate) for the given confidence threshold.
     #[serde(default)]
-    pub recall: Option<f32>,
+    pub recall: ::core::option::Option<f32>,
     /// The recall (true positive rate) when only considering the label that has the highest prediction score and not below the confidence threshold for each example.
     #[serde(default, rename = "recallAt1")]
-    pub recall_at1: Option<f32>,
+    pub recall_at1: ::core::option::Option<f32>,
     /// The number of labels that were not created by the model, but if they would, they would not match a ground truth label.
     #[serde(default, rename = "trueNegativeCount")]
-    pub true_negative_count: Option<String>,
+    pub true_negative_count: ::core::option::Option<String>,
     /// The number of model created labels that match a ground truth label.
     #[serde(default, rename = "truePositiveCount")]
-    pub true_positive_count: Option<String>,
+    pub true_positive_count: ::core::option::Option<String>,
 }
 
 /// Confusion matrix of the model running the classification.
@@ -629,16 +640,16 @@ pub struct XPSConfidenceMetricsEntry {
 pub struct XPSConfusionMatrix {
     /// For the following three repeated fields, only one is intended to be set. annotation_spec_id_token is preferable to be set. ID tokens of the annotation specs used in the confusion matrix.
     #[serde(default, rename = "annotationSpecIdToken")]
-    pub annotation_spec_id_token: Option<Vec<String>>,
+    pub annotation_spec_id_token: ::core::option::Option<::std::vec::Vec<String>>,
     /// Category (mainly for segmentation). Set only for image segmentation models. Note: uCAIP Image Segmentation should use annotation_spec_id_token.
     #[serde(default)]
-    pub category: Option<Vec<i32>>,
+    pub category: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Rows in the confusion matrix. The number of rows is equal to the size of annotation_spec_id_token. row[i].value[j] is the number of examples that have ground truth of the annotation_spec_id_token[i] and are predicted as annotation_spec_id_token[j] by the model being evaluated.
     #[serde(default)]
-    pub row: Option<Vec<XPSConfusionMatrixRow>>,
+    pub row: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSConfusionMatrixRow>>>,
     /// Sentiment labels used in the confusion matrix. Set only for text sentiment models. For AutoML Text Revamp, use annotation_spec_id_token instead and leave this field empty.
     #[serde(default, rename = "sentimentLabel")]
-    pub sentiment_label: Option<Vec<i32>>,
+    pub sentiment_label: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// A row in the confusion matrix.
@@ -646,10 +657,10 @@ pub struct XPSConfusionMatrix {
 pub struct XPSConfusionMatrixRow {
     /// Same as above except intended to represent other counts (for e.g. for segmentation this is pixel count). NOTE(params): Only example_count or count is set (oneoff does not support repeated fields unless they are embedded inside another message).
     #[serde(default)]
-    pub count: Option<Vec<String>>,
+    pub count: ::core::option::Option<::std::vec::Vec<String>>,
     /// Value of the specific cell in the confusion matrix. The number of values each row has (i.e. the length of the row) is equal to the length of the annotation_spec_id_token field.
     #[serde(default, rename = "exampleCount")]
-    pub example_count: Option<Vec<i32>>,
+    pub example_count: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// A correlation statistics between two series of DataType values. The series may have differing DataType-s, but within a single series the DataType must be the same.
@@ -657,7 +668,7 @@ pub struct XPSConfusionMatrixRow {
 pub struct XPSCorrelationStats {
     /// The correlation value using the Cramer''s V measure.
     #[serde(default, rename = "cramersV")]
-    pub cramers_v: Option<f64>,
+    pub cramers_v: ::core::option::Option<f64>,
 }
 
 /// Different types of errors and the stats associatesd with each error.
@@ -665,10 +676,10 @@ pub struct XPSCorrelationStats {
 pub struct XPSDataErrors {
     /// Number of records having errors associated with the enum.
     #[serde(default)]
-    pub count: Option<i32>,
+    pub count: ::core::option::Option<i32>,
     /// Type of the error. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "UNSUPPORTED_AUDIO_FORMAT", "FILE_EXTENSION_MISMATCH_WITH_AUDIO_FORMAT", "FILE_TOO_LARGE", "MISSING_TRANSCRIPTION"]
     #[serde(default, rename = "errorType")]
-    pub error_type: Option<String>,
+    pub error_type: ::core::option::Option<String>,
 }
 
 /// The data statistics of a series of values that share the same DataType.
@@ -676,31 +687,31 @@ pub struct XPSDataErrors {
 pub struct XPSDataStats {
     /// The statistics for ARRAY DataType.
     #[serde(default, rename = "arrayStats")]
-    pub array_stats: Option<XPSArrayStats>,
+    pub array_stats: ::core::option::Option<::std::boxed::Box<XPSArrayStats>>,
     /// The statistics for CATEGORY DataType.
     #[serde(default, rename = "categoryStats")]
-    pub category_stats: Option<XPSCategoryStats>,
+    pub category_stats: ::core::option::Option<::std::boxed::Box<XPSCategoryStats>>,
     /// The number of distinct values.
     #[serde(default, rename = "distinctValueCount")]
-    pub distinct_value_count: Option<String>,
+    pub distinct_value_count: ::core::option::Option<String>,
     /// The statistics for FLOAT64 DataType.
     #[serde(default, rename = "float64Stats")]
-    pub float64_stats: Option<XPSFloat64Stats>,
+    pub float64_stats: ::core::option::Option<::std::boxed::Box<XPSFloat64Stats>>,
     /// The number of values that are null.
     #[serde(default, rename = "nullValueCount")]
-    pub null_value_count: Option<String>,
+    pub null_value_count: ::core::option::Option<String>,
     /// The statistics for STRING DataType.
     #[serde(default, rename = "stringStats")]
-    pub string_stats: Option<XPSStringStats>,
+    pub string_stats: ::core::option::Option<::std::boxed::Box<XPSStringStats>>,
     /// The statistics for STRUCT DataType.
     #[serde(default, rename = "structStats")]
-    pub struct_stats: Option<XPSStructStats>,
+    pub struct_stats: ::core::option::Option<::std::boxed::Box<XPSStructStats>>,
     /// The statistics for TIMESTAMP DataType.
     #[serde(default, rename = "timestampStats")]
-    pub timestamp_stats: Option<XPSTimestampStats>,
+    pub timestamp_stats: ::core::option::Option<::std::boxed::Box<XPSTimestampStats>>,
     /// The number of values that are valid.
     #[serde(default, rename = "validValueCount")]
-    pub valid_value_count: Option<String>,
+    pub valid_value_count: ::core::option::Option<String>,
 }
 
 /// Indicated the type of data that can be stored in a structured data entity (e.g. a table).
@@ -708,22 +719,23 @@ pub struct XPSDataStats {
 pub struct XPSDataType {
     /// The highly compatible data types to this data type.
     #[serde(default, rename = "compatibleDataTypes")]
-    pub compatible_data_types: Option<Vec<XPSDataType>>,
+    pub compatible_data_types:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSDataType>>>,
     /// If type_code == ARRAY, then list_element_type is the type of the elements.
     #[serde(default, rename = "listElementType")]
-    pub list_element_type: Option<XPSDataType>,
+    pub list_element_type: ::core::option::Option<::std::boxed::Box<XPSDataType>>,
     /// If true, this DataType can also be null.
     #[serde(default)]
-    pub nullable: Option<bool>,
+    pub nullable: ::core::option::Option<bool>,
     /// If type_code == STRUCT, then struct_type provides type information for the struct''s fields.
     #[serde(default, rename = "structType")]
-    pub struct_type: Option<XPSStructType>,
+    pub struct_type: ::core::option::Option<::std::boxed::Box<XPSStructType>>,
     /// If type_code == TIMESTAMP then time_format provides the format in which that time field is expressed. The time_format must be written in strftime syntax. If time_format is not set, then the default format as described on the field is used.
     #[serde(default, rename = "timeFormat")]
-    pub time_format: Option<String>,
+    pub time_format: ::core::option::Option<String>,
     /// Required. The TypeCode for this type. // TODO: enum values: ["TYPE_CODE_UNSPECIFIED", "FLOAT64", "TIMESTAMP", "STRING", "ARRAY", "STRUCT", "CATEGORY"]
     #[serde(default, rename = "typeCode")]
-    pub type_code: Option<String>,
+    pub type_code: ::core::option::Option<String>,
 }
 
 /// A model format used for Docker containers. Use the params field to customize the container. The container is verified to work correctly on ubuntu 16.04 operating system.
@@ -731,10 +743,10 @@ pub struct XPSDataType {
 pub struct XPSDockerFormat {
     /// Optional. Additional cpu information describing the requirements for the to be exported model files. // TODO: enum values: ["CPU_ARCHITECTURE_UNSPECIFIED", "CPU_ARCHITECTURE_X86_64"]
     #[serde(default, rename = "cpuArchitecture")]
-    pub cpu_architecture: Option<String>,
+    pub cpu_architecture: ::core::option::Option<String>,
     /// Optional. Additional gpu information describing the requirements for the to be exported model files. // TODO: enum values: ["GPU_ARCHITECTURE_UNSPECIFIED", "GPU_ARCHITECTURE_NVIDIA"]
     #[serde(default, rename = "gpuArchitecture")]
-    pub gpu_architecture: Option<String>,
+    pub gpu_architecture: ::core::option::Option<String>,
 }
 
 /// Contains xPS-specific model evaluation metrics either for a single annotation spec (label), or for the model overall. Next tag: 18.
@@ -742,42 +754,54 @@ pub struct XPSDockerFormat {
 pub struct XPSEvaluationMetrics {
     /// The annotation_spec for which this evaluation metrics instance had been created. Empty iff this is an overall model evaluation (like Tables evaluation metrics), i.e. aggregated across all labels. The value comes from the input annotations in AnnotatedExample. For MVP product or for text sentiment models where annotation_spec_id_token is not available, set label instead.
     #[serde(default, rename = "annotationSpecIdToken")]
-    pub annotation_spec_id_token: Option<String>,
+    pub annotation_spec_id_token: ::core::option::Option<String>,
     /// The integer category label for which this evaluation metric instance had been created. Valid categories are 0 or higher. Overall model evaluation should set this to negative values (rather than implicit zero). Only used for Image Segmentation (prefer to set annotation_spec_id_token instead). Note: uCAIP Image Segmentation should use annotation_spec_id_token.
     #[serde(default)]
-    pub category: Option<i32>,
+    pub category: ::core::option::Option<i32>,
     /// The number of examples used to create this evaluation metrics instance.
     #[serde(default, rename = "evaluatedExampleCount")]
-    pub evaluated_example_count: Option<i32>,
+    pub evaluated_example_count: ::core::option::Option<i32>,
     #[serde(default, rename = "imageClassificationEvalMetrics")]
-    pub image_classification_eval_metrics: Option<XPSClassificationEvaluationMetrics>,
+    pub image_classification_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSClassificationEvaluationMetrics>>,
     #[serde(default, rename = "imageObjectDetectionEvalMetrics")]
-    pub image_object_detection_eval_metrics: Option<XPSImageObjectDetectionEvaluationMetrics>,
+    pub image_object_detection_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSImageObjectDetectionEvaluationMetrics>>,
     #[serde(default, rename = "imageSegmentationEvalMetrics")]
-    pub image_segmentation_eval_metrics: Option<XPSImageSegmentationEvaluationMetrics>,
+    pub image_segmentation_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSImageSegmentationEvaluationMetrics>>,
     /// The label for which this evaluation metrics instance had been created. Empty iff this is an overall model evaluation (like Tables evaluation metrics), i.e. aggregated across all labels. The label maps to AnnotationSpec.display_name in Public API protos. Only used by MVP implementation and text sentiment FULL implementation.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     #[serde(default, rename = "regressionEvalMetrics")]
-    pub regression_eval_metrics: Option<XPSRegressionEvaluationMetrics>,
+    pub regression_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSRegressionEvaluationMetrics>>,
     #[serde(default, rename = "tablesClassificationEvalMetrics")]
-    pub tables_classification_eval_metrics: Option<XPSClassificationEvaluationMetrics>,
+    pub tables_classification_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSClassificationEvaluationMetrics>>,
     #[serde(default, rename = "tablesEvalMetrics")]
-    pub tables_eval_metrics: Option<XPSTablesEvaluationMetrics>,
+    pub tables_eval_metrics: ::core::option::Option<::std::boxed::Box<XPSTablesEvaluationMetrics>>,
     #[serde(default, rename = "textClassificationEvalMetrics")]
-    pub text_classification_eval_metrics: Option<XPSClassificationEvaluationMetrics>,
+    pub text_classification_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSClassificationEvaluationMetrics>>,
     #[serde(default, rename = "textExtractionEvalMetrics")]
-    pub text_extraction_eval_metrics: Option<XPSTextExtractionEvaluationMetrics>,
+    pub text_extraction_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSTextExtractionEvaluationMetrics>>,
     #[serde(default, rename = "textSentimentEvalMetrics")]
-    pub text_sentiment_eval_metrics: Option<XPSTextSentimentEvaluationMetrics>,
+    pub text_sentiment_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSTextSentimentEvaluationMetrics>>,
     #[serde(default, rename = "translationEvalMetrics")]
-    pub translation_eval_metrics: Option<XPSTranslationEvaluationMetrics>,
+    pub translation_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSTranslationEvaluationMetrics>>,
     #[serde(default, rename = "videoActionRecognitionEvalMetrics")]
-    pub video_action_recognition_eval_metrics: Option<XPSVideoActionRecognitionEvaluationMetrics>,
+    pub video_action_recognition_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSVideoActionRecognitionEvaluationMetrics>>,
     #[serde(default, rename = "videoClassificationEvalMetrics")]
-    pub video_classification_eval_metrics: Option<XPSClassificationEvaluationMetrics>,
+    pub video_classification_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSClassificationEvaluationMetrics>>,
     #[serde(default, rename = "videoObjectTrackingEvalMetrics")]
-    pub video_object_tracking_eval_metrics: Option<XPSVideoObjectTrackingEvaluationMetrics>,
+    pub video_object_tracking_eval_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSVideoObjectTrackingEvaluationMetrics>>,
 }
 
 /// Specifies location of model evaluation metrics.
@@ -785,13 +809,14 @@ pub struct XPSEvaluationMetrics {
 pub struct XPSEvaluationMetricsSet {
     /// Inline EvaluationMetrics - should be relatively small. For passing large quantities of exhaustive metrics, use file_spec.
     #[serde(default, rename = "evaluationMetrics")]
-    pub evaluation_metrics: Option<Vec<XPSEvaluationMetrics>>,
+    pub evaluation_metrics:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSEvaluationMetrics>>>,
     /// File spec containing evaluation metrics of a model, must point to RecordIO file(s) of intelligence.cloud.automl.xps.EvaluationMetrics messages.
     #[serde(default, rename = "fileSpec")]
-    pub file_spec: Option<XPSFileSpec>,
+    pub file_spec: ::core::option::Option<::std::boxed::Box<XPSFileSpec>>,
     /// Number of the evaluation metrics (usually one per label plus overall).
     #[serde(default, rename = "numEvaluationMetrics")]
-    pub num_evaluation_metrics: Option<String>,
+    pub num_evaluation_metrics: ::core::option::Option<String>,
 }
 
 /// Set of examples or input sources.
@@ -799,42 +824,42 @@ pub struct XPSEvaluationMetricsSet {
 pub struct XPSExampleSet {
     /// File spec of the examples or input sources.
     #[serde(default, rename = "fileSpec")]
-    pub file_spec: Option<XPSFileSpec>,
+    pub file_spec: ::core::option::Option<::std::boxed::Box<XPSFileSpec>>,
     /// Fingerprint of the example set.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Number of examples.
     #[serde(default, rename = "numExamples")]
-    pub num_examples: Option<String>,
+    pub num_examples: ::core::option::Option<String>,
     /// Number of input sources.
     #[serde(default, rename = "numInputSources")]
-    pub num_input_sources: Option<String>,
+    pub num_input_sources: ::core::option::Option<String>,
 }
 
 /// XPSExportModelOutputConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSExportModelOutputConfig {
     #[serde(default, rename = "coreMlFormat")]
-    pub core_ml_format: Option<serde_json::Value>,
+    pub core_ml_format: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "dockerFormat")]
-    pub docker_format: Option<XPSDockerFormat>,
+    pub docker_format: ::core::option::Option<::std::boxed::Box<XPSDockerFormat>>,
     #[serde(default, rename = "edgeTpuTfLiteFormat")]
-    pub edge_tpu_tf_lite_format: Option<serde_json::Value>,
+    pub edge_tpu_tf_lite_format: ::core::option::Option<serde_json::Value>,
     /// For any model and format: If true, will additionally export FirebaseExportedModelInfo in a firebase.txt file.
     #[serde(default, rename = "exportFirebaseAuxiliaryInfo")]
-    pub export_firebase_auxiliary_info: Option<bool>,
+    pub export_firebase_auxiliary_info: ::core::option::Option<bool>,
     /// The Google Contained Registry path the exported files to be pushed to. This location is set if the exported format is DOCKDER.
     #[serde(default, rename = "outputGcrUri")]
-    pub output_gcr_uri: Option<String>,
+    pub output_gcr_uri: ::core::option::Option<String>,
     /// The Google Cloud Storage directory where XPS will output the exported models and related files. Format: gs://bucket/directory
     #[serde(default, rename = "outputGcsUri")]
-    pub output_gcs_uri: Option<String>,
+    pub output_gcs_uri: ::core::option::Option<String>,
     #[serde(default, rename = "tfJsFormat")]
-    pub tf_js_format: Option<serde_json::Value>,
+    pub tf_js_format: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "tfLiteFormat")]
-    pub tf_lite_format: Option<serde_json::Value>,
+    pub tf_lite_format: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "tfSavedModelFormat")]
-    pub tf_saved_model_format: Option<serde_json::Value>,
+    pub tf_saved_model_format: ::core::option::Option<serde_json::Value>,
 }
 
 /// Spec of input and output files, on external file systems (for example, Colossus Namespace System or Google Cloud Storage).
@@ -842,35 +867,36 @@ pub struct XPSExportModelOutputConfig {
 pub struct XPSFileSpec {
     /// Deprecated. Use file_spec.
     #[serde(default, rename = "directoryPath")]
-    pub directory_path: Option<String>,
+    pub directory_path: ::core::option::Option<String>,
     /// TODO: enum values: ["FILE_FORMAT_UNKNOWN", "FILE_FORMAT_SSTABLE", "FILE_FORMAT_TRANSLATION_RKV", "FILE_FORMAT_RECORDIO", "FILE_FORMAT_RAW_CSV", "FILE_FORMAT_RAW_CAPACITOR"]
     #[serde(default, rename = "fileFormat")]
-    pub file_format: Option<String>,
+    pub file_format: ::core::option::Option<String>,
     /// Single file path, or file pattern of format "/path/to/file@shard_count". E.g. /cns/cell-d/somewhere/file@2 is expanded to two files: /cns/cell-d/somewhere/file-00000-of-00002 and /cns/cell-d/somewhere/file-00001-of-00002.
     #[serde(default, rename = "fileSpec")]
-    pub file_spec: Option<String>,
+    pub file_spec: ::core::option::Option<String>,
     /// Deprecated. Use file_spec.
     #[serde(default, rename = "singleFilePath")]
-    pub single_file_path: Option<String>,
+    pub single_file_path: ::core::option::Option<String>,
 }
 
 /// The data statistics of a series of FLOAT64 values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSFloat64Stats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// Histogram buckets of the data series. Sorted by the min value of the bucket, ascendingly, and the number of the buckets is dynamically generated. The buckets are non-overlapping and completely cover whole FLOAT64 range with min of first bucket being "-Infinity", and max of the last one being "Infinity".
     #[serde(default, rename = "histogramBuckets")]
-    pub histogram_buckets: Option<Vec<XPSFloat64StatsHistogramBucket>>,
+    pub histogram_buckets:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSFloat64StatsHistogramBucket>>>,
     /// The mean of the series.
     #[serde(default)]
-    pub mean: Option<f64>,
+    pub mean: ::core::option::Option<f64>,
     /// Ordered from 0 to k k-quantile values of the data series of n values. The value at index i is, approximately, the i*n/k-th smallest value in the series; for i = 0 and i = k these are, respectively, the min and max values.
     #[serde(default)]
-    pub quantiles: Option<Vec<f64>>,
+    pub quantiles: ::core::option::Option<::std::vec::Vec<f64>>,
     /// The standard deviation of the series.
     #[serde(default, rename = "standardDeviation")]
-    pub standard_deviation: Option<f64>,
+    pub standard_deviation: ::core::option::Option<f64>,
 }
 
 /// A bucket of a histogram.
@@ -878,13 +904,13 @@ pub struct XPSFloat64Stats {
 pub struct XPSFloat64StatsHistogramBucket {
     /// The number of data values that are in the bucket, i.e. are between min and max values.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// The maximum value of the bucket, exclusive unless max = "Infinity", in which case it''s inclusive.
     #[serde(default)]
-    pub max: Option<f64>,
+    pub max: ::core::option::Option<f64>,
     /// The minimum value of the bucket, inclusive.
     #[serde(default)]
-    pub min: Option<f64>,
+    pub min: ::core::option::Option<f64>,
 }
 
 /// XPSImageClassificationTrainResponse resource type.
@@ -892,24 +918,24 @@ pub struct XPSFloat64StatsHistogramBucket {
 pub struct XPSImageClassificationTrainResponse {
     /// Total number of classes.
     #[serde(default, rename = "classCount")]
-    pub class_count: Option<String>,
+    pub class_count: ::core::option::Option<String>,
     /// Information of downloadable models that are pre-generated as part of training flow and will be persisted in AutoMl backend. Populated for AutoMl requests.
     #[serde(default, rename = "exportModelSpec")]
-    pub export_model_spec: Option<XPSImageExportModelSpec>,
+    pub export_model_spec: ::core::option::Option<::std::boxed::Box<XPSImageExportModelSpec>>,
     /// ## The fields below are only populated under uCAIP request scope.
     #[serde(default, rename = "modelArtifactSpec")]
-    pub model_artifact_spec: Option<XPSImageModelArtifactSpec>,
+    pub model_artifact_spec: ::core::option::Option<::std::boxed::Box<XPSImageModelArtifactSpec>>,
     #[serde(default, rename = "modelServingSpec")]
-    pub model_serving_spec: Option<XPSImageModelServingSpec>,
+    pub model_serving_spec: ::core::option::Option<::std::boxed::Box<XPSImageModelServingSpec>>,
     /// Stop reason for training job, e.g. ''TRAIN_BUDGET_REACHED'', ''MODEL_CONVERGED'', ''MODEL_EARLY_STOPPED''. // TODO: enum values: ["TRAIN_STOP_REASON_UNSPECIFIED", "TRAIN_STOP_REASON_BUDGET_REACHED", "TRAIN_STOP_REASON_MODEL_CONVERGED", "TRAIN_STOP_REASON_MODEL_EARLY_STOPPED"]
     #[serde(default, rename = "stopReason")]
-    pub stop_reason: Option<String>,
+    pub stop_reason: ::core::option::Option<String>,
     /// The actual cost to create this model. - For edge type model, the cost is expressed in node hour. - For cloud type model,the cost is expressed in compute hour. - Populated for models created before GA. To be deprecated after GA.
     #[serde(default, rename = "trainCostInNodeTime")]
-    pub train_cost_in_node_time: Option<String>,
+    pub train_cost_in_node_time: ::core::option::Option<String>,
     /// The actual training cost, expressed in node seconds. Populated for models trained in node time.
     #[serde(default, rename = "trainCostNodeSeconds")]
-    pub train_cost_node_seconds: Option<String>,
+    pub train_cost_node_seconds: ::core::option::Option<String>,
 }
 
 /// Information of downloadable models that are pre-generated as part of training flow and will be persisted in AutoMl backend. Upon receiving ExportModel request from user, AutoMl backend can serve the pre-generated models to user if exists (by copying the files from internal path to user provided location), otherwise, AutoMl backend will call xPS ExportModel API to generate the model on the fly with the requesting format.
@@ -917,7 +943,8 @@ pub struct XPSImageClassificationTrainResponse {
 pub struct XPSImageExportModelSpec {
     /// Contains the model format and internal location of the model files to be exported/downloaded. Use the Google Cloud Storage bucket name which is provided via TrainRequest.gcs_bucket_name to store the model files.
     #[serde(default, rename = "exportModelOutputConfig")]
-    pub export_model_output_config: Option<Vec<XPSExportModelOutputConfig>>,
+    pub export_model_output_config:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSExportModelOutputConfig>>>,
 }
 
 /// Stores the locations and related metadata of the model artifacts. Populated for uCAIP requests only.
@@ -925,22 +952,23 @@ pub struct XPSImageExportModelSpec {
 pub struct XPSImageModelArtifactSpec {
     /// The Tensorflow checkpoint files. e.g. Used for resumable training.
     #[serde(default, rename = "checkpointArtifact")]
-    pub checkpoint_artifact: Option<XPSModelArtifactItem>,
+    pub checkpoint_artifact: ::core::option::Option<::std::boxed::Box<XPSModelArtifactItem>>,
     /// The model binary files in different formats for model export.
     #[serde(default, rename = "exportArtifact")]
-    pub export_artifact: Option<Vec<XPSModelArtifactItem>>,
+    pub export_artifact:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSModelArtifactItem>>>,
     /// Google Cloud Storage URI of decoded labels file for model export ''dict.txt''.
     #[serde(default, rename = "labelGcsUri")]
-    pub label_gcs_uri: Option<String>,
+    pub label_gcs_uri: ::core::option::Option<String>,
     /// The default model binary file used for serving (e.g. online predict, batch predict) via public Cloud AI Platform API.
     #[serde(default, rename = "servingArtifact")]
-    pub serving_artifact: Option<XPSModelArtifactItem>,
+    pub serving_artifact: ::core::option::Option<::std::boxed::Box<XPSModelArtifactItem>>,
     /// Google Cloud Storage URI prefix of Tensorflow JavaScript binary files ''groupX-shardXofX.bin''. Deprecated.
     #[serde(default, rename = "tfJsBinaryGcsPrefix")]
-    pub tf_js_binary_gcs_prefix: Option<String>,
+    pub tf_js_binary_gcs_prefix: ::core::option::Option<String>,
     /// Google Cloud Storage URI of Tensorflow Lite metadata ''tflite_metadata.json''.
     #[serde(default, rename = "tfLiteMetadataGcsUri")]
-    pub tf_lite_metadata_gcs_uri: Option<String>,
+    pub tf_lite_metadata_gcs_uri: ::core::option::Option<String>,
 }
 
 /// Serving specification for image models.
@@ -948,13 +976,15 @@ pub struct XPSImageModelArtifactSpec {
 pub struct XPSImageModelServingSpec {
     /// Populate under uCAIP request scope.
     #[serde(default, rename = "modelThroughputEstimation")]
-    pub model_throughput_estimation: Option<Vec<XPSImageModelServingSpecModelThroughputEstimation>>,
+    pub model_throughput_estimation: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSImageModelServingSpecModelThroughputEstimation>>,
+    >,
     /// An estimated value of how much traffic a node can serve. Populated for AutoMl request only.
     #[serde(default, rename = "nodeQps")]
-    pub node_qps: Option<f64>,
+    pub node_qps: ::core::option::Option<f64>,
     /// ## The fields below are only populated under uCAIP request scope. https://cloud.google.com/ml-engine/docs/runtime-version-list
     #[serde(default, rename = "tfRuntimeVersion")]
-    pub tf_runtime_version: Option<String>,
+    pub tf_runtime_version: ::core::option::Option<String>,
 }
 
 /// XPSImageModelServingSpecModelThroughputEstimation resource type.
@@ -962,16 +992,16 @@ pub struct XPSImageModelServingSpec {
 pub struct XPSImageModelServingSpecModelThroughputEstimation {
     /// TODO: enum values: ["UNSPECIFIED", "NVIDIA_TESLA_K80", "NVIDIA_TESLA_P100", "NVIDIA_TESLA_V100", "NVIDIA_TESLA_P4", "NVIDIA_TESLA_T4", "NVIDIA_TESLA_A100", "NVIDIA_A100_80GB", "NVIDIA_L4", "NVIDIA_H100_80GB", "NVIDIA_H100_MEGA_80GB", "NVIDIA_H200_141GB", "NVIDIA_B200", "NVIDIA_GB200", "TPU_V2", "TPU_V3", "TPU_V4_POD", "TPU_V5_LITEPOD"]
     #[serde(default, rename = "computeEngineAcceleratorType")]
-    pub compute_engine_accelerator_type: Option<String>,
+    pub compute_engine_accelerator_type: ::core::option::Option<String>,
     /// Estimated latency.
     #[serde(default, rename = "latencyInMilliseconds")]
-    pub latency_in_milliseconds: Option<f64>,
+    pub latency_in_milliseconds: ::core::option::Option<f64>,
     /// The approximate qps a deployed node can serve.
     #[serde(default, rename = "nodeQps")]
-    pub node_qps: Option<f64>,
+    pub node_qps: ::core::option::Option<f64>,
     /// TODO: enum values: ["PARTITION_TYPE_UNSPECIFIED", "PARTITION_ZERO", "PARTITION_REDUCED_HOMING", "PARTITION_JELLYFISH", "PARTITION_CPU", "PARTITION_CUSTOM_STORAGE_CPU"]
     #[serde(default, rename = "servomaticPartitionType")]
-    pub servomatic_partition_type: Option<String>,
+    pub servomatic_partition_type: ::core::option::Option<String>,
 }
 
 /// Model evaluation metrics for image object detection problems. Evaluates prediction quality of labeled bounding boxes.
@@ -979,13 +1009,14 @@ pub struct XPSImageModelServingSpecModelThroughputEstimation {
 pub struct XPSImageObjectDetectionEvaluationMetrics {
     /// The single metric for bounding boxes evaluation: the mean_average_precision averaged over all bounding_box_metrics_entries.
     #[serde(default, rename = "boundingBoxMeanAveragePrecision")]
-    pub bounding_box_mean_average_precision: Option<f32>,
+    pub bounding_box_mean_average_precision: ::core::option::Option<f32>,
     /// The bounding boxes match metrics for each Intersection-over-union threshold 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99 and each label confidence threshold 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99 pair.
     #[serde(default, rename = "boundingBoxMetricsEntries")]
-    pub bounding_box_metrics_entries: Option<Vec<XPSBoundingBoxMetricsEntry>>,
+    pub bounding_box_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSBoundingBoxMetricsEntry>>>,
     /// The total number of bounding boxes (i.e. summed over all images) the ground truth used to create this evaluation had.
     #[serde(default, rename = "evaluatedBoundingBoxCount")]
-    pub evaluated_bounding_box_count: Option<i32>,
+    pub evaluated_bounding_box_count: ::core::option::Option<i32>,
 }
 
 /// XPSImageObjectDetectionModelSpec resource type.
@@ -993,23 +1024,23 @@ pub struct XPSImageObjectDetectionEvaluationMetrics {
 pub struct XPSImageObjectDetectionModelSpec {
     /// Total number of classes.
     #[serde(default, rename = "classCount")]
-    pub class_count: Option<String>,
+    pub class_count: ::core::option::Option<String>,
     #[serde(default, rename = "exportModelSpec")]
-    pub export_model_spec: Option<XPSImageExportModelSpec>,
+    pub export_model_spec: ::core::option::Option<::std::boxed::Box<XPSImageExportModelSpec>>,
     /// Max number of bounding box.
     #[serde(default, rename = "maxBoundingBoxCount")]
-    pub max_bounding_box_count: Option<String>,
+    pub max_bounding_box_count: ::core::option::Option<String>,
     /// ## The fields below are only populated under uCAIP request scope.
     #[serde(default, rename = "modelArtifactSpec")]
-    pub model_artifact_spec: Option<XPSImageModelArtifactSpec>,
+    pub model_artifact_spec: ::core::option::Option<::std::boxed::Box<XPSImageModelArtifactSpec>>,
     #[serde(default, rename = "modelServingSpec")]
-    pub model_serving_spec: Option<XPSImageModelServingSpec>,
+    pub model_serving_spec: ::core::option::Option<::std::boxed::Box<XPSImageModelServingSpec>>,
     /// Stop reason for training job, e.g. ''TRAIN_BUDGET_REACHED'', ''MODEL_CONVERGED''. // TODO: enum values: ["TRAIN_STOP_REASON_UNSPECIFIED", "TRAIN_STOP_REASON_BUDGET_REACHED", "TRAIN_STOP_REASON_MODEL_CONVERGED", "TRAIN_STOP_REASON_MODEL_EARLY_STOPPED"]
     #[serde(default, rename = "stopReason")]
-    pub stop_reason: Option<String>,
+    pub stop_reason: ::core::option::Option<String>,
     /// The actual train cost of creating this model, expressed in node seconds, i.e. 3,600 value in this field means 1 node hour.
     #[serde(default, rename = "trainCostNodeSeconds")]
-    pub train_cost_node_seconds: Option<String>,
+    pub train_cost_node_seconds: ::core::option::Option<String>,
 }
 
 /// Model evaluation metrics for image segmentation problems. Next tag: 4.
@@ -1017,8 +1048,11 @@ pub struct XPSImageObjectDetectionModelSpec {
 pub struct XPSImageSegmentationEvaluationMetrics {
     /// Metrics that have confidence thresholds. Precision-recall curve can be derived from it.
     #[serde(default, rename = "confidenceMetricsEntries")]
-    pub confidence_metrics_entries:
-        Option<Vec<XPSImageSegmentationEvaluationMetricsConfidenceMetricsEntry>>,
+    pub confidence_metrics_entries: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<XPSImageSegmentationEvaluationMetricsConfidenceMetricsEntry>,
+        >,
+    >,
 }
 
 /// Metrics for a single confidence threshold.
@@ -1026,22 +1060,22 @@ pub struct XPSImageSegmentationEvaluationMetrics {
 pub struct XPSImageSegmentationEvaluationMetricsConfidenceMetricsEntry {
     /// The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
-    pub confidence_threshold: Option<f32>,
+    pub confidence_threshold: ::core::option::Option<f32>,
     /// Confusion matrix of the per confidence_threshold evaluation. Pixel counts are set here. Only set for model level evaluation, not for evaluation per label.
     #[serde(default, rename = "confusionMatrix")]
-    pub confusion_matrix: Option<XPSConfusionMatrix>,
+    pub confusion_matrix: ::core::option::Option<::std::boxed::Box<XPSConfusionMatrix>>,
     /// DSC or the F1 score: The harmonic mean of recall and precision.
     #[serde(default, rename = "diceScoreCoefficient")]
-    pub dice_score_coefficient: Option<f32>,
+    pub dice_score_coefficient: ::core::option::Option<f32>,
     /// IOU score.
     #[serde(default, rename = "iouScore")]
-    pub iou_score: Option<f32>,
+    pub iou_score: ::core::option::Option<f32>,
     /// Precision for the given confidence threshold.
     #[serde(default)]
-    pub precision: Option<f32>,
+    pub precision: ::core::option::Option<f32>,
     /// Recall for the given confidence threshold.
     #[serde(default)]
-    pub recall: Option<f32>,
+    pub recall: ::core::option::Option<f32>,
 }
 
 /// XPSImageSegmentationTrainResponse resource type.
@@ -1049,21 +1083,21 @@ pub struct XPSImageSegmentationEvaluationMetricsConfidenceMetricsEntry {
 pub struct XPSImageSegmentationTrainResponse {
     /// Color map of the model.
     #[serde(default, rename = "colorMaps")]
-    pub color_maps: Option<Vec<XPSColorMap>>,
+    pub color_maps: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSColorMap>>>,
     /// NOTE: These fields are not used/needed in EAP but will be set later.
     #[serde(default, rename = "exportModelSpec")]
-    pub export_model_spec: Option<XPSImageExportModelSpec>,
+    pub export_model_spec: ::core::option::Option<::std::boxed::Box<XPSImageExportModelSpec>>,
     /// ## The fields below are only populated under uCAIP request scope. Model artifact spec stores and model gcs pathes and related metadata
     #[serde(default, rename = "modelArtifactSpec")]
-    pub model_artifact_spec: Option<XPSImageModelArtifactSpec>,
+    pub model_artifact_spec: ::core::option::Option<::std::boxed::Box<XPSImageModelArtifactSpec>>,
     #[serde(default, rename = "modelServingSpec")]
-    pub model_serving_spec: Option<XPSImageModelServingSpec>,
+    pub model_serving_spec: ::core::option::Option<::std::boxed::Box<XPSImageModelServingSpec>>,
     /// Stop reason for training job, e.g. ''TRAIN_BUDGET_REACHED'', ''MODEL_CONVERGED''. // TODO: enum values: ["TRAIN_STOP_REASON_UNSPECIFIED", "TRAIN_STOP_REASON_BUDGET_REACHED", "TRAIN_STOP_REASON_MODEL_CONVERGED", "TRAIN_STOP_REASON_MODEL_EARLY_STOPPED"]
     #[serde(default, rename = "stopReason")]
-    pub stop_reason: Option<String>,
+    pub stop_reason: ::core::option::Option<String>,
     /// The actual train cost of creating this model, expressed in node seconds, i.e. 3,600 value in this field means 1 node hour.
     #[serde(default, rename = "trainCostNodeSeconds")]
-    pub train_cost_node_seconds: Option<String>,
+    pub train_cost_node_seconds: ::core::option::Option<String>,
 }
 
 /// An attribution method that computes the Aumann-Shapley value taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365
@@ -1071,7 +1105,7 @@ pub struct XPSImageSegmentationTrainResponse {
 pub struct XPSIntegratedGradientsAttribution {
     /// The number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is within the desired error range. Valid range of its value is [1, 100], inclusively.
     #[serde(default, rename = "stepCount")]
-    pub step_count: Option<i32>,
+    pub step_count: ::core::option::Option<i32>,
 }
 
 /// XPSMetricEntry resource type.
@@ -1079,19 +1113,20 @@ pub struct XPSIntegratedGradientsAttribution {
 pub struct XPSMetricEntry {
     /// For billing metrics that are using legacy sku''s, set the legacy billing metric id here. This will be sent to Chemist as the "cloudbilling.googleapis.com/argentum_metric_id" label. Otherwise leave empty.
     #[serde(default, rename = "argentumMetricId")]
-    pub argentum_metric_id: Option<String>,
+    pub argentum_metric_id: ::core::option::Option<String>,
     /// A double value.
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// A signed 64-bit integer value.
     #[serde(default, rename = "int64Value")]
-    pub int64_value: Option<String>,
+    pub int64_value: ::core::option::Option<String>,
     /// The metric name defined in the service configuration.
     #[serde(default, rename = "metricName")]
-    pub metric_name: Option<String>,
+    pub metric_name: ::core::option::Option<String>,
     /// Billing system labels for this (metric, value) pair.
     #[serde(default, rename = "systemLabels")]
-    pub system_labels: Option<Vec<XPSMetricEntryLabel>>,
+    pub system_labels:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSMetricEntryLabel>>>,
 }
 
 /// XPSMetricEntryLabel resource type.
@@ -1099,10 +1134,10 @@ pub struct XPSMetricEntry {
 pub struct XPSMetricEntryLabel {
     /// The name of the label.
     #[serde(default, rename = "labelName")]
-    pub label_name: Option<String>,
+    pub label_name: ::core::option::Option<String>,
     /// The value of the label.
     #[serde(default, rename = "labelValue")]
-    pub label_value: Option<String>,
+    pub label_value: ::core::option::Option<String>,
 }
 
 /// A single model artifact item.
@@ -1110,10 +1145,10 @@ pub struct XPSMetricEntryLabel {
 pub struct XPSModelArtifactItem {
     /// The model artifact format. // TODO: enum values: ["ARTIFACT_FORMAT_UNSPECIFIED", "TF_CHECKPOINT", "TF_SAVED_MODEL", "TF_LITE", "EDGE_TPU_TF_LITE", "TF_JS", "CORE_ML"]
     #[serde(default, rename = "artifactFormat")]
-    pub artifact_format: Option<String>,
+    pub artifact_format: ::core::option::Option<String>,
     /// The Google Cloud Storage URI that stores the model binary files.
     #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: Option<String>,
+    pub gcs_uri: ::core::option::Option<String>,
 }
 
 /// XPSPreprocessResponse resource type.
@@ -1121,13 +1156,16 @@ pub struct XPSModelArtifactItem {
 pub struct XPSPreprocessResponse {
     /// Preprocessed examples, that are to be imported into AutoML storage. This should point to RecordIO file(s) of PreprocessedExample messages. The PreprocessedExample.mvp_training_data-s returned here are later verbatim passed to Train() call in TrainExample.mvp_training_data.
     #[serde(default, rename = "outputExampleSet")]
-    pub output_example_set: Option<XPSExampleSet>,
+    pub output_example_set: ::core::option::Option<::std::boxed::Box<XPSExampleSet>>,
     #[serde(default, rename = "speechPreprocessResp")]
-    pub speech_preprocess_resp: Option<XPSSpeechPreprocessResponse>,
+    pub speech_preprocess_resp:
+        ::core::option::Option<::std::boxed::Box<XPSSpeechPreprocessResponse>>,
     #[serde(default, rename = "tablesPreprocessResponse")]
-    pub tables_preprocess_response: Option<XPSTablesPreprocessResponse>,
+    pub tables_preprocess_response:
+        ::core::option::Option<::std::boxed::Box<XPSTablesPreprocessResponse>>,
     #[serde(default, rename = "translationPreprocessResp")]
-    pub translation_preprocess_resp: Option<XPSTranslationPreprocessResponse>,
+    pub translation_preprocess_resp:
+        ::core::option::Option<::std::boxed::Box<XPSTranslationPreprocessResponse>>,
 }
 
 /// Model evaluation metrics for regression problems. It can be used for Tables.
@@ -1135,22 +1173,23 @@ pub struct XPSPreprocessResponse {
 pub struct XPSRegressionEvaluationMetrics {
     /// Mean Absolute Error (MAE).
     #[serde(default, rename = "meanAbsoluteError")]
-    pub mean_absolute_error: Option<f32>,
+    pub mean_absolute_error: ::core::option::Option<f32>,
     /// Mean absolute percentage error. Only set if all ground truth values are positive.
     #[serde(default, rename = "meanAbsolutePercentageError")]
-    pub mean_absolute_percentage_error: Option<f32>,
+    pub mean_absolute_percentage_error: ::core::option::Option<f32>,
     /// R squared.
     #[serde(default, rename = "rSquared")]
-    pub r_squared: Option<f32>,
+    pub r_squared: ::core::option::Option<f32>,
     /// A list of actual versus predicted points for the model being evaluated.
     #[serde(default, rename = "regressionMetricsEntries")]
-    pub regression_metrics_entries: Option<Vec<XPSRegressionMetricsEntry>>,
+    pub regression_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSRegressionMetricsEntry>>>,
     /// Root Mean Squared Error (RMSE).
     #[serde(default, rename = "rootMeanSquaredError")]
-    pub root_mean_squared_error: Option<f32>,
+    pub root_mean_squared_error: ::core::option::Option<f32>,
     /// Root mean squared log error.
     #[serde(default, rename = "rootMeanSquaredLogError")]
-    pub root_mean_squared_log_error: Option<f32>,
+    pub root_mean_squared_log_error: ::core::option::Option<f32>,
 }
 
 /// A pair of actual & observed values for the model being evaluated.
@@ -1158,10 +1197,10 @@ pub struct XPSRegressionEvaluationMetrics {
 pub struct XPSRegressionMetricsEntry {
     /// The observed value for a row in the dataset.
     #[serde(default, rename = "predictedValue")]
-    pub predicted_value: Option<f32>,
+    pub predicted_value: ::core::option::Option<f32>,
     /// The actual target value for a row in the dataset.
     #[serde(default, rename = "trueValue")]
-    pub true_value: Option<f32>,
+    pub true_value: ::core::option::Option<f32>,
 }
 
 /// XPSReportingMetrics resource type.
@@ -1169,10 +1208,10 @@ pub struct XPSRegressionMetricsEntry {
 pub struct XPSReportingMetrics {
     /// The effective time training used. If set, this is used for quota management and billing. Deprecated. AutoML BE doesn''t use this. Don''t set.
     #[serde(default, rename = "effectiveTrainingDuration")]
-    pub effective_training_duration: Option<String>,
+    pub effective_training_duration: ::core::option::Option<String>,
     /// One entry per metric name. The values must be aggregated per metric name.
     #[serde(default, rename = "metricEntries")]
-    pub metric_entries: Option<Vec<XPSMetricEntry>>,
+    pub metric_entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSMetricEntry>>>,
 }
 
 /// XPSResponseExplanationMetadata resource type.
@@ -1180,10 +1219,10 @@ pub struct XPSReportingMetrics {
 pub struct XPSResponseExplanationMetadata {
     /// Metadata of the input.
     #[serde(default)]
-    pub inputs: Option<serde_json::Value>,
+    pub inputs: ::core::option::Option<serde_json::Value>,
     /// Metadata of the output.
     #[serde(default)]
-    pub outputs: Option<serde_json::Value>,
+    pub outputs: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata of the input of a feature.
@@ -1191,13 +1230,13 @@ pub struct XPSResponseExplanationMetadata {
 pub struct XPSResponseExplanationMetadataInputMetadata {
     /// Name of the input tensor for this model. Only needed in train response.
     #[serde(default, rename = "inputTensorName")]
-    pub input_tensor_name: Option<String>,
+    pub input_tensor_name: ::core::option::Option<String>,
     /// Modality of the feature. Valid values are: numeric, image. Defaults to numeric. // TODO: enum values: ["MODALITY_UNSPECIFIED", "NUMERIC", "IMAGE", "CATEGORICAL"]
     #[serde(default)]
-    pub modality: Option<String>,
+    pub modality: ::core::option::Option<String>,
     /// Visualization configurations for image explanation.
     #[serde(default, rename = "visualizationConfig")]
-    pub visualization_config: Option<XPSVisualization>,
+    pub visualization_config: ::core::option::Option<::std::boxed::Box<XPSVisualization>>,
 }
 
 /// Metadata of the prediction output to be explained.
@@ -1205,7 +1244,7 @@ pub struct XPSResponseExplanationMetadataInputMetadata {
 pub struct XPSResponseExplanationMetadataOutputMetadata {
     /// Name of the output tensor. Only needed in train response.
     #[serde(default, rename = "outputTensorName")]
-    pub output_tensor_name: Option<String>,
+    pub output_tensor_name: ::core::option::Option<String>,
 }
 
 /// XPSResponseExplanationParameters resource type.
@@ -1213,10 +1252,11 @@ pub struct XPSResponseExplanationMetadataOutputMetadata {
 pub struct XPSResponseExplanationParameters {
     /// An attribution method that computes Aumann-Shapley values taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365
     #[serde(default, rename = "integratedGradientsAttribution")]
-    pub integrated_gradients_attribution: Option<XPSIntegratedGradientsAttribution>,
+    pub integrated_gradients_attribution:
+        ::core::option::Option<::std::boxed::Box<XPSIntegratedGradientsAttribution>>,
     /// An attribution method that redistributes Integrated Gradients attribution to segmented regions, taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 XRAI currently performs better on natural images, like a picture of a house or an animal. If the images are taken in artificial environments, like a lab or manufacturing line, or from diagnostic equipment, like x-rays or quality-control cameras, use Integrated Gradients instead.
     #[serde(default, rename = "xraiAttribution")]
-    pub xrai_attribution: Option<XPSXraiAttribution>,
+    pub xrai_attribution: ::core::option::Option<::std::boxed::Box<XPSXraiAttribution>>,
 }
 
 /// Specification of Model explanation. Feature-based XAI in AutoML Vision ICN is deprecated.
@@ -1224,13 +1264,13 @@ pub struct XPSResponseExplanationParameters {
 pub struct XPSResponseExplanationSpec {
     /// Explanation type. For AutoML Image Classification models, possible values are: * image-integrated-gradients * image-xrai
     #[serde(default, rename = "explanationType")]
-    pub explanation_type: Option<String>,
+    pub explanation_type: ::core::option::Option<String>,
     /// Metadata describing the Model''s input and output for explanation.
     #[serde(default)]
-    pub metadata: Option<XPSResponseExplanationMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<XPSResponseExplanationMetadata>>,
     /// Parameters that configure explaining of the Model''s predictions.
     #[serde(default)]
-    pub parameters: Option<XPSResponseExplanationParameters>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<XPSResponseExplanationParameters>>,
 }
 
 /// XPSRow resource type.
@@ -1238,10 +1278,10 @@ pub struct XPSResponseExplanationSpec {
 pub struct XPSRow {
     /// The ids of the columns. Note: The below values field must match order of this field, if this field is set.
     #[serde(default, rename = "columnIds")]
-    pub column_ids: Option<Vec<i32>>,
+    pub column_ids: ::core::option::Option<::std::vec::Vec<i32>>,
     /// The values of the row cells, given in the same order as the column_ids. If column_ids is not set, then in the same order as the input_feature_column_ids in TablesModelMetadata.
     #[serde(default)]
-    pub values: Option<Vec<serde_json::Value>>,
+    pub values: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// XPSSpeechEvaluationMetrics resource type.
@@ -1249,8 +1289,9 @@ pub struct XPSRow {
 pub struct XPSSpeechEvaluationMetrics {
     /// Evaluation metrics for all submodels contained in this model.
     #[serde(default, rename = "subModelEvaluationMetrics")]
-    pub sub_model_evaluation_metrics:
-        Option<Vec<XPSSpeechEvaluationMetricsSubModelEvaluationMetric>>,
+    pub sub_model_evaluation_metrics: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSSpeechEvaluationMetricsSubModelEvaluationMetric>>,
+    >,
 }
 
 /// XPSSpeechEvaluationMetricsSubModelEvaluationMetric resource type.
@@ -1258,28 +1299,28 @@ pub struct XPSSpeechEvaluationMetrics {
 pub struct XPSSpeechEvaluationMetricsSubModelEvaluationMetric {
     /// Type of the biasing model. // TODO: enum values: ["BIASING_MODEL_TYPE_UNSPECIFIED", "COMMAND_AND_SEARCH", "PHONE_CALL", "VIDEO", "DEFAULT"]
     #[serde(default, rename = "biasingModelType")]
-    pub biasing_model_type: Option<String>,
+    pub biasing_model_type: ::core::option::Option<String>,
     /// If true then it means we have an enhanced version of the biasing models.
     #[serde(default, rename = "isEnhancedModel")]
-    pub is_enhanced_model: Option<bool>,
+    pub is_enhanced_model: ::core::option::Option<bool>,
     #[serde(default, rename = "numDeletions")]
-    pub num_deletions: Option<i32>,
+    pub num_deletions: ::core::option::Option<i32>,
     #[serde(default, rename = "numInsertions")]
-    pub num_insertions: Option<i32>,
+    pub num_insertions: ::core::option::Option<i32>,
     #[serde(default, rename = "numSubstitutions")]
-    pub num_substitutions: Option<i32>,
+    pub num_substitutions: ::core::option::Option<i32>,
     /// Number of utterances used in the wer computation.
     #[serde(default, rename = "numUtterances")]
-    pub num_utterances: Option<i32>,
+    pub num_utterances: ::core::option::Option<i32>,
     /// Number of words over which the word error rate was computed.
     #[serde(default, rename = "numWords")]
-    pub num_words: Option<i32>,
+    pub num_words: ::core::option::Option<i32>,
     /// Below fields are used for debugging purposes
     #[serde(default, rename = "sentenceAccuracy")]
-    pub sentence_accuracy: Option<f64>,
+    pub sentence_accuracy: ::core::option::Option<f64>,
     /// Word error rate (standard error metric used for speech recognition).
     #[serde(default)]
-    pub wer: Option<f64>,
+    pub wer: ::core::option::Option<f64>,
 }
 
 /// XPSSpeechModelSpec resource type.
@@ -1287,12 +1328,13 @@ pub struct XPSSpeechEvaluationMetricsSubModelEvaluationMetric {
 pub struct XPSSpeechModelSpec {
     /// Required for speech xps backend. Speech xps has to use dataset_id and model_id as the primary key in db so that speech API can query the db directly.
     #[serde(default, rename = "datasetId")]
-    pub dataset_id: Option<String>,
+    pub dataset_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub language: Option<String>,
+    pub language: ::core::option::Option<String>,
     /// Model specs for all submodels contained in this model.
     #[serde(default, rename = "subModelSpecs")]
-    pub sub_model_specs: Option<Vec<XPSSpeechModelSpecSubModelSpec>>,
+    pub sub_model_specs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSSpeechModelSpecSubModelSpec>>>,
 }
 
 /// XPSSpeechModelSpecSubModelSpec resource type.
@@ -1300,16 +1342,16 @@ pub struct XPSSpeechModelSpec {
 pub struct XPSSpeechModelSpecSubModelSpec {
     /// Type of the biasing model. // TODO: enum values: ["BIASING_MODEL_TYPE_UNSPECIFIED", "COMMAND_AND_SEARCH", "PHONE_CALL", "VIDEO", "DEFAULT"]
     #[serde(default, rename = "biasingModelType")]
-    pub biasing_model_type: Option<String>,
+    pub biasing_model_type: ::core::option::Option<String>,
     /// In S3, Recognition ClientContextId.client_id
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// In S3, Recognition ClientContextId.context_id
     #[serde(default, rename = "contextId")]
-    pub context_id: Option<String>,
+    pub context_id: ::core::option::Option<String>,
     /// If true then it means we have an enhanced version of the biasing models.
     #[serde(default, rename = "isEnhancedModel")]
-    pub is_enhanced_model: Option<bool>,
+    pub is_enhanced_model: ::core::option::Option<bool>,
 }
 
 /// XPSSpeechPreprocessResponse resource type.
@@ -1317,16 +1359,18 @@ pub struct XPSSpeechModelSpecSubModelSpec {
 pub struct XPSSpeechPreprocessResponse {
     /// Location od shards of sstables (test data) of DataUtterance protos.
     #[serde(default, rename = "cnsTestDataPath")]
-    pub cns_test_data_path: Option<String>,
+    pub cns_test_data_path: ::core::option::Option<String>,
     /// Location of shards of sstables (training data) of DataUtterance protos.
     #[serde(default, rename = "cnsTrainDataPath")]
-    pub cns_train_data_path: Option<String>,
+    pub cns_train_data_path: ::core::option::Option<String>,
     /// The metrics for prebuilt speech models. They are included here because there is no prebuilt speech models stored in the AutoML.
     #[serde(default, rename = "prebuiltModelEvaluationMetrics")]
-    pub prebuilt_model_evaluation_metrics: Option<XPSSpeechEvaluationMetrics>,
+    pub prebuilt_model_evaluation_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSSpeechEvaluationMetrics>>,
     /// Stats associated with the data.
     #[serde(default, rename = "speechPreprocessStats")]
-    pub speech_preprocess_stats: Option<XPSSpeechPreprocessStats>,
+    pub speech_preprocess_stats:
+        ::core::option::Option<::std::boxed::Box<XPSSpeechPreprocessStats>>,
 }
 
 /// XPSSpeechPreprocessStats resource type.
@@ -1334,44 +1378,45 @@ pub struct XPSSpeechPreprocessResponse {
 pub struct XPSSpeechPreprocessStats {
     /// Different types of data errors and the counts associated with them.
     #[serde(default, rename = "dataErrors")]
-    pub data_errors: Option<Vec<XPSDataErrors>>,
+    pub data_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSDataErrors>>>,
     /// The number of rows marked HUMAN_LABELLED
     #[serde(default, rename = "numHumanLabeledExamples")]
-    pub num_human_labeled_examples: Option<i32>,
+    pub num_human_labeled_examples: ::core::option::Option<i32>,
     /// The number of samples found in the previously recorded logs data.
     #[serde(default, rename = "numLogsExamples")]
-    pub num_logs_examples: Option<i32>,
+    pub num_logs_examples: ::core::option::Option<i32>,
     /// The number of rows marked as MACHINE_TRANSCRIBED
     #[serde(default, rename = "numMachineTranscribedExamples")]
-    pub num_machine_transcribed_examples: Option<i32>,
+    pub num_machine_transcribed_examples: ::core::option::Option<i32>,
     /// The number of examples labelled as TEST by Speech xps server.
     #[serde(default, rename = "testExamplesCount")]
-    pub test_examples_count: Option<i32>,
+    pub test_examples_count: ::core::option::Option<i32>,
     /// The number of sentences in the test data set.
     #[serde(default, rename = "testSentencesCount")]
-    pub test_sentences_count: Option<i32>,
+    pub test_sentences_count: ::core::option::Option<i32>,
     /// The number of words in the test data set.
     #[serde(default, rename = "testWordsCount")]
-    pub test_words_count: Option<i32>,
+    pub test_words_count: ::core::option::Option<i32>,
     /// The number of examples labeled as TRAIN by Speech xps server.
     #[serde(default, rename = "trainExamplesCount")]
-    pub train_examples_count: Option<i32>,
+    pub train_examples_count: ::core::option::Option<i32>,
     /// The number of sentences in the training data set.
     #[serde(default, rename = "trainSentencesCount")]
-    pub train_sentences_count: Option<i32>,
+    pub train_sentences_count: ::core::option::Option<i32>,
     /// The number of words in the training data set.
     #[serde(default, rename = "trainWordsCount")]
-    pub train_words_count: Option<i32>,
+    pub train_words_count: ::core::option::Option<i32>,
 }
 
 /// The data statistics of a series of STRING values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSStringStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// The statistics of the top 20 unigrams, ordered by StringStats.UnigramStats.count.
     #[serde(default, rename = "topUnigramStats")]
-    pub top_unigram_stats: Option<Vec<XPSStringStatsUnigramStats>>,
+    pub top_unigram_stats:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSStringStatsUnigramStats>>>,
 }
 
 /// The statistics of a unigram.
@@ -1379,20 +1424,20 @@ pub struct XPSStringStats {
 pub struct XPSStringStatsUnigramStats {
     /// The number of occurrences of this unigram in the series.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// The unigram.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// The data statistics of a series of STRUCT values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSStructStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// Map from a field name of the struct to data stats aggregated over series of all data in that field across all the structs.
     #[serde(default, rename = "fieldStats")]
-    pub field_stats: Option<serde_json::Value>,
+    pub field_stats: ::core::option::Option<serde_json::Value>,
 }
 
 /// XPSTableSpec resource type.
@@ -1400,19 +1445,19 @@ pub struct XPSStructStats {
 pub struct XPSTableSpec {
     /// Mapping from column id to column spec.
     #[serde(default, rename = "columnSpecs")]
-    pub column_specs: Option<serde_json::Value>,
+    pub column_specs: ::core::option::Option<serde_json::Value>,
     /// The total size of imported data of the table.
     #[serde(default, rename = "importedDataSizeInBytes")]
-    pub imported_data_size_in_bytes: Option<String>,
+    pub imported_data_size_in_bytes: ::core::option::Option<String>,
     /// The number of rows in the table.
     #[serde(default, rename = "rowCount")]
-    pub row_count: Option<String>,
+    pub row_count: ::core::option::Option<String>,
     /// The id of the time column.
     #[serde(default, rename = "timeColumnId")]
-    pub time_column_id: Option<i32>,
+    pub time_column_id: ::core::option::Option<i32>,
     /// The number of valid rows.
     #[serde(default, rename = "validRowCount")]
-    pub valid_row_count: Option<String>,
+    pub valid_row_count: ::core::option::Option<String>,
 }
 
 /// Metrics for Tables classification problems.
@@ -1420,7 +1465,9 @@ pub struct XPSTableSpec {
 pub struct XPSTablesClassificationMetrics {
     /// Metrics building a curve.
     #[serde(default, rename = "curveMetrics")]
-    pub curve_metrics: Option<Vec<XPSTablesClassificationMetricsCurveMetrics>>,
+    pub curve_metrics: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSTablesClassificationMetricsCurveMetrics>>,
+    >,
 }
 
 /// Metrics curve data point for a single value.
@@ -1428,22 +1475,23 @@ pub struct XPSTablesClassificationMetrics {
 pub struct XPSTablesClassificationMetricsCurveMetrics {
     /// The area under the precision-recall curve.
     #[serde(default, rename = "aucPr")]
-    pub auc_pr: Option<f64>,
+    pub auc_pr: ::core::option::Option<f64>,
     /// The area under receiver operating characteristic curve.
     #[serde(default, rename = "aucRoc")]
-    pub auc_roc: Option<f64>,
+    pub auc_roc: ::core::option::Option<f64>,
     /// Metrics that have confidence thresholds. Precision-recall curve and ROC curve can be derived from them.
     #[serde(default, rename = "confidenceMetricsEntries")]
-    pub confidence_metrics_entries: Option<Vec<XPSTablesConfidenceMetricsEntry>>,
+    pub confidence_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSTablesConfidenceMetricsEntry>>>,
     /// The Log loss metric.
     #[serde(default, rename = "logLoss")]
-    pub log_loss: Option<f64>,
+    pub log_loss: ::core::option::Option<f64>,
     /// The position threshold value used to compute the metrics.
     #[serde(default, rename = "positionThreshold")]
-    pub position_threshold: Option<i32>,
+    pub position_threshold: ::core::option::Option<i32>,
     /// The CATEGORY row value (for ARRAY unnested) the curve metrics are for.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Metrics for a single confidence threshold.
@@ -1451,34 +1499,34 @@ pub struct XPSTablesClassificationMetricsCurveMetrics {
 pub struct XPSTablesConfidenceMetricsEntry {
     /// The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
-    pub confidence_threshold: Option<f64>,
+    pub confidence_threshold: ::core::option::Option<f64>,
     /// The harmonic mean of recall and precision. (2 * precision * recall) / (precision + recall)
     #[serde(default, rename = "f1Score")]
-    pub f1_score: Option<f64>,
+    pub f1_score: ::core::option::Option<f64>,
     /// False negative count.
     #[serde(default, rename = "falseNegativeCount")]
-    pub false_negative_count: Option<String>,
+    pub false_negative_count: ::core::option::Option<String>,
     /// False positive count.
     #[serde(default, rename = "falsePositiveCount")]
-    pub false_positive_count: Option<String>,
+    pub false_positive_count: ::core::option::Option<String>,
     /// FPR = #false positives / (#false positives + #true negatives)
     #[serde(default, rename = "falsePositiveRate")]
-    pub false_positive_rate: Option<f64>,
+    pub false_positive_rate: ::core::option::Option<f64>,
     /// Precision = #true positives / (#true positives + #false positives).
     #[serde(default)]
-    pub precision: Option<f64>,
+    pub precision: ::core::option::Option<f64>,
     /// Recall = #true positives / (#true positives + #false negatives).
     #[serde(default)]
-    pub recall: Option<f64>,
+    pub recall: ::core::option::Option<f64>,
     /// True negative count.
     #[serde(default, rename = "trueNegativeCount")]
-    pub true_negative_count: Option<String>,
+    pub true_negative_count: ::core::option::Option<String>,
     /// True positive count.
     #[serde(default, rename = "truePositiveCount")]
-    pub true_positive_count: Option<String>,
+    pub true_positive_count: ::core::option::Option<String>,
     /// TPR = #true positives / (#true positives + #false negatvies)
     #[serde(default, rename = "truePositiveRate")]
-    pub true_positive_rate: Option<f64>,
+    pub true_positive_rate: ::core::option::Option<f64>,
 }
 
 /// Metadata for a dataset used for AutoML Tables.
@@ -1486,19 +1534,19 @@ pub struct XPSTablesConfidenceMetricsEntry {
 pub struct XPSTablesDatasetMetadata {
     /// Id the column to split the table.
     #[serde(default, rename = "mlUseColumnId")]
-    pub ml_use_column_id: Option<i32>,
+    pub ml_use_column_id: ::core::option::Option<i32>,
     /// Primary table.
     #[serde(default, rename = "primaryTableSpec")]
-    pub primary_table_spec: Option<XPSTableSpec>,
+    pub primary_table_spec: ::core::option::Option<::std::boxed::Box<XPSTableSpec>>,
     /// (the column id : its CorrelationStats with target column).
     #[serde(default, rename = "targetColumnCorrelations")]
-    pub target_column_correlations: Option<serde_json::Value>,
+    pub target_column_correlations: ::core::option::Option<serde_json::Value>,
     /// Id of the primary table column that should be used as the training label.
     #[serde(default, rename = "targetColumnId")]
-    pub target_column_id: Option<i32>,
+    pub target_column_id: ::core::option::Option<i32>,
     /// Id of the primary table column that should be used as the weight column.
     #[serde(default, rename = "weightColumnId")]
-    pub weight_column_id: Option<i32>,
+    pub weight_column_id: ::core::option::Option<i32>,
 }
 
 /// XPSTablesEvaluationMetrics resource type.
@@ -1506,10 +1554,11 @@ pub struct XPSTablesDatasetMetadata {
 pub struct XPSTablesEvaluationMetrics {
     /// Classification metrics.
     #[serde(default, rename = "classificationMetrics")]
-    pub classification_metrics: Option<XPSTablesClassificationMetrics>,
+    pub classification_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSTablesClassificationMetrics>>,
     /// Regression metrics.
     #[serde(default, rename = "regressionMetrics")]
-    pub regression_metrics: Option<XPSTablesRegressionMetrics>,
+    pub regression_metrics: ::core::option::Option<::std::boxed::Box<XPSTablesRegressionMetrics>>,
 }
 
 /// An information specific to given column and Tables Model, in context of the Model and the predictions created by it.
@@ -1517,10 +1566,10 @@ pub struct XPSTablesEvaluationMetrics {
 pub struct XPSTablesModelColumnInfo {
     /// The ID of the column.
     #[serde(default, rename = "columnId")]
-    pub column_id: Option<i32>,
+    pub column_id: ::core::option::Option<i32>,
     /// When given as part of a Model: Measurement of how much model predictions correctness on the TEST data depend on values in this column. A value between 0 and 1, higher means higher influence. These values are normalized - for all input feature columns of a given model they add to 1. When given back by Predict or Batch Predict: Measurement of how impactful for the prediction returned for the given row the value in this column was. Specifically, the feature importance specifies the marginal contribution that the feature made to the prediction score compared to the baseline score. These values are computed using the Sampled Shapley method.
     #[serde(default, rename = "featureImportance")]
-    pub feature_importance: Option<f32>,
+    pub feature_importance: ::core::option::Option<f32>,
 }
 
 /// A description of Tables model structure.
@@ -1528,14 +1577,18 @@ pub struct XPSTablesModelColumnInfo {
 pub struct XPSTablesModelStructure {
     /// A list of models.
     #[serde(default, rename = "modelParameters")]
-    pub model_parameters: Option<Vec<XPSTablesModelStructureModelParameters>>,
+    pub model_parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSTablesModelStructureModelParameters>>,
+    >,
 }
 
 /// Model hyper-parameters for a model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSTablesModelStructureModelParameters {
     #[serde(default)]
-    pub hyperparameters: Option<Vec<XPSTablesModelStructureModelParametersParameter>>,
+    pub hyperparameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSTablesModelStructureModelParametersParameter>>,
+    >,
 }
 
 /// XPSTablesModelStructureModelParametersParameter resource type.
@@ -1543,16 +1596,16 @@ pub struct XPSTablesModelStructureModelParameters {
 pub struct XPSTablesModelStructureModelParametersParameter {
     /// Float type parameter value.
     #[serde(default, rename = "floatValue")]
-    pub float_value: Option<f64>,
+    pub float_value: ::core::option::Option<f64>,
     /// Integer type parameter value.
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     /// Parameter name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// String type parameter value.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// XPSTablesPreprocessResponse resource type.
@@ -1560,7 +1613,8 @@ pub struct XPSTablesModelStructureModelParametersParameter {
 pub struct XPSTablesPreprocessResponse {
     /// The table/column id, column_name and the DataTypes of the columns will be populated.
     #[serde(default, rename = "tablesDatasetMetadata")]
-    pub tables_dataset_metadata: Option<XPSTablesDatasetMetadata>,
+    pub tables_dataset_metadata:
+        ::core::option::Option<::std::boxed::Box<XPSTablesDatasetMetadata>>,
 }
 
 /// Metrics for Tables regression problems.
@@ -1568,38 +1622,40 @@ pub struct XPSTablesPreprocessResponse {
 pub struct XPSTablesRegressionMetrics {
     /// Mean absolute error.
     #[serde(default, rename = "meanAbsoluteError")]
-    pub mean_absolute_error: Option<f64>,
+    pub mean_absolute_error: ::core::option::Option<f64>,
     /// Mean absolute percentage error, only set if all of the target column''s values are positive.
     #[serde(default, rename = "meanAbsolutePercentageError")]
-    pub mean_absolute_percentage_error: Option<f64>,
+    pub mean_absolute_percentage_error: ::core::option::Option<f64>,
     /// R squared.
     #[serde(default, rename = "rSquared")]
-    pub r_squared: Option<f64>,
+    pub r_squared: ::core::option::Option<f64>,
     /// A list of actual versus predicted points for the model being evaluated.
     #[serde(default, rename = "regressionMetricsEntries")]
-    pub regression_metrics_entries: Option<Vec<XPSRegressionMetricsEntry>>,
+    pub regression_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSRegressionMetricsEntry>>>,
     /// Root mean squared error.
     #[serde(default, rename = "rootMeanSquaredError")]
-    pub root_mean_squared_error: Option<f64>,
+    pub root_mean_squared_error: ::core::option::Option<f64>,
     /// Root mean squared log error.
     #[serde(default, rename = "rootMeanSquaredLogError")]
-    pub root_mean_squared_log_error: Option<f64>,
+    pub root_mean_squared_log_error: ::core::option::Option<f64>,
 }
 
 /// XPSTablesTrainResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSTablesTrainResponse {
     #[serde(default, rename = "modelStructure")]
-    pub model_structure: Option<XPSTablesModelStructure>,
+    pub model_structure: ::core::option::Option<::std::boxed::Box<XPSTablesModelStructure>>,
     /// Sample rows from the dataset this model was trained.
     #[serde(default, rename = "predictionSampleRows")]
-    pub prediction_sample_rows: Option<Vec<XPSRow>>,
+    pub prediction_sample_rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSRow>>>,
     /// Output only. Auxiliary information for each of the input_feature_column_specs, with respect to this particular model.
     #[serde(default, rename = "tablesModelColumnInfo")]
-    pub tables_model_column_info: Option<Vec<XPSTablesModelColumnInfo>>,
+    pub tables_model_column_info:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSTablesModelColumnInfo>>>,
     /// The actual training cost of the model, expressed in milli node hours, i.e. 1,000 value in this field means 1 node hour. Guaranteed to not exceed the train budget.
     #[serde(default, rename = "trainCostMilliNodeHours")]
-    pub train_cost_milli_node_hours: Option<String>,
+    pub train_cost_milli_node_hours: ::core::option::Option<String>,
 }
 
 /// XPSTablesTrainingOperationMetadata resource type.
@@ -1607,22 +1663,23 @@ pub struct XPSTablesTrainResponse {
 pub struct XPSTablesTrainingOperationMetadata {
     /// Current stage of creating model. // TODO: enum values: ["CREATE_MODEL_STAGE_UNSPECIFIED", "DATA_PREPROCESSING", "TRAINING", "EVALUATING", "MODEL_POST_PROCESSING"]
     #[serde(default, rename = "createModelStage")]
-    pub create_model_stage: Option<String>,
+    pub create_model_stage: ::core::option::Option<String>,
     /// The optimization objective for model.
     #[serde(default, rename = "optimizationObjective")]
-    pub optimization_objective: Option<String>,
+    pub optimization_objective: ::core::option::Option<String>,
     /// This field is for training. When the operation is terminated successfully, AutoML Backend post this field to operation metadata in spanner. If the metadata has no trials returned, the training operation is supposed to be a failure.
     #[serde(default, rename = "topTrials")]
-    pub top_trials: Option<Vec<XPSTuningTrial>>,
+    pub top_trials: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSTuningTrial>>>,
     /// Creating model budget.
     #[serde(default, rename = "trainBudgetMilliNodeHours")]
-    pub train_budget_milli_node_hours: Option<String>,
+    pub train_budget_milli_node_hours: ::core::option::Option<String>,
     /// This field records the training objective value with respect to time, giving insight into how the model architecture search is performing as training time elapses.
     #[serde(default, rename = "trainingObjectivePoints")]
-    pub training_objective_points: Option<Vec<XPSTrainingObjectivePoint>>,
+    pub training_objective_points:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSTrainingObjectivePoint>>>,
     /// Timestamp when training process starts.
     #[serde(default, rename = "trainingStartTime")]
-    pub training_start_time: Option<String>,
+    pub training_start_time: ::core::option::Option<String>,
 }
 
 /// Component model.
@@ -1630,31 +1687,31 @@ pub struct XPSTablesTrainingOperationMetadata {
 pub struct XPSTextComponentModel {
     /// The Cloud Storage resource path to hold batch prediction model.
     #[serde(default, rename = "batchPredictionModelGcsUri")]
-    pub batch_prediction_model_gcs_uri: Option<String>,
+    pub batch_prediction_model_gcs_uri: ::core::option::Option<String>,
     /// The Cloud Storage resource path to hold online prediction model.
     #[serde(default, rename = "onlinePredictionModelGcsUri")]
-    pub online_prediction_model_gcs_uri: Option<String>,
+    pub online_prediction_model_gcs_uri: ::core::option::Option<String>,
     /// The partition where the model is deployed. Populated by uCAIP BE as part of online PredictRequest. // TODO: enum values: ["PARTITION_TYPE_UNSPECIFIED", "PARTITION_ZERO", "PARTITION_REDUCED_HOMING", "PARTITION_JELLYFISH", "PARTITION_CPU", "PARTITION_CUSTOM_STORAGE_CPU"]
     #[serde(default)]
-    pub partition: Option<String>,
+    pub partition: ::core::option::Option<String>,
     /// The default model binary file used for serving (e.g. online predict, batch predict) via public Cloud Ai Platform API.
     #[serde(default, rename = "servingArtifact")]
-    pub serving_artifact: Option<XPSModelArtifactItem>,
+    pub serving_artifact: ::core::option::Option<::std::boxed::Box<XPSModelArtifactItem>>,
     /// The name of servo model. Populated by uCAIP BE as part of online PredictRequest.
     #[serde(default, rename = "servoModelName")]
-    pub servo_model_name: Option<String>,
+    pub servo_model_name: ::core::option::Option<String>,
     /// The name of the trained NL submodel.
     #[serde(default, rename = "submodelName")]
-    pub submodel_name: Option<String>,
+    pub submodel_name: ::core::option::Option<String>,
     /// The type of trained NL submodel // TODO: enum values: ["TEXT_MODEL_TYPE_UNSPECIFIED", "TEXT_MODEL_TYPE_DEFAULT", "TEXT_MODEL_TYPE_META_ARCHITECT", "TEXT_MODEL_TYPE_ATC", "TEXT_MODEL_TYPE_CLARA2", "TEXT_MODEL_TYPE_CHATBASE", "TEXT_MODEL_TYPE_SAFT_SPAN_LABELING", "TEXT_MODEL_TYPE_TEXT_EXTRACTION", "TEXT_MODEL_TYPE_RELATIONSHIP_EXTRACTION", "TEXT_MODEL_TYPE_COMPOSITE", "TEXT_MODEL_TYPE_ALL_MODELS", "TEXT_MODEL_TYPE_BERT", "TEXT_MODEL_TYPE_ENC_PALM"]
     #[serde(default, rename = "submodelType")]
-    pub submodel_type: Option<String>,
+    pub submodel_type: ::core::option::Option<String>,
     /// ## The fields below are only populated under uCAIP request scope. https://cloud.google.com/ml-engine/docs/runtime-version-list
     #[serde(default, rename = "tfRuntimeVersion")]
-    pub tf_runtime_version: Option<String>,
+    pub tf_runtime_version: ::core::option::Option<String>,
     /// The servomatic model version number. Populated by uCAIP BE as part of online PredictRequest.
     #[serde(default, rename = "versionNumber")]
-    pub version_number: Option<String>,
+    pub version_number: ::core::option::Option<String>,
 }
 
 /// XPSTextExtractionEvaluationMetrics resource type.
@@ -1662,16 +1719,18 @@ pub struct XPSTextComponentModel {
 pub struct XPSTextExtractionEvaluationMetrics {
     /// Values are at the highest F1 score on the precision-recall curve. Only confidence_threshold, recall, precision, and f1_score will be set.
     #[serde(default, rename = "bestF1ConfidenceMetrics")]
-    pub best_f1_confidence_metrics: Option<XPSConfidenceMetricsEntry>,
+    pub best_f1_confidence_metrics:
+        ::core::option::Option<::std::boxed::Box<XPSConfidenceMetricsEntry>>,
     /// If the enclosing EvaluationMetrics.label is empty, confidence_metrics_entries is an evaluation of the entire model across all labels. If the enclosing EvaluationMetrics.label is set, confidence_metrics_entries applies to that label.
     #[serde(default, rename = "confidenceMetricsEntries")]
-    pub confidence_metrics_entries: Option<Vec<XPSConfidenceMetricsEntry>>,
+    pub confidence_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSConfidenceMetricsEntry>>>,
     /// Confusion matrix of the model, at the default confidence threshold (0.0). Only set for whole-model evaluation, not for evaluation per label.
     #[serde(default, rename = "confusionMatrix")]
-    pub confusion_matrix: Option<XPSConfusionMatrix>,
+    pub confusion_matrix: ::core::option::Option<::std::boxed::Box<XPSConfusionMatrix>>,
     /// Only recall, precision, and f1_score will be set.
     #[serde(default, rename = "perLabelConfidenceMetrics")]
-    pub per_label_confidence_metrics: Option<serde_json::Value>,
+    pub per_label_confidence_metrics: ::core::option::Option<serde_json::Value>,
 }
 
 /// Model evaluation metrics for text sentiment problems.
@@ -1679,28 +1738,28 @@ pub struct XPSTextExtractionEvaluationMetrics {
 pub struct XPSTextSentimentEvaluationMetrics {
     /// Output only. Confusion matrix of the evaluation. Only set for the overall model evaluation, not for evaluation of a single annotation spec.
     #[serde(default, rename = "confusionMatrix")]
-    pub confusion_matrix: Option<XPSConfusionMatrix>,
+    pub confusion_matrix: ::core::option::Option<::std::boxed::Box<XPSConfusionMatrix>>,
     /// Output only. The harmonic mean of recall and precision.
     #[serde(default, rename = "f1Score")]
-    pub f1_score: Option<f32>,
+    pub f1_score: ::core::option::Option<f32>,
     /// Output only. Linear weighted kappa. Only set for the overall model evaluation, not for evaluation of a single annotation spec.
     #[serde(default, rename = "linearKappa")]
-    pub linear_kappa: Option<f32>,
+    pub linear_kappa: ::core::option::Option<f32>,
     /// Output only. Mean absolute error. Only set for the overall model evaluation, not for evaluation of a single annotation spec.
     #[serde(default, rename = "meanAbsoluteError")]
-    pub mean_absolute_error: Option<f32>,
+    pub mean_absolute_error: ::core::option::Option<f32>,
     /// Output only. Mean squared error. Only set for the overall model evaluation, not for evaluation of a single annotation spec.
     #[serde(default, rename = "meanSquaredError")]
-    pub mean_squared_error: Option<f32>,
+    pub mean_squared_error: ::core::option::Option<f32>,
     /// Output only. Precision.
     #[serde(default)]
-    pub precision: Option<f32>,
+    pub precision: ::core::option::Option<f32>,
     /// Output only. Quadratic weighted kappa. Only set for the overall model evaluation, not for evaluation of a single annotation spec.
     #[serde(default, rename = "quadraticKappa")]
-    pub quadratic_kappa: Option<f32>,
+    pub quadratic_kappa: ::core::option::Option<f32>,
     /// Output only. Recall.
     #[serde(default)]
-    pub recall: Option<f32>,
+    pub recall: ::core::option::Option<f32>,
 }
 
 /// XPSTextTrainResponse resource type.
@@ -1708,19 +1767,20 @@ pub struct XPSTextSentimentEvaluationMetrics {
 pub struct XPSTextTrainResponse {
     /// Component submodels.
     #[serde(default, rename = "componentModel")]
-    pub component_model: Option<Vec<XPSTextComponentModel>>,
+    pub component_model:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSTextComponentModel>>>,
 }
 
 /// The data statistics of a series of TIMESTAMP values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSTimestampStats {
     #[serde(default, rename = "commonStats")]
-    pub common_stats: Option<XPSCommonStats>,
+    pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
     /// The string key is the pre-defined granularity. Currently supported: hour_of_day, day_of_week, month_of_year. Granularities finer that the granularity of timestamp data are not populated (e.g. if timestamps are at day granularity, then hour_of_day is not populated).
     #[serde(default, rename = "granularStats")]
-    pub granular_stats: Option<serde_json::Value>,
+    pub granular_stats: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "medianTimestampNanos")]
-    pub median_timestamp_nanos: Option<String>,
+    pub median_timestamp_nanos: ::core::option::Option<String>,
 }
 
 /// Track matching model metrics for a single track match threshold and multiple label match confidence thresholds. Next tag: 6.
@@ -1728,19 +1788,21 @@ pub struct XPSTimestampStats {
 pub struct XPSTrackMetricsEntry {
     /// Output only. Metrics for each label-match confidence_threshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99. Precision-recall curve is derived from them.
     #[serde(default, rename = "confidenceMetricsEntries")]
-    pub confidence_metrics_entries: Option<Vec<XPSTrackMetricsEntryConfidenceMetricsEntry>>,
+    pub confidence_metrics_entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSTrackMetricsEntryConfidenceMetricsEntry>>,
+    >,
     /// Output only. The intersection-over-union threshold value between bounding boxes across frames used to compute this metric entry.
     #[serde(default, rename = "iouThreshold")]
-    pub iou_threshold: Option<f32>,
+    pub iou_threshold: ::core::option::Option<f32>,
     /// Output only. The mean bounding box iou over all confidence thresholds.
     #[serde(default, rename = "meanBoundingBoxIou")]
-    pub mean_bounding_box_iou: Option<f32>,
+    pub mean_bounding_box_iou: ::core::option::Option<f32>,
     /// Output only. The mean mismatch rate over all confidence thresholds.
     #[serde(default, rename = "meanMismatchRate")]
-    pub mean_mismatch_rate: Option<f32>,
+    pub mean_mismatch_rate: ::core::option::Option<f32>,
     /// Output only. The mean average precision over all confidence thresholds.
     #[serde(default, rename = "meanTrackingAveragePrecision")]
-    pub mean_tracking_average_precision: Option<f32>,
+    pub mean_tracking_average_precision: ::core::option::Option<f32>,
 }
 
 /// Metrics for a single confidence threshold. Next tag: 6.
@@ -1748,19 +1810,19 @@ pub struct XPSTrackMetricsEntry {
 pub struct XPSTrackMetricsEntryConfidenceMetricsEntry {
     /// Output only. Bounding box intersection-over-union precision. Measures how well the bounding boxes overlap between each other (e.g. complete overlap or just barely above iou_threshold).
     #[serde(default, rename = "boundingBoxIou")]
-    pub bounding_box_iou: Option<f32>,
+    pub bounding_box_iou: ::core::option::Option<f32>,
     /// Output only. The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
-    pub confidence_threshold: Option<f32>,
+    pub confidence_threshold: ::core::option::Option<f32>,
     /// Output only. Mismatch rate, which measures the tracking consistency, i.e. correctness of instance ID continuity.
     #[serde(default, rename = "mismatchRate")]
-    pub mismatch_rate: Option<f32>,
+    pub mismatch_rate: ::core::option::Option<f32>,
     /// Output only. Tracking precision.
     #[serde(default, rename = "trackingPrecision")]
-    pub tracking_precision: Option<f32>,
+    pub tracking_precision: ::core::option::Option<f32>,
     /// Output only. Tracking recall.
     #[serde(default, rename = "trackingRecall")]
-    pub tracking_recall: Option<f32>,
+    pub tracking_recall: ::core::option::Option<f32>,
 }
 
 /// XPSTrainResponse resource type.
@@ -1768,45 +1830,54 @@ pub struct XPSTrackMetricsEntryConfidenceMetricsEntry {
 pub struct XPSTrainResponse {
     /// Estimated model size in bytes once deployed.
     #[serde(default, rename = "deployedModelSizeBytes")]
-    pub deployed_model_size_bytes: Option<String>,
+    pub deployed_model_size_bytes: ::core::option::Option<String>,
     /// Optional vision model error analysis configuration. The field is set when model error analysis is enabled in the training request. The results of error analysis will be binded together with evaluation results (in the format of AnnotatedExample).
     #[serde(default, rename = "errorAnalysisConfigs")]
-    pub error_analysis_configs: Option<Vec<XPSVisionErrorAnalysisConfig>>,
+    pub error_analysis_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSVisionErrorAnalysisConfig>>>,
     /// Examples used to evaluate the model (usually the test set), with the predicted annotations. The file_spec should point to recordio file(s) of AnnotatedExample. For each returned example, the example_id_token and annotations predicted by the model must be set. The example payload can and is recommended to be omitted.
     #[serde(default, rename = "evaluatedExampleSet")]
-    pub evaluated_example_set: Option<XPSExampleSet>,
+    pub evaluated_example_set: ::core::option::Option<::std::boxed::Box<XPSExampleSet>>,
     /// The trained model evaluation metrics. This can be optionally returned.
     #[serde(default, rename = "evaluationMetricsSet")]
-    pub evaluation_metrics_set: Option<XPSEvaluationMetricsSet>,
+    pub evaluation_metrics_set: ::core::option::Option<::std::boxed::Box<XPSEvaluationMetricsSet>>,
     /// VisionExplanationConfig for XAI on test set. Optional for when XAI is enable in training request.
     #[serde(default, rename = "explanationConfigs")]
-    pub explanation_configs: Option<Vec<XPSResponseExplanationSpec>>,
+    pub explanation_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSResponseExplanationSpec>>>,
     #[serde(default, rename = "imageClassificationTrainResp")]
-    pub image_classification_train_resp: Option<XPSImageClassificationTrainResponse>,
+    pub image_classification_train_resp:
+        ::core::option::Option<::std::boxed::Box<XPSImageClassificationTrainResponse>>,
     #[serde(default, rename = "imageObjectDetectionTrainResp")]
-    pub image_object_detection_train_resp: Option<XPSImageObjectDetectionModelSpec>,
+    pub image_object_detection_train_resp:
+        ::core::option::Option<::std::boxed::Box<XPSImageObjectDetectionModelSpec>>,
     #[serde(default, rename = "imageSegmentationTrainResp")]
-    pub image_segmentation_train_resp: Option<XPSImageSegmentationTrainResponse>,
+    pub image_segmentation_train_resp:
+        ::core::option::Option<::std::boxed::Box<XPSImageSegmentationTrainResponse>>,
     /// Token that represents the trained model. This is considered immutable and is persisted in AutoML. xPS can put their own proto in the byte string, to e.g. point to the model checkpoints. The token is passed to other xPS APIs to refer to the model.
     #[serde(default, rename = "modelToken")]
-    pub model_token: Option<String>,
+    pub model_token: ::core::option::Option<String>,
     #[serde(default, rename = "speechTrainResp")]
-    pub speech_train_resp: Option<XPSSpeechModelSpec>,
+    pub speech_train_resp: ::core::option::Option<::std::boxed::Box<XPSSpeechModelSpec>>,
     #[serde(default, rename = "tablesTrainResp")]
-    pub tables_train_resp: Option<XPSTablesTrainResponse>,
+    pub tables_train_resp: ::core::option::Option<::std::boxed::Box<XPSTablesTrainResponse>>,
     #[serde(default, rename = "textToSpeechTrainResp")]
-    pub text_to_speech_train_resp: Option<serde_json::Value>,
+    pub text_to_speech_train_resp: ::core::option::Option<serde_json::Value>,
     /// Will only be needed for uCAIP from Beta.
     #[serde(default, rename = "textTrainResp")]
-    pub text_train_resp: Option<XPSTextTrainResponse>,
+    pub text_train_resp: ::core::option::Option<::std::boxed::Box<XPSTextTrainResponse>>,
     #[serde(default, rename = "translationTrainResp")]
-    pub translation_train_resp: Option<XPSTranslationTrainResponse>,
+    pub translation_train_resp:
+        ::core::option::Option<::std::boxed::Box<XPSTranslationTrainResponse>>,
     #[serde(default, rename = "videoActionRecognitionTrainResp")]
-    pub video_action_recognition_train_resp: Option<XPSVideoActionRecognitionTrainResponse>,
+    pub video_action_recognition_train_resp:
+        ::core::option::Option<::std::boxed::Box<XPSVideoActionRecognitionTrainResponse>>,
     #[serde(default, rename = "videoClassificationTrainResp")]
-    pub video_classification_train_resp: Option<XPSVideoClassificationTrainResponse>,
+    pub video_classification_train_resp:
+        ::core::option::Option<::std::boxed::Box<XPSVideoClassificationTrainResponse>>,
     #[serde(default, rename = "videoObjectTrackingTrainResp")]
-    pub video_object_tracking_train_resp: Option<XPSVideoObjectTrackingTrainResponse>,
+    pub video_object_tracking_train_resp:
+        ::core::option::Option<::std::boxed::Box<XPSVideoObjectTrackingTrainResponse>>,
 }
 
 /// XPSTrainingObjectivePoint resource type.
@@ -1814,10 +1885,10 @@ pub struct XPSTrainResponse {
 pub struct XPSTrainingObjectivePoint {
     /// The time at which this point was recorded.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The objective value when this point was recorded.
     #[serde(default)]
-    pub value: Option<f32>,
+    pub value: ::core::option::Option<f32>,
 }
 
 /// Evaluation metrics for the dataset.
@@ -1825,10 +1896,10 @@ pub struct XPSTrainingObjectivePoint {
 pub struct XPSTranslationEvaluationMetrics {
     /// BLEU score for base model.
     #[serde(default, rename = "baseBleuScore")]
-    pub base_bleu_score: Option<f64>,
+    pub base_bleu_score: ::core::option::Option<f64>,
     /// BLEU score.
     #[serde(default, rename = "bleuScore")]
-    pub bleu_score: Option<f64>,
+    pub bleu_score: ::core::option::Option<f64>,
 }
 
 /// Translation preprocess response.
@@ -1836,10 +1907,10 @@ pub struct XPSTranslationEvaluationMetrics {
 pub struct XPSTranslationPreprocessResponse {
     /// Total example count parsed.
     #[serde(default, rename = "parsedExampleCount")]
-    pub parsed_example_count: Option<String>,
+    pub parsed_example_count: ::core::option::Option<String>,
     /// Total valid example count.
     #[serde(default, rename = "validExampleCount")]
-    pub valid_example_count: Option<String>,
+    pub valid_example_count: ::core::option::Option<String>,
 }
 
 /// Train response for translation.
@@ -1847,7 +1918,7 @@ pub struct XPSTranslationPreprocessResponse {
 pub struct XPSTranslationTrainResponse {
     /// Type of the model. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "LEGACY", "CURRENT"]
     #[serde(default, rename = "modelType")]
-    pub model_type: Option<String>,
+    pub model_type: ::core::option::Option<String>,
 }
 
 /// Metrics for a tuning job generated, will get forwarded to Stackdriver as model tuning logs. Setting this as a standalone message out of CreateModelMetadata to avoid confusion as we expose this message only to users.
@@ -1855,10 +1926,11 @@ pub struct XPSTranslationTrainResponse {
 pub struct XPSTuningTrial {
     /// Model parameters for the trial.
     #[serde(default, rename = "modelStructure")]
-    pub model_structure: Option<XPSTablesModelStructure>,
+    pub model_structure: ::core::option::Option<::std::boxed::Box<XPSTablesModelStructure>>,
     /// The optimization objective evaluation of the eval split data.
     #[serde(default, rename = "trainingObjectivePoint")]
-    pub training_objective_point: Option<XPSTrainingObjectivePoint>,
+    pub training_objective_point:
+        ::core::option::Option<::std::boxed::Box<XPSTrainingObjectivePoint>>,
 }
 
 /// The Evaluation metrics entry given a specific precision_window_length.
@@ -1866,13 +1938,15 @@ pub struct XPSTuningTrial {
 pub struct XPSVideoActionMetricsEntry {
     /// Metrics for each label-match confidence_threshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99.
     #[serde(default, rename = "confidenceMetricsEntries")]
-    pub confidence_metrics_entries: Option<Vec<XPSVideoActionMetricsEntryConfidenceMetricsEntry>>,
+    pub confidence_metrics_entries: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<XPSVideoActionMetricsEntryConfidenceMetricsEntry>>,
+    >,
     /// The mean average precision.
     #[serde(default, rename = "meanAveragePrecision")]
-    pub mean_average_precision: Option<f32>,
+    pub mean_average_precision: ::core::option::Option<f32>,
     /// This VideoActionMetricsEntry is calculated based on this prediction window length. If the predicted action''s timestamp is inside the time window whose center is the ground truth action''s timestamp with this specific length, the prediction result is treated as a true positive.
     #[serde(default, rename = "precisionWindowLength")]
-    pub precision_window_length: Option<String>,
+    pub precision_window_length: ::core::option::Option<String>,
 }
 
 /// Metrics for a single confidence threshold.
@@ -1880,16 +1954,16 @@ pub struct XPSVideoActionMetricsEntry {
 pub struct XPSVideoActionMetricsEntryConfidenceMetricsEntry {
     /// Output only. The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
-    pub confidence_threshold: Option<f32>,
+    pub confidence_threshold: ::core::option::Option<f32>,
     /// Output only. The harmonic mean of recall and precision.
     #[serde(default, rename = "f1Score")]
-    pub f1_score: Option<f32>,
+    pub f1_score: ::core::option::Option<f32>,
     /// Output only. Precision for the given confidence threshold.
     #[serde(default)]
-    pub precision: Option<f32>,
+    pub precision: ::core::option::Option<f32>,
     /// Output only. Recall for the given confidence threshold.
     #[serde(default)]
-    pub recall: Option<f32>,
+    pub recall: ::core::option::Option<f32>,
 }
 
 /// Model evaluation metrics for video action recognition.
@@ -1897,10 +1971,11 @@ pub struct XPSVideoActionMetricsEntryConfidenceMetricsEntry {
 pub struct XPSVideoActionRecognitionEvaluationMetrics {
     /// Output only. The number of ground truth actions used to create this evaluation.
     #[serde(default, rename = "evaluatedActionCount")]
-    pub evaluated_action_count: Option<i32>,
+    pub evaluated_action_count: ::core::option::Option<i32>,
     /// Output only. The metric entries for precision window lengths: 1s,2s,3s,4s, 5s.
     #[serde(default, rename = "videoActionMetricsEntries")]
-    pub video_action_metrics_entries: Option<Vec<XPSVideoActionMetricsEntry>>,
+    pub video_action_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSVideoActionMetricsEntry>>>,
 }
 
 /// XPSVideoActionRecognitionTrainResponse resource type.
@@ -1908,10 +1983,10 @@ pub struct XPSVideoActionRecognitionEvaluationMetrics {
 pub struct XPSVideoActionRecognitionTrainResponse {
     /// ## The fields below are only populated under uCAIP request scope.
     #[serde(default, rename = "modelArtifactSpec")]
-    pub model_artifact_spec: Option<XPSVideoModelArtifactSpec>,
+    pub model_artifact_spec: ::core::option::Option<::std::boxed::Box<XPSVideoModelArtifactSpec>>,
     /// The actual train cost of creating this model, expressed in node seconds, i.e. 3,600 value in this field means 1 node hour.
     #[serde(default, rename = "trainCostNodeSeconds")]
-    pub train_cost_node_seconds: Option<String>,
+    pub train_cost_node_seconds: ::core::option::Option<String>,
 }
 
 /// XPSVideoBatchPredictOperationMetadata resource type.
@@ -1919,7 +1994,7 @@ pub struct XPSVideoActionRecognitionTrainResponse {
 pub struct XPSVideoBatchPredictOperationMetadata {
     /// All the partial batch prediction results that are completed at the moment. Output examples are sorted by completion time. The order will not be changed. Each output example should be the path of a single RecordIO file of AnnotatedExamples.
     #[serde(default, rename = "outputExamples")]
-    pub output_examples: Option<Vec<String>>,
+    pub output_examples: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// XPSVideoClassificationTrainResponse resource type.
@@ -1927,10 +2002,10 @@ pub struct XPSVideoBatchPredictOperationMetadata {
 pub struct XPSVideoClassificationTrainResponse {
     /// ## The fields below are only populated under uCAIP request scope.
     #[serde(default, rename = "modelArtifactSpec")]
-    pub model_artifact_spec: Option<XPSVideoModelArtifactSpec>,
+    pub model_artifact_spec: ::core::option::Option<::std::boxed::Box<XPSVideoModelArtifactSpec>>,
     /// The actual train cost of creating this model, expressed in node seconds, i.e. 3,600 value in this field means 1 node hour.
     #[serde(default, rename = "trainCostNodeSeconds")]
-    pub train_cost_node_seconds: Option<String>,
+    pub train_cost_node_seconds: ::core::option::Option<String>,
 }
 
 /// Information of downloadable models that are pre-generated as part of training flow and will be persisted in AutoMl backend. Upon receiving ExportModel request from user, AutoMl backend can serve the pre-generated models to user if exists (by copying the files from internal path to user provided location), otherwise, AutoMl backend will call xPS ExportModel API to generate the model on the fly with the requesting format.
@@ -1938,7 +2013,8 @@ pub struct XPSVideoClassificationTrainResponse {
 pub struct XPSVideoExportModelSpec {
     /// Contains the model format and internal location of the model files to be exported/downloaded. Use the Google Cloud Storage bucket name which is provided via TrainRequest.gcs_bucket_name to store the model files.
     #[serde(default, rename = "exportModelOutputConfig")]
-    pub export_model_output_config: Option<Vec<XPSExportModelOutputConfig>>,
+    pub export_model_output_config:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSExportModelOutputConfig>>>,
 }
 
 /// XPSVideoModelArtifactSpec resource type.
@@ -1946,10 +2022,11 @@ pub struct XPSVideoExportModelSpec {
 pub struct XPSVideoModelArtifactSpec {
     /// The model binary files in different formats for model export.
     #[serde(default, rename = "exportArtifact")]
-    pub export_artifact: Option<Vec<XPSModelArtifactItem>>,
+    pub export_artifact:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSModelArtifactItem>>>,
     /// The default model binary file used for serving (e.g. batch predict) via public Cloud AI Platform API.
     #[serde(default, rename = "servingArtifact")]
-    pub serving_artifact: Option<XPSModelArtifactItem>,
+    pub serving_artifact: ::core::option::Option<::std::boxed::Box<XPSModelArtifactItem>>,
 }
 
 /// Model evaluation metrics for ObjectTracking problems. Next tag: 10.
@@ -1957,31 +2034,33 @@ pub struct XPSVideoModelArtifactSpec {
 pub struct XPSVideoObjectTrackingEvaluationMetrics {
     /// Output only. The single metric for bounding boxes evaluation: the mean_average_precision averaged over all bounding_box_metrics_entries.
     #[serde(default, rename = "boundingBoxMeanAveragePrecision")]
-    pub bounding_box_mean_average_precision: Option<f32>,
+    pub bounding_box_mean_average_precision: ::core::option::Option<f32>,
     /// Output only. The bounding boxes match metrics for each Intersection-over-union threshold 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99.
     #[serde(default, rename = "boundingBoxMetricsEntries")]
-    pub bounding_box_metrics_entries: Option<Vec<XPSBoundingBoxMetricsEntry>>,
+    pub bounding_box_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSBoundingBoxMetricsEntry>>>,
     /// The number of bounding boxes used for model evaluation.
     #[serde(default, rename = "evaluatedBoundingboxCount")]
-    pub evaluated_boundingbox_count: Option<i32>,
+    pub evaluated_boundingbox_count: ::core::option::Option<i32>,
     /// The number of video frames used for model evaluation.
     #[serde(default, rename = "evaluatedFrameCount")]
-    pub evaluated_frame_count: Option<i32>,
+    pub evaluated_frame_count: ::core::option::Option<i32>,
     /// The number of tracks used for model evaluation.
     #[serde(default, rename = "evaluatedTrackCount")]
-    pub evaluated_track_count: Option<i32>,
+    pub evaluated_track_count: ::core::option::Option<i32>,
     /// Output only. The single metric for tracks accuracy evaluation: the mean_average_precision averaged over all track_metrics_entries.
     #[serde(default, rename = "trackMeanAveragePrecision")]
-    pub track_mean_average_precision: Option<f32>,
+    pub track_mean_average_precision: ::core::option::Option<f32>,
     /// Output only. The single metric for tracks bounding box iou evaluation: the mean_bounding_box_iou averaged over all track_metrics_entries.
     #[serde(default, rename = "trackMeanBoundingBoxIou")]
-    pub track_mean_bounding_box_iou: Option<f32>,
+    pub track_mean_bounding_box_iou: ::core::option::Option<f32>,
     /// Output only. The single metric for tracking consistency evaluation: the mean_mismatch_rate averaged over all track_metrics_entries.
     #[serde(default, rename = "trackMeanMismatchRate")]
-    pub track_mean_mismatch_rate: Option<f32>,
+    pub track_mean_mismatch_rate: ::core::option::Option<f32>,
     /// Output only. The tracks match metrics for each Intersection-over-union threshold 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99.
     #[serde(default, rename = "trackMetricsEntries")]
-    pub track_metrics_entries: Option<Vec<XPSTrackMetricsEntry>>,
+    pub track_metrics_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<XPSTrackMetricsEntry>>>,
 }
 
 /// XPSVideoObjectTrackingTrainResponse resource type.
@@ -1989,13 +2068,13 @@ pub struct XPSVideoObjectTrackingEvaluationMetrics {
 pub struct XPSVideoObjectTrackingTrainResponse {
     /// Populated for AutoML request only.
     #[serde(default, rename = "exportModelSpec")]
-    pub export_model_spec: Option<XPSVideoExportModelSpec>,
+    pub export_model_spec: ::core::option::Option<::std::boxed::Box<XPSVideoExportModelSpec>>,
     /// ## The fields below are only populated under uCAIP request scope.
     #[serde(default, rename = "modelArtifactSpec")]
-    pub model_artifact_spec: Option<XPSVideoModelArtifactSpec>,
+    pub model_artifact_spec: ::core::option::Option<::std::boxed::Box<XPSVideoModelArtifactSpec>>,
     /// The actual train cost of creating this model, expressed in node seconds, i.e. 3,600 value in this field means 1 node hour.
     #[serde(default, rename = "trainCostNodeSeconds")]
-    pub train_cost_node_seconds: Option<String>,
+    pub train_cost_node_seconds: ::core::option::Option<String>,
 }
 
 /// XPSVideoTrainingOperationMetadata resource type.
@@ -2003,7 +2082,7 @@ pub struct XPSVideoObjectTrackingTrainResponse {
 pub struct XPSVideoTrainingOperationMetadata {
     /// This is an estimation of the node hours necessary for training a model, expressed in milli node hours (i.e. 1,000 value in this field means 1 node hour). A node hour represents the time a virtual machine spends running your training job. The cost of one node running for one hour is a node hour.
     #[serde(default, rename = "trainCostMilliNodeHour")]
-    pub train_cost_milli_node_hour: Option<String>,
+    pub train_cost_milli_node_hour: ::core::option::Option<String>,
 }
 
 /// The vision model error analysis configuration. Next tag: 3
@@ -2011,10 +2090,10 @@ pub struct XPSVideoTrainingOperationMetadata {
 pub struct XPSVisionErrorAnalysisConfig {
     /// The number of query examples in error analysis.
     #[serde(default, rename = "exampleCount")]
-    pub example_count: Option<i32>,
+    pub example_count: ::core::option::Option<i32>,
     /// The query type used in retrieval. The enum values are frozen in the foreseeable future. // TODO: enum values: ["QUERY_TYPE_UNSPECIFIED", "QUERY_TYPE_ALL_SIMILAR", "QUERY_TYPE_SAME_CLASS_SIMILAR", "QUERY_TYPE_SAME_CLASS_DISSIMILAR"]
     #[serde(default, rename = "queryType")]
-    pub query_type: Option<String>,
+    pub query_type: ::core::option::Option<String>,
 }
 
 /// XPSVisionTrainingOperationMetadata resource type.
@@ -2022,7 +2101,7 @@ pub struct XPSVisionErrorAnalysisConfig {
 pub struct XPSVisionTrainingOperationMetadata {
     /// Aggregated infra usage within certain time period, for billing report purpose if XAI is enable in training request.
     #[serde(default, rename = "explanationUsage")]
-    pub explanation_usage: Option<InfraUsage>,
+    pub explanation_usage: ::core::option::Option<::std::boxed::Box<InfraUsage>>,
 }
 
 /// Visualization configurations for image explanation.
@@ -2030,22 +2109,22 @@ pub struct XPSVisionTrainingOperationMetadata {
 pub struct XPSVisualization {
     /// Excludes attributions below the specified percentile, from the highlighted areas. Defaults to 62.
     #[serde(default, rename = "clipPercentLowerbound")]
-    pub clip_percent_lowerbound: Option<f32>,
+    pub clip_percent_lowerbound: ::core::option::Option<f32>,
     /// Excludes attributions above the specified percentile from the highlighted areas. Using the clip_percent_upperbound and clip_percent_lowerbound together can be useful for filtering out noise and making it easier to see areas of strong attribution. Defaults to 99.9.
     #[serde(default, rename = "clipPercentUpperbound")]
-    pub clip_percent_upperbound: Option<f32>,
+    pub clip_percent_upperbound: ::core::option::Option<f32>,
     /// The color scheme used for the highlighted areas. Defaults to PINK_GREEN for Integrated Gradients attribution, which shows positive attributions in green and negative in pink. Defaults to VIRIDIS for XRAI attribution, which highlights the most influential regions in yellow and the least influential in blue. // TODO: enum values: ["COLOR_MAP_UNSPECIFIED", "PINK_GREEN", "VIRIDIS", "RED", "GREEN", "RED_GREEN", "PINK_WHITE_GREEN"]
     #[serde(default, rename = "colorMap")]
-    pub color_map: Option<String>,
+    pub color_map: ::core::option::Option<String>,
     /// How the original image is displayed in the visualization. Adjusting the overlay can help increase visual clarity if the original image makes it difficult to view the visualization. Defaults to NONE. // TODO: enum values: ["OVERLAY_TYPE_UNSPECIFIED", "NONE", "ORIGINAL", "GRAYSCALE", "MASK_BLACK"]
     #[serde(default, rename = "overlayType")]
-    pub overlay_type: Option<String>,
+    pub overlay_type: ::core::option::Option<String>,
     /// Whether to only highlight pixels with positive contributions, negative or both. Defaults to POSITIVE. // TODO: enum values: ["POLARITY_UNSPECIFIED", "POSITIVE", "NEGATIVE", "BOTH"]
     #[serde(default)]
-    pub polarity: Option<String>,
+    pub polarity: ::core::option::Option<String>,
     /// Type of the image visualization. Only applicable to Integrated Gradients attribution. OUTLINES shows regions of attribution, while PIXELS shows per-pixel attribution. Defaults to OUTLINES. // TODO: enum values: ["TYPE_UNSPECIFIED", "PIXELS", "OUTLINES"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// XPSXpsOperationMetadata resource type.
@@ -2053,18 +2132,22 @@ pub struct XPSVisualization {
 pub struct XPSXpsOperationMetadata {
     /// Optional. XPS server can opt to provide example count of the long running operation (e.g. training, data importing, batch prediction).
     #[serde(default, rename = "exampleCount")]
-    pub example_count: Option<String>,
+    pub example_count: ::core::option::Option<String>,
     /// Metrics for the operation. By the time the operation is terminated (whether succeeded or failed) as returned from XPS, AutoML BE assumes the metrics are finalized. AutoML BE transparently posts the metrics to Chemist if it''s not empty, regardless of the response content or error type. If user is supposed to be charged in case of cancellation/error, this field should be set. In the case where the type of LRO doesn''t require any billing, this field should be left unset.
     #[serde(default, rename = "reportingMetrics")]
-    pub reporting_metrics: Option<XPSReportingMetrics>,
+    pub reporting_metrics: ::core::option::Option<::std::boxed::Box<XPSReportingMetrics>>,
     #[serde(default, rename = "tablesTrainingOperationMetadata")]
-    pub tables_training_operation_metadata: Option<XPSTablesTrainingOperationMetadata>,
+    pub tables_training_operation_metadata:
+        ::core::option::Option<::std::boxed::Box<XPSTablesTrainingOperationMetadata>>,
     #[serde(default, rename = "videoBatchPredictOperationMetadata")]
-    pub video_batch_predict_operation_metadata: Option<XPSVideoBatchPredictOperationMetadata>,
+    pub video_batch_predict_operation_metadata:
+        ::core::option::Option<::std::boxed::Box<XPSVideoBatchPredictOperationMetadata>>,
     #[serde(default, rename = "videoTrainingOperationMetadata")]
-    pub video_training_operation_metadata: Option<XPSVideoTrainingOperationMetadata>,
+    pub video_training_operation_metadata:
+        ::core::option::Option<::std::boxed::Box<XPSVideoTrainingOperationMetadata>>,
     #[serde(default, rename = "visionTrainingOperationMetadata")]
-    pub vision_training_operation_metadata: Option<XPSVisionTrainingOperationMetadata>,
+    pub vision_training_operation_metadata:
+        ::core::option::Option<::std::boxed::Box<XPSVisionTrainingOperationMetadata>>,
 }
 
 /// An explanation method that redistributes Integrated Gradients attributions to segmented regions, taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 Only supports image Models (modality is IMAGE).
@@ -2072,5 +2155,5 @@ pub struct XPSXpsOperationMetadata {
 pub struct XPSXraiAttribution {
     /// The number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is met within the desired error range. Valid range of its value is [1, 100], inclusively.
     #[serde(default, rename = "stepCount")]
-    pub step_count: Option<i32>,
+    pub step_count: ::core::option::Option<i32>,
 }

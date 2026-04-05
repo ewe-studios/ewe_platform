@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Third-party device ID for one device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentDeviceId {
     /// Third-party device ID.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Alternate third-party device ID.
@@ -26,10 +26,10 @@ pub struct AgentDeviceId {
 pub struct AgentOtherDeviceId {
     /// Project ID for your smart home Action.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Unique third-party device ID.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
 }
 
 /// Third-party device definition.
@@ -37,40 +37,41 @@ pub struct AgentOtherDeviceId {
 pub struct Device {
     /// Attributes for the traits supported by the device.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Custom device attributes stored in Home Graph and provided to your smart home Action in each [QUERY](https://developers.home.google.com/cloud-to-cloud/intents/query) and [EXECUTE](https://developers.home.google.com/cloud-to-cloud/intents/execute) intent. Data in this object has a few constraints: No sensitive information, including but not limited to Personally Identifiable Information.
     #[serde(default, rename = "customData")]
-    pub custom_data: Option<serde_json::Value>,
+    pub custom_data: ::core::option::Option<serde_json::Value>,
     /// Device manufacturer, model, hardware version, and software version.
     #[serde(default, rename = "deviceInfo")]
-    pub device_info: Option<DeviceInfo>,
+    pub device_info: ::core::option::Option<::std::boxed::Box<DeviceInfo>>,
     /// Third-party device ID.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Names given to this device by your smart home Action.
     #[serde(default)]
-    pub name: Option<DeviceNames>,
+    pub name: ::core::option::Option<::std::boxed::Box<DeviceNames>>,
     /// Indicates whether your smart home Action will report notifications to Google for this device via ReportStateAndNotification. If your smart home Action enables users to control device notifications, you should update this field and call RequestSyncDevices.
     #[serde(default, rename = "notificationSupportedByAgent")]
-    pub notification_supported_by_agent: Option<bool>,
+    pub notification_supported_by_agent: ::core::option::Option<bool>,
     /// Alternate IDs associated with this device. This is used to identify cloud synced devices enabled for [local fulfillment](https://developers.home.google.com/local-home/overview).
     #[serde(default, rename = "otherDeviceIds")]
-    pub other_device_ids: Option<Vec<AgentOtherDeviceId>>,
+    pub other_device_ids:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AgentOtherDeviceId>>>,
     /// Suggested name for the room where this device is installed. Google attempts to use this value during user setup.
     #[serde(default, rename = "roomHint")]
-    pub room_hint: Option<String>,
+    pub room_hint: ::core::option::Option<String>,
     /// Suggested name for the structure where this device is installed. Google attempts to use this value during user setup.
     #[serde(default, rename = "structureHint")]
-    pub structure_hint: Option<String>,
+    pub structure_hint: ::core::option::Option<String>,
     /// Traits supported by the device. See [device traits](https://developers.home.google.com/cloud-to-cloud/traits).
     #[serde(default)]
-    pub traits: Option<Vec<String>>,
+    pub traits: ::core::option::Option<::std::vec::Vec<String>>,
     /// Hardware type of the device. See [device types](https://developers.home.google.com/cloud-to-cloud/guides).
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Indicates whether your smart home Action will report state of this device to Google via ReportStateAndNotification.
     #[serde(default, rename = "willReportState")]
-    pub will_report_state: Option<bool>,
+    pub will_report_state: ::core::option::Option<bool>,
 }
 
 /// Device information.
@@ -78,16 +79,16 @@ pub struct Device {
 pub struct DeviceInfo {
     /// Device hardware version.
     #[serde(default, rename = "hwVersion")]
-    pub hw_version: Option<String>,
+    pub hw_version: ::core::option::Option<String>,
     /// Device manufacturer.
     #[serde(default)]
-    pub manufacturer: Option<String>,
+    pub manufacturer: ::core::option::Option<String>,
     /// Device model.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// Device software version.
     #[serde(default, rename = "swVersion")]
-    pub sw_version: Option<String>,
+    pub sw_version: ::core::option::Option<String>,
 }
 
 /// Identifiers used to describe the device.
@@ -95,13 +96,13 @@ pub struct DeviceInfo {
 pub struct DeviceNames {
     /// List of names provided by the manufacturer rather than the user, such as serial numbers, SKUs, etc.
     #[serde(default, rename = "defaultNames")]
-    pub default_names: Option<Vec<String>>,
+    pub default_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Primary name of the device, generally provided by the user. Names will be truncated if over the 60 Unicode code point (character) limit and no errors will be thrown. Developers are responsible for handling long names.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Additional names provided by the user for the device.
     #[serde(default)]
-    pub nicknames: Option<Vec<String>>,
+    pub nicknames: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request type for the [Query](#google.home.graph.v1.HomeGraphApiService.Query) call.
@@ -109,13 +110,13 @@ pub struct DeviceNames {
 pub struct QueryRequest {
     /// Required. Third-party user ID.
     #[serde(default, rename = "agentUserId")]
-    pub agent_user_id: Option<String>,
+    pub agent_user_id: ::core::option::Option<String>,
     /// Required. Inputs containing third-party device IDs for which to get the device states.
     #[serde(default)]
-    pub inputs: Option<Vec<QueryRequestInput>>,
+    pub inputs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QueryRequestInput>>>,
     /// Request ID used for debugging.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Device ID inputs to QueryRequest.
@@ -123,7 +124,7 @@ pub struct QueryRequest {
 pub struct QueryRequestInput {
     /// Payload containing third-party device IDs.
     #[serde(default)]
-    pub payload: Option<QueryRequestPayload>,
+    pub payload: ::core::option::Option<::std::boxed::Box<QueryRequestPayload>>,
 }
 
 /// Payload containing device IDs.
@@ -131,7 +132,7 @@ pub struct QueryRequestInput {
 pub struct QueryRequestPayload {
     /// Third-party device IDs for which to get the device states.
     #[serde(default)]
-    pub devices: Option<Vec<AgentDeviceId>>,
+    pub devices: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AgentDeviceId>>>,
 }
 
 /// Response type for the [Query](#google.home.graph.v1.HomeGraphApiService.Query) call. This should follow the same format as the Google smart home action.devices.QUERY [response](https://developers.home.google.com/cloud-to-cloud/intents/query). Example: json { "requestId": "ff36a3cc-ec34-11e6-b1a0-64510650abcf", "payload": { "devices": { "123": { "on": true, "online": true }, "456": { "on": true, "online": true, "brightness": 80, "color": { "name": "cerulean", "spectrumRGB": 31655 } } } } }
@@ -139,10 +140,10 @@ pub struct QueryRequestPayload {
 pub struct QueryResponse {
     /// Device states for the devices given in the request.
     #[serde(default)]
-    pub payload: Option<QueryResponsePayload>,
+    pub payload: ::core::option::Option<::std::boxed::Box<QueryResponsePayload>>,
     /// Request ID used for debugging. Copied from the request.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// The states and notifications specific to a device.
@@ -150,10 +151,10 @@ pub struct QueryResponse {
 pub struct ReportStateAndNotificationDevice {
     /// Notifications metadata for devices. See the **Device NOTIFICATIONS** section of the individual trait [reference guides](https://developers.home.google.com/cloud-to-cloud/traits).
     #[serde(default)]
-    pub notifications: Option<serde_json::Value>,
+    pub notifications: ::core::option::Option<serde_json::Value>,
     /// States of devices to update. See the **Device STATES** section of the individual trait [reference guides](https://developers.home.google.com/cloud-to-cloud/traits).
     #[serde(default)]
-    pub states: Option<serde_json::Value>,
+    pub states: ::core::option::Option<serde_json::Value>,
 }
 
 /// Request type for the [ReportStateAndNotification](#google.home.graph.v1.HomeGraphApiService.ReportStateAndNotification) call. It may include states, notifications, or both. States and notifications are defined per device_id (for example, "123" and "456" in the following example). Example: json { "requestId": "ff36a3cc-ec34-11e6-b1a0-64510650abcf", "agentUserId": "1234", "payload": { "devices": { "states": { "123": { "on": true }, "456": { "on": true, "brightness": 10 }, }, } } }
@@ -161,19 +162,19 @@ pub struct ReportStateAndNotificationDevice {
 pub struct ReportStateAndNotificationRequest {
     /// Required. Third-party user ID.
     #[serde(default, rename = "agentUserId")]
-    pub agent_user_id: Option<String>,
+    pub agent_user_id: ::core::option::Option<String>,
     /// Unique identifier per event (for example, a doorbell press).
     #[serde(default, rename = "eventId")]
-    pub event_id: Option<String>,
+    pub event_id: ::core::option::Option<String>,
     /// Deprecated.
     #[serde(default, rename = "followUpToken")]
-    pub follow_up_token: Option<String>,
+    pub follow_up_token: ::core::option::Option<String>,
     /// Required. State of devices to update and notification metadata for devices.
     #[serde(default)]
-    pub payload: Option<StateAndNotificationPayload>,
+    pub payload: ::core::option::Option<::std::boxed::Box<StateAndNotificationPayload>>,
     /// Request ID used for debugging.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Response type for the [ReportStateAndNotification](#google.home.graph.v1.HomeGraphApiService.ReportStateAndNotification) call.
@@ -181,7 +182,7 @@ pub struct ReportStateAndNotificationRequest {
 pub struct ReportStateAndNotificationResponse {
     /// Request ID copied from ReportStateAndNotificationRequest.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Request type for the [RequestSyncDevices](#google.home.graph.v1.HomeGraphApiService.RequestSyncDevices) call.
@@ -189,10 +190,10 @@ pub struct ReportStateAndNotificationResponse {
 pub struct RequestSyncDevicesRequest {
     /// Required. Third-party user ID.
     #[serde(default, rename = "agentUserId")]
-    pub agent_user_id: Option<String>,
+    pub agent_user_id: ::core::option::Option<String>,
     /// Optional. If set, the request will be added to a queue and a response will be returned immediately. This enables concurrent requests for the given agent_user_id, but the caller will not receive any error responses.
     #[serde(default, rename = "async")]
-    pub async_: Option<bool>,
+    pub async_: ::core::option::Option<bool>,
 }
 
 /// Payload containing the state and notification information for devices.
@@ -200,7 +201,7 @@ pub struct RequestSyncDevicesRequest {
 pub struct StateAndNotificationPayload {
     /// The devices for updating state and sending notifications.
     #[serde(default)]
-    pub devices: Option<ReportStateAndNotificationDevice>,
+    pub devices: ::core::option::Option<::std::boxed::Box<ReportStateAndNotificationDevice>>,
 }
 
 /// Request type for the [Sync](#google.home.graph.v1.HomeGraphApiService.Sync) call.
@@ -208,10 +209,10 @@ pub struct StateAndNotificationPayload {
 pub struct SyncRequest {
     /// Required. Third-party user ID.
     #[serde(default, rename = "agentUserId")]
-    pub agent_user_id: Option<String>,
+    pub agent_user_id: ::core::option::Option<String>,
     /// Request ID used for debugging.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Response type for the [Sync](#google.home.graph.v1.HomeGraphApiService.Sync) call. This should follow the same format as the Google smart home action.devices.SYNC [response](https://developers.home.google.com/cloud-to-cloud/intents/sync). Example: json { "requestId": "ff36a3cc-ec34-11e6-b1a0-64510650abcf", "payload": { "agentUserId": "1836.15267389", "devices": [{ "id": "123", "type": "action.devices.types.OUTLET", "traits": [ "action.devices.traits.OnOff" ], "name": { "defaultNames": ["My Outlet 1234"], "name": "Night light", "nicknames": ["wall plug"] }, "willReportState": false, "deviceInfo": { "manufacturer": "lights-out-inc", "model": "hs1234", "hwVersion": "3.2", "swVersion": "11.4" }, "customData": { "fooValue": 74, "barValue": true, "bazValue": "foo" } }] } }
@@ -219,10 +220,10 @@ pub struct SyncRequest {
 pub struct SyncResponse {
     /// Devices associated with the third-party user.
     #[serde(default)]
-    pub payload: Option<SyncResponsePayload>,
+    pub payload: ::core::option::Option<::std::boxed::Box<SyncResponsePayload>>,
     /// Request ID used for debugging. Copied from the request.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Payload containing device information.
@@ -230,8 +231,8 @@ pub struct SyncResponse {
 pub struct SyncResponsePayload {
     /// Third-party user ID
     #[serde(default, rename = "agentUserId")]
-    pub agent_user_id: Option<String>,
+    pub agent_user_id: ::core::option::Option<String>,
     /// Devices associated with the third-party user.
     #[serde(default)]
-    pub devices: Option<Vec<Device>>,
+    pub devices: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Device>>>,
 }

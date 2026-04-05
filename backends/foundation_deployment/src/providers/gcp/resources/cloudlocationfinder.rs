@@ -10,33 +10,33 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents resource cloud locations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloudLocation {
     /// Optional. The carbon free energy percentage of the cloud location. This represents the average percentage of time customers'' application will be running on carbon-free energy. See https://cloud.google.com/sustainability/region-carbon for more details. There is a difference between default value 0 and unset value. 0 means the carbon free energy percentage is 0%, while unset value means the carbon footprint data is not available.
     #[serde(default, rename = "carbonFreeEnergyPercentage")]
-    pub carbon_free_energy_percentage: Option<f32>,
+    pub carbon_free_energy_percentage: ::core::option::Option<f32>,
     /// Optional. The type of the cloud location. // TODO: enum values: ["CLOUD_LOCATION_TYPE_UNSPECIFIED", "CLOUD_LOCATION_TYPE_REGION", "CLOUD_LOCATION_TYPE_ZONE", "CLOUD_LOCATION_TYPE_REGION_EXTENSION", "CLOUD_LOCATION_TYPE_GDCC_ZONE"]
     #[serde(default, rename = "cloudLocationType")]
-    pub cloud_location_type: Option<String>,
+    pub cloud_location_type: ::core::option::Option<String>,
     /// Optional. The provider of the cloud location. Values can be Google Cloud or third-party providers, including AWS, Azure, or Oracle Cloud Infrastructure. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "CLOUD_PROVIDER_GCP", "CLOUD_PROVIDER_AWS", "CLOUD_PROVIDER_AZURE", "CLOUD_PROVIDER_OCI"]
     #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: Option<String>,
+    pub cloud_provider: ::core::option::Option<String>,
     /// Output only. The containing cloud location in the strict nesting hierarchy. For example, the containing cloud location of a zone is a region.
     #[serde(default, rename = "containingCloudLocation")]
-    pub containing_cloud_location: Option<String>,
+    pub containing_cloud_location: ::core::option::Option<String>,
     /// Optional. The human-readable name of the cloud location. Example: us-east-2, us-east1.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. Name of the cloud location. Unique name of the cloud location including project and location using the form: projects/{project_id}/locations/{location}/cloudLocations/{cloud_location}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The two-letter ISO 3166-1 alpha-2 code of the cloud location. Examples: US, JP, KR.
     #[serde(default, rename = "territoryCode")]
-    pub territory_code: Option<String>,
+    pub territory_code: ::core::option::Option<String>,
 }
 
 /// Message for response to listing cloud locations.
@@ -44,10 +44,10 @@ pub struct CloudLocation {
 pub struct ListCloudLocationsResponse {
     /// Output only. List of cloud locations.
     #[serde(default, rename = "cloudLocations")]
-    pub cloud_locations: Option<Vec<CloudLocation>>,
+    pub cloud_locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CloudLocation>>>,
     /// Output only. The continuation token, used to page through large result sets. Provide this value in a subsequent request as page_token in subsequent requests to retrieve the next page. If this field is not present, there are no subsequent results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -55,10 +55,10 @@ pub struct ListCloudLocationsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -66,19 +66,19 @@ pub struct ListLocationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Message for response to searching cloud locations.
@@ -86,8 +86,8 @@ pub struct Location {
 pub struct SearchCloudLocationsResponse {
     /// Output only. List of cloud locations.
     #[serde(default, rename = "cloudLocations")]
-    pub cloud_locations: Option<Vec<CloudLocation>>,
+    pub cloud_locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CloudLocation>>>,
     /// Output only. The continuation token, used to page through large result sets. Provide this value in a subsequent request as page_token in subsequent requests to retrieve the next page. If this field is not present, there are no subsequent results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }

@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Accelerator describes Compute Engine accelerators to be attached to the VM.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Accelerator {
     /// The number of accelerators of this type.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Optional. The NVIDIA GPU driver version that should be installed for this type. You can define the specific driver version such as "470.103.01", following the driver version requirements in https://cloud.google.com/compute/docs/gpus/install-drivers-gpu#minimum-driver. Batch will install the specific accelerator driver if qualified.
     #[serde(default, rename = "driverVersion")]
-    pub driver_version: Option<String>,
+    pub driver_version: ::core::option::Option<String>,
     /// Deprecated: please use instances[0].install_gpu_drivers instead.
     #[serde(default, rename = "installGpuDrivers")]
-    pub install_gpu_drivers: Option<bool>,
+    pub install_gpu_drivers: ::core::option::Option<bool>,
     /// The accelerator type. For example, "nvidia-tesla-t4". See gcloud compute accelerator-types list.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Conditions for actions to deal with task failures.
@@ -35,7 +35,7 @@ pub struct Accelerator {
 pub struct ActionCondition {
     /// Exit codes of a task execution. If there are more than 1 exit codes, when task executes with any of the exit code in the list, the condition is met and the action will be executed.
     #[serde(default, rename = "exitCodes")]
-    pub exit_codes: Option<Vec<i32>>,
+    pub exit_codes: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// Container runnable representation on the agent side.
@@ -43,19 +43,19 @@ pub struct ActionCondition {
 pub struct AgentContainer {
     /// Overrides the CMD specified in the container. If there is an ENTRYPOINT (either in the container image or with the entrypoint field below) then commands are appended as arguments to the ENTRYPOINT.
     #[serde(default)]
-    pub commands: Option<Vec<String>>,
+    pub commands: ::core::option::Option<::std::vec::Vec<String>>,
     /// Overrides the ENTRYPOINT specified in the container.
     #[serde(default)]
-    pub entrypoint: Option<String>,
+    pub entrypoint: ::core::option::Option<String>,
     /// The URI to pull the container image from.
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
     /// Arbitrary additional options to include in the "docker run" command when running this container, e.g. "--network host".
     #[serde(default)]
-    pub options: Option<String>,
+    pub options: ::core::option::Option<String>,
     /// Volumes to mount (bind mount) from the host machine files or directories into the container, formatted to match docker run''s --volume option, e.g. /foo:/bar, or /foo:/bar:ro
     #[serde(default)]
-    pub volumes: Option<Vec<String>>,
+    pub volumes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// AgentEnvironment is the Environment representation between Agent and CLH communication. The environment is used in both task level and agent level.
@@ -63,13 +63,13 @@ pub struct AgentContainer {
 pub struct AgentEnvironment {
     /// An encrypted JSON dictionary where the key/value pairs correspond to environment variable names and their values.
     #[serde(default, rename = "encryptedVariables")]
-    pub encrypted_variables: Option<AgentKMSEnvMap>,
+    pub encrypted_variables: ::core::option::Option<::std::boxed::Box<AgentKMSEnvMap>>,
     /// A map of environment variable names to Secret Manager secret names. The VM will access the named secrets to set the value of each environment variable.
     #[serde(default, rename = "secretVariables")]
-    pub secret_variables: Option<serde_json::Value>,
+    pub secret_variables: ::core::option::Option<serde_json::Value>,
     /// A map of environment variable names to values.
     #[serde(default)]
-    pub variables: Option<serde_json::Value>,
+    pub variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// VM Agent Info.
@@ -77,19 +77,19 @@ pub struct AgentEnvironment {
 pub struct AgentInfo {
     /// Optional. The assigned Job ID
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// When the AgentInfo is generated.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Agent state. // TODO: enum values: ["AGENT_STATE_UNSPECIFIED", "AGENT_STARTING", "AGENT_RUNNING", "AGENT_STOPPED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The assigned task group ID.
     #[serde(default, rename = "taskGroupId")]
-    pub task_group_id: Option<String>,
+    pub task_group_id: ::core::option::Option<String>,
     /// Task Info.
     #[serde(default)]
-    pub tasks: Option<Vec<AgentTaskInfo>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AgentTaskInfo>>>,
 }
 
 /// AgentKMSEnvMap contains the encrypted key/value pair to be used in the environment on the Agent side.
@@ -97,10 +97,10 @@ pub struct AgentInfo {
 pub struct AgentKMSEnvMap {
     /// The value of the cipherText response from the encrypt method.
     #[serde(default, rename = "cipherText")]
-    pub cipher_text: Option<String>,
+    pub cipher_text: ::core::option::Option<String>,
     /// The name of the KMS key that will be used to decrypt the cipher text.
     #[serde(default, rename = "keyName")]
-    pub key_name: Option<String>,
+    pub key_name: ::core::option::Option<String>,
 }
 
 /// VM Agent Metadata.
@@ -108,34 +108,34 @@ pub struct AgentKMSEnvMap {
 pub struct AgentMetadata {
     /// When the VM agent started. Use agent_startup_time instead.
     #[serde(default, rename = "creationTime")]
-    pub creation_time: Option<String>,
+    pub creation_time: ::core::option::Option<String>,
     /// Full name of the entity that created this vm. For MIG, this path is: projects/{project}/regions/{region}/InstanceGroupManagers/{igm} The value is retrieved from the vm metadata key of "created-by".
     #[serde(default)]
-    pub creator: Option<String>,
+    pub creator: ::core::option::Option<String>,
     /// image version for the VM that this agent is installed on.
     #[serde(default, rename = "imageVersion")]
-    pub image_version: Option<String>,
+    pub image_version: ::core::option::Option<String>,
     /// GCP instance name (go/instance-name).
     #[serde(default)]
-    pub instance: Option<String>,
+    pub instance: ::core::option::Option<String>,
     /// GCP instance ID (go/instance-id).
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
     /// If the GCP instance has received preemption notice.
     #[serde(default, rename = "instancePreemptionNoticeReceived")]
-    pub instance_preemption_notice_received: Option<bool>,
+    pub instance_preemption_notice_received: ::core::option::Option<bool>,
     /// Optional. machine type of the VM
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// parsed contents of /etc/os-release
     #[serde(default, rename = "osRelease")]
-    pub os_release: Option<serde_json::Value>,
+    pub os_release: ::core::option::Option<serde_json::Value>,
     /// agent binary version running on VM
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// Agent zone.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Script runnable representation on the agent side.
@@ -143,10 +143,10 @@ pub struct AgentMetadata {
 pub struct AgentScript {
     /// Script file path on the host VM. To specify an interpreter, please add a #!(also known as [shebang line](https://en.wikipedia.org/wiki/Shebang_(Unix))) as the first line of the file.(For example, to execute the script using bash, #!/bin/bash should be the first line of the file. To execute the script usingPython3, #!/usr/bin/env python3 should be the first line of the file.) Otherwise, the file will by default be executed by /bin/sh.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Shell script text. To specify an interpreter, please add a #!\n at the beginning of the text.(For example, to execute the script using bash, #!/bin/bash\n should be added. To execute the script usingPython3, #!/usr/bin/env python3\n should be added.) Otherwise, the script will by default be executed by /bin/sh.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// TODO(b/182501497) The message needs to be redefined when the Agent API server updates data in storage per the backend design.
@@ -154,25 +154,25 @@ pub struct AgentScript {
 pub struct AgentTask {
     /// AgentTaskSpec is the taskSpec representation between Agent and CLH communication. This field will replace the TaskSpec field above in future to have a better separation between user-facaing API and internal API.
     #[serde(default, rename = "agentTaskSpec")]
-    pub agent_task_spec: Option<AgentTaskSpec>,
+    pub agent_task_spec: ::core::option::Option<::std::boxed::Box<AgentTaskSpec>>,
     /// The intended state of the task. // TODO: enum values: ["INTENDED_STATE_UNSPECIFIED", "ASSIGNED", "CANCELLED", "DELETED"]
     #[serde(default, rename = "intendedState")]
-    pub intended_state: Option<String>,
+    pub intended_state: ::core::option::Option<String>,
     /// The highest barrier reached by all tasks in the task''s TaskGroup.
     #[serde(default, rename = "reachedBarrier")]
-    pub reached_barrier: Option<String>,
+    pub reached_barrier: ::core::option::Option<String>,
     /// Task Spec. This field will be replaced by agent_task_spec below in future.
     #[serde(default)]
-    pub spec: Option<TaskSpec>,
+    pub spec: ::core::option::Option<::std::boxed::Box<TaskSpec>>,
     /// Task status.
     #[serde(default)]
-    pub status: Option<TaskStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<TaskStatus>>,
     /// Task name.
     #[serde(default)]
-    pub task: Option<String>,
+    pub task: ::core::option::Option<String>,
     /// TaskSource represents the source of the task. // TODO: enum values: ["TASK_SOURCE_UNSPECIFIED", "BATCH_INTERNAL", "USER"]
     #[serde(default, rename = "taskSource")]
-    pub task_source: Option<String>,
+    pub task_source: ::core::option::Option<String>,
 }
 
 /// Task Info
@@ -180,13 +180,13 @@ pub struct AgentTask {
 pub struct AgentTaskInfo {
     /// The highest index of a runnable started by the agent for this task. The runnables are indexed from 1. Value 0 is undefined.
     #[serde(default)]
-    pub runnable: Option<String>,
+    pub runnable: ::core::option::Option<String>,
     /// ID of the Task
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
     /// The status of the Task. If we need agent specific fields we should fork the public TaskStatus into an agent specific one. Or add them below.
     #[serde(default, rename = "taskStatus")]
-    pub task_status: Option<TaskStatus>,
+    pub task_status: ::core::option::Option<::std::boxed::Box<TaskStatus>>,
 }
 
 /// AgentTaskRunnable is the Runnable representation between Agent and CLH communication.
@@ -194,25 +194,25 @@ pub struct AgentTaskInfo {
 pub struct AgentTaskRunnable {
     /// By default, after a Runnable fails, no further Runnable are executed. This flag indicates that this Runnable must be run even if the Task has already failed. This is useful for Runnables that copy output files off of the VM or for debugging. The always_run flag does not override the Task''s overall max_run_duration. If the max_run_duration has expired then no further Runnables will execute, not even always_run Runnables.
     #[serde(default, rename = "alwaysRun")]
-    pub always_run: Option<bool>,
+    pub always_run: ::core::option::Option<bool>,
     /// This flag allows a Runnable to continue running in the background while the Task executes subsequent Runnables. This is useful to provide services to other Runnables (or to provide debugging support tools like SSH servers).
     #[serde(default)]
-    pub background: Option<bool>,
+    pub background: ::core::option::Option<bool>,
     /// Container runnable.
     #[serde(default)]
-    pub container: Option<AgentContainer>,
+    pub container: ::core::option::Option<::std::boxed::Box<AgentContainer>>,
     /// Environment variables for this Runnable (overrides variables set for the whole Task or TaskGroup).
     #[serde(default)]
-    pub environment: Option<AgentEnvironment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<AgentEnvironment>>,
     /// Normally, a non-zero exit status causes the Task to fail. This flag allows execution of other Runnables to continue instead.
     #[serde(default, rename = "ignoreExitStatus")]
-    pub ignore_exit_status: Option<bool>,
+    pub ignore_exit_status: ::core::option::Option<bool>,
     /// Script runnable.
     #[serde(default)]
-    pub script: Option<AgentScript>,
+    pub script: ::core::option::Option<::std::boxed::Box<AgentScript>>,
     /// Timeout for this Runnable.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
 }
 
 /// AgentTaskSpec is the user''s TaskSpec representation between Agent and CLH communication.
@@ -220,19 +220,19 @@ pub struct AgentTaskRunnable {
 pub struct AgentTaskSpec {
     /// Environment variables to set before running the Task.
     #[serde(default)]
-    pub environment: Option<AgentEnvironment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<AgentEnvironment>>,
     /// Logging option for the task.
     #[serde(default, rename = "loggingOption")]
-    pub logging_option: Option<AgentTaskLoggingOption>,
+    pub logging_option: ::core::option::Option<::std::boxed::Box<AgentTaskLoggingOption>>,
     /// Maximum duration the task should run before being automatically retried (if enabled) or automatically failed. Format the value of this field as a time limit in seconds followed by s—for example, 3600s for 1 hour. The field accepts any value between 0 and the maximum listed for the Duration field type at https://protobuf.dev/reference/protobuf/google.protobuf/#duration; however, the actual maximum run time for a job will be limited to the maximum run time for a job listed at https://cloud.google.com/batch/quotas#max-job-duration.
     #[serde(default, rename = "maxRunDuration")]
-    pub max_run_duration: Option<String>,
+    pub max_run_duration: ::core::option::Option<String>,
     /// AgentTaskRunnable is runanbles that will be executed on the agent.
     #[serde(default)]
-    pub runnables: Option<Vec<AgentTaskRunnable>>,
+    pub runnables: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AgentTaskRunnable>>>,
     /// User account on the VM to run the runnables in the agentTaskSpec. If not set, the runnable will be run under root user.
     #[serde(default, rename = "userAccount")]
-    pub user_account: Option<AgentTaskUserAccount>,
+    pub user_account: ::core::option::Option<::std::boxed::Box<AgentTaskUserAccount>>,
 }
 
 /// AgentTaskUserAccount contains the information of a POSIX account on the guest os which is used to execute the runnables.
@@ -240,10 +240,10 @@ pub struct AgentTaskSpec {
 pub struct AgentTaskUserAccount {
     /// gid id an unique identifier of the POSIX account group corresponding to the user account.
     #[serde(default)]
-    pub gid: Option<String>,
+    pub gid: ::core::option::Option<String>,
     /// uid is an unique identifier of the POSIX account corresponding to the user account.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }
 
 /// VM timing information
@@ -251,13 +251,13 @@ pub struct AgentTaskUserAccount {
 pub struct AgentTimingInfo {
     /// Agent startup time
     #[serde(default, rename = "agentStartupTime")]
-    pub agent_startup_time: Option<String>,
+    pub agent_startup_time: ::core::option::Option<String>,
     /// Boot timestamp of the VM OS
     #[serde(default, rename = "bootTime")]
-    pub boot_time: Option<String>,
+    pub boot_time: ::core::option::Option<String>,
     /// Startup time of the Batch VM script.
     #[serde(default, rename = "scriptStartupTime")]
-    pub script_startup_time: Option<String>,
+    pub script_startup_time: ::core::option::Option<String>,
 }
 
 /// A Job''s resource allocation policy describes when, where, and how compute resources should be allocated for the Job.
@@ -265,25 +265,26 @@ pub struct AgentTimingInfo {
 pub struct AllocationPolicy {
     /// Describe instances that can be created by this AllocationPolicy. Only instances[0] is supported now.
     #[serde(default)]
-    pub instances: Option<Vec<InstancePolicyOrTemplate>>,
+    pub instances:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstancePolicyOrTemplate>>>,
     /// Custom labels to apply to the job and all the Compute Engine resources that both are created by this allocation policy and support labels. Use labels to group and describe the resources they are applied to. Batch automatically applies predefined labels and supports multiple labels fields for each job, which each let you apply custom labels to various resources. Label names that start with "goog-" or "google-" are reserved for predefined labels. For more information about labels with Batch, see [Organize resources using labels](https://cloud.google.com/batch/docs/organize-resources-using-labels).
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Location where compute resources should be allocated for the Job.
     #[serde(default)]
-    pub location: Option<LocationPolicy>,
+    pub location: ::core::option::Option<::std::boxed::Box<LocationPolicy>>,
     /// The network policy. If you define an instance template in the InstancePolicyOrTemplate field, Batch will use the network settings in the instance template instead of this field.
     #[serde(default)]
-    pub network: Option<NetworkPolicy>,
+    pub network: ::core::option::Option<::std::boxed::Box<NetworkPolicy>>,
     /// The placement policy.
     #[serde(default)]
-    pub placement: Option<PlacementPolicy>,
+    pub placement: ::core::option::Option<::std::boxed::Box<PlacementPolicy>>,
     /// Defines the service account for Batch-created VMs. If omitted, the [default Compute Engine service account](https://cloud.google.com/compute/docs/access/service-accounts#default_service_account) is used. Must match the service account specified in any used instance template configured in the Batch job. Includes the following fields: * email: The service account''s email address. If not set, the default Compute Engine service account is used. * scopes: Additional OAuth scopes to grant the service account, beyond the default cloud-platform scope. (list of strings)
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<ServiceAccount>,
+    pub service_account: ::core::option::Option<::std::boxed::Box<ServiceAccount>>,
     /// Optional. Tags applied to the VM instances. The tags identify valid sources or targets for network firewalls. Each tag must be 1-63 characters long, and comply with [RFC1035](https://www.ietf.org/rfc/rfc1035.txt).
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A new or an existing persistent disk (PD) or a local ssd attached to a VM instance.
@@ -291,12 +292,12 @@ pub struct AllocationPolicy {
 pub struct AttachedDisk {
     /// Device name that the guest operating system will see. It is used by Runnable.volumes field to mount disks. So please specify the device_name if you want Batch to help mount the disk, and it should match the device_name field in volumes.
     #[serde(default, rename = "deviceName")]
-    pub device_name: Option<String>,
+    pub device_name: ::core::option::Option<String>,
     /// Name of an existing PD.
     #[serde(default, rename = "existingDisk")]
-    pub existing_disk: Option<String>,
+    pub existing_disk: ::core::option::Option<String>,
     #[serde(default, rename = "newDisk")]
-    pub new_disk: Option<Disk>,
+    pub new_disk: ::core::option::Option<::std::boxed::Box<Disk>>,
 }
 
 /// A barrier runnable automatically blocks the execution of subsequent runnables until all the tasks in the task group reach the barrier.
@@ -304,7 +305,7 @@ pub struct AttachedDisk {
 pub struct Barrier {
     /// Barriers are identified by their index in runnable list. Names are not required, but if present should be an identifier.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// CancelJob Request.
@@ -312,7 +313,7 @@ pub struct Barrier {
 pub struct CancelJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// CloudLoggingOption contains additional settings for Cloud Logging logs generated by Batch job.
@@ -320,7 +321,7 @@ pub struct CancelJobRequest {
 pub struct CloudLoggingOption {
     /// Optional. Set this field to true to change the [monitored resource type](https://cloud.google.com/monitoring/api/resources) for Cloud Logging logs generated by this Batch job from the [batch.googleapis.com/Job](https://cloud.google.com/monitoring/api/resources#tag_batch.googleapis.com/Job) type to the formerly used [generic_task](https://cloud.google.com/monitoring/api/resources#tag_generic_task) type.
     #[serde(default, rename = "useGenericTaskMonitoredResource")]
-    pub use_generic_task_monitored_resource: Option<bool>,
+    pub use_generic_task_monitored_resource: ::core::option::Option<bool>,
 }
 
 /// Compute resource requirements. ComputeResource defines the amount of resources required for each task. Make sure your tasks have enough resources to successfully run. If you also define the types of resources for a job to use with the [InstancePolicyOrTemplate](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicyortemplate) field, make sure both fields are compatible with each other.
@@ -328,13 +329,13 @@ pub struct CloudLoggingOption {
 pub struct ComputeResource {
     /// Extra boot disk size in MiB for each task.
     #[serde(default, rename = "bootDiskMib")]
-    pub boot_disk_mib: Option<String>,
+    pub boot_disk_mib: ::core::option::Option<String>,
     /// The milliCPU count. cpuMilli defines the amount of CPU resources per task in milliCPU units. For example, 1000 corresponds to 1 vCPU per task. If undefined, the default value is 2000. If you also define the VM''s machine type using the machineType in [InstancePolicy](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicy) field or inside the instanceTemplate in the [InstancePolicyOrTemplate](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicyortemplate) field, make sure the CPU resources for both fields are compatible with each other and with how many tasks you want to allow to run on the same VM at the same time. For example, if you specify the n2-standard-2 machine type, which has 2 vCPUs each, you are recommended to set cpuMilli no more than 2000, or you are recommended to run two tasks on the same VM if you set cpuMilli to 1000 or less.
     #[serde(default, rename = "cpuMilli")]
-    pub cpu_milli: Option<String>,
+    pub cpu_milli: ::core::option::Option<String>,
     /// Memory in MiB. memoryMib defines the amount of memory per task in MiB units. If undefined, the default value is 2000. If you also define the VM''s machine type using the machineType in [InstancePolicy](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicy) field or inside the instanceTemplate in the [InstancePolicyOrTemplate](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicyortemplate) field, make sure the memory resources for both fields are compatible with each other and with how many tasks you want to allow to run on the same VM at the same time. For example, if you specify the n2-standard-2 machine type, which has 8 GiB each, you are recommended to set memoryMib to no more than 8192, or you are recommended to run two tasks on the same VM if you set memoryMib to 4096 or less.
     #[serde(default, rename = "memoryMib")]
-    pub memory_mib: Option<String>,
+    pub memory_mib: ::core::option::Option<String>,
 }
 
 /// Container runnable.
@@ -342,31 +343,31 @@ pub struct ComputeResource {
 pub struct Container {
     /// If set to true, external network access to and from container will be blocked, containers that are with block_external_network as true can still communicate with each other, network cannot be specified in the container.options field.
     #[serde(default, rename = "blockExternalNetwork")]
-    pub block_external_network: Option<bool>,
+    pub block_external_network: ::core::option::Option<bool>,
     /// Required for some container images. Overrides the CMD specified in the container. If there is an ENTRYPOINT (either in the container image or with the entrypoint field below) then these commands are appended as arguments to the ENTRYPOINT.
     #[serde(default)]
-    pub commands: Option<Vec<String>>,
+    pub commands: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. If set to true, this container runnable uses Image streaming. Use Image streaming to allow the runnable to initialize without waiting for the entire container image to download, which can significantly reduce startup time for large container images. When enableImageStreaming is set to true, the container runtime is [containerd](https://containerd.io/) instead of Docker. Additionally, this container runnable only supports the following container subfields: imageUri, commands[], entrypoint, and volumes[]; any other container subfields are ignored. For more information about the requirements and limitations for using Image streaming with Batch, see the [image-streaming sample on GitHub](https://github.com/GoogleCloudPlatform/batch-samples/tree/main/api-samples/image-streaming).
     #[serde(default, rename = "enableImageStreaming")]
-    pub enable_image_streaming: Option<bool>,
+    pub enable_image_streaming: ::core::option::Option<bool>,
     /// Required for some container images. Overrides the ENTRYPOINT specified in the container.
     #[serde(default)]
-    pub entrypoint: Option<String>,
+    pub entrypoint: ::core::option::Option<String>,
     /// Required. The URI to pull the container image from.
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
     /// Required for some container images. Arbitrary additional options to include in the docker run command when running this container—for example, --network host. For the --volume option, use the volumes field for the container.
     #[serde(default)]
-    pub options: Option<String>,
+    pub options: ::core::option::Option<String>,
     /// Required if the container image is from a private Docker registry. The password to login to the Docker registry that contains the image. For security, it is strongly recommended to specify an encrypted password by using a Secret Manager secret: projects/*/secrets/*/versions/*. Warning: If you specify the password using plain text, you risk the password being exposed to any users who can view the job or its logs. To avoid this risk, specify a secret that contains the password instead. Learn more about [Secret Manager](https://cloud.google.com/secret-manager/docs/) and [using Secret Manager with Batch](https://cloud.google.com/batch/docs/create-run-job-secret-manager).
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// Required if the container image is from a private Docker registry. The username to login to the Docker registry that contains the image. You can either specify the username directly by using plain text or specify an encrypted username by using a Secret Manager secret: projects/*/secrets/*/versions/*. However, using a secret is recommended for enhanced security. Caution: If you specify the username using plain text, you risk the username being exposed to any users who can view the job or its logs. To avoid this risk, specify a secret that contains the username instead. Learn more about [Secret Manager](https://cloud.google.com/secret-manager/docs/) and [using Secret Manager with Batch](https://cloud.google.com/batch/docs/create-run-job-secret-manager).
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
     /// Volumes to mount (bind mount) from the host machine files or directories into the container, formatted to match --volume option for the docker run command—for example, /foo:/bar or /foo:/bar:ro. If the TaskSpec.Volumes field is specified but this field is not, Batch will mount each volume from the host machine to the container with the same mount path by default. In this case, the default mount option for containers will be read-only (ro) for existing persistent disks and read-write (rw) for other volume types, regardless of the original mount options specified in TaskSpec.Volumes. If you need different mount settings, you can explicitly configure them in this field.
     #[serde(default)]
-    pub volumes: Option<Vec<String>>,
+    pub volumes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A new persistent disk or a local ssd. A VM can only have one local SSD setting but multiple local SSD partitions. See https://cloud.google.com/compute/docs/disks#pdspecs and https://cloud.google.com/compute/docs/disks#localssds.
@@ -374,19 +375,19 @@ pub struct Container {
 pub struct Disk {
     /// Local SSDs are available through both "SCSI" and "NVMe" interfaces. If not indicated, "NVMe" will be the default one for local ssds. This field is ignored for persistent disks as the interface is chosen automatically. See https://cloud.google.com/compute/docs/disks/persistent-disks#choose_an_interface.
     #[serde(default, rename = "diskInterface")]
-    pub disk_interface: Option<String>,
+    pub disk_interface: ::core::option::Option<String>,
     /// URL for a VM image to use as the data source for this disk. For example, the following are all valid URLs: * Specify the image by its family name: projects/{project}/global/images/family/{image_family} * Specify the image version: projects/{project}/global/images/{image_version} You can also use Batch customized image in short names. The following image values are supported for a boot disk: * batch-debian: use Batch Debian images. * batch-cos: use Batch Container-Optimized images. * batch-hpc-rocky: use Batch HPC Rocky Linux images.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// Disk size in GB. **Non-Boot Disk**: If the type specifies a persistent disk, this field is ignored if data_source is set as image or snapshot. If the type specifies a local SSD, this field should be a multiple of 375 GB, otherwise, the final size will be the next greater multiple of 375 GB. **Boot Disk**: Batch will calculate the boot disk size based on source image and task requirements if you do not speicify the size. If both this field and the boot_disk_mib field in task spec''s compute_resource are defined, Batch will only honor this field. Also, this field should be no smaller than the source disk''s size when the data_source is set as snapshot or image. For example, if you set an image as the data_source field and the image''s default disk size 30 GB, you can only use this field to make the disk larger or equal to 30 GB.
     #[serde(default, rename = "sizeGb")]
-    pub size_gb: Option<String>,
+    pub size_gb: ::core::option::Option<String>,
     /// Name of a snapshot used as the data source. Snapshot is not supported as boot disk now.
     #[serde(default)]
-    pub snapshot: Option<String>,
+    pub snapshot: ::core::option::Option<String>,
     /// Disk type as shown in gcloud compute disk-types list. For example, local SSD uses type "local-ssd". Persistent disks and boot disks use "pd-balanced", "pd-extreme", "pd-ssd" or "pd-standard". If not specified, "pd-standard" will be used as the default type for non-boot disks, "pd-balanced" will be used as the default type for boot disks.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An Environment describes a collection of environment variables to set when executing Tasks.
@@ -394,13 +395,13 @@ pub struct Disk {
 pub struct Environment {
     /// An encrypted JSON dictionary where the key/value pairs correspond to environment variable names and their values.
     #[serde(default, rename = "encryptedVariables")]
-    pub encrypted_variables: Option<KMSEnvMap>,
+    pub encrypted_variables: ::core::option::Option<::std::boxed::Box<KMSEnvMap>>,
     /// A map of environment variable names to Secret Manager secret names. The VM will access the named secrets to set the value of each environment variable.
     #[serde(default, rename = "secretVariables")]
-    pub secret_variables: Option<serde_json::Value>,
+    pub secret_variables: ::core::option::Option<serde_json::Value>,
     /// A map of environment variable names to values.
     #[serde(default)]
-    pub variables: Option<serde_json::Value>,
+    pub variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents a Google Cloud Storage volume.
@@ -408,7 +409,7 @@ pub struct Environment {
 pub struct GCS {
     /// Remote path, either a bucket name or a subdirectory of a bucket, e.g.: bucket_name, bucket_name/subdirectory/
     #[serde(default, rename = "remotePath")]
-    pub remote_path: Option<String>,
+    pub remote_path: ::core::option::Option<String>,
 }
 
 /// InstancePolicy describes an instance type and resources attached to each VM created by this InstancePolicy.
@@ -416,25 +417,25 @@ pub struct GCS {
 pub struct InstancePolicy {
     /// The accelerators attached to each VM instance.
     #[serde(default)]
-    pub accelerators: Option<Vec<Accelerator>>,
+    pub accelerators: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Accelerator>>>,
     /// Boot disk to be created and attached to each VM by this InstancePolicy. Boot disk will be deleted when the VM is deleted. Batch API now only supports booting from image.
     #[serde(default, rename = "bootDisk")]
-    pub boot_disk: Option<Disk>,
+    pub boot_disk: ::core::option::Option<::std::boxed::Box<Disk>>,
     /// Non-boot disks to be attached for each VM created by this InstancePolicy. New disks will be deleted when the VM is deleted. A non-boot disk is a disk that can be of a device with a file system or a raw storage drive that is not ready for data storage and accessing.
     #[serde(default)]
-    pub disks: Option<Vec<AttachedDisk>>,
+    pub disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AttachedDisk>>>,
     /// The Compute Engine machine type.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// The minimum CPU platform. See https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform.
     #[serde(default, rename = "minCpuPlatform")]
-    pub min_cpu_platform: Option<String>,
+    pub min_cpu_platform: ::core::option::Option<String>,
     /// The provisioning model. // TODO: enum values: ["PROVISIONING_MODEL_UNSPECIFIED", "STANDARD", "SPOT", "PREEMPTIBLE", "RESERVATION_BOUND", "FLEX_START"]
     #[serde(default, rename = "provisioningModel")]
-    pub provisioning_model: Option<String>,
+    pub provisioning_model: ::core::option::Option<String>,
     /// Optional. If not specified (default), VMs will consume any applicable reservation. If "NO_RESERVATION" is specified, VMs will not consume any reservation. Otherwise, if specified, VMs will consume only the specified reservation.
     #[serde(default)]
-    pub reservation: Option<String>,
+    pub reservation: ::core::option::Option<String>,
 }
 
 /// InstancePolicyOrTemplate lets you define the type of resources to use for this job either with an InstancePolicy or an instance template. If undefined, Batch picks the type of VM to use and doesn''t include optional VM resources such as GPUs and extra disks.
@@ -442,19 +443,19 @@ pub struct InstancePolicy {
 pub struct InstancePolicyOrTemplate {
     /// Optional. Set this field to true if you want Batch to block project-level SSH keys from accessing this job''s VMs. Alternatively, you can configure the job to specify a VM instance template that blocks project-level SSH keys. In either case, Batch blocks project-level SSH keys while creating the VMs for this job. Batch allows project-level SSH keys for a job''s VMs only if all the following are true: + This field is undefined or set to false. + The job''s VM instance template (if any) doesn''t block project-level SSH keys. Notably, you can override this behavior by manually updating a VM to block or allow project-level SSH keys. For more information about blocking project-level SSH keys, see the Compute Engine documentation: https://cloud.google.com/compute/docs/connect/restrict-ssh-keys#block-keys
     #[serde(default, rename = "blockProjectSshKeys")]
-    pub block_project_ssh_keys: Option<bool>,
+    pub block_project_ssh_keys: ::core::option::Option<bool>,
     /// Set this field true if you want Batch to help fetch drivers from a third party location and install them for GPUs specified in policy.accelerators or instance_template on your behalf. Default is false. For Container-Optimized Image cases, Batch will install the accelerator driver following milestones of https://cloud.google.com/container-optimized-os/docs/release-notes. For non Container-Optimized Image cases, following https://github.com/GoogleCloudPlatform/compute-gpu-installation/blob/main/linux/install_gpu_driver.py.
     #[serde(default, rename = "installGpuDrivers")]
-    pub install_gpu_drivers: Option<bool>,
+    pub install_gpu_drivers: ::core::option::Option<bool>,
     /// Optional. Set this field true if you want Batch to install Ops Agent on your behalf. Default is false.
     #[serde(default, rename = "installOpsAgent")]
-    pub install_ops_agent: Option<bool>,
+    pub install_ops_agent: ::core::option::Option<bool>,
     /// Name of an instance template used to create VMs. Named the field as ''instance_template'' instead of ''template'' to avoid C++ keyword conflict. Batch only supports global instance templates from the same project as the job. You can specify the global instance template as a full or partial URL.
     #[serde(default, rename = "instanceTemplate")]
-    pub instance_template: Option<String>,
+    pub instance_template: ::core::option::Option<String>,
     /// InstancePolicy.
     #[serde(default)]
-    pub policy: Option<InstancePolicy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<InstancePolicy>>,
 }
 
 /// VM instance status.
@@ -462,16 +463,16 @@ pub struct InstancePolicyOrTemplate {
 pub struct InstanceStatus {
     /// The VM boot disk.
     #[serde(default, rename = "bootDisk")]
-    pub boot_disk: Option<Disk>,
+    pub boot_disk: ::core::option::Option<::std::boxed::Box<Disk>>,
     /// The Compute Engine machine type.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// The VM instance provisioning model. // TODO: enum values: ["PROVISIONING_MODEL_UNSPECIFIED", "STANDARD", "SPOT", "PREEMPTIBLE", "RESERVATION_BOUND", "FLEX_START"]
     #[serde(default, rename = "provisioningModel")]
-    pub provisioning_model: Option<String>,
+    pub provisioning_model: ::core::option::Option<String>,
     /// The max number of tasks can be assigned to this instance type.
     #[serde(default, rename = "taskPack")]
-    pub task_pack: Option<String>,
+    pub task_pack: ::core::option::Option<String>,
 }
 
 /// The Cloud Batch Job description.
@@ -479,37 +480,37 @@ pub struct InstanceStatus {
 pub struct Job {
     /// Compute resource allocation for all TaskGroups in the Job.
     #[serde(default, rename = "allocationPolicy")]
-    pub allocation_policy: Option<AllocationPolicy>,
+    pub allocation_policy: ::core::option::Option<::std::boxed::Box<AllocationPolicy>>,
     /// Output only. When the Job was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Custom labels to apply to the job and any Cloud Logging [LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry) that it generates. Use labels to group and describe the resources they are applied to. Batch automatically applies predefined labels and supports multiple labels fields for each job, which each let you apply custom labels to various resources. Label names that start with "goog-" or "google-" are reserved for predefined labels. For more information about labels with Batch, see [Organize resources using labels](https://cloud.google.com/batch/docs/organize-resources-using-labels).
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Log preservation policy for the Job.
     #[serde(default, rename = "logsPolicy")]
-    pub logs_policy: Option<LogsPolicy>,
+    pub logs_policy: ::core::option::Option<::std::boxed::Box<LogsPolicy>>,
     /// Output only. Job name. For example: "projects/123456/locations/us-central1/jobs/job01".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Notification configurations.
     #[serde(default)]
-    pub notifications: Option<Vec<JobNotification>>,
+    pub notifications: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<JobNotification>>>,
     /// Priority of the Job. The valid value range is [0, 100). Default value is 0. Higher value indicates higher priority. A job with higher priority value is more likely to run earlier if all other requirements are satisfied.
     #[serde(default)]
-    pub priority: Option<String>,
+    pub priority: ::core::option::Option<String>,
     /// Output only. Job status. It is read only for users.
     #[serde(default)]
-    pub status: Option<JobStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<JobStatus>>,
     /// Required. TaskGroups in the Job. Only one TaskGroup is supported now.
     #[serde(default, rename = "taskGroups")]
-    pub task_groups: Option<Vec<TaskGroup>>,
+    pub task_groups: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TaskGroup>>>,
     /// Output only. A system generated unique ID for the Job.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The last time the Job was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Notification configurations.
@@ -517,10 +518,10 @@ pub struct Job {
 pub struct JobNotification {
     /// The attribute requirements of messages to be sent to this Pub/Sub topic. Without this field, no message will be sent.
     #[serde(default)]
-    pub message: Option<Message>,
+    pub message: ::core::option::Option<::std::boxed::Box<Message>>,
     /// The Pub/Sub topic where notifications for the job, like state changes, will be published. If undefined, no Pub/Sub notifications are sent for this job. Specify the topic using the following format: projects/{project}/topics/{topic}. Notably, if you want to specify a Pub/Sub topic that is in a different project than the job, your administrator must grant your project''s Batch service agent permission to publish to that topic. For more information about configuring Pub/Sub notifications for a job, see https://cloud.google.com/batch/docs/enable-notifications.
     #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: Option<String>,
+    pub pubsub_topic: ::core::option::Option<String>,
 }
 
 /// Job status.
@@ -528,16 +529,16 @@ pub struct JobNotification {
 pub struct JobStatus {
     /// The duration of time that the Job spent in status RUNNING.
     #[serde(default, rename = "runDuration")]
-    pub run_duration: Option<String>,
+    pub run_duration: ::core::option::Option<String>,
     /// Job state // TODO: enum values: ["STATE_UNSPECIFIED", "QUEUED", "SCHEDULED", "RUNNING", "SUCCEEDED", "FAILED", "DELETION_IN_PROGRESS", "CANCELLATION_IN_PROGRESS", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Job status events
     #[serde(default, rename = "statusEvents")]
-    pub status_events: Option<Vec<StatusEvent>>,
+    pub status_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StatusEvent>>>,
     /// Aggregated task status for each TaskGroup in the Job. The map key is TaskGroup ID.
     #[serde(default, rename = "taskGroups")]
-    pub task_groups: Option<serde_json::Value>,
+    pub task_groups: ::core::option::Option<serde_json::Value>,
 }
 
 /// KMSEnvMap resource type.
@@ -545,10 +546,10 @@ pub struct JobStatus {
 pub struct KMSEnvMap {
     /// The value of the cipherText response from the encrypt method.
     #[serde(default, rename = "cipherText")]
-    pub cipher_text: Option<String>,
+    pub cipher_text: ::core::option::Option<String>,
     /// The name of the KMS key that will be used to decrypt the cipher text.
     #[serde(default, rename = "keyName")]
-    pub key_name: Option<String>,
+    pub key_name: ::core::option::Option<String>,
 }
 
 /// LifecyclePolicy describes how to deal with task failures based on different conditions.
@@ -556,10 +557,10 @@ pub struct KMSEnvMap {
 pub struct LifecyclePolicy {
     /// Action to execute when ActionCondition is true. When RETRY_TASK is specified, we will retry failed tasks if we notice any exit code match and fail tasks if no match is found. Likewise, when FAIL_TASK is specified, we will fail tasks if we notice any exit code match and retry tasks if no match is found. // TODO: enum values: ["ACTION_UNSPECIFIED", "RETRY_TASK", "FAIL_TASK"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Conditions that decide why a task failure is dealt with a specific action.
     #[serde(default, rename = "actionCondition")]
-    pub action_condition: Option<ActionCondition>,
+    pub action_condition: ::core::option::Option<::std::boxed::Box<ActionCondition>>,
 }
 
 /// ListJob Response.
@@ -567,13 +568,13 @@ pub struct LifecyclePolicy {
 pub struct ListJobsResponse {
     /// Jobs.
     #[serde(default)]
-    pub jobs: Option<Vec<Job>>,
+    pub jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Job>>>,
     /// Next page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -581,10 +582,10 @@ pub struct ListJobsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -592,13 +593,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ListTasks Response.
@@ -606,13 +607,13 @@ pub struct ListOperationsResponse {
 pub struct ListTasksResponse {
     /// Next page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Tasks.
     #[serde(default)]
-    pub tasks: Option<Vec<Task>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Task>>>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -620,19 +621,19 @@ pub struct ListTasksResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// LocationPolicy resource type.
@@ -640,7 +641,7 @@ pub struct Location {
 pub struct LocationPolicy {
     /// A list of allowed location names represented by internal URLs. Each location can be a region or a zone. Only one region or multiple zones in one region is supported now. For example, ["regions/us-central1"] allow VMs in any zones in region us-central1. ["zones/us-central1-a", "zones/us-central1-c"] only allow VMs in zones us-central1-a and us-central1-c. Mixing locations from different regions would cause errors. For example, ["regions/us-central1", "zones/us-central1-a", "zones/us-central1-b", "zones/us-west1-a"] contains locations from two distinct regions: us-central1 and us-west1. This combination will trigger an error.
     #[serde(default, rename = "allowedLocations")]
-    pub allowed_locations: Option<Vec<String>>,
+    pub allowed_locations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// LogsPolicy describes if and how a job''s logs are preserved. Logs include information that is automatically written by the Batch service agent and any information that you configured the job''s runnables to write to the stdout or stderr streams.
@@ -648,13 +649,13 @@ pub struct LocationPolicy {
 pub struct LogsPolicy {
     /// Optional. When destination is set to CLOUD_LOGGING, you can optionally set this field to configure additional settings for Cloud Logging.
     #[serde(default, rename = "cloudLoggingOption")]
-    pub cloud_logging_option: Option<CloudLoggingOption>,
+    pub cloud_logging_option: ::core::option::Option<::std::boxed::Box<CloudLoggingOption>>,
     /// If and where logs should be saved. // TODO: enum values: ["DESTINATION_UNSPECIFIED", "CLOUD_LOGGING", "PATH"]
     #[serde(default)]
-    pub destination: Option<String>,
+    pub destination: ::core::option::Option<String>,
     /// When destination is set to PATH, you must set this field to the path where you want logs to be saved. This path can point to a local directory on the VM or (if congifured) a directory under the mount path of any Cloud Storage bucket, network file system (NFS), or writable persistent disk that is mounted to the job. For example, if the job has a bucket with mountPath set to /mnt/disks/my-bucket, you can write logs to the root directory of the remotePath of that bucket by setting this field to /mnt/disks/my-bucket/.
     #[serde(default, rename = "logsPath")]
-    pub logs_path: Option<String>,
+    pub logs_path: ::core::option::Option<String>,
 }
 
 /// Message details. Describe the conditions under which messages will be sent. If no attribute is defined, no message will be sent by default. One message should specify either the job or the task level attributes, but not both. For example, job level: JOB_STATE_CHANGED and/or a specified new_job_state; task level: TASK_STATE_CHANGED and/or a specified new_task_state.
@@ -662,13 +663,13 @@ pub struct LogsPolicy {
 pub struct Message {
     /// The new job state. // TODO: enum values: ["STATE_UNSPECIFIED", "QUEUED", "SCHEDULED", "RUNNING", "SUCCEEDED", "FAILED", "DELETION_IN_PROGRESS", "CANCELLATION_IN_PROGRESS", "CANCELLED"]
     #[serde(default, rename = "newJobState")]
-    pub new_job_state: Option<String>,
+    pub new_job_state: ::core::option::Option<String>,
     /// The new task state. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ASSIGNED", "RUNNING", "FAILED", "SUCCEEDED", "UNEXECUTED"]
     #[serde(default, rename = "newTaskState")]
-    pub new_task_state: Option<String>,
+    pub new_task_state: ::core::option::Option<String>,
     /// The message type. // TODO: enum values: ["TYPE_UNSPECIFIED", "JOB_STATE_CHANGED", "TASK_STATE_CHANGED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents an NFS volume.
@@ -676,10 +677,10 @@ pub struct Message {
 pub struct NFS {
     /// Remote source path exported from the NFS, e.g., "/share".
     #[serde(default, rename = "remotePath")]
-    pub remote_path: Option<String>,
+    pub remote_path: ::core::option::Option<String>,
     /// The IP address of the NFS.
     #[serde(default)]
-    pub server: Option<String>,
+    pub server: ::core::option::Option<String>,
 }
 
 /// A network interface.
@@ -687,13 +688,13 @@ pub struct NFS {
 pub struct NetworkInterface {
     /// The URL of an existing network resource. You can specify the network as a full or partial URL. For example, the following are all valid URLs: * https://www.googleapis.com/compute/v1/projects/{project}/global/networks/{network} * projects/{project}/global/networks/{network} * global/networks/{network}
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Default is false (with an external IP address). Required if no external public IP address is attached to the VM. If no external public IP address, additional configuration is required to allow the VM to access Google Services. See https://cloud.google.com/vpc/docs/configure-private-google-access and https://cloud.google.com/nat/docs/gce-example#create-nat for more information.
     #[serde(default, rename = "noExternalIpAddress")]
-    pub no_external_ip_address: Option<bool>,
+    pub no_external_ip_address: ::core::option::Option<bool>,
     /// The URL of an existing subnetwork resource in the network. You can specify the subnetwork as a full or partial URL. For example, the following are all valid URLs: * https://www.googleapis.com/compute/v1/projects/{project}/regions/{region}/subnetworks/{subnetwork} * projects/{project}/regions/{region}/subnetworks/{subnetwork} * regions/{region}/subnetworks/{subnetwork}
     #[serde(default)]
-    pub subnetwork: Option<String>,
+    pub subnetwork: ::core::option::Option<String>,
 }
 
 /// NetworkPolicy describes VM instance network configurations.
@@ -701,7 +702,8 @@ pub struct NetworkInterface {
 pub struct NetworkPolicy {
     /// Network configurations.
     #[serde(default, rename = "networkInterfaces")]
-    pub network_interfaces: Option<Vec<NetworkInterface>>,
+    pub network_interfaces:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkInterface>>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -709,19 +711,19 @@ pub struct NetworkPolicy {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -729,25 +731,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// PlacementPolicy describes a group placement policy for the VMs controlled by this AllocationPolicy.
@@ -755,10 +757,10 @@ pub struct OperationMetadata {
 pub struct PlacementPolicy {
     /// UNSPECIFIED vs. COLLOCATED (default UNSPECIFIED). Use COLLOCATED when you want VMs to be located close to each other for low network latency between the VMs. No placement policy will be generated when collocation is UNSPECIFIED.
     #[serde(default)]
-    pub collocation: Option<String>,
+    pub collocation: ::core::option::Option<String>,
     /// When specified, causes the job to fail if more than max_distance logical switches are required between VMs. Batch uses the most compact possible placement of VMs even when max_distance is not specified. An explicit max_distance makes that level of compactness a strict requirement. Not yet implemented
     #[serde(default, rename = "maxDistance")]
-    pub max_distance: Option<String>,
+    pub max_distance: ::core::option::Option<String>,
 }
 
 /// Request to report agent''s state. The Request itself implies the agent is healthy.
@@ -766,13 +768,13 @@ pub struct PlacementPolicy {
 pub struct ReportAgentStateRequest {
     /// Agent info.
     #[serde(default, rename = "agentInfo")]
-    pub agent_info: Option<AgentInfo>,
+    pub agent_info: ::core::option::Option<::std::boxed::Box<AgentInfo>>,
     /// Agent timing info.
     #[serde(default, rename = "agentTimingInfo")]
-    pub agent_timing_info: Option<AgentTimingInfo>,
+    pub agent_timing_info: ::core::option::Option<::std::boxed::Box<AgentTimingInfo>>,
     /// Agent metadata.
     #[serde(default)]
-    pub metadata: Option<AgentMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<AgentMetadata>>,
 }
 
 /// Response to ReportAgentStateRequest.
@@ -780,16 +782,16 @@ pub struct ReportAgentStateRequest {
 pub struct ReportAgentStateResponse {
     /// Default report interval override
     #[serde(default, rename = "defaultReportInterval")]
-    pub default_report_interval: Option<String>,
+    pub default_report_interval: ::core::option::Option<String>,
     /// Minimum report interval override
     #[serde(default, rename = "minReportInterval")]
-    pub min_report_interval: Option<String>,
+    pub min_report_interval: ::core::option::Option<String>,
     /// Tasks assigned to the agent
     #[serde(default)]
-    pub tasks: Option<Vec<AgentTask>>,
+    pub tasks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AgentTask>>>,
     /// If true, the cloud logging for batch agent will use batch.googleapis.com/Job as monitored resource for Batch job related logging.
     #[serde(default, rename = "useBatchMonitoredResource")]
-    pub use_batch_monitored_resource: Option<bool>,
+    pub use_batch_monitored_resource: ::core::option::Option<bool>,
 }
 
 /// Runnable describes instructions for executing a specific script or container as part of a Task.
@@ -797,34 +799,34 @@ pub struct ReportAgentStateResponse {
 pub struct Runnable {
     /// By default, after a Runnable fails, no further Runnable are executed. This flag indicates that this Runnable must be run even if the Task has already failed. This is useful for Runnables that copy output files off of the VM or for debugging. The always_run flag does not override the Task''s overall max_run_duration. If the max_run_duration has expired then no further Runnables will execute, not even always_run Runnables.
     #[serde(default, rename = "alwaysRun")]
-    pub always_run: Option<bool>,
+    pub always_run: ::core::option::Option<bool>,
     /// Normally, a runnable that doesn''t exit causes its task to fail. However, you can set this field to true to configure a background runnable. Background runnables are allowed continue running in the background while the task executes subsequent runnables. For example, background runnables are useful for providing services to other runnables or providing debugging-support tools like SSH servers. Specifically, background runnables are killed automatically (if they have not already exited) a short time after all foreground runnables have completed. Even though this is likely to result in a non-zero exit status for the background runnable, these automatic kills are not treated as task failures.
     #[serde(default)]
-    pub background: Option<bool>,
+    pub background: ::core::option::Option<bool>,
     /// Barrier runnable.
     #[serde(default)]
-    pub barrier: Option<Barrier>,
+    pub barrier: ::core::option::Option<::std::boxed::Box<Barrier>>,
     /// Container runnable.
     #[serde(default)]
-    pub container: Option<Container>,
+    pub container: ::core::option::Option<::std::boxed::Box<Container>>,
     /// Optional. DisplayName is an optional field that can be provided by the caller. If provided, it will be used in logs and other outputs to identify the script, making it easier for users to understand the logs. If not provided the index of the runnable will be used for outputs.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Environment variables for this Runnable (overrides variables set for the whole Task or TaskGroup).
     #[serde(default)]
-    pub environment: Option<Environment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<Environment>>,
     /// Normally, a runnable that returns a non-zero exit status fails and causes the task to fail. However, you can set this field to true to allow the task to continue executing its other runnables even if this runnable fails.
     #[serde(default, rename = "ignoreExitStatus")]
-    pub ignore_exit_status: Option<bool>,
+    pub ignore_exit_status: ::core::option::Option<bool>,
     /// Labels for this Runnable.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Script runnable.
     #[serde(default)]
-    pub script: Option<Script>,
+    pub script: ::core::option::Option<::std::boxed::Box<Script>>,
     /// Timeout for this Runnable.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
 }
 
 /// Script runnable.
@@ -832,10 +834,10 @@ pub struct Runnable {
 pub struct Script {
     /// The path to a script file that is accessible from the host VM(s). Unless the script file supports the default #!/bin/sh shell interpreter, you must specify an interpreter by including a [shebang line](https://en.wikipedia.org/wiki/Shebang_(Unix) as the first line of the file. For example, to execute the script using bash, include #!/bin/bash as the first line of the file. Alternatively, to execute the script using Python3, include #!/usr/bin/env python3 as the first line of the file.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// The text for a script. Unless the script text supports the default #!/bin/sh shell interpreter, you must specify an interpreter by including a [shebang line](https://en.wikipedia.org/wiki/Shebang_(Unix) at the beginning of the text. For example, to execute the script using bash, include #!/bin/bash\n at the beginning of the text. Alternatively, to execute the script using Python3, include #!/usr/bin/env python3\n at the beginning of the text.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Carries information about a Google Cloud service account.
@@ -843,10 +845,10 @@ pub struct Script {
 pub struct ServiceAccount {
     /// Email address of the service account.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// List of scopes to be enabled for this service account.
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -854,13 +856,13 @@ pub struct ServiceAccount {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Status event.
@@ -868,19 +870,19 @@ pub struct Status {
 pub struct StatusEvent {
     /// Description of the event.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The time this event occurred.
     #[serde(default, rename = "eventTime")]
-    pub event_time: Option<String>,
+    pub event_time: ::core::option::Option<String>,
     /// Task Execution. This field is only defined for task-level status events where the task fails.
     #[serde(default, rename = "taskExecution")]
-    pub task_execution: Option<TaskExecution>,
+    pub task_execution: ::core::option::Option<::std::boxed::Box<TaskExecution>>,
     /// Task State. This field is only defined for task-level status events. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ASSIGNED", "RUNNING", "FAILED", "SUCCEEDED", "UNEXECUTED"]
     #[serde(default, rename = "taskState")]
-    pub task_state: Option<String>,
+    pub task_state: ::core::option::Option<String>,
     /// Type of the event.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A Cloud Batch task.
@@ -888,10 +890,10 @@ pub struct StatusEvent {
 pub struct Task {
     /// Task name. The name is generated from the parent TaskGroup name and ''id'' field. For example: "projects/123456/locations/us-west1/jobs/job01/taskGroups/group01/tasks/task01".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Task Status.
     #[serde(default)]
-    pub status: Option<TaskStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<TaskStatus>>,
 }
 
 /// This Task Execution field includes detail information for task execution procedures, based on StatusEvent types.
@@ -899,7 +901,7 @@ pub struct Task {
 pub struct TaskExecution {
     /// The exit code of a finished task. If the task succeeded, the exit code will be 0. If the task failed but not due to the following reasons, the exit code will be 50000. Otherwise, it can be from different sources: * Batch known failures: https://cloud.google.com/batch/docs/troubleshooting#reserved-exit-codes. * Batch runnable execution failures; you can rely on Batch logs to further diagnose: https://cloud.google.com/batch/docs/analyze-job-using-logs. If there are multiple runnables failures, Batch only exposes the first error.
     #[serde(default, rename = "exitCode")]
-    pub exit_code: Option<i32>,
+    pub exit_code: ::core::option::Option<i32>,
 }
 
 /// A TaskGroup defines one or more Tasks that all share the same TaskSpec.
@@ -907,34 +909,34 @@ pub struct TaskExecution {
 pub struct TaskGroup {
     /// Output only. TaskGroup name. The system generates this field based on parent Job name. For example: "projects/123456/locations/us-west1/jobs/job01/taskGroups/group01".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Max number of tasks that can run in parallel. Default to min(task_count, parallel tasks per job limit). See: [Job Limits](https://cloud.google.com/batch/quotas#job_limits). Field parallelism must be 1 if the scheduling_policy is IN_ORDER.
     #[serde(default)]
-    pub parallelism: Option<String>,
+    pub parallelism: ::core::option::Option<String>,
     /// When true, Batch will configure SSH to allow passwordless login between VMs running the Batch tasks in the same TaskGroup.
     #[serde(default, rename = "permissiveSsh")]
-    pub permissive_ssh: Option<bool>,
+    pub permissive_ssh: ::core::option::Option<bool>,
     /// When true, Batch will populate a file with a list of all VMs assigned to the TaskGroup and set the BATCH_HOSTS_FILE environment variable to the path of that file. Defaults to false. The host file supports up to 1000 VMs.
     #[serde(default, rename = "requireHostsFile")]
-    pub require_hosts_file: Option<bool>,
+    pub require_hosts_file: ::core::option::Option<bool>,
     /// Optional. If not set or set to false, Batch uses the root user to execute runnables. If set to true, Batch runs the runnables using a non-root user. Currently, the non-root user Batch used is generated by OS Login. For more information, see [About OS Login](https://cloud.google.com/compute/docs/oslogin).
     #[serde(default, rename = "runAsNonRoot")]
-    pub run_as_non_root: Option<bool>,
+    pub run_as_non_root: ::core::option::Option<bool>,
     /// Scheduling policy for Tasks in the TaskGroup. The default value is AS_SOON_AS_POSSIBLE. // TODO: enum values: ["SCHEDULING_POLICY_UNSPECIFIED", "AS_SOON_AS_POSSIBLE", "IN_ORDER"]
     #[serde(default, rename = "schedulingPolicy")]
-    pub scheduling_policy: Option<String>,
+    pub scheduling_policy: ::core::option::Option<String>,
     /// Number of Tasks in the TaskGroup. Default is 1.
     #[serde(default, rename = "taskCount")]
-    pub task_count: Option<String>,
+    pub task_count: ::core::option::Option<String>,
     /// Max number of tasks that can be run on a VM at the same time. If not specified, the system will decide a value based on available compute resources on a VM and task requirements.
     #[serde(default, rename = "taskCountPerNode")]
-    pub task_count_per_node: Option<String>,
+    pub task_count_per_node: ::core::option::Option<String>,
     /// An array of environment variable mappings, which are passed to Tasks with matching indices. If task_environments is used then task_count should not be specified in the request (and will be ignored). Task count will be the length of task_environments. Tasks get a BATCH_TASK_INDEX and BATCH_TASK_COUNT environment variable, in addition to any environment variables set in task_environments, specifying the number of Tasks in the Task''s parent TaskGroup, and the specific Task''s index in the TaskGroup (0 through BATCH_TASK_COUNT - 1).
     #[serde(default, rename = "taskEnvironments")]
-    pub task_environments: Option<Vec<Environment>>,
+    pub task_environments: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Environment>>>,
     /// Required. Tasks in the group share the same task spec.
     #[serde(default, rename = "taskSpec")]
-    pub task_spec: Option<TaskSpec>,
+    pub task_spec: ::core::option::Option<::std::boxed::Box<TaskSpec>>,
 }
 
 /// Aggregated task status for a TaskGroup.
@@ -942,10 +944,10 @@ pub struct TaskGroup {
 pub struct TaskGroupStatus {
     /// Count of task in each state in the TaskGroup. The map key is task state name.
     #[serde(default)]
-    pub counts: Option<serde_json::Value>,
+    pub counts: ::core::option::Option<serde_json::Value>,
     /// Status of instances allocated for the TaskGroup.
     #[serde(default)]
-    pub instances: Option<Vec<InstanceStatus>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstanceStatus>>>,
 }
 
 /// Spec of a task
@@ -953,28 +955,29 @@ pub struct TaskGroupStatus {
 pub struct TaskSpec {
     /// ComputeResource requirements.
     #[serde(default, rename = "computeResource")]
-    pub compute_resource: Option<ComputeResource>,
+    pub compute_resource: ::core::option::Option<::std::boxed::Box<ComputeResource>>,
     /// Environment variables to set before running the Task.
     #[serde(default)]
-    pub environment: Option<Environment>,
+    pub environment: ::core::option::Option<::std::boxed::Box<Environment>>,
     /// Deprecated: please use environment(non-plural) instead.
     #[serde(default)]
-    pub environments: Option<serde_json::Value>,
+    pub environments: ::core::option::Option<serde_json::Value>,
     /// Lifecycle management schema when any task in a task group is failed. Currently we only support one lifecycle policy. When the lifecycle policy condition is met, the action in the policy will execute. If task execution result does not meet with the defined lifecycle policy, we consider it as the default policy. Default policy means if the exit code is 0, exit task. If task ends with non-zero exit code, retry the task with max_retry_count.
     #[serde(default, rename = "lifecyclePolicies")]
-    pub lifecycle_policies: Option<Vec<LifecyclePolicy>>,
+    pub lifecycle_policies:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LifecyclePolicy>>>,
     /// Maximum number of retries on failures. The default, 0, which means never retry. The valid value range is [0, 10].
     #[serde(default, rename = "maxRetryCount")]
-    pub max_retry_count: Option<i32>,
+    pub max_retry_count: ::core::option::Option<i32>,
     /// Maximum duration the task should run before being automatically retried (if enabled) or automatically failed. Format the value of this field as a time limit in seconds followed by s—for example, 3600s for 1 hour. The field accepts any value between 0 and the maximum listed for the Duration field type at https://protobuf.dev/reference/protobuf/google.protobuf/#duration; however, the actual maximum run time for a job will be limited to the maximum run time for a job listed at https://cloud.google.com/batch/quotas#max-job-duration.
     #[serde(default, rename = "maxRunDuration")]
-    pub max_run_duration: Option<String>,
+    pub max_run_duration: ::core::option::Option<String>,
     /// Required. The sequence of one or more runnables (executable scripts, executable containers, and/or barriers) for each task in this task group to run. Each task runs this list of runnables in order. For a task to succeed, all of its script and container runnables each must meet at least one of the following conditions: + The runnable exited with a zero status. + The runnable didn''t finish, but you enabled its background subfield. + The runnable exited with a non-zero status, but you enabled its ignore_exit_status subfield.
     #[serde(default)]
-    pub runnables: Option<Vec<Runnable>>,
+    pub runnables: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Runnable>>>,
     /// Volumes to mount before running Tasks using this TaskSpec.
     #[serde(default)]
-    pub volumes: Option<Vec<Volume>>,
+    pub volumes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Volume>>>,
 }
 
 /// Status of a task.
@@ -982,10 +985,10 @@ pub struct TaskSpec {
 pub struct TaskStatus {
     /// Task state. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ASSIGNED", "RUNNING", "FAILED", "SUCCEEDED", "UNEXECUTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Detailed info about why the state is reached.
     #[serde(default, rename = "statusEvents")]
-    pub status_events: Option<Vec<StatusEvent>>,
+    pub status_events: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StatusEvent>>>,
 }
 
 /// Volume describes a volume and parameters for it to be mounted to a VM.
@@ -993,17 +996,17 @@ pub struct TaskStatus {
 pub struct Volume {
     /// Device name of an attached disk volume, which should align with a device_name specified by job.allocation_policy.instances[0].policy.disks[i].device_name or defined by the given instance template in job.allocation_policy.instances[0].instance_template.
     #[serde(default, rename = "deviceName")]
-    pub device_name: Option<String>,
+    pub device_name: ::core::option::Option<String>,
     /// A Google Cloud Storage (GCS) volume.
     #[serde(default)]
-    pub gcs: Option<GCS>,
+    pub gcs: ::core::option::Option<::std::boxed::Box<GCS>>,
     /// Mount options vary based on the type of storage volume: * For a Cloud Storage bucket, all the mount options provided by the [gcsfuse tool](https://cloud.google.com/storage/docs/gcsfuse-cli) are supported. * For an existing persistent disk, all mount options provided by the [mount command](https://man7.org/linux/man-pages/man8/mount.8.html) except writing are supported. This is due to restrictions of [multi-writer mode](https://cloud.google.com/compute/docs/disks/sharing-disks-between-vms). * For any other disk or a Network File System (NFS), all the mount options provided by the mount command are supported.
     #[serde(default, rename = "mountOptions")]
-    pub mount_options: Option<Vec<String>>,
+    pub mount_options: ::core::option::Option<::std::vec::Vec<String>>,
     /// The mount path for the volume, e.g. /mnt/disks/share.
     #[serde(default, rename = "mountPath")]
-    pub mount_path: Option<String>,
+    pub mount_path: ::core::option::Option<String>,
     /// A Network File System (NFS) volume. For example, a Filestore file share.
     #[serde(default)]
-    pub nfs: Option<NFS>,
+    pub nfs: ::core::option::Option<::std::boxed::Box<NFS>>,
 }

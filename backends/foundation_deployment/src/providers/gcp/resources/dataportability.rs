@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Response to checking the token''s access type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckAccessTypeResponse {
     /// Jobs initiated with this token will be one-time if any requested resources have one-time access.
     #[serde(default, rename = "oneTimeResources")]
-    pub one_time_resources: Option<Vec<String>>,
+    pub one_time_resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Jobs initiated with this token will be time-based if all requested resources have time-based access.
     #[serde(default, rename = "timeBasedResources")]
-    pub time_based_resources: Option<Vec<String>>,
+    pub time_based_resources: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request to kick off an Archive job.
@@ -29,13 +29,13 @@ pub struct CheckAccessTypeResponse {
 pub struct InitiatePortabilityArchiveRequest {
     /// Optional. The timestamp that represents the end point for the data you are exporting. If the end_time is not specified in the InitiatePortabilityArchiveRequest, this field is set to the latest available data.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The resources from which you''re exporting data. These values have a 1:1 correspondence with the OAuth scopes.
     #[serde(default)]
-    pub resources: Option<Vec<String>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The timestamp that represents the starting point for the data you are exporting. If the start_time is not specified in the InitiatePortabilityArchiveRequest, the field is set to the earliest available data.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Response from initiating an Archive job.
@@ -43,10 +43,10 @@ pub struct InitiatePortabilityArchiveRequest {
 pub struct InitiatePortabilityArchiveResponse {
     /// The access type of the Archive job initiated by the API. // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "ACCESS_TYPE_ONE_TIME", "ACCESS_TYPE_TIME_BASED"]
     #[serde(default, rename = "accessType")]
-    pub access_type: Option<String>,
+    pub access_type: ::core::option::Option<String>,
     /// The archive job ID that is initiated in the API. This can be used to get the state of the job.
     #[serde(default, rename = "archiveJobId")]
-    pub archive_job_id: Option<String>,
+    pub archive_job_id: ::core::option::Option<String>,
 }
 
 /// Resource that contains the state of an Archive job.
@@ -54,19 +54,19 @@ pub struct InitiatePortabilityArchiveResponse {
 pub struct PortabilityArchiveState {
     /// The timestamp that represents the end point for the data you are exporting. If the end_time value is set in the InitiatePortabilityArchiveRequest, this field is set to that value. If end_time is not set, this value is set to the time the export was requested.
     #[serde(default, rename = "exportTime")]
-    pub export_time: Option<String>,
+    pub export_time: ::core::option::Option<String>,
     /// The resource name of ArchiveJob''s PortabilityArchiveState singleton. The format is: archiveJobs/{archive_job}/portabilityArchiveState. archive_job is the job ID provided in the request.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The timestamp that represents the starting point for the data you are exporting. This field is set only if the start_time field is specified in the InitiatePortabilityArchiveRequest.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Resource that represents the state of the Archive job. // TODO: enum values: ["STATE_UNSPECIFIED", "IN_PROGRESS", "COMPLETE", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// If the state is complete, this method returns the signed URLs of the objects in the Cloud Storage bucket.
     #[serde(default)]
-    pub urls: Option<Vec<String>>,
+    pub urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response from retrying a Portability Archive.
@@ -74,5 +74,5 @@ pub struct PortabilityArchiveState {
 pub struct RetryPortabilityArchiveResponse {
     /// The archive job ID that is initiated by the retry endpoint. This can be used to get the state of the new job.
     #[serde(default, rename = "archiveJobId")]
-    pub archive_job_id: Option<String>,
+    pub archive_job_id: ::core::option::Option<String>,
 }

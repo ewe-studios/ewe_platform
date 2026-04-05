@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// SiteVerificationWebResourceGettokenRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SiteVerificationWebResourceGettokenRequest {
     /// The site for which a verification token will be generated.
     #[serde(default)]
-    pub site: Option<serde_json::Value>,
+    pub site: ::core::option::Option<serde_json::Value>,
     /// The verification method that will be used to verify this site. For sites, ''FILE'' or ''META'' methods may be used. For domains, only ''DNS'' may be used.
     #[serde(default, rename = "verificationMethod")]
-    pub verification_method: Option<String>,
+    pub verification_method: ::core::option::Option<String>,
 }
 
 /// SiteVerificationWebResourceGettokenResponse resource type.
@@ -29,10 +29,10 @@ pub struct SiteVerificationWebResourceGettokenRequest {
 pub struct SiteVerificationWebResourceGettokenResponse {
     /// The verification method to use in conjunction with this token. For FILE, the token should be placed in the top-level directory of the site, stored inside a file of the same name. For META, the token should be placed in the HEAD tag of the default page that is loaded for the site. For DNS, the token should be placed in a TXT record of the domain.
     #[serde(default)]
-    pub method: Option<String>,
+    pub method: ::core::option::Option<String>,
     /// The verification token. The token must be placed appropriately in order for verification to succeed.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// SiteVerificationWebResourceListResponse resource type.
@@ -40,7 +40,9 @@ pub struct SiteVerificationWebResourceGettokenResponse {
 pub struct SiteVerificationWebResourceListResponse {
     /// The list of sites that are owned by the authenticated user.
     #[serde(default)]
-    pub items: Option<Vec<SiteVerificationWebResourceResource>>,
+    pub items: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<SiteVerificationWebResourceResource>>,
+    >,
 }
 
 /// SiteVerificationWebResourceResource resource type.
@@ -48,11 +50,11 @@ pub struct SiteVerificationWebResourceListResponse {
 pub struct SiteVerificationWebResourceResource {
     /// The string used to identify this site. This value should be used in the "id" portion of the REST URL for the Get, Update, and Delete operations.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The email addresses of all verified owners.
     #[serde(default)]
-    pub owners: Option<Vec<String>>,
+    pub owners: ::core::option::Option<::std::vec::Vec<String>>,
     /// The address and type of a site that is verified or will be verified.
     #[serde(default)]
-    pub site: Option<serde_json::Value>,
+    pub site: ::core::option::Option<serde_json::Value>,
 }

@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A response message for importing an SSH public key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportSshPublicKeyResponse {
     /// Detailed information about import results.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// The login profile information for the user.
     #[serde(default, rename = "loginProfile")]
-    pub login_profile: Option<LoginProfile>,
+    pub login_profile: ::core::option::Option<::std::boxed::Box<LoginProfile>>,
 }
 
 /// The user profile information used for logging in to a virtual machine on Google Compute Engine.
@@ -29,13 +29,13 @@ pub struct ImportSshPublicKeyResponse {
 pub struct LoginProfile {
     /// Required. A unique user ID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The list of POSIX accounts associated with the user.
     #[serde(default, rename = "posixAccounts")]
-    pub posix_accounts: Option<Vec<PosixAccount>>,
+    pub posix_accounts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PosixAccount>>>,
     /// A map from SSH public key fingerprint to the associated key object.
     #[serde(default, rename = "sshPublicKeys")]
-    pub ssh_public_keys: Option<serde_json::Value>,
+    pub ssh_public_keys: ::core::option::Option<serde_json::Value>,
 }
 
 /// The POSIX account information associated with a Google account.
@@ -43,37 +43,37 @@ pub struct LoginProfile {
 pub struct PosixAccount {
     /// Output only. A POSIX account identifier.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The GECOS (user information) entry for this account.
     #[serde(default)]
-    pub gecos: Option<String>,
+    pub gecos: ::core::option::Option<String>,
     /// The default group ID.
     #[serde(default)]
-    pub gid: Option<String>,
+    pub gid: ::core::option::Option<String>,
     /// The path to the home directory for this account.
     #[serde(default, rename = "homeDirectory")]
-    pub home_directory: Option<String>,
+    pub home_directory: ::core::option::Option<String>,
     /// Output only. The canonical resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The operating system type where this account applies. // TODO: enum values: ["OPERATING_SYSTEM_TYPE_UNSPECIFIED", "LINUX", "WINDOWS"]
     #[serde(default, rename = "operatingSystemType")]
-    pub operating_system_type: Option<String>,
+    pub operating_system_type: ::core::option::Option<String>,
     /// Only one POSIX account can be marked as primary.
     #[serde(default)]
-    pub primary: Option<bool>,
+    pub primary: ::core::option::Option<bool>,
     /// The path to the logic shell for this account.
     #[serde(default)]
-    pub shell: Option<String>,
+    pub shell: ::core::option::Option<String>,
     /// System identifier for which account the username or uid applies to. By default, the empty value is used.
     #[serde(default, rename = "systemId")]
-    pub system_id: Option<String>,
+    pub system_id: ::core::option::Option<String>,
     /// The user ID.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// The username of the POSIX account.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// A request message for creating a POSIX account entry.
@@ -81,7 +81,7 @@ pub struct PosixAccount {
 pub struct ProvisionPosixAccountRequest {
     /// Optional. The regions to wait for a POSIX account to be written to before returning a response. If unspecified, defaults to all regions. Regions are listed at https://cloud.google.com/about/locations#region.
     #[serde(default)]
-    pub regions: Option<Vec<String>>,
+    pub regions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A request message for signing an SSH public key.
@@ -89,16 +89,16 @@ pub struct ProvisionPosixAccountRequest {
 pub struct SignSshPublicKeyRequest {
     /// The App Engine instance to sign the SSH public key for. Expected format: apps/{app}/services/{service}/versions/{version}/instances/{instance}
     #[serde(default, rename = "appEngineInstance")]
-    pub app_engine_instance: Option<String>,
+    pub app_engine_instance: ::core::option::Option<String>,
     /// The Compute instance to sign the SSH public key for. Expected format: projects/{project}/zones/{zone}/instances/{numeric_instance_id}
     #[serde(default, rename = "computeInstance")]
-    pub compute_instance: Option<String>,
+    pub compute_instance: ::core::option::Option<String>,
     /// Optional. The service account for the instance. If the instance in question does not have a service account, this field should be left empty. If the wrong service account is provided, this operation will return a signed certificate that will not be accepted by the VM.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Required. The SSH public key to sign.
     #[serde(default, rename = "sshPublicKey")]
-    pub ssh_public_key: Option<String>,
+    pub ssh_public_key: ::core::option::Option<String>,
 }
 
 /// The response message for signing an SSH public key.
@@ -106,7 +106,7 @@ pub struct SignSshPublicKeyRequest {
 pub struct SignSshPublicKeyResponse {
     /// The signed SSH public key to use in the SSH handshake.
     #[serde(default, rename = "signedSshPublicKey")]
-    pub signed_ssh_public_key: Option<String>,
+    pub signed_ssh_public_key: ::core::option::Option<String>,
 }
 
 /// The SSH public key information associated with a Google account.
@@ -114,14 +114,14 @@ pub struct SignSshPublicKeyResponse {
 pub struct SshPublicKey {
     /// An expiration time in microseconds since epoch.
     #[serde(default, rename = "expirationTimeUsec")]
-    pub expiration_time_usec: Option<String>,
+    pub expiration_time_usec: ::core::option::Option<String>,
     /// Output only. The SHA-256 fingerprint of the SSH public key.
     #[serde(default)]
-    pub fingerprint: Option<String>,
+    pub fingerprint: ::core::option::Option<String>,
     /// Required. Public key text in SSH format, defined by [RFC4253](https://www.ietf.org/rfc/rfc4253.txt) section 6.6.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Output only. The canonical resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }

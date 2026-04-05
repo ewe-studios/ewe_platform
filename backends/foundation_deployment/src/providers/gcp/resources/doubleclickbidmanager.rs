@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The date range to be reported on.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataRange {
     /// If CUSTOM_DATES is assigned to range, this field specifies the end date for the date range that is reported on. This field is required if using CUSTOM_DATES range and will be ignored otherwise.
     #[serde(default, rename = "customEndDate")]
-    pub custom_end_date: Option<Date>,
+    pub custom_end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// If CUSTOM_DATES is assigned to range, this field specifies the starting date for the date range that is reported on. This field is required if using CUSTOM_DATES range and will be ignored otherwise.
     #[serde(default, rename = "customStartDate")]
-    pub custom_start_date: Option<Date>,
+    pub custom_start_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The preset date range to be reported on. If CUSTOM_DATES is assigned to this field, fields custom_start_date and custom_end_date must be set to specify the custom date range. // TODO: enum values: ["RANGE_UNSPECIFIED", "CUSTOM_DATES", "CURRENT_DAY", "PREVIOUS_DAY", "WEEK_TO_DATE", "MONTH_TO_DATE", "QUARTER_TO_DATE", "YEAR_TO_DATE", "PREVIOUS_WEEK", "PREVIOUS_MONTH", "PREVIOUS_QUARTER", "PREVIOUS_YEAR", "LAST_7_DAYS", "LAST_30_DAYS", "LAST_90_DAYS", "LAST_365_DAYS", "ALL_TIME", "LAST_14_DAYS", "LAST_60_DAYS"]
     #[serde(default)]
-    pub range: Option<String>,
+    pub range: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -32,13 +32,13 @@ pub struct DataRange {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Represents a single filter rule.
@@ -46,10 +46,10 @@ pub struct Date {
 pub struct FilterPair {
     /// The type of value to filter by. Defined by a [Filter](/bid-manager/reference/rest/v2/filters-metrics#filters) value.
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The identifying value to filter by, such as a relevant resource ID.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// ListQueriesResponse resource type.
@@ -57,10 +57,10 @@ pub struct FilterPair {
 pub struct ListQueriesResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to queries.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of queries. This field will be absent if empty.
     #[serde(default)]
-    pub queries: Option<Vec<Query>>,
+    pub queries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Query>>>,
 }
 
 /// ListReportsResponse resource type.
@@ -68,10 +68,10 @@ pub struct ListQueriesResponse {
 pub struct ListReportsResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to queries.reports.list method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of reports. This field will be absent if empty.
     #[serde(default)]
-    pub reports: Option<Vec<Report>>,
+    pub reports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Report>>>,
 }
 
 /// Report parameter options.
@@ -79,7 +79,7 @@ pub struct ListReportsResponse {
 pub struct Options {
     /// Whether to include data for audience lists specifically targeted by filtered line items or insertion orders. Requires the use of FILTER_INSERTION_ORDER or FILTER_LINE_ITEM filters.
     #[serde(default, rename = "includeOnlyTargetedUserLists")]
-    pub include_only_targeted_user_lists: Option<bool>,
+    pub include_only_targeted_user_lists: ::core::option::Option<bool>,
 }
 
 /// Parameters of a generated report.
@@ -87,19 +87,19 @@ pub struct Options {
 pub struct Parameters {
     /// Filters to limit the scope of reported data.
     #[serde(default)]
-    pub filters: Option<Vec<FilterPair>>,
+    pub filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FilterPair>>>,
     /// Dimensions by which to segment and group the data. Defined by [Filter](/bid-manager/reference/rest/v2/filters-metrics#filters) values.
     #[serde(default, rename = "groupBys")]
-    pub group_bys: Option<Vec<String>>,
+    pub group_bys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Metrics to define the data populating the report. Defined by [Metric](/bid-manager/reference/rest/v2/filters-metrics#metrics) values.
     #[serde(default)]
-    pub metrics: Option<Vec<String>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
     /// Additional report parameter options.
     #[serde(default)]
-    pub options: Option<Options>,
+    pub options: ::core::option::Option<::std::boxed::Box<Options>>,
     /// The type of the report. The type of the report determines the dimesions, filters, and metrics that can be used. // TODO: enum values: ["REPORT_TYPE_UNSPECIFIED", "STANDARD", "INVENTORY_AVAILABILITY", "AUDIENCE_COMPOSITION", "FLOODLIGHT", "YOUTUBE", "GRP", "YOUTUBE_PROGRAMMATIC_GUARANTEED", "REACH", "UNIQUE_REACH_AUDIENCE", "FULL_PATH", "PATH_ATTRIBUTION"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A single query used to generate a report.
@@ -107,16 +107,16 @@ pub struct Parameters {
 pub struct Query {
     /// The metadata of the query.
     #[serde(default)]
-    pub metadata: Option<QueryMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<QueryMetadata>>,
     /// The parameters of the report generated by the query.
     #[serde(default)]
-    pub params: Option<Parameters>,
+    pub params: ::core::option::Option<::std::boxed::Box<Parameters>>,
     /// Output only. The unique ID of the query.
     #[serde(default, rename = "queryId")]
-    pub query_id: Option<String>,
+    pub query_id: ::core::option::Option<String>,
     /// When and how often the query is scheduled to run. If the frequency field is set to ONE_TIME, the query will only run when queries.run is called.
     #[serde(default)]
-    pub schedule: Option<QuerySchedule>,
+    pub schedule: ::core::option::Option<::std::boxed::Box<QuerySchedule>>,
 }
 
 /// The metadata of the query.
@@ -124,19 +124,19 @@ pub struct Query {
 pub struct QueryMetadata {
     /// The date range the report generated by the query will report on. This date range will be defined by the time zone as used by the advertiser.
     #[serde(default, rename = "dataRange")]
-    pub data_range: Option<DataRange>,
+    pub data_range: ::core::option::Option<::std::boxed::Box<DataRange>>,
     /// The format of the report generated by the query. // TODO: enum values: ["FORMAT_UNSPECIFIED", "CSV", "XLSX"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Whether an email notification is sent to the query creator when a report generated by the query is ready. This value is false by default.
     #[serde(default, rename = "sendNotification")]
-    pub send_notification: Option<bool>,
+    pub send_notification: ::core::option::Option<bool>,
     /// List of additional email addresses with which to share the query. If send_notification is true, these email addresses will receive a notification when a report generated by the query is ready. If these email addresses are connected to Display & Video 360 users, the query will be available to them in the Display & Video 360 interface.
     #[serde(default, rename = "shareEmailAddress")]
-    pub share_email_address: Option<Vec<String>>,
+    pub share_email_address: ::core::option::Option<::std::vec::Vec<String>>,
     /// The display name of the query. This value will be used in the file name of reports generated by the query.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Settings on when and how frequently to run a query.
@@ -144,16 +144,16 @@ pub struct QueryMetadata {
 pub struct QuerySchedule {
     /// The date on which to end the scheduled runs. This field is required if frequency is not set to ONE_TIME. Otherwise, it will be ignored.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<Date>,
+    pub end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// How frequently to run the query. If set to ONE_TIME, the query will only be run when queries.run is called. // TODO: enum values: ["FREQUENCY_UNSPECIFIED", "ONE_TIME", "DAILY", "WEEKLY", "SEMI_MONTHLY", "MONTHLY", "QUARTERLY", "YEARLY"]
     #[serde(default)]
-    pub frequency: Option<String>,
+    pub frequency: ::core::option::Option<String>,
     /// The canonical code for the timezone the query schedule is based on. Scheduled runs are usually conducted in the morning of a given day. Defaults to America/New_York.
     #[serde(default, rename = "nextRunTimezoneCode")]
-    pub next_run_timezone_code: Option<String>,
+    pub next_run_timezone_code: ::core::option::Option<String>,
     /// The date on which to begin the scheduled runs. This field is required if frequency is not set to ONE_TIME. Otherwise, it will be ignored.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<Date>,
+    pub start_date: ::core::option::Option<::std::boxed::Box<Date>>,
 }
 
 /// A single report generated by its parent report.
@@ -161,13 +161,13 @@ pub struct QuerySchedule {
 pub struct Report {
     /// The key information identifying the report.
     #[serde(default)]
-    pub key: Option<ReportKey>,
+    pub key: ::core::option::Option<::std::boxed::Box<ReportKey>>,
     /// The metadata of the report.
     #[serde(default)]
-    pub metadata: Option<ReportMetadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<ReportMetadata>>,
     /// The parameters of the report.
     #[serde(default)]
-    pub params: Option<Parameters>,
+    pub params: ::core::option::Option<::std::boxed::Box<Parameters>>,
 }
 
 /// Identifying information of a report.
@@ -175,10 +175,10 @@ pub struct Report {
 pub struct ReportKey {
     /// Output only. The unique ID of the query that generated the report.
     #[serde(default, rename = "queryId")]
-    pub query_id: Option<String>,
+    pub query_id: ::core::option::Option<String>,
     /// Output only. The unique ID of the report.
     #[serde(default, rename = "reportId")]
-    pub report_id: Option<String>,
+    pub report_id: ::core::option::Option<String>,
 }
 
 /// The metadata of a report.
@@ -186,16 +186,16 @@ pub struct ReportKey {
 pub struct ReportMetadata {
     /// Output only. The location of the generated report file in Google Cloud Storage. This field will be absent if status.state is not DONE.
     #[serde(default, rename = "googleCloudStoragePath")]
-    pub google_cloud_storage_path: Option<String>,
+    pub google_cloud_storage_path: ::core::option::Option<String>,
     /// The end date of the report data date range.
     #[serde(default, rename = "reportDataEndDate")]
-    pub report_data_end_date: Option<Date>,
+    pub report_data_end_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The start date of the report data date range.
     #[serde(default, rename = "reportDataStartDate")]
-    pub report_data_start_date: Option<Date>,
+    pub report_data_start_date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The status of the report.
     #[serde(default)]
-    pub status: Option<ReportStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ReportStatus>>,
 }
 
 /// The status of a report.
@@ -203,13 +203,13 @@ pub struct ReportMetadata {
 pub struct ReportStatus {
     /// Output only. The timestamp of when report generation finished successfully or in failure. This field will not be set unless state is DONE or FAILED.
     #[serde(default, rename = "finishTime")]
-    pub finish_time: Option<String>,
+    pub finish_time: ::core::option::Option<String>,
     /// The format of the generated report file. // TODO: enum values: ["FORMAT_UNSPECIFIED", "CSV", "XLSX"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Output only. The state of the report generation. // TODO: enum values: ["STATE_UNSPECIFIED", "QUEUED", "RUNNING", "DONE", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Details specifying how to run a query.
@@ -217,5 +217,5 @@ pub struct ReportStatus {
 pub struct RunQueryRequest {
     /// The date range used by the query to generate the report. If unspecified, the query''s original data_range is used.
     #[serde(default, rename = "dataRange")]
-    pub data_range: Option<DataRange>,
+    pub data_range: ::core::option::Option<::std::boxed::Box<DataRange>>,
 }

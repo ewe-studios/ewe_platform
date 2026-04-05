@@ -10,36 +10,36 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// AMP inspection result of the live page or the current information from Google''s index, depending on whether you requested a live inspection or not.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AmpInspectionResult {
     /// Index status of the AMP URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
     #[serde(default, rename = "ampIndexStatusVerdict")]
-    pub amp_index_status_verdict: Option<String>,
+    pub amp_index_status_verdict: ::core::option::Option<String>,
     /// URL of the AMP that was inspected. If the submitted URL is a desktop page that refers to an AMP version, the AMP version will be inspected.
     #[serde(default, rename = "ampUrl")]
-    pub amp_url: Option<String>,
+    pub amp_url: ::core::option::Option<String>,
     /// Whether or not the page blocks indexing through a noindex rule. // TODO: enum values: ["AMP_INDEXING_STATE_UNSPECIFIED", "AMP_INDEXING_ALLOWED", "BLOCKED_DUE_TO_NOINDEX", "BLOCKED_DUE_TO_EXPIRED_UNAVAILABLE_AFTER"]
     #[serde(default, rename = "indexingState")]
-    pub indexing_state: Option<String>,
+    pub indexing_state: ::core::option::Option<String>,
     /// A list of zero or more AMP issues found for the inspected URL.
     #[serde(default)]
-    pub issues: Option<Vec<AmpIssue>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AmpIssue>>>,
     /// Last time this AMP version was crawled by Google. Absent if the URL was never crawled successfully.
     #[serde(default, rename = "lastCrawlTime")]
-    pub last_crawl_time: Option<String>,
+    pub last_crawl_time: ::core::option::Option<String>,
     /// Whether or not Google could fetch the AMP. // TODO: enum values: ["PAGE_FETCH_STATE_UNSPECIFIED", "SUCCESSFUL", "SOFT_404", "BLOCKED_ROBOTS_TXT", "NOT_FOUND", "ACCESS_DENIED", "SERVER_ERROR", "REDIRECT_ERROR", "ACCESS_FORBIDDEN", "BLOCKED_4XX", "INTERNAL_CRAWL_ERROR", "INVALID_URL"]
     #[serde(default, rename = "pageFetchState")]
-    pub page_fetch_state: Option<String>,
+    pub page_fetch_state: ::core::option::Option<String>,
     /// Whether or not the page is blocked to Google by a robots.txt rule. // TODO: enum values: ["ROBOTS_TXT_STATE_UNSPECIFIED", "ALLOWED", "DISALLOWED"]
     #[serde(default, rename = "robotsTxtState")]
-    pub robots_txt_state: Option<String>,
+    pub robots_txt_state: ::core::option::Option<String>,
     /// The status of the most severe error on the page. If a page has both warnings and errors, the page status is error. Error status means the page cannot be shown in Search results. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
     #[serde(default)]
-    pub verdict: Option<String>,
+    pub verdict: ::core::option::Option<String>,
 }
 
 /// AMP issue.
@@ -47,25 +47,25 @@ pub struct AmpInspectionResult {
 pub struct AmpIssue {
     /// Brief description of this issue.
     #[serde(default, rename = "issueMessage")]
-    pub issue_message: Option<String>,
+    pub issue_message: ::core::option::Option<String>,
     /// Severity of this issue: WARNING or ERROR. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// ApiDataRow resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiDataRow {
     #[serde(default)]
-    pub clicks: Option<f64>,
+    pub clicks: ::core::option::Option<f64>,
     #[serde(default)]
-    pub ctr: Option<f64>,
+    pub ctr: ::core::option::Option<f64>,
     #[serde(default)]
-    pub impressions: Option<f64>,
+    pub impressions: ::core::option::Option<f64>,
     #[serde(default)]
-    pub keys: Option<Vec<String>>,
+    pub keys: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub position: Option<f64>,
+    pub position: ::core::option::Option<f64>,
 }
 
 /// A filter test to be applied to each row in the data set, where a match can return the row. Filters are string comparisons, and values and dimension names are not case-sensitive. Individual filters are either AND''ed or OR''ed within their parent filter group, according to the group''s group type. You do not need to group by a specified dimension to filter against it.
@@ -73,22 +73,22 @@ pub struct ApiDataRow {
 pub struct ApiDimensionFilter {
     /// TODO: enum values: ["QUERY", "PAGE", "COUNTRY", "DEVICE", "SEARCH_APPEARANCE"]
     #[serde(default)]
-    pub dimension: Option<String>,
+    pub dimension: ::core::option::Option<String>,
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// TODO: enum values: ["EQUALS", "NOT_EQUALS", "CONTAINS", "NOT_CONTAINS", "INCLUDING_REGEX", "EXCLUDING_REGEX"]
     #[serde(default)]
-    pub operator: Option<String>,
+    pub operator: ::core::option::Option<String>,
 }
 
 /// A set of dimension value filters to test against each row. Only rows that pass all filter groups will be returned. All results within a filter group are either AND''ed or OR''ed together, depending on the group type selected. All filter groups are AND''ed together.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiDimensionFilterGroup {
     #[serde(default)]
-    pub filters: Option<Vec<ApiDimensionFilter>>,
+    pub filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiDimensionFilter>>>,
     /// TODO: enum values: ["AND"]
     #[serde(default, rename = "groupType")]
-    pub group_type: Option<String>,
+    pub group_type: ::core::option::Option<String>,
 }
 
 /// Blocked resource.
@@ -96,7 +96,7 @@ pub struct ApiDimensionFilterGroup {
 pub struct BlockedResource {
     /// URL of the blocked resource.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Rich Results items grouped by type.
@@ -104,10 +104,10 @@ pub struct BlockedResource {
 pub struct DetectedItems {
     /// List of Rich Results items.
     #[serde(default)]
-    pub items: Option<Vec<Item>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Item>>>,
     /// Rich Results type
     #[serde(default, rename = "richResultType")]
-    pub rich_result_type: Option<String>,
+    pub rich_result_type: ::core::option::Option<String>,
 }
 
 /// Describe image data.
@@ -115,10 +115,10 @@ pub struct DetectedItems {
 pub struct Image {
     /// Image data in format determined by the mime type. Currently, the format will always be "image/png", but this might change in the future.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// The mime-type of the image data.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Results of index status inspection for either the live page or the version in Google''s index, depending on whether you requested a live inspection or not. For more information, see the [Index coverage report documentation](https://support.google.com/webmasters/answer/7440203).
@@ -126,37 +126,37 @@ pub struct Image {
 pub struct IndexStatusInspectionResult {
     /// Could Google find and index the page. More details about page indexing appear in ''indexing_state''.
     #[serde(default, rename = "coverageState")]
-    pub coverage_state: Option<String>,
+    pub coverage_state: ::core::option::Option<String>,
     /// Primary crawler that was used by Google to crawl your site. // TODO: enum values: ["CRAWLING_USER_AGENT_UNSPECIFIED", "DESKTOP", "MOBILE"]
     #[serde(default, rename = "crawledAs")]
-    pub crawled_as: Option<String>,
+    pub crawled_as: ::core::option::Option<String>,
     /// The URL of the page that Google selected as canonical. If the page was not indexed, this field is absent.
     #[serde(default, rename = "googleCanonical")]
-    pub google_canonical: Option<String>,
+    pub google_canonical: ::core::option::Option<String>,
     /// Whether or not the page blocks indexing through a noindex rule. // TODO: enum values: ["INDEXING_STATE_UNSPECIFIED", "INDEXING_ALLOWED", "BLOCKED_BY_META_TAG", "BLOCKED_BY_HTTP_HEADER", "BLOCKED_BY_ROBOTS_TXT"]
     #[serde(default, rename = "indexingState")]
-    pub indexing_state: Option<String>,
+    pub indexing_state: ::core::option::Option<String>,
     /// Last time this URL was crawled by Google using the [primary crawler](https://support.google.com/webmasters/answer/7440203#primary_crawler). Absent if the URL was never crawled successfully.
     #[serde(default, rename = "lastCrawlTime")]
-    pub last_crawl_time: Option<String>,
+    pub last_crawl_time: ::core::option::Option<String>,
     /// Whether or not Google could retrieve the page from your server. Equivalent to ["page fetch"](https://support.google.com/webmasters/answer/9012289#index_coverage) in the URL inspection report. // TODO: enum values: ["PAGE_FETCH_STATE_UNSPECIFIED", "SUCCESSFUL", "SOFT_404", "BLOCKED_ROBOTS_TXT", "NOT_FOUND", "ACCESS_DENIED", "SERVER_ERROR", "REDIRECT_ERROR", "ACCESS_FORBIDDEN", "BLOCKED_4XX", "INTERNAL_CRAWL_ERROR", "INVALID_URL"]
     #[serde(default, rename = "pageFetchState")]
-    pub page_fetch_state: Option<String>,
+    pub page_fetch_state: ::core::option::Option<String>,
     /// URLs that link to the inspected URL, directly and indirectly.
     #[serde(default, rename = "referringUrls")]
-    pub referring_urls: Option<Vec<String>>,
+    pub referring_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// Whether or not the page is blocked to Google by a robots.txt rule. // TODO: enum values: ["ROBOTS_TXT_STATE_UNSPECIFIED", "ALLOWED", "DISALLOWED"]
     #[serde(default, rename = "robotsTxtState")]
-    pub robots_txt_state: Option<String>,
+    pub robots_txt_state: ::core::option::Option<String>,
     /// Any sitemaps that this URL was listed in, as known by Google. Not guaranteed to be an exhaustive list, especially if Google did not discover this URL through a sitemap. Absent if no sitemaps were found.
     #[serde(default)]
-    pub sitemap: Option<Vec<String>>,
+    pub sitemap: ::core::option::Option<::std::vec::Vec<String>>,
     /// The URL that your page or site [declares as canonical](https://developers.google.com/search/docs/advanced/crawling/consolidate-duplicate-urls?#define-canonical). If you did not declare a canonical URL, this field is absent.
     #[serde(default, rename = "userCanonical")]
-    pub user_canonical: Option<String>,
+    pub user_canonical: ::core::option::Option<String>,
     /// High level verdict about whether the URL *is* indexed (indexed status), or *can be* indexed (live inspection). // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
     #[serde(default)]
-    pub verdict: Option<String>,
+    pub verdict: ::core::option::Option<String>,
 }
 
 /// Index inspection request.
@@ -164,13 +164,13 @@ pub struct IndexStatusInspectionResult {
 pub struct InspectUrlIndexRequest {
     /// Required. URL to inspect. Must be under the property specified in "site_url".
     #[serde(default, rename = "inspectionUrl")]
-    pub inspection_url: Option<String>,
+    pub inspection_url: ::core::option::Option<String>,
     /// Optional. An [IETF BCP-47](https://en.wikipedia.org/wiki/IETF_language_tag) language code representing the requested language for translated issue messages, e.g. "en-US", "or "de-CH". Default value is "en-US".
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Required. The URL of the property as defined in Search Console. **Examples:** http://www.example.com/ for a URL-prefix property, or sc-domain:example.com for a Domain property.
     #[serde(default, rename = "siteUrl")]
-    pub site_url: Option<String>,
+    pub site_url: ::core::option::Option<String>,
 }
 
 /// Index-Status inspection response.
@@ -178,7 +178,7 @@ pub struct InspectUrlIndexRequest {
 pub struct InspectUrlIndexResponse {
     /// URL inspection results.
     #[serde(default, rename = "inspectionResult")]
-    pub inspection_result: Option<UrlInspectionResult>,
+    pub inspection_result: ::core::option::Option<::std::boxed::Box<UrlInspectionResult>>,
 }
 
 /// A specific rich result found on the page.
@@ -186,10 +186,10 @@ pub struct InspectUrlIndexResponse {
 pub struct Item {
     /// A list of zero or more rich result issues found for this instance.
     #[serde(default)]
-    pub issues: Option<Vec<RichResultsIssue>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RichResultsIssue>>>,
     /// The user-provided name of this item.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// An object that may be returned with your query results, providing context about the state of the data. When you request recent data (using all or hourly_all for dataState), some of the rows returned may represent data that is incomplete, which means that the data is still being collected and processed. This metadata object helps you identify exactly when this starts and ends. All dates and times provided in this object are in the America/Los_Angeles time zone. The specific field returned within this object depends on how you''ve grouped your data in the request. See details in inner fields.
@@ -197,10 +197,10 @@ pub struct Item {
 pub struct Metadata {
     /// The first date for which the data is still being collected and processed, presented in YYYY-MM-DD format (ISO-8601 extended local date format). This field is populated only when the request''s dataState is "all", data is grouped by "DATE", and the requested date range contains incomplete data points. All values after the first_incomplete_date may still change noticeably.
     #[serde(default, rename = "firstIncompleteDate")]
-    pub first_incomplete_date: Option<String>,
+    pub first_incomplete_date: ::core::option::Option<String>,
     /// The first hour for which the data is still being collected and processed, presented in YYYY-MM-DDThh:mm:ss[+|-]hh:mm format (ISO-8601 extended offset date-time format). This field is populated only when the request''s dataState is "hourly_all", data is grouped by "HOUR" and the requested date range contains incomplete data points. All values after the first_incomplete_hour may still change noticeably.
     #[serde(default, rename = "firstIncompleteHour")]
-    pub first_incomplete_hour: Option<String>,
+    pub first_incomplete_hour: ::core::option::Option<String>,
 }
 
 /// Mobile-friendly issue.
@@ -208,7 +208,7 @@ pub struct Metadata {
 pub struct MobileFriendlyIssue {
     /// Rule violated. // TODO: enum values: ["MOBILE_FRIENDLY_RULE_UNSPECIFIED", "USES_INCOMPATIBLE_PLUGINS", "CONFIGURE_VIEWPORT", "FIXED_WIDTH_VIEWPORT", "SIZE_CONTENT_TO_VIEWPORT", "USE_LEGIBLE_FONT_SIZES", "TAP_TARGETS_TOO_CLOSE"]
     #[serde(default)]
-    pub rule: Option<String>,
+    pub rule: ::core::option::Option<String>,
 }
 
 /// Mobile-usability inspection results.
@@ -216,10 +216,10 @@ pub struct MobileFriendlyIssue {
 pub struct MobileUsabilityInspectionResult {
     /// A list of zero or more mobile-usability issues detected for this URL.
     #[serde(default)]
-    pub issues: Option<Vec<MobileUsabilityIssue>>,
+    pub issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MobileUsabilityIssue>>>,
     /// High-level mobile-usability inspection result for this URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
     #[serde(default)]
-    pub verdict: Option<String>,
+    pub verdict: ::core::option::Option<String>,
 }
 
 /// Mobile-usability issue.
@@ -227,13 +227,13 @@ pub struct MobileUsabilityInspectionResult {
 pub struct MobileUsabilityIssue {
     /// Mobile-usability issue type. // TODO: enum values: ["MOBILE_USABILITY_ISSUE_TYPE_UNSPECIFIED", "USES_INCOMPATIBLE_PLUGINS", "CONFIGURE_VIEWPORT", "FIXED_WIDTH_VIEWPORT", "SIZE_CONTENT_TO_VIEWPORT", "USE_LEGIBLE_FONT_SIZES", "TAP_TARGETS_TOO_CLOSE"]
     #[serde(default, rename = "issueType")]
-    pub issue_type: Option<String>,
+    pub issue_type: ::core::option::Option<String>,
     /// Additional information regarding the issue.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Not returned; reserved for future use. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// Information about a resource with issue.
@@ -241,7 +241,7 @@ pub struct MobileUsabilityIssue {
 pub struct ResourceIssue {
     /// Describes a blocked resource issue.
     #[serde(default, rename = "blockedResource")]
-    pub blocked_resource: Option<BlockedResource>,
+    pub blocked_resource: ::core::option::Option<::std::boxed::Box<BlockedResource>>,
 }
 
 /// Rich-Results inspection result, including any rich results found at this URL.
@@ -249,10 +249,10 @@ pub struct ResourceIssue {
 pub struct RichResultsInspectionResult {
     /// A list of zero or more rich results detected on this page. Rich results that cannot even be parsed due to syntactic issues will not be listed here.
     #[serde(default, rename = "detectedItems")]
-    pub detected_items: Option<Vec<DetectedItems>>,
+    pub detected_items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DetectedItems>>>,
     /// High-level rich results inspection result for this URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
     #[serde(default)]
-    pub verdict: Option<String>,
+    pub verdict: ::core::option::Option<String>,
 }
 
 /// Severity and status of a single issue affecting a single rich result instance on a page.
@@ -260,10 +260,10 @@ pub struct RichResultsInspectionResult {
 pub struct RichResultsIssue {
     /// Rich Results issue type.
     #[serde(default, rename = "issueMessage")]
-    pub issue_message: Option<String>,
+    pub issue_message: ::core::option::Option<String>,
     /// Severity of this issue: WARNING, or ERROR. Items with an issue of status ERROR cannot appear with rich result features in Google Search results. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// Mobile-friendly test request.
@@ -271,10 +271,10 @@ pub struct RichResultsIssue {
 pub struct RunMobileFriendlyTestRequest {
     /// Whether or not screenshot is requested. Default is false.
     #[serde(default, rename = "requestScreenshot")]
-    pub request_screenshot: Option<bool>,
+    pub request_screenshot: ::core::option::Option<bool>,
     /// URL for inspection.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Mobile-friendly test response, including mobile-friendly issues and resource issues.
@@ -282,19 +282,20 @@ pub struct RunMobileFriendlyTestRequest {
 pub struct RunMobileFriendlyTestResponse {
     /// Test verdict, whether the page is mobile friendly or not. // TODO: enum values: ["MOBILE_FRIENDLY_TEST_RESULT_UNSPECIFIED", "MOBILE_FRIENDLY", "NOT_MOBILE_FRIENDLY"]
     #[serde(default, rename = "mobileFriendliness")]
-    pub mobile_friendliness: Option<String>,
+    pub mobile_friendliness: ::core::option::Option<String>,
     /// List of mobile-usability issues.
     #[serde(default, rename = "mobileFriendlyIssues")]
-    pub mobile_friendly_issues: Option<Vec<MobileFriendlyIssue>>,
+    pub mobile_friendly_issues:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MobileFriendlyIssue>>>,
     /// Information about embedded resources issues.
     #[serde(default, rename = "resourceIssues")]
-    pub resource_issues: Option<Vec<ResourceIssue>>,
+    pub resource_issues: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceIssue>>>,
     /// Screenshot of the requested URL.
     #[serde(default)]
-    pub screenshot: Option<Image>,
+    pub screenshot: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Final state of the test, can be either complete or an error.
     #[serde(default, rename = "testStatus")]
-    pub test_status: Option<TestStatus>,
+    pub test_status: ::core::option::Option<::std::boxed::Box<TestStatus>>,
 }
 
 /// SearchAnalyticsQueryRequest resource type.
@@ -302,34 +303,35 @@ pub struct RunMobileFriendlyTestResponse {
 pub struct SearchAnalyticsQueryRequest {
     /// [Optional; Default is \"auto\"] How data is aggregated. If aggregated by property, all data for the same property is aggregated; if aggregated by page, all data is aggregated by canonical URI. If you filter or group by page, choose AUTO; otherwise you can aggregate either by property or by page, depending on how you want your data calculated; see the help documentation to learn how data is calculated differently by site versus by page. **Note:** If you group or filter by page, you cannot aggregate by property. If you specify any value other than AUTO, the aggregation type in the result will match the requested type, or if you request an invalid type, you will get an error. The API will never change your aggregation type if the requested type is invalid. // TODO: enum values: ["AUTO", "BY_PROPERTY", "BY_PAGE", "BY_NEWS_SHOWCASE_PANEL"]
     #[serde(default, rename = "aggregationType")]
-    pub aggregation_type: Option<String>,
+    pub aggregation_type: ::core::option::Option<String>,
     /// The data state to be fetched, can be full or all, the latter including full and partial data. // TODO: enum values: ["DATA_STATE_UNSPECIFIED", "FINAL", "ALL", "HOURLY_ALL"]
     #[serde(default, rename = "dataState")]
-    pub data_state: Option<String>,
+    pub data_state: ::core::option::Option<String>,
     /// [Optional] Zero or more filters to apply to the dimension grouping values; for example, ''query contains \"buy\"'' to see only data where the query string contains the substring \"buy\" (not case-sensitive). You can filter by a dimension without grouping by it.
     #[serde(default, rename = "dimensionFilterGroups")]
-    pub dimension_filter_groups: Option<Vec<ApiDimensionFilterGroup>>,
+    pub dimension_filter_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiDimensionFilterGroup>>>,
     /// [Optional] Zero or more dimensions to group results by. Dimensions are the group-by values in the Search Analytics page. Dimensions are combined to create a unique row key for each row. Results are grouped in the order that you supply these dimensions.
     #[serde(default)]
-    pub dimensions: Option<Vec<String>>,
+    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
     /// [Required] End date of the requested date range, in YYYY-MM-DD format, in PST (UTC - 8:00). Must be greater than or equal to the start date. This value is included in the range.
     #[serde(default, rename = "endDate")]
-    pub end_date: Option<String>,
+    pub end_date: ::core::option::Option<String>,
     /// [Optional; Default is 1000] The maximum number of rows to return. Must be a number from 1 to 25,000 (inclusive).
     #[serde(default, rename = "rowLimit")]
-    pub row_limit: Option<i32>,
+    pub row_limit: ::core::option::Option<i32>,
     /// [Optional; Default is \"web\"] The search type to filter for. // TODO: enum values: ["WEB", "IMAGE", "VIDEO", "NEWS", "DISCOVER", "GOOGLE_NEWS"]
     #[serde(default, rename = "searchType")]
-    pub search_type: Option<String>,
+    pub search_type: ::core::option::Option<String>,
     ///  [Required] Start date of the requested date range, in YYYY-MM-DD format, in PST time (UTC - 8:00). Must be less than or equal to the end date. This value is included in the range.
     #[serde(default, rename = "startDate")]
-    pub start_date: Option<String>,
+    pub start_date: ::core::option::Option<String>,
     /// [Optional; Default is 0] Zero-based index of the first row in the response. Must be a non-negative number.
     #[serde(default, rename = "startRow")]
-    pub start_row: Option<i32>,
+    pub start_row: ::core::option::Option<i32>,
     /// Optional. [Optional; Default is \"web\"] Type of report: search type, or either Discover or Gnews. // TODO: enum values: ["WEB", "IMAGE", "VIDEO", "NEWS", "DISCOVER", "GOOGLE_NEWS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A list of rows, one per result, grouped by key. Metrics in each row are aggregated for all data grouped by that key either by page or property, as specified by the aggregation type parameter.
@@ -337,13 +339,13 @@ pub struct SearchAnalyticsQueryRequest {
 pub struct SearchAnalyticsQueryResponse {
     /// An object that may be returned with your query results, providing context about the state of the data. See details in Metadata object documentation.
     #[serde(default)]
-    pub metadata: Option<Metadata>,
+    pub metadata: ::core::option::Option<::std::boxed::Box<Metadata>>,
     /// How the results were aggregated. // TODO: enum values: ["AUTO", "BY_PROPERTY", "BY_PAGE", "BY_NEWS_SHOWCASE_PANEL"]
     #[serde(default, rename = "responseAggregationType")]
-    pub response_aggregation_type: Option<String>,
+    pub response_aggregation_type: ::core::option::Option<String>,
     /// A list of rows grouped by the key values in the order given in the query.
     #[serde(default)]
-    pub rows: Option<Vec<ApiDataRow>>,
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiDataRow>>>,
 }
 
 /// List of sitemaps.
@@ -351,7 +353,7 @@ pub struct SearchAnalyticsQueryResponse {
 pub struct SitemapsListResponse {
     /// Contains detailed information about a specific URL submitted as a [sitemap](https://support.google.com/webmasters/answer/156184).
     #[serde(default)]
-    pub sitemap: Option<Vec<WmxSitemap>>,
+    pub sitemap: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WmxSitemap>>>,
 }
 
 /// List of sites with access level information.
@@ -359,7 +361,7 @@ pub struct SitemapsListResponse {
 pub struct SitesListResponse {
     /// Contains permission level information about a Search Console site. For more information, see [Permissions in Search Console](https://support.google.com/webmasters/answer/2451999).
     #[serde(default, rename = "siteEntry")]
-    pub site_entry: Option<Vec<WmxSite>>,
+    pub site_entry: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WmxSite>>>,
 }
 
 /// Final state of the test, including error details if necessary.
@@ -367,10 +369,10 @@ pub struct SitesListResponse {
 pub struct TestStatus {
     /// Error details if applicable.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// Status of the test. // TODO: enum values: ["TEST_STATUS_UNSPECIFIED", "COMPLETE", "INTERNAL_ERROR", "PAGE_UNREACHABLE"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// URL inspection result, including all inspection results.
@@ -378,19 +380,20 @@ pub struct TestStatus {
 pub struct UrlInspectionResult {
     /// Result of the AMP analysis. Absent if the page is not an AMP page.
     #[serde(default, rename = "ampResult")]
-    pub amp_result: Option<AmpInspectionResult>,
+    pub amp_result: ::core::option::Option<::std::boxed::Box<AmpInspectionResult>>,
     /// Result of the index status analysis.
     #[serde(default, rename = "indexStatusResult")]
-    pub index_status_result: Option<IndexStatusInspectionResult>,
+    pub index_status_result: ::core::option::Option<::std::boxed::Box<IndexStatusInspectionResult>>,
     /// Link to Search Console URL inspection.
     #[serde(default, rename = "inspectionResultLink")]
-    pub inspection_result_link: Option<String>,
+    pub inspection_result_link: ::core::option::Option<String>,
     /// Result of the Mobile usability analysis.
     #[serde(default, rename = "mobileUsabilityResult")]
-    pub mobile_usability_result: Option<MobileUsabilityInspectionResult>,
+    pub mobile_usability_result:
+        ::core::option::Option<::std::boxed::Box<MobileUsabilityInspectionResult>>,
     /// Result of the Rich Results analysis. Absent if there are no rich results found.
     #[serde(default, rename = "richResultsResult")]
-    pub rich_results_result: Option<RichResultsInspectionResult>,
+    pub rich_results_result: ::core::option::Option<::std::boxed::Box<RichResultsInspectionResult>>,
 }
 
 /// Contains permission level information about a Search Console site. For more information, see [Permissions in Search Console](https://support.google.com/webmasters/answer/2451999).
@@ -398,10 +401,10 @@ pub struct UrlInspectionResult {
 pub struct WmxSite {
     /// The user''s permission level for the site. // TODO: enum values: ["SITE_PERMISSION_LEVEL_UNSPECIFIED", "SITE_OWNER", "SITE_FULL_USER", "SITE_RESTRICTED_USER", "SITE_UNVERIFIED_USER"]
     #[serde(default, rename = "permissionLevel")]
-    pub permission_level: Option<String>,
+    pub permission_level: ::core::option::Option<String>,
     /// The URL of the site.
     #[serde(default, rename = "siteUrl")]
-    pub site_url: Option<String>,
+    pub site_url: ::core::option::Option<String>,
 }
 
 /// Contains detailed information about a specific URL submitted as a [sitemap](https://support.google.com/webmasters/answer/156184).
@@ -409,31 +412,31 @@ pub struct WmxSite {
 pub struct WmxSitemap {
     /// The various content types in the sitemap.
     #[serde(default)]
-    pub contents: Option<Vec<WmxSitemapContent>>,
+    pub contents: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WmxSitemapContent>>>,
     /// Number of errors in the sitemap. These are issues with the sitemap itself that need to be fixed before it can be processed correctly.
     #[serde(default)]
-    pub errors: Option<String>,
+    pub errors: ::core::option::Option<String>,
     /// If true, the sitemap has not been processed.
     #[serde(default, rename = "isPending")]
-    pub is_pending: Option<bool>,
+    pub is_pending: ::core::option::Option<bool>,
     /// If true, the sitemap is a collection of sitemaps.
     #[serde(default, rename = "isSitemapsIndex")]
-    pub is_sitemaps_index: Option<bool>,
+    pub is_sitemaps_index: ::core::option::Option<bool>,
     /// Date & time in which this sitemap was last downloaded. Date format is in RFC 3339 format (yyyy-mm-dd).
     #[serde(default, rename = "lastDownloaded")]
-    pub last_downloaded: Option<String>,
+    pub last_downloaded: ::core::option::Option<String>,
     /// Date & time in which this sitemap was submitted. Date format is in RFC 3339 format (yyyy-mm-dd).
     #[serde(default, rename = "lastSubmitted")]
-    pub last_submitted: Option<String>,
+    pub last_submitted: ::core::option::Option<String>,
     /// The url of the sitemap.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// The type of the sitemap. For example: rssFeed. // TODO: enum values: ["NOT_SITEMAP", "URL_LIST", "SITEMAP", "RSS_FEED", "ATOM_FEED", "PATTERN_SITEMAP", "OCEANFRONT"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Number of warnings for the sitemap. These are generally non-critical issues with URLs in the sitemaps.
     #[serde(default)]
-    pub warnings: Option<String>,
+    pub warnings: ::core::option::Option<String>,
 }
 
 /// Information about the various content types in the sitemap.
@@ -441,11 +444,11 @@ pub struct WmxSitemap {
 pub struct WmxSitemapContent {
     /// *Deprecated; do not use.*
     #[serde(default)]
-    pub indexed: Option<String>,
+    pub indexed: ::core::option::Option<String>,
     /// The number of URLs in the sitemap (of the content type).
     #[serde(default)]
-    pub submitted: Option<String>,
+    pub submitted: ::core::option::Option<String>,
     /// The specific type of content in this sitemap. For example: web. // TODO: enum values: ["WEB", "IMAGE", "VIDEO", "NEWS", "MOBILE", "ANDROID_APP", "PATTERN", "IOS_APP", "DATA_FEED_ELEMENT"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }

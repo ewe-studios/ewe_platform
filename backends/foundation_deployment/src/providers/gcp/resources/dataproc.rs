@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Specifies the type and number of accelerator cards attached to the instances of an instance. See GPUs on Compute Engine (https://cloud.google.com/compute/docs/gpus/).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcceleratorConfig {
     /// The number of the accelerator cards of this type exposed to this instance.
     #[serde(default, rename = "acceleratorCount")]
-    pub accelerator_count: Option<i32>,
+    pub accelerator_count: ::core::option::Option<i32>,
     /// Full URL, partial URI, or short name of the accelerator type resource to expose to this instance. See Compute Engine AcceleratorTypes (https://cloud.google.com/compute/docs/reference/v1/acceleratorTypes).Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone]/acceleratorTypes/nvidia-tesla-t4 projects/[project_id]/zones/[zone]/acceleratorTypes/nvidia-tesla-t4 nvidia-tesla-t4Auto Zone Exception: If you are using the Dataproc Auto Zone Placement (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/auto-zone#using_auto_zone_placement) feature, you must use the short name of the accelerator type resource, for example, nvidia-tesla-t4.
     #[serde(default, rename = "acceleratorTypeUri")]
-    pub accelerator_type_uri: Option<String>,
+    pub accelerator_type_uri: ::core::option::Option<String>,
 }
 
 /// Environment details of a Saprk Application.
@@ -29,7 +29,8 @@ pub struct AcceleratorConfig {
 pub struct AccessSessionSparkApplicationEnvironmentInfoResponse {
     /// Details about the Environment that the application is running in.
     #[serde(default, rename = "applicationEnvironmentInfo")]
-    pub application_environment_info: Option<ApplicationEnvironmentInfo>,
+    pub application_environment_info:
+        ::core::option::Option<::std::boxed::Box<ApplicationEnvironmentInfo>>,
 }
 
 /// Details of a particular job associated with Spark Application
@@ -37,7 +38,7 @@ pub struct AccessSessionSparkApplicationEnvironmentInfoResponse {
 pub struct AccessSessionSparkApplicationJobResponse {
     /// Output only. Data corresponding to a spark job.
     #[serde(default, rename = "jobData")]
-    pub job_data: Option<JobData>,
+    pub job_data: ::core::option::Option<::std::boxed::Box<JobData>>,
 }
 
 /// A summary of Spark Application
@@ -45,7 +46,7 @@ pub struct AccessSessionSparkApplicationJobResponse {
 pub struct AccessSessionSparkApplicationResponse {
     /// Output only. High level information corresponding to an application.
     #[serde(default)]
-    pub application: Option<ApplicationInfo>,
+    pub application: ::core::option::Option<::std::boxed::Box<ApplicationInfo>>,
 }
 
 /// Details of a query for a Spark Application
@@ -53,7 +54,7 @@ pub struct AccessSessionSparkApplicationResponse {
 pub struct AccessSessionSparkApplicationSqlQueryResponse {
     /// SQL Execution Data
     #[serde(default, rename = "executionData")]
-    pub execution_data: Option<SqlExecutionUiData>,
+    pub execution_data: ::core::option::Option<::std::boxed::Box<SqlExecutionUiData>>,
 }
 
 /// SparkPlanGraph for a Spark Application execution limited to maximum 10000 clusters.
@@ -61,7 +62,7 @@ pub struct AccessSessionSparkApplicationSqlQueryResponse {
 pub struct AccessSessionSparkApplicationSqlSparkPlanGraphResponse {
     /// SparkPlanGraph for a Spark Application execution.
     #[serde(default, rename = "sparkPlanGraph")]
-    pub spark_plan_graph: Option<SparkPlanGraph>,
+    pub spark_plan_graph: ::core::option::Option<::std::boxed::Box<SparkPlanGraph>>,
 }
 
 /// Stage Attempt for a Stage of a Spark Application
@@ -69,7 +70,7 @@ pub struct AccessSessionSparkApplicationSqlSparkPlanGraphResponse {
 pub struct AccessSessionSparkApplicationStageAttemptResponse {
     /// Output only. Data corresponding to a stage.
     #[serde(default, rename = "stageData")]
-    pub stage_data: Option<StageData>,
+    pub stage_data: ::core::option::Option<::std::boxed::Box<StageData>>,
 }
 
 /// RDD operation graph for a Spark Application Stage limited to maximum 10000 clusters.
@@ -77,7 +78,7 @@ pub struct AccessSessionSparkApplicationStageAttemptResponse {
 pub struct AccessSessionSparkApplicationStageRddOperationGraphResponse {
     /// RDD operation graph for a Spark Application Stage.
     #[serde(default, rename = "rddOperationGraph")]
-    pub rdd_operation_graph: Option<RddOperationGraph>,
+    pub rdd_operation_graph: ::core::option::Option<::std::boxed::Box<RddOperationGraph>>,
 }
 
 /// Environment details of a Saprk Application.
@@ -85,7 +86,8 @@ pub struct AccessSessionSparkApplicationStageRddOperationGraphResponse {
 pub struct AccessSparkApplicationEnvironmentInfoResponse {
     /// Details about the Environment that the application is running in.
     #[serde(default, rename = "applicationEnvironmentInfo")]
-    pub application_environment_info: Option<ApplicationEnvironmentInfo>,
+    pub application_environment_info:
+        ::core::option::Option<::std::boxed::Box<ApplicationEnvironmentInfo>>,
 }
 
 /// Details of a particular job associated with Spark Application
@@ -93,7 +95,7 @@ pub struct AccessSparkApplicationEnvironmentInfoResponse {
 pub struct AccessSparkApplicationJobResponse {
     /// Output only. Data corresponding to a spark job.
     #[serde(default, rename = "jobData")]
-    pub job_data: Option<JobData>,
+    pub job_data: ::core::option::Option<::std::boxed::Box<JobData>>,
 }
 
 /// A summary of Spark Application
@@ -101,7 +103,7 @@ pub struct AccessSparkApplicationJobResponse {
 pub struct AccessSparkApplicationResponse {
     /// Output only. High level information corresponding to an application.
     #[serde(default)]
-    pub application: Option<ApplicationInfo>,
+    pub application: ::core::option::Option<::std::boxed::Box<ApplicationInfo>>,
 }
 
 /// Details of a query for a Spark Application
@@ -109,7 +111,7 @@ pub struct AccessSparkApplicationResponse {
 pub struct AccessSparkApplicationSqlQueryResponse {
     /// SQL Execution Data
     #[serde(default, rename = "executionData")]
-    pub execution_data: Option<SqlExecutionUiData>,
+    pub execution_data: ::core::option::Option<::std::boxed::Box<SqlExecutionUiData>>,
 }
 
 /// SparkPlanGraph for a Spark Application execution limited to maximum 10000 clusters.
@@ -117,7 +119,7 @@ pub struct AccessSparkApplicationSqlQueryResponse {
 pub struct AccessSparkApplicationSqlSparkPlanGraphResponse {
     /// SparkPlanGraph for a Spark Application execution.
     #[serde(default, rename = "sparkPlanGraph")]
-    pub spark_plan_graph: Option<SparkPlanGraph>,
+    pub spark_plan_graph: ::core::option::Option<::std::boxed::Box<SparkPlanGraph>>,
 }
 
 /// Stage Attempt for a Stage of a Spark Application
@@ -125,7 +127,7 @@ pub struct AccessSparkApplicationSqlSparkPlanGraphResponse {
 pub struct AccessSparkApplicationStageAttemptResponse {
     /// Output only. Data corresponding to a stage.
     #[serde(default, rename = "stageData")]
-    pub stage_data: Option<StageData>,
+    pub stage_data: ::core::option::Option<::std::boxed::Box<StageData>>,
 }
 
 /// RDD operation graph for a Spark Application Stage limited to maximum 10000 clusters.
@@ -133,20 +135,20 @@ pub struct AccessSparkApplicationStageAttemptResponse {
 pub struct AccessSparkApplicationStageRddOperationGraphResponse {
     /// RDD operation graph for a Spark Application Stage.
     #[serde(default, rename = "rddOperationGraph")]
-    pub rdd_operation_graph: Option<RddOperationGraph>,
+    pub rdd_operation_graph: ::core::option::Option<::std::boxed::Box<RddOperationGraph>>,
 }
 
 /// AccumulableInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccumulableInfo {
     #[serde(default, rename = "accumullableInfoId")]
-    pub accumullable_info_id: Option<String>,
+    pub accumullable_info_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub update: Option<String>,
+    pub update: ::core::option::Option<String>,
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A request to analyze a batch workload.
@@ -154,10 +156,10 @@ pub struct AccumulableInfo {
 pub struct AnalyzeBatchRequest {
     /// Optional. A unique ID used to identify the request. If the service receives two AnalyzeBatchRequest (http://cloud/dataproc/docs/reference/rpc/google.cloud.dataproc.v1#google.cloud.dataproc.v1.AnalyzeBatchRequest)s with the same request_id, the second request is ignored and the Operation that corresponds to the first request created and stored in the backend is returned.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The value must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Optional. The requestor ID is used to identify if the request comes from a GCA investigation or the old Ask Gemini Experience.
     #[serde(default, rename = "requestorId")]
-    pub requestor_id: Option<String>,
+    pub requestor_id: ::core::option::Option<String>,
 }
 
 /// Metadata describing the Analyze operation.
@@ -165,77 +167,78 @@ pub struct AnalyzeBatchRequest {
 pub struct AnalyzeOperationMetadata {
     /// Output only. name of the workload being analyzed.
     #[serde(default, rename = "analyzedWorkloadName")]
-    pub analyzed_workload_name: Option<String>,
+    pub analyzed_workload_name: ::core::option::Option<String>,
     /// Output only. Type of the workload being analyzed. // TODO: enum values: ["WORKLOAD_TYPE_UNSPECIFIED", "BATCH"]
     #[serde(default, rename = "analyzedWorkloadType")]
-    pub analyzed_workload_type: Option<String>,
+    pub analyzed_workload_type: ::core::option::Option<String>,
     /// Output only. unique identifier of the workload typically generated by control plane. E.g. batch uuid.
     #[serde(default, rename = "analyzedWorkloadUuid")]
-    pub analyzed_workload_uuid: Option<String>,
+    pub analyzed_workload_uuid: ::core::option::Option<String>,
     /// Output only. The time when the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Short description of the operation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The time when the operation finished.
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
     /// Output only. Labels associated with the operation.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Warnings encountered during operation execution.
     #[serde(default)]
-    pub warnings: Option<Vec<String>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// AppSummary resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppSummary {
     #[serde(default, rename = "numCompletedJobs")]
-    pub num_completed_jobs: Option<i32>,
+    pub num_completed_jobs: ::core::option::Option<i32>,
     #[serde(default, rename = "numCompletedStages")]
-    pub num_completed_stages: Option<i32>,
+    pub num_completed_stages: ::core::option::Option<i32>,
 }
 
 /// Specific attempt of an application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApplicationAttemptInfo {
     #[serde(default, rename = "appSparkVersion")]
-    pub app_spark_version: Option<String>,
+    pub app_spark_version: ::core::option::Option<String>,
     #[serde(default, rename = "attemptId")]
-    pub attempt_id: Option<String>,
+    pub attempt_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub completed: Option<bool>,
+    pub completed: ::core::option::Option<bool>,
     #[serde(default, rename = "durationMillis")]
-    pub duration_millis: Option<String>,
+    pub duration_millis: ::core::option::Option<String>,
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     #[serde(default, rename = "lastUpdated")]
-    pub last_updated: Option<String>,
+    pub last_updated: ::core::option::Option<String>,
     #[serde(default, rename = "sparkUser")]
-    pub spark_user: Option<String>,
+    pub spark_user: ::core::option::Option<String>,
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Details about the Environment that the application is running in.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApplicationEnvironmentInfo {
     #[serde(default, rename = "classpathEntries")]
-    pub classpath_entries: Option<serde_json::Value>,
+    pub classpath_entries: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "hadoopProperties")]
-    pub hadoop_properties: Option<serde_json::Value>,
+    pub hadoop_properties: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "metricsProperties")]
-    pub metrics_properties: Option<serde_json::Value>,
+    pub metrics_properties: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "resourceProfiles")]
-    pub resource_profiles: Option<Vec<ResourceProfileInfo>>,
+    pub resource_profiles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceProfileInfo>>>,
     #[serde(default)]
-    pub runtime: Option<SparkRuntimeInfo>,
+    pub runtime: ::core::option::Option<::std::boxed::Box<SparkRuntimeInfo>>,
     #[serde(default, rename = "sparkProperties")]
-    pub spark_properties: Option<serde_json::Value>,
+    pub spark_properties: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "systemProperties")]
-    pub system_properties: Option<serde_json::Value>,
+    pub system_properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// High level information corresponding to an application.
@@ -243,24 +246,25 @@ pub struct ApplicationEnvironmentInfo {
 pub struct ApplicationInfo {
     /// TODO: enum values: ["APPLICATION_CONTEXT_INGESTION_STATUS_UNSPECIFIED", "APPLICATION_CONTEXT_INGESTION_STATUS_COMPLETED"]
     #[serde(default, rename = "applicationContextIngestionStatus")]
-    pub application_context_ingestion_status: Option<String>,
+    pub application_context_ingestion_status: ::core::option::Option<String>,
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub attempts: Option<Vec<ApplicationAttemptInfo>>,
+    pub attempts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApplicationAttemptInfo>>>,
     #[serde(default, rename = "coresGranted")]
-    pub cores_granted: Option<i32>,
+    pub cores_granted: ::core::option::Option<i32>,
     #[serde(default, rename = "coresPerExecutor")]
-    pub cores_per_executor: Option<i32>,
+    pub cores_per_executor: ::core::option::Option<i32>,
     #[serde(default, rename = "maxCores")]
-    pub max_cores: Option<i32>,
+    pub max_cores: ::core::option::Option<i32>,
     #[serde(default, rename = "memoryPerExecutorMb")]
-    pub memory_per_executor_mb: Option<i32>,
+    pub memory_per_executor_mb: ::core::option::Option<i32>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// TODO: enum values: ["QUANTILE_DATA_STATUS_UNSPECIFIED", "QUANTILE_DATA_STATUS_COMPLETED", "QUANTILE_DATA_STATUS_FAILED"]
     #[serde(default, rename = "quantileDataStatus")]
-    pub quantile_data_status: Option<String>,
+    pub quantile_data_status: ::core::option::Option<String>,
 }
 
 /// Specifies the config of attached disk options for single VM instance.
@@ -268,16 +272,16 @@ pub struct ApplicationInfo {
 pub struct AttachedDiskConfig {
     /// Optional. Disk size in GB.
     #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: Option<i32>,
+    pub disk_size_gb: ::core::option::Option<i32>,
     /// Optional. Disk type. // TODO: enum values: ["DISK_TYPE_UNSPECIFIED", "HYPERDISK_BALANCED", "HYPERDISK_EXTREME", "HYPERDISK_ML", "HYPERDISK_THROUGHPUT"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Optional. Indicates how many IOPS to provision for the attached disk. This sets the number of I/O operations per second that the disk can handle. See https://cloud.google.com/compute/docs/disks/hyperdisks#hyperdisk-features
     #[serde(default, rename = "provisionedIops")]
-    pub provisioned_iops: Option<String>,
+    pub provisioned_iops: ::core::option::Option<String>,
     /// Optional. Indicates how much throughput to provision for the attached disk. This sets the number of throughput mb per second that the disk can handle. See https://cloud.google.com/compute/docs/disks/hyperdisks#hyperdisk-features
     #[serde(default, rename = "provisionedThroughput")]
-    pub provisioned_throughput: Option<String>,
+    pub provisioned_throughput: ::core::option::Option<String>,
 }
 
 /// Authentication configuration for a workload is used to set the default identity for the workload execution. The config specifies the type of identity (service account or user) that will be used by workloads to access resources on the project(s).
@@ -285,7 +289,7 @@ pub struct AttachedDiskConfig {
 pub struct AuthenticationConfig {
     /// Optional. Authentication type for the user workload running in containers. // TODO: enum values: ["AUTHENTICATION_TYPE_UNSPECIFIED", "SERVICE_ACCOUNT", "END_USER_CREDENTIALS"]
     #[serde(default, rename = "userWorkloadAuthenticationType")]
-    pub user_workload_authentication_type: Option<String>,
+    pub user_workload_authentication_type: ::core::option::Option<String>,
 }
 
 /// Autoscaling Policy config associated with the cluster.
@@ -293,32 +297,34 @@ pub struct AuthenticationConfig {
 pub struct AutoscalingConfig {
     /// Optional. The autoscaling policy used by the cluster.Only resource names including projectid and location (region) are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/locations/[dataproc_region]/autoscalingPolicies/[policy_id] projects/[project_id]/locations/[dataproc_region]/autoscalingPolicies/[policy_id]Note that the policy must be in the same project and Dataproc region.
     #[serde(default, rename = "policyUri")]
-    pub policy_uri: Option<String>,
+    pub policy_uri: ::core::option::Option<String>,
 }
 
 /// Describes an autoscaling policy for Dataproc cluster autoscaler.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AutoscalingPolicy {
     #[serde(default, rename = "basicAlgorithm")]
-    pub basic_algorithm: Option<BasicAutoscalingAlgorithm>,
+    pub basic_algorithm: ::core::option::Option<::std::boxed::Box<BasicAutoscalingAlgorithm>>,
     /// Optional. The type of the clusters for which this autoscaling policy is to be configured. // TODO: enum values: ["CLUSTER_TYPE_UNSPECIFIED", "STANDARD", "ZERO_SCALE"]
     #[serde(default, rename = "clusterType")]
-    pub cluster_type: Option<String>,
+    pub cluster_type: ::core::option::Option<String>,
     /// Required. The policy id.The id must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). Cannot begin or end with underscore or hyphen. Must consist of between 3 and 50 characters.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. The labels to associate with this autoscaling policy. Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values may be empty, but, if present, must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with an autoscaling policy.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The "resource name" of the autoscaling policy, as described in https://cloud.google.com/apis/design/resource_names. For projects.regions.autoscalingPolicies, the resource name of the policy has the following format: projects/{project_id}/regions/{region}/autoscalingPolicies/{policy_id} For projects.locations.autoscalingPolicies, the resource name of the policy has the following format: projects/{project_id}/locations/{location}/autoscalingPolicies/{policy_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Describes how the autoscaler will operate for secondary workers.
     #[serde(default, rename = "secondaryWorkerConfig")]
-    pub secondary_worker_config: Option<InstanceGroupAutoscalingPolicyConfig>,
+    pub secondary_worker_config:
+        ::core::option::Option<::std::boxed::Box<InstanceGroupAutoscalingPolicyConfig>>,
     /// Required. Describes how the autoscaler will operate for primary workers.
     #[serde(default, rename = "workerConfig")]
-    pub worker_config: Option<InstanceGroupAutoscalingPolicyConfig>,
+    pub worker_config:
+        ::core::option::Option<::std::boxed::Box<InstanceGroupAutoscalingPolicyConfig>>,
 }
 
 /// Autotuning configuration of the workload.
@@ -326,7 +332,7 @@ pub struct AutoscalingPolicy {
 pub struct AutotuningConfig {
     /// Optional. Scenarios for which tunings are applied.
     #[serde(default)]
-    pub scenarios: Option<Vec<String>>,
+    pub scenarios: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Node group identification and configuration information.
@@ -334,10 +340,10 @@ pub struct AutotuningConfig {
 pub struct AuxiliaryNodeGroup {
     /// Required. Node group configuration.
     #[serde(default, rename = "nodeGroup")]
-    pub node_group: Option<NodeGroup>,
+    pub node_group: ::core::option::Option<::std::boxed::Box<NodeGroup>>,
     /// Optional. A node group ID. Generated if not specified.The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). Cannot begin or end with underscore or hyphen. Must consist of from 3 to 33 characters.
     #[serde(default, rename = "nodeGroupId")]
-    pub node_group_id: Option<String>,
+    pub node_group_id: ::core::option::Option<String>,
 }
 
 /// Auxiliary services configuration for a Cluster.
@@ -345,10 +351,11 @@ pub struct AuxiliaryNodeGroup {
 pub struct AuxiliaryServicesConfig {
     /// Optional. The Hive Metastore configuration for this workload.
     #[serde(default, rename = "metastoreConfig")]
-    pub metastore_config: Option<MetastoreConfig>,
+    pub metastore_config: ::core::option::Option<::std::boxed::Box<MetastoreConfig>>,
     /// Optional. The Spark History Server configuration for the workload.
     #[serde(default, rename = "sparkHistoryServerConfig")]
-    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
+    pub spark_history_server_config:
+        ::core::option::Option<::std::boxed::Box<SparkHistoryServerConfig>>,
 }
 
 /// Basic algorithm for autoscaling.
@@ -356,13 +363,14 @@ pub struct AuxiliaryServicesConfig {
 pub struct BasicAutoscalingAlgorithm {
     /// Optional. Duration between scaling events. A scaling period starts after the update operation from the previous event has completed.Bounds: 2m, 1d. Default: 2m.
     #[serde(default, rename = "cooldownPeriod")]
-    pub cooldown_period: Option<String>,
+    pub cooldown_period: ::core::option::Option<String>,
     /// Optional. Spark Standalone autoscaling configuration
     #[serde(default, rename = "sparkStandaloneConfig")]
-    pub spark_standalone_config: Option<SparkStandaloneAutoscalingConfig>,
+    pub spark_standalone_config:
+        ::core::option::Option<::std::boxed::Box<SparkStandaloneAutoscalingConfig>>,
     /// Optional. YARN autoscaling configuration.
     #[serde(default, rename = "yarnConfig")]
-    pub yarn_config: Option<BasicYarnAutoscalingConfig>,
+    pub yarn_config: ::core::option::Option<::std::boxed::Box<BasicYarnAutoscalingConfig>>,
 }
 
 /// Basic autoscaling configurations for YARN.
@@ -370,19 +378,19 @@ pub struct BasicAutoscalingAlgorithm {
 pub struct BasicYarnAutoscalingConfig {
     /// Required. Timeout for YARN graceful decommissioning of Node Managers. Specifies the duration to wait for jobs to complete before forcefully removing workers (and potentially interrupting jobs). Only applicable to downscaling operations.Bounds: 0s, 1d.
     #[serde(default, rename = "gracefulDecommissionTimeout")]
-    pub graceful_decommission_timeout: Option<String>,
+    pub graceful_decommission_timeout: ::core::option::Option<String>,
     /// Required. Fraction of average YARN pending memory in the last cooldown period for which to remove workers. A scale-down factor of 1 will result in scaling down so that there is no available memory remaining after the update (more aggressive scaling). A scale-down factor of 0 disables removing workers, which can be beneficial for autoscaling a single job. See How autoscaling works (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/autoscaling#how_autoscaling_works) for more information.Bounds: 0.0, 1.0.
     #[serde(default, rename = "scaleDownFactor")]
-    pub scale_down_factor: Option<f64>,
+    pub scale_down_factor: ::core::option::Option<f64>,
     /// Optional. Minimum scale-down threshold as a fraction of total cluster size before scaling occurs. For example, in a 20-worker cluster, a threshold of 0.1 means the autoscaler must recommend at least a 2 worker scale-down for the cluster to scale. A threshold of 0 means the autoscaler will scale down on any recommended change.Bounds: 0.0, 1.0. Default: 0.0.
     #[serde(default, rename = "scaleDownMinWorkerFraction")]
-    pub scale_down_min_worker_fraction: Option<f64>,
+    pub scale_down_min_worker_fraction: ::core::option::Option<f64>,
     /// Required. Fraction of average YARN pending memory in the last cooldown period for which to add workers. A scale-up factor of 1.0 will result in scaling up so that there is no pending memory remaining after the update (more aggressive scaling). A scale-up factor closer to 0 will result in a smaller magnitude of scaling up (less aggressive scaling). See How autoscaling works (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/autoscaling#how_autoscaling_works) for more information.Bounds: 0.0, 1.0.
     #[serde(default, rename = "scaleUpFactor")]
-    pub scale_up_factor: Option<f64>,
+    pub scale_up_factor: ::core::option::Option<f64>,
     /// Optional. Minimum scale-up threshold as a fraction of total cluster size before scaling occurs. For example, in a 20-worker cluster, a threshold of 0.1 means the autoscaler must recommend at least a 2-worker scale-up for the cluster to scale. A threshold of 0 means the autoscaler will scale up on any recommended change.Bounds: 0.0, 1.0. Default: 0.0.
     #[serde(default, rename = "scaleUpMinWorkerFraction")]
-    pub scale_up_min_worker_fraction: Option<f64>,
+    pub scale_up_min_worker_fraction: ::core::option::Option<f64>,
 }
 
 /// A representation of a batch workload in the service.
@@ -390,55 +398,55 @@ pub struct BasicYarnAutoscalingConfig {
 pub struct Batch {
     /// Output only. The time when the batch was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The email address of the user who created the batch.
     #[serde(default)]
-    pub creator: Option<String>,
+    pub creator: ::core::option::Option<String>,
     /// Optional. Environment configuration for the batch execution.
     #[serde(default, rename = "environmentConfig")]
-    pub environment_config: Option<EnvironmentConfig>,
+    pub environment_config: ::core::option::Option<::std::boxed::Box<EnvironmentConfig>>,
     /// Optional. The labels to associate with this batch. Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values may be empty, but, if present, must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a batch.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The resource name of the batch.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The resource name of the operation associated with this batch.
     #[serde(default)]
-    pub operation: Option<String>,
+    pub operation: ::core::option::Option<String>,
     /// Optional. PySpark batch config.
     #[serde(default, rename = "pysparkBatch")]
-    pub pyspark_batch: Option<PySparkBatch>,
+    pub pyspark_batch: ::core::option::Option<::std::boxed::Box<PySparkBatch>>,
     /// Optional. Runtime configuration for the batch execution.
     #[serde(default, rename = "runtimeConfig")]
-    pub runtime_config: Option<RuntimeConfig>,
+    pub runtime_config: ::core::option::Option<::std::boxed::Box<RuntimeConfig>>,
     /// Output only. Runtime information about batch execution.
     #[serde(default, rename = "runtimeInfo")]
-    pub runtime_info: Option<RuntimeInfo>,
+    pub runtime_info: ::core::option::Option<::std::boxed::Box<RuntimeInfo>>,
     /// Optional. Spark batch config.
     #[serde(default, rename = "sparkBatch")]
-    pub spark_batch: Option<SparkBatch>,
+    pub spark_batch: ::core::option::Option<::std::boxed::Box<SparkBatch>>,
     /// Optional. SparkR batch config.
     #[serde(default, rename = "sparkRBatch")]
-    pub spark_r_batch: Option<SparkRBatch>,
+    pub spark_r_batch: ::core::option::Option<::std::boxed::Box<SparkRBatch>>,
     /// Optional. SparkSql batch config.
     #[serde(default, rename = "sparkSqlBatch")]
-    pub spark_sql_batch: Option<SparkSqlBatch>,
+    pub spark_sql_batch: ::core::option::Option<::std::boxed::Box<SparkSqlBatch>>,
     /// Output only. The state of the batch. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "RUNNING", "CANCELLING", "CANCELLED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Historical state information for the batch.
     #[serde(default, rename = "stateHistory")]
-    pub state_history: Option<Vec<StateHistory>>,
+    pub state_history: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StateHistory>>>,
     /// Output only. Batch state details, such as a failure description if the state is FAILED.
     #[serde(default, rename = "stateMessage")]
-    pub state_message: Option<String>,
+    pub state_message: ::core::option::Option<String>,
     /// Output only. The time when the batch entered a current state.
     #[serde(default, rename = "stateTime")]
-    pub state_time: Option<String>,
+    pub state_time: ::core::option::Option<String>,
     /// Output only. A batch UUID (Unique Universal Identifier). The service generates this value when it creates the batch.
     #[serde(default)]
-    pub uuid: Option<String>,
+    pub uuid: ::core::option::Option<String>,
 }
 
 /// Metadata describing the Batch operation.
@@ -446,28 +454,28 @@ pub struct Batch {
 pub struct BatchOperationMetadata {
     /// Name of the batch for the operation.
     #[serde(default)]
-    pub batch: Option<String>,
+    pub batch: ::core::option::Option<String>,
     /// Batch UUID for the operation.
     #[serde(default, rename = "batchUuid")]
-    pub batch_uuid: Option<String>,
+    pub batch_uuid: ::core::option::Option<String>,
     /// The time when the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Short description of the operation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The time when the operation finished.
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
     /// Labels associated with the operation.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The operation type. // TODO: enum values: ["BATCH_OPERATION_TYPE_UNSPECIFIED", "BATCH"]
     #[serde(default, rename = "operationType")]
-    pub operation_type: Option<String>,
+    pub operation_type: ::core::option::Option<String>,
     /// Warnings encountered during operation execution.
     #[serde(default)]
-    pub warnings: Option<Vec<String>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Associates members, or principals, with a role.
@@ -475,13 +483,13 @@ pub struct BatchOperationMetadata {
 pub struct Binding {
     /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a Kubernetes service account (https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. group:{emailid}: An email address that represents a Google group. For example, admins@example.com. domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner.For an overview of the IAM roles and permissions, see the IAM documentation (https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see here (https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Native Build Info
@@ -489,10 +497,10 @@ pub struct Binding {
 pub struct BuildInfo {
     /// Optional. Build key.
     #[serde(default, rename = "buildKey")]
-    pub build_key: Option<String>,
+    pub build_key: ::core::option::Option<String>,
     /// Optional. Build value.
     #[serde(default, rename = "buildValue")]
-    pub build_value: Option<String>,
+    pub build_value: ::core::option::Option<String>,
 }
 
 /// Describes the identifying information, config, and status of a Dataproc cluster
@@ -500,31 +508,31 @@ pub struct BuildInfo {
 pub struct Cluster {
     /// Required. The cluster name, which must be unique within a project. The name must start with a lowercase letter, and can contain up to 51 lowercase letters, numbers, and hyphens. It cannot end with a hyphen. The name of a deleted cluster can be reused.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// Output only. A cluster UUID (Unique Universal Identifier). Dataproc generates this value when it creates the cluster.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
     /// Optional. The cluster config for a cluster of Compute Engine Instances. Note that Dataproc may set default values, and values may change when clusters are updated.Exactly one of ClusterConfig or VirtualClusterConfig must be specified.
     #[serde(default)]
-    pub config: Option<ClusterConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<ClusterConfig>>,
     /// Optional. The labels to associate with this cluster. Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values may be empty, but, if present, must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a cluster.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Contains cluster daemon metrics such as HDFS and YARN stats.Beta Feature: This report is available for testing purposes only. It may be changed before final release.
     #[serde(default)]
-    pub metrics: Option<ClusterMetrics>,
+    pub metrics: ::core::option::Option<::std::boxed::Box<ClusterMetrics>>,
     /// Required. The Google Cloud Platform project ID that the cluster belongs to.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Output only. Cluster status.
     #[serde(default)]
-    pub status: Option<ClusterStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ClusterStatus>>,
     /// Output only. The previous cluster status.
     #[serde(default, rename = "statusHistory")]
-    pub status_history: Option<Vec<ClusterStatus>>,
+    pub status_history: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClusterStatus>>>,
     /// Optional. The virtual cluster config is used when creating a Dataproc cluster that does not directly control the underlying compute resources, for example, when creating a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/guides/dpgke/dataproc-gke-overview). Dataproc may set default values, and values may change when clusters are updated. Exactly one of config or virtual_cluster_config must be specified.
     #[serde(default, rename = "virtualClusterConfig")]
-    pub virtual_cluster_config: Option<VirtualClusterConfig>,
+    pub virtual_cluster_config: ::core::option::Option<::std::boxed::Box<VirtualClusterConfig>>,
 }
 
 /// The cluster config.
@@ -532,67 +540,69 @@ pub struct Cluster {
 pub struct ClusterConfig {
     /// Optional. Autoscaling config for the policy associated with the cluster. Cluster does not autoscale if this field is unset.
     #[serde(default, rename = "autoscalingConfig")]
-    pub autoscaling_config: Option<AutoscalingConfig>,
+    pub autoscaling_config: ::core::option::Option<::std::boxed::Box<AutoscalingConfig>>,
     /// Optional. The node group settings.
     #[serde(default, rename = "auxiliaryNodeGroups")]
-    pub auxiliary_node_groups: Option<Vec<AuxiliaryNodeGroup>>,
+    pub auxiliary_node_groups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuxiliaryNodeGroup>>>,
     /// Optional. The cluster tier. // TODO: enum values: ["CLUSTER_TIER_UNSPECIFIED", "CLUSTER_TIER_STANDARD", "CLUSTER_TIER_PREMIUM"]
     #[serde(default, rename = "clusterTier")]
-    pub cluster_tier: Option<String>,
+    pub cluster_tier: ::core::option::Option<String>,
     /// Optional. The type of the cluster. // TODO: enum values: ["CLUSTER_TYPE_UNSPECIFIED", "STANDARD", "SINGLE_NODE", "ZERO_SCALE"]
     #[serde(default, rename = "clusterType")]
-    pub cluster_type: Option<String>,
+    pub cluster_type: ::core::option::Option<String>,
     /// Optional. A Cloud Storage bucket used to stage job dependencies, config files, and job driver console output. If you do not specify a staging bucket, Cloud Dataproc will determine a Cloud Storage location (US, ASIA, or EU) for your cluster''s staging bucket according to the Compute Engine zone where your cluster is deployed, and then create and manage this project-level, per-location bucket (see Dataproc staging and temp buckets (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket)). This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.
     #[serde(default, rename = "configBucket")]
-    pub config_bucket: Option<String>,
+    pub config_bucket: ::core::option::Option<String>,
     /// Optional. The config for Dataproc metrics.
     #[serde(default, rename = "dataprocMetricConfig")]
-    pub dataproc_metric_config: Option<DataprocMetricConfig>,
+    pub dataproc_metric_config: ::core::option::Option<::std::boxed::Box<DataprocMetricConfig>>,
     /// Optional. A Cloud Storage bucket used to collect checkpoint diagnostic data (https://cloud.google.com/dataproc/docs/support/diagnose-clusters#checkpoint_diagnostic_data). If you do not specify a diagnostic bucket, Cloud Dataproc will use the Dataproc temp bucket to collect the checkpoint diagnostic data. This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.
     #[serde(default, rename = "diagnosticBucket")]
-    pub diagnostic_bucket: Option<String>,
+    pub diagnostic_bucket: ::core::option::Option<String>,
     /// Optional. Encryption settings for the cluster.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<EncryptionConfig>,
+    pub encryption_config: ::core::option::Option<::std::boxed::Box<EncryptionConfig>>,
     /// Optional. Port/endpoint configuration for this cluster
     #[serde(default, rename = "endpointConfig")]
-    pub endpoint_config: Option<EndpointConfig>,
+    pub endpoint_config: ::core::option::Option<::std::boxed::Box<EndpointConfig>>,
     /// Optional. The cluster engine. // TODO: enum values: ["ENGINE_UNSPECIFIED", "DEFAULT", "LIGHTNING"]
     #[serde(default)]
-    pub engine: Option<String>,
+    pub engine: ::core::option::Option<String>,
     /// Optional. The shared Compute Engine config settings for all instances in a cluster.
     #[serde(default, rename = "gceClusterConfig")]
-    pub gce_cluster_config: Option<GceClusterConfig>,
+    pub gce_cluster_config: ::core::option::Option<::std::boxed::Box<GceClusterConfig>>,
     /// Optional. BETA. The Kubernetes Engine config for Dataproc clusters deployed to The Kubernetes Engine config for Dataproc clusters deployed to Kubernetes. These config settings are mutually exclusive with Compute Engine-based options, such as gce_cluster_config, master_config, worker_config, secondary_worker_config, and autoscaling_config.
     #[serde(default, rename = "gkeClusterConfig")]
-    pub gke_cluster_config: Option<GkeClusterConfig>,
+    pub gke_cluster_config: ::core::option::Option<::std::boxed::Box<GkeClusterConfig>>,
     /// Optional. Commands to execute on each node after config is completed. By default, executables are run on master and all worker nodes. You can test a node''s role metadata to run an executable on a master or worker node, as shown below using curl (you can also use wget): ROLE=$(curl -H Metadata-Flavor:Google http://metadata/computeMetadata/v1/instance/attributes/dataproc-role) if [[ "${ROLE}" == ''Master'' ]]; then ... master specific actions ... else ... worker specific actions ... fi
     #[serde(default, rename = "initializationActions")]
-    pub initialization_actions: Option<Vec<NodeInitializationAction>>,
+    pub initialization_actions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NodeInitializationAction>>>,
     /// Optional. Lifecycle setting for the cluster.
     #[serde(default, rename = "lifecycleConfig")]
-    pub lifecycle_config: Option<LifecycleConfig>,
+    pub lifecycle_config: ::core::option::Option<::std::boxed::Box<LifecycleConfig>>,
     /// Optional. The Compute Engine config settings for the cluster''s master instance.
     #[serde(default, rename = "masterConfig")]
-    pub master_config: Option<InstanceGroupConfig>,
+    pub master_config: ::core::option::Option<::std::boxed::Box<InstanceGroupConfig>>,
     /// Optional. Metastore configuration.
     #[serde(default, rename = "metastoreConfig")]
-    pub metastore_config: Option<MetastoreConfig>,
+    pub metastore_config: ::core::option::Option<::std::boxed::Box<MetastoreConfig>>,
     /// Optional. The Compute Engine config settings for a cluster''s secondary worker instances
     #[serde(default, rename = "secondaryWorkerConfig")]
-    pub secondary_worker_config: Option<InstanceGroupConfig>,
+    pub secondary_worker_config: ::core::option::Option<::std::boxed::Box<InstanceGroupConfig>>,
     /// Optional. Security settings for the cluster.
     #[serde(default, rename = "securityConfig")]
-    pub security_config: Option<SecurityConfig>,
+    pub security_config: ::core::option::Option<::std::boxed::Box<SecurityConfig>>,
     /// Optional. The config settings for cluster software.
     #[serde(default, rename = "softwareConfig")]
-    pub software_config: Option<SoftwareConfig>,
+    pub software_config: ::core::option::Option<::std::boxed::Box<SoftwareConfig>>,
     /// Optional. A Cloud Storage bucket used to store ephemeral cluster and jobs data, such as Spark and MapReduce history files. If you do not specify a temp bucket, Dataproc will determine a Cloud Storage location (US, ASIA, or EU) for your cluster''s temp bucket according to the Compute Engine zone where your cluster is deployed, and then create and manage this project-level, per-location bucket. The default bucket has a TTL of 90 days, but you can use any TTL (or none) if you specify a bucket (see Dataproc staging and temp buckets (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket)). This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.
     #[serde(default, rename = "tempBucket")]
-    pub temp_bucket: Option<String>,
+    pub temp_bucket: ::core::option::Option<String>,
     /// Optional. The Compute Engine config settings for the cluster''s worker instances.
     #[serde(default, rename = "workerConfig")]
-    pub worker_config: Option<InstanceGroupConfig>,
+    pub worker_config: ::core::option::Option<::std::boxed::Box<InstanceGroupConfig>>,
 }
 
 /// Contains cluster daemon metrics, such as HDFS and YARN stats.Beta Feature: This report is available for testing purposes only. It may be changed before final release.
@@ -600,10 +610,10 @@ pub struct ClusterConfig {
 pub struct ClusterMetrics {
     /// The HDFS metrics.
     #[serde(default, rename = "hdfsMetrics")]
-    pub hdfs_metrics: Option<serde_json::Value>,
+    pub hdfs_metrics: ::core::option::Option<serde_json::Value>,
     /// YARN metrics.
     #[serde(default, rename = "yarnMetrics")]
-    pub yarn_metrics: Option<serde_json::Value>,
+    pub yarn_metrics: ::core::option::Option<serde_json::Value>,
 }
 
 /// The cluster operation triggered by a workflow.
@@ -611,13 +621,13 @@ pub struct ClusterMetrics {
 pub struct ClusterOperation {
     /// Output only. Indicates the operation is done.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// Output only. Error, if operation failed.
     #[serde(default)]
-    pub error: Option<String>,
+    pub error: ::core::option::Option<String>,
     /// Output only. The id of the cluster operation.
     #[serde(default, rename = "operationId")]
-    pub operation_id: Option<String>,
+    pub operation_id: ::core::option::Option<String>,
 }
 
 /// Metadata describing the operation.
@@ -625,31 +635,32 @@ pub struct ClusterOperation {
 pub struct ClusterOperationMetadata {
     /// Output only. Child operation ids
     #[serde(default, rename = "childOperationIds")]
-    pub child_operation_ids: Option<Vec<String>>,
+    pub child_operation_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. Name of the cluster for the operation.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// Output only. Cluster UUID for the operation.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
     /// Output only. Short description of operation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Labels associated with the operation
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The operation type.
     #[serde(default, rename = "operationType")]
-    pub operation_type: Option<String>,
+    pub operation_type: ::core::option::Option<String>,
     /// Output only. Current operation status.
     #[serde(default)]
-    pub status: Option<ClusterOperationStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ClusterOperationStatus>>,
     /// Output only. The previous operation status.
     #[serde(default, rename = "statusHistory")]
-    pub status_history: Option<Vec<ClusterOperationStatus>>,
+    pub status_history:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClusterOperationStatus>>>,
     /// Output only. Errors encountered during operation execution.
     #[serde(default)]
-    pub warnings: Option<Vec<String>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The status of the operation.
@@ -657,16 +668,16 @@ pub struct ClusterOperationMetadata {
 pub struct ClusterOperationStatus {
     /// Output only. A message containing any operation metadata details.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// Output only. A message containing the detailed operation state.
     #[serde(default, rename = "innerState")]
-    pub inner_state: Option<String>,
+    pub inner_state: ::core::option::Option<String>,
     /// Output only. A message containing the operation state. // TODO: enum values: ["UNKNOWN", "PENDING", "RUNNING", "DONE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time this state was entered.
     #[serde(default, rename = "stateStartTime")]
-    pub state_start_time: Option<String>,
+    pub state_start_time: ::core::option::Option<String>,
 }
 
 /// A selector that chooses target cluster for jobs based on metadata.
@@ -674,10 +685,10 @@ pub struct ClusterOperationStatus {
 pub struct ClusterSelector {
     /// Required. The cluster labels. Cluster must have all labels to match.
     #[serde(default, rename = "clusterLabels")]
-    pub cluster_labels: Option<serde_json::Value>,
+    pub cluster_labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The zone where workflow process executes. This parameter does not affect the selection of the cluster.If unspecified, the zone of the first cluster matching the selector is used.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// The status of a cluster and its instances.
@@ -685,16 +696,16 @@ pub struct ClusterSelector {
 pub struct ClusterStatus {
     /// Optional. Output only. Details of cluster''s state.
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     /// Output only. The cluster''s state. // TODO: enum values: ["UNKNOWN", "CREATING", "RUNNING", "ERROR", "ERROR_DUE_TO_UPDATE", "DELETING", "UPDATING", "STOPPING", "STOPPED", "STARTING", "REPAIRING", "SCHEDULED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Time when this state was entered (see JSON representation of Timestamp (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "stateStartTime")]
-    pub state_start_time: Option<String>,
+    pub state_start_time: ::core::option::Option<String>,
     /// Output only. Additional state information that includes status reported by the agent. // TODO: enum values: ["UNSPECIFIED", "UNHEALTHY", "STALE_STATUS"]
     #[serde(default)]
-    pub substate: Option<String>,
+    pub substate: ::core::option::Option<String>,
 }
 
 /// Cluster to be repaired
@@ -702,7 +713,7 @@ pub struct ClusterStatus {
 pub struct ClusterToRepair {
     /// Required. Repair action to take on the cluster resource. // TODO: enum values: ["CLUSTER_REPAIR_ACTION_UNSPECIFIED", "REPAIR_ERROR_DUE_TO_UPDATE_CLUSTER"]
     #[serde(default, rename = "clusterRepairAction")]
-    pub cluster_repair_action: Option<String>,
+    pub cluster_repair_action: ::core::option::Option<String>,
 }
 
 /// Information about the cohort that the workload belongs to.
@@ -710,10 +721,10 @@ pub struct ClusterToRepair {
 pub struct CohortInfo {
     /// Output only. Final cohort that was used to tune the workload.
     #[serde(default)]
-    pub cohort: Option<String>,
+    pub cohort: ::core::option::Option<String>,
     /// Output only. Source of the cohort. // TODO: enum values: ["COHORT_SOURCE_UNSPECIFIED", "USER_PROVIDED", "AIRFLOW"]
     #[serde(default, rename = "cohortSource")]
-    pub cohort_source: Option<String>,
+    pub cohort_source: ::core::option::Option<String>,
 }
 
 /// Confidential Instance Config for clusters using Confidential VMs (https://cloud.google.com/compute/confidential-vm/docs)
@@ -721,46 +732,46 @@ pub struct CohortInfo {
 pub struct ConfidentialInstanceConfig {
     /// Optional. Defines whether the instance should have confidential compute enabled.
     #[serde(default, rename = "enableConfidentialCompute")]
-    pub enable_confidential_compute: Option<bool>,
+    pub enable_confidential_compute: ::core::option::Option<bool>,
 }
 
 /// Consolidated summary about executors used by the application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsolidatedExecutorSummary {
     #[serde(default, rename = "activeTasks")]
-    pub active_tasks: Option<i32>,
+    pub active_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "completedTasks")]
-    pub completed_tasks: Option<i32>,
+    pub completed_tasks: ::core::option::Option<i32>,
     #[serde(default)]
-    pub count: Option<i32>,
+    pub count: ::core::option::Option<i32>,
     #[serde(default, rename = "diskUsed")]
-    pub disk_used: Option<String>,
+    pub disk_used: ::core::option::Option<String>,
     #[serde(default, rename = "failedTasks")]
-    pub failed_tasks: Option<i32>,
+    pub failed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "isExcluded")]
-    pub is_excluded: Option<i32>,
+    pub is_excluded: ::core::option::Option<i32>,
     #[serde(default, rename = "maxMemory")]
-    pub max_memory: Option<String>,
+    pub max_memory: ::core::option::Option<String>,
     #[serde(default, rename = "memoryMetrics")]
-    pub memory_metrics: Option<MemoryMetrics>,
+    pub memory_metrics: ::core::option::Option<::std::boxed::Box<MemoryMetrics>>,
     #[serde(default, rename = "memoryUsed")]
-    pub memory_used: Option<String>,
+    pub memory_used: ::core::option::Option<String>,
     #[serde(default, rename = "rddBlocks")]
-    pub rdd_blocks: Option<i32>,
+    pub rdd_blocks: ::core::option::Option<i32>,
     #[serde(default, rename = "totalCores")]
-    pub total_cores: Option<i32>,
+    pub total_cores: ::core::option::Option<i32>,
     #[serde(default, rename = "totalDurationMillis")]
-    pub total_duration_millis: Option<String>,
+    pub total_duration_millis: ::core::option::Option<String>,
     #[serde(default, rename = "totalGcTimeMillis")]
-    pub total_gc_time_millis: Option<String>,
+    pub total_gc_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "totalInputBytes")]
-    pub total_input_bytes: Option<String>,
+    pub total_input_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "totalShuffleRead")]
-    pub total_shuffle_read: Option<String>,
+    pub total_shuffle_read: ::core::option::Option<String>,
     #[serde(default, rename = "totalShuffleWrite")]
-    pub total_shuffle_write: Option<String>,
+    pub total_shuffle_write: ::core::option::Option<String>,
     #[serde(default, rename = "totalTasks")]
-    pub total_tasks: Option<i32>,
+    pub total_tasks: ::core::option::Option<i32>,
 }
 
 /// Dataproc metric config.
@@ -768,7 +779,7 @@ pub struct ConsolidatedExecutorSummary {
 pub struct DataprocMetricConfig {
     /// Required. Metrics sources to enable.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
 }
 
 /// A request to collect cluster diagnostic information.
@@ -776,25 +787,25 @@ pub struct DataprocMetricConfig {
 pub struct DiagnoseClusterRequest {
     /// Optional. Time interval in which diagnosis should be carried out on the cluster.
     #[serde(default, rename = "diagnosisInterval")]
-    pub diagnosis_interval: Option<Interval>,
+    pub diagnosis_interval: ::core::option::Option<::std::boxed::Box<Interval>>,
     /// Optional. DEPRECATED Specifies the job on which diagnosis is to be performed. Format: projects/{project}/regions/{region}/jobs/{job}
     #[serde(default)]
-    pub job: Option<String>,
+    pub job: ::core::option::Option<String>,
     /// Optional. Specifies a list of jobs on which diagnosis is to be performed. Format: projects/{project}/regions/{region}/jobs/{job}
     #[serde(default)]
-    pub jobs: Option<Vec<String>>,
+    pub jobs: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. (Optional) The access type to the diagnostic tarball. If not specified, falls back to default access of the bucket // TODO: enum values: ["TARBALL_ACCESS_UNSPECIFIED", "GOOGLE_CLOUD_SUPPORT", "GOOGLE_DATAPROC_DIAGNOSE"]
     #[serde(default, rename = "tarballAccess")]
-    pub tarball_access: Option<String>,
+    pub tarball_access: ::core::option::Option<String>,
     /// Optional. (Optional) The output Cloud Storage directory for the diagnostic tarball. If not specified, a task-specific directory in the cluster''s staging bucket will be used.
     #[serde(default, rename = "tarballGcsDir")]
-    pub tarball_gcs_dir: Option<String>,
+    pub tarball_gcs_dir: ::core::option::Option<String>,
     /// Optional. DEPRECATED Specifies the yarn application on which diagnosis is to be performed.
     #[serde(default, rename = "yarnApplicationId")]
-    pub yarn_application_id: Option<String>,
+    pub yarn_application_id: ::core::option::Option<String>,
     /// Optional. Specifies a list of yarn applications on which diagnosis is to be performed.
     #[serde(default, rename = "yarnApplicationIds")]
-    pub yarn_application_ids: Option<Vec<String>>,
+    pub yarn_application_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The location of diagnostic output.
@@ -802,7 +813,7 @@ pub struct DiagnoseClusterRequest {
 pub struct DiagnoseClusterResults {
     /// Output only. The Cloud Storage URI of the diagnostic output. The output report is a plain text file with a summary of collected diagnostics.
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
 }
 
 /// Specifies the config of boot disk and attached disk options for a group of VM instances.
@@ -810,25 +821,26 @@ pub struct DiagnoseClusterResults {
 pub struct DiskConfig {
     /// Optional. A list of attached disk configs for a group of VM instances.
     #[serde(default, rename = "attachedDiskConfigs")]
-    pub attached_disk_configs: Option<Vec<AttachedDiskConfig>>,
+    pub attached_disk_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AttachedDiskConfig>>>,
     /// Optional. Indicates how many IOPS to provision for the disk. This sets the number of I/O operations per second that the disk can handle. This field is supported only if boot_disk_type is hyperdisk-balanced.
     #[serde(default, rename = "bootDiskProvisionedIops")]
-    pub boot_disk_provisioned_iops: Option<String>,
+    pub boot_disk_provisioned_iops: ::core::option::Option<String>,
     /// Optional. Indicates how much throughput to provision for the disk. This sets the number of throughput mb per second that the disk can handle. Values must be greater than or equal to 1. This field is supported only if boot_disk_type is hyperdisk-balanced.
     #[serde(default, rename = "bootDiskProvisionedThroughput")]
-    pub boot_disk_provisioned_throughput: Option<String>,
+    pub boot_disk_provisioned_throughput: ::core::option::Option<String>,
     /// Optional. Size in GB of the boot disk (default is 500GB).
     #[serde(default, rename = "bootDiskSizeGb")]
-    pub boot_disk_size_gb: Option<i32>,
+    pub boot_disk_size_gb: ::core::option::Option<i32>,
     /// Optional. Type of the boot disk (default is "pd-standard"). Valid values: "pd-balanced" (Persistent Disk Balanced Solid State Drive), "pd-ssd" (Persistent Disk Solid State Drive), or "pd-standard" (Persistent Disk Hard Disk Drive). See Disk types (https://cloud.google.com/compute/docs/disks#disk-types).
     #[serde(default, rename = "bootDiskType")]
-    pub boot_disk_type: Option<String>,
+    pub boot_disk_type: ::core::option::Option<String>,
     /// Optional. Interface type of local SSDs (default is "scsi"). Valid values: "scsi" (Small Computer System Interface), "nvme" (Non-Volatile Memory Express). See local SSD performance (https://cloud.google.com/compute/docs/disks/local-ssd#performance).
     #[serde(default, rename = "localSsdInterface")]
-    pub local_ssd_interface: Option<String>,
+    pub local_ssd_interface: ::core::option::Option<String>,
     /// Optional. Number of attached SSDs, from 0 to 8 (default is 0). If SSDs are not attached, the boot disk is used to store runtime logs and HDFS (https://hadoop.apache.org/docs/r1.2.1/hdfs_user_guide.html) data. If one or more SSDs are attached, this runtime bulk data is spread across them, and the boot disk contains only basic config and installed binaries.Note: Local SSD options may vary by machine type and number of vCPUs selected.
     #[serde(default, rename = "numLocalSsds")]
-    pub num_local_ssds: Option<i32>,
+    pub num_local_ssds: ::core::option::Option<i32>,
 }
 
 /// Driver scheduling configuration.
@@ -836,10 +848,10 @@ pub struct DiskConfig {
 pub struct DriverSchedulingConfig {
     /// Required. The amount of memory in MB the driver is requesting.
     #[serde(default, rename = "memoryMb")]
-    pub memory_mb: Option<i32>,
+    pub memory_mb: ::core::option::Option<i32>,
     /// Required. The number of vCPUs the driver is requesting.
     #[serde(default)]
-    pub vcores: Option<i32>,
+    pub vcores: ::core::option::Option<i32>,
 }
 
 /// Encryption settings for the cluster.
@@ -847,10 +859,10 @@ pub struct DriverSchedulingConfig {
 pub struct EncryptionConfig {
     /// Optional. The Cloud KMS key resource name to use for persistent disk encryption for all instances in the cluster. See Use CMEK with cluster data (https://cloud.google.com//dataproc/docs/concepts/configuring-clusters/customer-managed-encryption#use_cmek_with_cluster_data) for more information.
     #[serde(default, rename = "gcePdKmsKeyName")]
-    pub gce_pd_kms_key_name: Option<String>,
+    pub gce_pd_kms_key_name: ::core::option::Option<String>,
     /// Optional. The Cloud KMS key resource name to use for cluster persistent disk and job argument encryption. See Use CMEK with cluster data (https://cloud.google.com//dataproc/docs/concepts/configuring-clusters/customer-managed-encryption#use_cmek_with_cluster_data) for more information.When this key resource name is provided, the following job arguments of the following job types submitted to the cluster are encrypted using CMEK: FlinkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/FlinkJob) HadoopJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/HadoopJob) SparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkJob) SparkRJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkRJob) PySparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/PySparkJob) SparkSqlJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkSqlJob) scriptVariables and queryList.queries HiveJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/HiveJob) scriptVariables and queryList.queries PigJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PigJob) scriptVariables and queryList.queries PrestoJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PrestoJob) scriptVariables and queryList.queries
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
 }
 
 /// Endpoint config for this cluster
@@ -858,10 +870,10 @@ pub struct EncryptionConfig {
 pub struct EndpointConfig {
     /// Optional. If true, enable http access to specific ports on the cluster from external sources. Defaults to false.
     #[serde(default, rename = "enableHttpPortAccess")]
-    pub enable_http_port_access: Option<bool>,
+    pub enable_http_port_access: ::core::option::Option<bool>,
     /// Output only. The map of port descriptions to URLs. Will only be populated if enable_http_port_access is true.
     #[serde(default, rename = "httpPorts")]
-    pub http_ports: Option<serde_json::Value>,
+    pub http_ports: ::core::option::Option<serde_json::Value>,
 }
 
 /// Environment configuration for a workload.
@@ -869,10 +881,10 @@ pub struct EndpointConfig {
 pub struct EnvironmentConfig {
     /// Optional. Execution configuration for a workload.
     #[serde(default, rename = "executionConfig")]
-    pub execution_config: Option<ExecutionConfig>,
+    pub execution_config: ::core::option::Option<::std::boxed::Box<ExecutionConfig>>,
     /// Optional. Peripherals configuration that workload has access to.
     #[serde(default, rename = "peripheralsConfig")]
-    pub peripherals_config: Option<PeripheralsConfig>,
+    pub peripherals_config: ::core::option::Option<::std::boxed::Box<PeripheralsConfig>>,
 }
 
 /// Execution configuration for a workload.
@@ -880,196 +892,198 @@ pub struct EnvironmentConfig {
 pub struct ExecutionConfig {
     /// Optional. Authentication configuration used to set the default identity for the workload execution. The config specifies the type of identity (service account or user) that will be used by workloads to access resources on the project(s).
     #[serde(default, rename = "authenticationConfig")]
-    pub authentication_config: Option<AuthenticationConfig>,
+    pub authentication_config: ::core::option::Option<::std::boxed::Box<AuthenticationConfig>>,
     /// Optional. Applies to sessions only. The duration to keep the session alive while it''s idling. Exceeding this threshold causes the session to terminate. This field cannot be set on a batch workload. Minimum value is 10 minutes; maximum value is 14 days (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)). Defaults to 1 hour if not set. If both ttl and idle_ttl are specified for an interactive session, the conditions are treated as OR conditions: the workload will be terminated when it has been idle for idle_ttl or when ttl has been exceeded, whichever occurs first.
     #[serde(default, rename = "idleTtl")]
-    pub idle_ttl: Option<String>,
+    pub idle_ttl: ::core::option::Option<String>,
     /// Optional. The Cloud KMS key to use for encryption.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Optional. Tags used for network traffic control.
     #[serde(default, rename = "networkTags")]
-    pub network_tags: Option<Vec<String>>,
+    pub network_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Network URI to connect workload to.
     #[serde(default, rename = "networkUri")]
-    pub network_uri: Option<String>,
+    pub network_uri: ::core::option::Option<String>,
     /// Optional. Service account that used to execute workload.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Optional. A Cloud Storage bucket used to stage workload dependencies, config files, and store workload output and other ephemeral data, such as Spark history files. If you do not specify a staging bucket, Cloud Dataproc will determine a Cloud Storage location according to the region where your workload is running, and then create and manage project-level, per-location staging and temporary buckets. This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.
     #[serde(default, rename = "stagingBucket")]
-    pub staging_bucket: Option<String>,
+    pub staging_bucket: ::core::option::Option<String>,
     /// Optional. Subnetwork URI to connect workload to.
     #[serde(default, rename = "subnetworkUri")]
-    pub subnetwork_uri: Option<String>,
+    pub subnetwork_uri: ::core::option::Option<String>,
     /// Optional. The duration after which the workload will be terminated, specified as the JSON representation for Duration (https://protobuf.dev/programming-guides/proto3/#json). When the workload exceeds this duration, it will be unconditionally terminated without waiting for ongoing work to finish. If ttl is not specified for a batch workload, the workload will be allowed to run until it exits naturally (or run forever without exiting). If ttl is not specified for an interactive session, it defaults to 24 hours. If ttl is not specified for a batch that uses 2.1+ runtime version, it defaults to 4 hours. Minimum value is 10 minutes; maximum value is 14 days. If both ttl and idle_ttl are specified (for an interactive session), the conditions are treated as OR conditions: the workload will be terminated when it has been idle for idle_ttl or when ttl has been exceeded, whichever occurs first.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
 }
 
 /// ExecutorMetricsDistributions resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutorMetricsDistributions {
     #[serde(default, rename = "diskBytesSpilled")]
-    pub disk_bytes_spilled: Option<Vec<f64>>,
+    pub disk_bytes_spilled: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "failedTasks")]
-    pub failed_tasks: Option<Vec<f64>>,
+    pub failed_tasks: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "inputBytes")]
-    pub input_bytes: Option<Vec<f64>>,
+    pub input_bytes: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "inputRecords")]
-    pub input_records: Option<Vec<f64>>,
+    pub input_records: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "killedTasks")]
-    pub killed_tasks: Option<Vec<f64>>,
+    pub killed_tasks: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "memoryBytesSpilled")]
-    pub memory_bytes_spilled: Option<Vec<f64>>,
+    pub memory_bytes_spilled: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "outputBytes")]
-    pub output_bytes: Option<Vec<f64>>,
+    pub output_bytes: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "outputRecords")]
-    pub output_records: Option<Vec<f64>>,
+    pub output_records: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "peakMemoryMetrics")]
-    pub peak_memory_metrics: Option<ExecutorPeakMetricsDistributions>,
+    pub peak_memory_metrics:
+        ::core::option::Option<::std::boxed::Box<ExecutorPeakMetricsDistributions>>,
     #[serde(default)]
-    pub quantiles: Option<Vec<f64>>,
+    pub quantiles: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "shuffleRead")]
-    pub shuffle_read: Option<Vec<f64>>,
+    pub shuffle_read: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "shuffleReadRecords")]
-    pub shuffle_read_records: Option<Vec<f64>>,
+    pub shuffle_read_records: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "shuffleWrite")]
-    pub shuffle_write: Option<Vec<f64>>,
+    pub shuffle_write: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "shuffleWriteRecords")]
-    pub shuffle_write_records: Option<Vec<f64>>,
+    pub shuffle_write_records: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "succeededTasks")]
-    pub succeeded_tasks: Option<Vec<f64>>,
+    pub succeeded_tasks: ::core::option::Option<::std::vec::Vec<f64>>,
     #[serde(default, rename = "taskTimeMillis")]
-    pub task_time_millis: Option<Vec<f64>>,
+    pub task_time_millis: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// ExecutorPeakMetricsDistributions resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutorPeakMetricsDistributions {
     #[serde(default, rename = "executorMetrics")]
-    pub executor_metrics: Option<Vec<ExecutorMetrics>>,
+    pub executor_metrics:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExecutorMetrics>>>,
     #[serde(default)]
-    pub quantiles: Option<Vec<f64>>,
+    pub quantiles: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Resources used per executor used by the application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutorResourceRequest {
     #[serde(default)]
-    pub amount: Option<String>,
+    pub amount: ::core::option::Option<String>,
     #[serde(default, rename = "discoveryScript")]
-    pub discovery_script: Option<String>,
+    pub discovery_script: ::core::option::Option<String>,
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     #[serde(default)]
-    pub vendor: Option<String>,
+    pub vendor: ::core::option::Option<String>,
 }
 
 /// Executor resources consumed by a stage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutorStageSummary {
     #[serde(default, rename = "diskBytesSpilled")]
-    pub disk_bytes_spilled: Option<String>,
+    pub disk_bytes_spilled: ::core::option::Option<String>,
     #[serde(default, rename = "executorId")]
-    pub executor_id: Option<String>,
+    pub executor_id: ::core::option::Option<String>,
     #[serde(default, rename = "failedTasks")]
-    pub failed_tasks: Option<i32>,
+    pub failed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "inputBytes")]
-    pub input_bytes: Option<String>,
+    pub input_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "inputRecords")]
-    pub input_records: Option<String>,
+    pub input_records: ::core::option::Option<String>,
     #[serde(default, rename = "isExcludedForStage")]
-    pub is_excluded_for_stage: Option<bool>,
+    pub is_excluded_for_stage: ::core::option::Option<bool>,
     #[serde(default, rename = "killedTasks")]
-    pub killed_tasks: Option<i32>,
+    pub killed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "memoryBytesSpilled")]
-    pub memory_bytes_spilled: Option<String>,
+    pub memory_bytes_spilled: ::core::option::Option<String>,
     #[serde(default, rename = "outputBytes")]
-    pub output_bytes: Option<String>,
+    pub output_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "outputRecords")]
-    pub output_records: Option<String>,
+    pub output_records: ::core::option::Option<String>,
     #[serde(default, rename = "peakMemoryMetrics")]
-    pub peak_memory_metrics: Option<ExecutorMetrics>,
+    pub peak_memory_metrics: ::core::option::Option<::std::boxed::Box<ExecutorMetrics>>,
     #[serde(default, rename = "shuffleRead")]
-    pub shuffle_read: Option<String>,
+    pub shuffle_read: ::core::option::Option<String>,
     #[serde(default, rename = "shuffleReadRecords")]
-    pub shuffle_read_records: Option<String>,
+    pub shuffle_read_records: ::core::option::Option<String>,
     #[serde(default, rename = "shuffleWrite")]
-    pub shuffle_write: Option<String>,
+    pub shuffle_write: ::core::option::Option<String>,
     #[serde(default, rename = "shuffleWriteRecords")]
-    pub shuffle_write_records: Option<String>,
+    pub shuffle_write_records: ::core::option::Option<String>,
     #[serde(default, rename = "stageAttemptId")]
-    pub stage_attempt_id: Option<i32>,
+    pub stage_attempt_id: ::core::option::Option<i32>,
     #[serde(default, rename = "stageId")]
-    pub stage_id: Option<String>,
+    pub stage_id: ::core::option::Option<String>,
     #[serde(default, rename = "succeededTasks")]
-    pub succeeded_tasks: Option<i32>,
+    pub succeeded_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "taskTimeMillis")]
-    pub task_time_millis: Option<String>,
+    pub task_time_millis: ::core::option::Option<String>,
 }
 
 /// Details about executors used by the application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutorSummary {
     #[serde(default, rename = "activeTasks")]
-    pub active_tasks: Option<i32>,
+    pub active_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "addTime")]
-    pub add_time: Option<String>,
+    pub add_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "completedTasks")]
-    pub completed_tasks: Option<i32>,
+    pub completed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "diskUsed")]
-    pub disk_used: Option<String>,
+    pub disk_used: ::core::option::Option<String>,
     #[serde(default, rename = "excludedInStages")]
-    pub excluded_in_stages: Option<Vec<String>>,
+    pub excluded_in_stages: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "executorId")]
-    pub executor_id: Option<String>,
+    pub executor_id: ::core::option::Option<String>,
     #[serde(default, rename = "executorLogs")]
-    pub executor_logs: Option<serde_json::Value>,
+    pub executor_logs: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "failedTasks")]
-    pub failed_tasks: Option<i32>,
+    pub failed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "hostPort")]
-    pub host_port: Option<String>,
+    pub host_port: ::core::option::Option<String>,
     #[serde(default, rename = "isActive")]
-    pub is_active: Option<bool>,
+    pub is_active: ::core::option::Option<bool>,
     #[serde(default, rename = "isExcluded")]
-    pub is_excluded: Option<bool>,
+    pub is_excluded: ::core::option::Option<bool>,
     #[serde(default, rename = "maxMemory")]
-    pub max_memory: Option<String>,
+    pub max_memory: ::core::option::Option<String>,
     #[serde(default, rename = "maxTasks")]
-    pub max_tasks: Option<i32>,
+    pub max_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "memoryMetrics")]
-    pub memory_metrics: Option<MemoryMetrics>,
+    pub memory_metrics: ::core::option::Option<::std::boxed::Box<MemoryMetrics>>,
     #[serde(default, rename = "memoryUsed")]
-    pub memory_used: Option<String>,
+    pub memory_used: ::core::option::Option<String>,
     #[serde(default, rename = "peakMemoryMetrics")]
-    pub peak_memory_metrics: Option<ExecutorMetrics>,
+    pub peak_memory_metrics: ::core::option::Option<::std::boxed::Box<ExecutorMetrics>>,
     #[serde(default, rename = "rddBlocks")]
-    pub rdd_blocks: Option<i32>,
+    pub rdd_blocks: ::core::option::Option<i32>,
     #[serde(default, rename = "removeReason")]
-    pub remove_reason: Option<String>,
+    pub remove_reason: ::core::option::Option<String>,
     #[serde(default, rename = "removeTime")]
-    pub remove_time: Option<String>,
+    pub remove_time: ::core::option::Option<String>,
     #[serde(default, rename = "resourceProfileId")]
-    pub resource_profile_id: Option<i32>,
+    pub resource_profile_id: ::core::option::Option<i32>,
     #[serde(default)]
-    pub resources: Option<serde_json::Value>,
+    pub resources: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "totalCores")]
-    pub total_cores: Option<i32>,
+    pub total_cores: ::core::option::Option<i32>,
     #[serde(default, rename = "totalDurationMillis")]
-    pub total_duration_millis: Option<String>,
+    pub total_duration_millis: ::core::option::Option<String>,
     #[serde(default, rename = "totalGcTimeMillis")]
-    pub total_gc_time_millis: Option<String>,
+    pub total_gc_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "totalInputBytes")]
-    pub total_input_bytes: Option<String>,
+    pub total_input_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "totalShuffleRead")]
-    pub total_shuffle_read: Option<String>,
+    pub total_shuffle_read: ::core::option::Option<String>,
     #[serde(default, rename = "totalShuffleWrite")]
-    pub total_shuffle_write: Option<String>,
+    pub total_shuffle_write: ::core::option::Option<String>,
     #[serde(default, rename = "totalTasks")]
-    pub total_tasks: Option<i32>,
+    pub total_tasks: ::core::option::Option<i32>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec.Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -1077,16 +1091,16 @@ pub struct ExecutorSummary {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Native SQL Execution Data
@@ -1094,10 +1108,10 @@ pub struct Expr {
 pub struct FallbackReason {
     /// Optional. Fallback node information.
     #[serde(default, rename = "fallbackNode")]
-    pub fallback_node: Option<String>,
+    pub fallback_node: ::core::option::Option<String>,
     /// Optional. Fallback to Spark reason.
     #[serde(default, rename = "fallbackReason")]
-    pub fallback_reason: Option<String>,
+    pub fallback_reason: ::core::option::Option<String>,
 }
 
 /// A Dataproc job for running Apache Flink applications on YARN.
@@ -1105,25 +1119,25 @@ pub struct FallbackReason {
 pub struct FlinkJob {
     /// Optional. The arguments to pass to the driver. Do not include arguments, such as --conf, that can be set as job properties, since a collision might occur that causes an incorrect job submission.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of jar files to add to the CLASSPATHs of the Flink driver and tasks.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// The name of the driver''s main class. The jar file that contains the class must be in the default CLASSPATH or specified in jarFileUris.
     #[serde(default, rename = "mainClass")]
-    pub main_class: Option<String>,
+    pub main_class: ::core::option::Option<String>,
     /// The HCFS URI of the jar file that contains the main class.
     #[serde(default, rename = "mainJarFileUri")]
-    pub main_jar_file_uri: Option<String>,
+    pub main_jar_file_uri: ::core::option::Option<String>,
     /// Optional. A mapping of property names to values, used to configure Flink. Properties that conflict with values set by the Dataproc API might be overwritten. Can include properties set in /etc/flink/conf/flink-defaults.conf and classes in user code.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// Optional. HCFS URI of the savepoint, which contains the last saved progress for starting the current job.
     #[serde(default, rename = "savepointUri")]
-    pub savepoint_uri: Option<String>,
+    pub savepoint_uri: ::core::option::Option<String>,
 }
 
 /// Common config settings for resources of Compute Engine cluster instances, applicable to all instances in the cluster.
@@ -1131,49 +1145,50 @@ pub struct FlinkJob {
 pub struct GceClusterConfig {
     /// Optional. An optional list of Compute Engine zones where the Dataproc cluster will not be located when Auto Zone is enabled. Only one of zone_uri or auto_zone_exclude_zone_uris can be set. If both are omitted, the service will pick a zone in the cluster Compute Engine region. If auto_zone_exclude_zone_uris is set and there is more than one non-excluded zone, the service will pick one of the non-excluded zones. Otherwise, cluster creation will fail with INVALID_ARGUMENT error.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone] projects/[project_id]/zones/[zone] [zone]
     #[serde(default, rename = "autoZoneExcludeZoneUris")]
-    pub auto_zone_exclude_zone_uris: Option<Vec<String>>,
+    pub auto_zone_exclude_zone_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Confidential Instance Config for clusters using Confidential VMs (https://cloud.google.com/compute/confidential-vm/docs).
     #[serde(default, rename = "confidentialInstanceConfig")]
-    pub confidential_instance_config: Option<ConfidentialInstanceConfig>,
+    pub confidential_instance_config:
+        ::core::option::Option<::std::boxed::Box<ConfidentialInstanceConfig>>,
     /// Optional. This setting applies to subnetwork-enabled networks. It is set to true by default in clusters created with image versions 2.2.x.When set to true: All cluster VMs have internal IP addresses. Google Private Access (https://cloud.google.com/vpc/docs/private-google-access) must be enabled to access Dataproc and other Google Cloud APIs. Off-cluster dependencies must be configured to be accessible without external IP addresses.When set to false: Cluster VMs are not restricted to internal IP addresses. Ephemeral external IP addresses are assigned to each cluster VM.
     #[serde(default, rename = "internalIpOnly")]
-    pub internal_ip_only: Option<bool>,
+    pub internal_ip_only: ::core::option::Option<bool>,
     /// Optional. The Compute Engine metadata entries to add to all instances (see Project and instance metadata (https://cloud.google.com/compute/docs/storing-retrieving-metadata#project_and_instance_metadata)).
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Optional. The Compute Engine network to be used for machine communications. Cannot be specified with subnetwork_uri. If neither network_uri nor subnetwork_uri is specified, the "default" network of the project is used, if it exists. Cannot be a "Custom Subnet Network" (see Using Subnetworks (https://cloud.google.com/compute/docs/subnetworks) for more information).A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/networks/default projects/[project_id]/global/networks/default default
     #[serde(default, rename = "networkUri")]
-    pub network_uri: Option<String>,
+    pub network_uri: ::core::option::Option<String>,
     /// Optional. Node Group Affinity for sole-tenant clusters.
     #[serde(default, rename = "nodeGroupAffinity")]
-    pub node_group_affinity: Option<NodeGroupAffinity>,
+    pub node_group_affinity: ::core::option::Option<::std::boxed::Box<NodeGroupAffinity>>,
     /// Optional. The type of IPv6 access for a cluster. // TODO: enum values: ["PRIVATE_IPV6_GOOGLE_ACCESS_UNSPECIFIED", "INHERIT_FROM_SUBNETWORK", "OUTBOUND", "BIDIRECTIONAL"]
     #[serde(default, rename = "privateIpv6GoogleAccess")]
-    pub private_ipv6_google_access: Option<String>,
+    pub private_ipv6_google_access: ::core::option::Option<String>,
     /// Optional. Reservation Affinity for consuming Zonal reservation.
     #[serde(default, rename = "reservationAffinity")]
-    pub reservation_affinity: Option<ReservationAffinity>,
+    pub reservation_affinity: ::core::option::Option<::std::boxed::Box<ReservationAffinity>>,
     /// Optional. Resource manager tags (https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing) to add to all instances (see Use secure tags in Dataproc (https://cloud.google.com/dataproc/docs/guides/use-secure-tags)).
     #[serde(default, rename = "resourceManagerTags")]
-    pub resource_manager_tags: Option<serde_json::Value>,
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
     /// Optional. The Dataproc service account (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/service-accounts#service_accounts_in_dataproc) (also see VM Data Plane identity (https://cloud.google.com/dataproc/docs/concepts/iam/dataproc-principals#vm_service_account_data_plane_identity)) used by Dataproc cluster VM instances to access Google Cloud Platform services.If not specified, the Compute Engine default service account (https://cloud.google.com/compute/docs/access/service-accounts#default_service_account) is used.
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Optional. The URIs of service account scopes to be included in Compute Engine instances. The following base set of scopes is always included: https://www.googleapis.com/auth/cloud.useraccounts.readonly https://www.googleapis.com/auth/devstorage.read_write https://www.googleapis.com/auth/logging.writeIf no scopes are specified, the following defaults are also provided: https://www.googleapis.com/auth/bigquery https://www.googleapis.com/auth/bigtable.admin.table https://www.googleapis.com/auth/bigtable.data https://www.googleapis.com/auth/devstorage.full_control
     #[serde(default, rename = "serviceAccountScopes")]
-    pub service_account_scopes: Option<Vec<String>>,
+    pub service_account_scopes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Shielded Instance Config for clusters using Compute Engine Shielded VMs (https://cloud.google.com/security/shielded-cloud/shielded-vm).
     #[serde(default, rename = "shieldedInstanceConfig")]
-    pub shielded_instance_config: Option<ShieldedInstanceConfig>,
+    pub shielded_instance_config: ::core::option::Option<::std::boxed::Box<ShieldedInstanceConfig>>,
     /// Optional. The Compute Engine subnetwork to be used for machine communications. Cannot be specified with network_uri.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/regions/[region]/subnetworks/sub0 projects/[project_id]/regions/[region]/subnetworks/sub0 sub0
     #[serde(default, rename = "subnetworkUri")]
-    pub subnetwork_uri: Option<String>,
+    pub subnetwork_uri: ::core::option::Option<String>,
     /// The Compute Engine network tags to add to all instances (see Tagging instances (https://cloud.google.com/vpc/docs/add-remove-network-tags)).
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The Compute Engine zone where the Dataproc cluster will be located. If omitted, the service will pick a zone in the cluster''s Compute Engine region. On a get request, zone will always be present.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone] projects/[project_id]/zones/[zone] [zone]
     #[serde(default, rename = "zoneUri")]
-    pub zone_uri: Option<String>,
+    pub zone_uri: ::core::option::Option<String>,
 }
 
 /// Request message for GetIamPolicy method.
@@ -1181,7 +1196,7 @@ pub struct GceClusterConfig {
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
-    pub options: Option<GetPolicyOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<GetPolicyOptions>>,
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
@@ -1189,7 +1204,7 @@ pub struct GetIamPolicyRequest {
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy.Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected.Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset.The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
-    pub requested_policy_version: Option<i32>,
+    pub requested_policy_version: ::core::option::Option<i32>,
 }
 
 /// The cluster''s GKE config.
@@ -1197,13 +1212,15 @@ pub struct GetPolicyOptions {
 pub struct GkeClusterConfig {
     /// Optional. A target GKE cluster to deploy to. It must be in the same project and region as the Dataproc cluster (the GKE cluster can be zonal or regional). Format: ''projects/{project}/locations/{location}/clusters/{cluster_id}''
     #[serde(default, rename = "gkeClusterTarget")]
-    pub gke_cluster_target: Option<String>,
+    pub gke_cluster_target: ::core::option::Option<String>,
     /// Optional. Deprecated. Use gkeClusterTarget. Used only for the deprecated beta. A target for the deployment.
     #[serde(default, rename = "namespacedGkeDeploymentTarget")]
-    pub namespaced_gke_deployment_target: Option<NamespacedGkeDeploymentTarget>,
+    pub namespaced_gke_deployment_target:
+        ::core::option::Option<::std::boxed::Box<NamespacedGkeDeploymentTarget>>,
     /// Optional. GKE node pools where workloads will be scheduled. At least one node pool must be assigned the DEFAULT GkeNodePoolTarget.Role. If a GkeNodePoolTarget is not specified, Dataproc constructs a DEFAULT GkeNodePoolTarget. Each role can be given to only one GkeNodePoolTarget. All node pools must have the same location settings.
     #[serde(default, rename = "nodePoolTarget")]
-    pub node_pool_target: Option<Vec<GkeNodePoolTarget>>,
+    pub node_pool_target:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GkeNodePoolTarget>>>,
 }
 
 /// Parameters that describe cluster nodes.
@@ -1211,25 +1228,26 @@ pub struct GkeClusterConfig {
 pub struct GkeNodeConfig {
     /// Optional. A list of hardware accelerators (https://cloud.google.com/compute/docs/gpus) to attach to each node.
     #[serde(default)]
-    pub accelerators: Option<Vec<GkeNodePoolAcceleratorConfig>>,
+    pub accelerators:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GkeNodePoolAcceleratorConfig>>>,
     /// Optional. The Customer Managed Encryption Key (CMEK) (https://cloud.google.com/kubernetes-engine/docs/how-to/using-cmek) used to encrypt the boot disk attached to each node in the node pool. Specify the key using the following format: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}
     #[serde(default, rename = "bootDiskKmsKey")]
-    pub boot_disk_kms_key: Option<String>,
+    pub boot_disk_kms_key: ::core::option::Option<String>,
     /// Optional. The number of local SSD disks to attach to the node, which is limited by the maximum number of disks allowable per zone (see Adding Local SSDs (https://cloud.google.com/compute/docs/disks/local-ssd)).
     #[serde(default, rename = "localSsdCount")]
-    pub local_ssd_count: Option<i32>,
+    pub local_ssd_count: ::core::option::Option<i32>,
     /// Optional. The name of a Compute Engine machine type (https://cloud.google.com/compute/docs/machine-types).
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Optional. Minimum CPU platform (https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform) to be used by this instance. The instance may be scheduled on the specified or a newer CPU platform. Specify the friendly names of CPU platforms, such as "Intel Haswell" or Intel Sandy Bridge".
     #[serde(default, rename = "minCpuPlatform")]
-    pub min_cpu_platform: Option<String>,
+    pub min_cpu_platform: ::core::option::Option<String>,
     /// Optional. Whether the nodes are created as legacy preemptible VM instances (https://cloud.google.com/compute/docs/instances/preemptible). Also see Spot VMs, preemptible VM instances without a maximum lifetime. Legacy and Spot preemptible nodes cannot be used in a node pool with the CONTROLLER role or in the DEFAULT node pool if the CONTROLLER role is not assigned (the DEFAULT node pool will assume the CONTROLLER role).
     #[serde(default)]
-    pub preemptible: Option<bool>,
+    pub preemptible: ::core::option::Option<bool>,
     /// Optional. Whether the nodes are created as Spot VM instances (https://cloud.google.com/compute/docs/instances/spot). Spot VMs are the latest update to legacy preemptible VMs. Spot VMs do not have a maximum lifetime. Legacy and Spot preemptible nodes cannot be used in a node pool with the CONTROLLER role or in the DEFAULT node pool if the CONTROLLER role is not assigned (the DEFAULT node pool will assume the CONTROLLER role).
     #[serde(default)]
-    pub spot: Option<bool>,
+    pub spot: ::core::option::Option<bool>,
 }
 
 /// A GkeNodeConfigAcceleratorConfig represents a Hardware Accelerator request for a node pool.
@@ -1237,13 +1255,13 @@ pub struct GkeNodeConfig {
 pub struct GkeNodePoolAcceleratorConfig {
     /// The number of accelerator cards exposed to an instance.
     #[serde(default, rename = "acceleratorCount")]
-    pub accelerator_count: Option<String>,
+    pub accelerator_count: ::core::option::Option<String>,
     /// The accelerator type resource namename (see GPUs on Compute Engine).
     #[serde(default, rename = "acceleratorType")]
-    pub accelerator_type: Option<String>,
+    pub accelerator_type: ::core::option::Option<String>,
     /// Size of partitions to create on the GPU. Valid values are described in the NVIDIA mig user guide (https://docs.nvidia.com/datacenter/tesla/mig-user-guide/#partitioning).
     #[serde(default, rename = "gpuPartitionSize")]
-    pub gpu_partition_size: Option<String>,
+    pub gpu_partition_size: ::core::option::Option<String>,
 }
 
 /// GkeNodePoolAutoscaling contains information the cluster autoscaler needs to adjust the size of the node pool to the current cluster usage.
@@ -1251,10 +1269,10 @@ pub struct GkeNodePoolAcceleratorConfig {
 pub struct GkeNodePoolAutoscalingConfig {
     /// The maximum number of nodes in the node pool. Must be &gt;= min_node_count, and must be &gt; 0. Note: Quota must be sufficient to scale up the cluster.
     #[serde(default, rename = "maxNodeCount")]
-    pub max_node_count: Option<i32>,
+    pub max_node_count: ::core::option::Option<i32>,
     /// The minimum number of nodes in the node pool. Must be &gt;= 0 and &lt;= max_node_count.
     #[serde(default, rename = "minNodeCount")]
-    pub min_node_count: Option<i32>,
+    pub min_node_count: ::core::option::Option<i32>,
 }
 
 /// The configuration of a GKE node pool used by a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/concepts/jobs/dataproc-gke#create-a-dataproc-on-gke-cluster).
@@ -1262,13 +1280,13 @@ pub struct GkeNodePoolAutoscalingConfig {
 pub struct GkeNodePoolConfig {
     /// Optional. The autoscaler configuration for this node pool. The autoscaler is enabled only when a valid configuration is present.
     #[serde(default)]
-    pub autoscaling: Option<GkeNodePoolAutoscalingConfig>,
+    pub autoscaling: ::core::option::Option<::std::boxed::Box<GkeNodePoolAutoscalingConfig>>,
     /// Optional. The node pool configuration.
     #[serde(default)]
-    pub config: Option<GkeNodeConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<GkeNodeConfig>>,
     /// Optional. The list of Compute Engine zones (https://cloud.google.com/compute/docs/zones#available) where node pool nodes associated with a Dataproc on GKE virtual cluster will be located.Note: All node pools associated with a virtual cluster must be located in the same region as the virtual cluster, and they must be located in the same zone within that region.If a location is not specified during node pool creation, Dataproc on GKE will choose the zone.
     #[serde(default)]
-    pub locations: Option<Vec<String>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GKE node pools that Dataproc workloads run on.
@@ -1276,13 +1294,13 @@ pub struct GkeNodePoolConfig {
 pub struct GkeNodePoolTarget {
     /// Required. The target GKE node pool. Format: ''projects/{project}/locations/{location}/clusters/{cluster}/nodePools/{node_pool}''
     #[serde(default, rename = "nodePool")]
-    pub node_pool: Option<String>,
+    pub node_pool: ::core::option::Option<String>,
     /// Input only. The configuration for the GKE node pool.If specified, Dataproc attempts to create a node pool with the specified shape. If one with the same name already exists, it is verified against all specified fields. If a field differs, the virtual cluster creation will fail.If omitted, any node pool with the specified name is used. If a node pool with the specified name does not exist, Dataproc create a node pool with default values.This is an input only field. It will not be returned by the API.
     #[serde(default, rename = "nodePoolConfig")]
-    pub node_pool_config: Option<GkeNodePoolConfig>,
+    pub node_pool_config: ::core::option::Option<::std::boxed::Box<GkeNodePoolConfig>>,
     /// Required. The roles associated with the GKE node pool.
     #[serde(default)]
-    pub roles: Option<Vec<String>>,
+    pub roles: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Encryption settings for encrypting workflow template job arguments.
@@ -1290,7 +1308,7 @@ pub struct GkeNodePoolTarget {
 pub struct GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig {
     /// Optional. The Cloud KMS key name to use for encrypting workflow template job arguments.When this this key is provided, the following workflow template job arguments (https://cloud.google.com/dataproc/docs/concepts/workflows/use-workflows#adding_jobs_to_a_template), if present, are CMEK encrypted (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/customer-managed-encryption#use_cmek_with_workflow_template_data): FlinkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/FlinkJob) HadoopJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/HadoopJob) SparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkJob) SparkRJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkRJob) PySparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/PySparkJob) SparkSqlJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkSqlJob) scriptVariables and queryList.queries HiveJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/HiveJob) scriptVariables and queryList.queries PigJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PigJob) scriptVariables and queryList.queries PrestoJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PrestoJob) scriptVariables and queryList.queries
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
 }
 
 /// A Dataproc job for running Apache Hadoop MapReduce (https://hadoop.apache.org/docs/current/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html) jobs on Apache Hadoop YARN (https://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/YARN.html).
@@ -1298,28 +1316,28 @@ pub struct GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig {
 pub struct HadoopJob {
     /// Optional. HCFS URIs of archives to be extracted in the working directory of Hadoop drivers and tasks. Supported file types: .jar, .tar, .tar.gz, .tgz, or .zip.
     #[serde(default, rename = "archiveUris")]
-    pub archive_uris: Option<Vec<String>>,
+    pub archive_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The arguments to pass to the driver. Do not include arguments, such as -libjars or -Dfoo=bar, that can be set as job properties, since a collision might occur that causes an incorrect job submission.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS (Hadoop Compatible Filesystem) URIs of files to be copied to the working directory of Hadoop drivers and distributed tasks. Useful for naively parallel tasks.
     #[serde(default, rename = "fileUris")]
-    pub file_uris: Option<Vec<String>>,
+    pub file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Jar file URIs to add to the CLASSPATHs of the Hadoop driver and tasks.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// The name of the driver''s main class. The jar file containing the class must be in the default CLASSPATH or specified in jar_file_uris.
     #[serde(default, rename = "mainClass")]
-    pub main_class: Option<String>,
+    pub main_class: ::core::option::Option<String>,
     /// The HCFS URI of the jar file containing the main class. Examples: ''gs://foo-bucket/analytics-binaries/extract-useful-metrics-mr.jar'' ''hdfs:/tmp/test-samples/custom-wordcount.jar'' ''file:///home/usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar''
     #[serde(default, rename = "mainJarFileUri")]
-    pub main_jar_file_uri: Option<String>,
+    pub main_jar_file_uri: ::core::option::Option<String>,
     /// Optional. A mapping of property names to values, used to configure Hadoop. Properties that conflict with values set by the Dataproc API might be overwritten. Can include properties set in /etc/hadoop/conf/*-site and classes in user code.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// A Dataproc job for running Apache Hive (https://hive.apache.org/) queries on YARN.
@@ -1327,22 +1345,22 @@ pub struct HadoopJob {
 pub struct HiveJob {
     /// Optional. Whether to continue executing queries if a query fails. The default value is false. Setting to true can be useful when executing independent parallel queries.
     #[serde(default, rename = "continueOnFailure")]
-    pub continue_on_failure: Option<bool>,
+    pub continue_on_failure: ::core::option::Option<bool>,
     /// Optional. HCFS URIs of jar files to add to the CLASSPATH of the Hive server and Hadoop MapReduce (MR) tasks. Can contain Hive SerDes and UDFs.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. A mapping of property names and values, used to configure Hive. Properties that conflict with values set by the Dataproc API might be overwritten. Can include properties set in /etc/hadoop/conf/*-site.xml, /etc/hive/conf/hive-site.xml, and classes in user code.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// The HCFS URI of the script that contains Hive queries.
     #[serde(default, rename = "queryFileUri")]
-    pub query_file_uri: Option<String>,
+    pub query_file_uri: ::core::option::Option<String>,
     /// A list of queries.
     #[serde(default, rename = "queryList")]
-    pub query_list: Option<QueryList>,
+    pub query_list: ::core::option::Option<::std::boxed::Box<QueryList>>,
     /// Optional. Mapping of query variable names to values (equivalent to the Hive command: SET name="value";).
     #[serde(default, rename = "scriptVariables")]
-    pub script_variables: Option<serde_json::Value>,
+    pub script_variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// A request to inject credentials into a cluster.
@@ -1350,28 +1368,28 @@ pub struct HiveJob {
 pub struct InjectCredentialsRequest {
     /// Required. The cluster UUID.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
     /// Required. The encrypted credentials being injected in to the cluster.The client is responsible for encrypting the credentials in a way that is supported by the cluster.A wrapped value is used here so that the actual contents of the encrypted credentials are not written to audit logs.
     #[serde(default, rename = "credentialsCiphertext")]
-    pub credentials_ciphertext: Option<String>,
+    pub credentials_ciphertext: ::core::option::Option<String>,
 }
 
 /// Metrics about the input data read by the task.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InputMetrics {
     #[serde(default, rename = "bytesRead")]
-    pub bytes_read: Option<String>,
+    pub bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "recordsRead")]
-    pub records_read: Option<String>,
+    pub records_read: ::core::option::Option<String>,
 }
 
 /// InputQuantileMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InputQuantileMetrics {
     #[serde(default, rename = "bytesRead")]
-    pub bytes_read: Option<Quantiles>,
+    pub bytes_read: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "recordsRead")]
-    pub records_read: Option<Quantiles>,
+    pub records_read: ::core::option::Option<::std::boxed::Box<Quantiles>>,
 }
 
 /// Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.
@@ -1379,16 +1397,18 @@ pub struct InputQuantileMetrics {
 pub struct InstanceFlexibilityPolicy {
     /// Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., ''n1-standard-16''). See Machine types for more information on valid machine type strings.
     #[serde(default, rename = "instanceMachineTypes")]
-    pub instance_machine_types: Option<serde_json::Value>,
+    pub instance_machine_types: ::core::option::Option<serde_json::Value>,
     /// Optional. List of instance selection options that the group will use when creating new VMs.
     #[serde(default, rename = "instanceSelectionList")]
-    pub instance_selection_list: Option<Vec<InstanceSelection>>,
+    pub instance_selection_list:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstanceSelection>>>,
     /// Output only. A list of instance selection results in the group.
     #[serde(default, rename = "instanceSelectionResults")]
-    pub instance_selection_results: Option<Vec<InstanceSelectionResult>>,
+    pub instance_selection_results:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstanceSelectionResult>>>,
     /// Optional. Defines how the Group selects the provisioning model to ensure required reliability.
     #[serde(default, rename = "provisioningModelMix")]
-    pub provisioning_model_mix: Option<ProvisioningModelMix>,
+    pub provisioning_model_mix: ::core::option::Option<::std::boxed::Box<ProvisioningModelMix>>,
 }
 
 /// Configuration for the size bounds of an instance group, including its proportional size to other groups.
@@ -1396,13 +1416,13 @@ pub struct InstanceFlexibilityPolicy {
 pub struct InstanceGroupAutoscalingPolicyConfig {
     /// Required. Maximum number of instances for this group. Required for primary workers. Note that by default, clusters will not use secondary workers. Required for secondary workers if the minimum secondary instances is set.Primary workers - Bounds: [min_instances, ). Secondary workers - Bounds: [min_instances, ). Default: 0.
     #[serde(default, rename = "maxInstances")]
-    pub max_instances: Option<i32>,
+    pub max_instances: ::core::option::Option<i32>,
     /// Optional. Minimum number of instances for this group.Primary workers - Bounds: 2, max_instances. Default: 2. Secondary workers - Bounds: 0, max_instances. Default: 0.
     #[serde(default, rename = "minInstances")]
-    pub min_instances: Option<i32>,
+    pub min_instances: ::core::option::Option<i32>,
     /// Optional. Weight for the instance group, which is used to determine the fraction of total workers in the cluster from this instance group. For example, if primary workers have weight 2, and secondary workers have weight 1, the cluster will have approximately 2 primary workers for each secondary worker.The cluster may not reach the specified balance if constrained by min/max bounds or other autoscaling settings. For example, if max_instances for secondary workers is 0, then only primary workers will be added. The cluster can also be out of balance when created.If weight is not set on any instance group, the cluster will default to equal weight for all groups: the cluster will attempt to maintain an equal number of workers in each group within the configured size bounds for each group. If weight is set for one group only, the cluster will default to zero weight on the unset group. For example if weight is set only on primary workers, the cluster will use primary workers only and no secondary workers.
     #[serde(default)]
-    pub weight: Option<i32>,
+    pub weight: ::core::option::Option<i32>,
 }
 
 /// The config settings for Compute Engine resources in an instance group, such as a master or worker group.
@@ -1410,46 +1430,48 @@ pub struct InstanceGroupAutoscalingPolicyConfig {
 pub struct InstanceGroupConfig {
     /// Optional. The Compute Engine accelerator configuration for these instances.
     #[serde(default)]
-    pub accelerators: Option<Vec<AcceleratorConfig>>,
+    pub accelerators: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AcceleratorConfig>>>,
     /// Optional. Disk option config settings.
     #[serde(default, rename = "diskConfig")]
-    pub disk_config: Option<DiskConfig>,
+    pub disk_config: ::core::option::Option<::std::boxed::Box<DiskConfig>>,
     /// Optional. The Compute Engine image resource used for cluster instances.The URI can represent an image or image family.Image examples: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/[image-id] projects/[project_id]/global/images/[image-id] image-idImage family examples. Dataproc will use the most recent image from the family: https://www.googleapis.com/compute/v1/projects/[project_id]/global/images/family/[custom-image-family-name] projects/[project_id]/global/images/family/[custom-image-family-name]If the URI is unspecified, it will be inferred from SoftwareConfig.image_version or the system default.
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
     /// Optional. Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.
     #[serde(default, rename = "instanceFlexibilityPolicy")]
-    pub instance_flexibility_policy: Option<InstanceFlexibilityPolicy>,
+    pub instance_flexibility_policy:
+        ::core::option::Option<::std::boxed::Box<InstanceFlexibilityPolicy>>,
     /// Output only. The list of instance names. Dataproc derives the names from cluster_name, num_instances, and the instance group.
     #[serde(default, rename = "instanceNames")]
-    pub instance_names: Option<Vec<String>>,
+    pub instance_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. List of references to Compute Engine instances.
     #[serde(default, rename = "instanceReferences")]
-    pub instance_references: Option<Vec<InstanceReference>>,
+    pub instance_references:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InstanceReference>>>,
     /// Output only. Specifies that this instance group contains preemptible instances.
     #[serde(default, rename = "isPreemptible")]
-    pub is_preemptible: Option<bool>,
+    pub is_preemptible: ::core::option::Option<bool>,
     /// Optional. The Compute Engine machine type used for cluster instances.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone]/machineTypes/n1-standard-2 projects/[project_id]/zones/[zone]/machineTypes/n1-standard-2 n1-standard-2Auto Zone Exception: If you are using the Dataproc Auto Zone Placement (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/auto-zone#using_auto_zone_placement) feature, you must use the short name of the machine type resource, for example, n1-standard-2.
     #[serde(default, rename = "machineTypeUri")]
-    pub machine_type_uri: Option<String>,
+    pub machine_type_uri: ::core::option::Option<String>,
     /// Output only. The config for Compute Engine Instance Group Manager that manages this group. This is only used for preemptible instance groups.
     #[serde(default, rename = "managedGroupConfig")]
-    pub managed_group_config: Option<ManagedGroupConfig>,
+    pub managed_group_config: ::core::option::Option<::std::boxed::Box<ManagedGroupConfig>>,
     /// Optional. Specifies the minimum cpu platform for the Instance Group. See Dataproc -&gt; Minimum CPU Platform (https://cloud.google.com/dataproc/docs/concepts/compute/dataproc-min-cpu).
     #[serde(default, rename = "minCpuPlatform")]
-    pub min_cpu_platform: Option<String>,
+    pub min_cpu_platform: ::core::option::Option<String>,
     /// Optional. The minimum number of primary worker instances to create. If min_num_instances is set, cluster creation will succeed if the number of primary workers created is at least equal to the min_num_instances number.Example: Cluster creation request with num_instances = 5 and min_num_instances = 3: If 4 VMs are created and 1 instance fails, the failed VM is deleted. The cluster is resized to 4 instances and placed in a RUNNING state. If 2 instances are created and 3 instances fail, the cluster in placed in an ERROR state. The failed VMs are not deleted.
     #[serde(default, rename = "minNumInstances")]
-    pub min_num_instances: Option<i32>,
+    pub min_num_instances: ::core::option::Option<i32>,
     /// Optional. The number of VM instances in the instance group. For HA cluster master_config groups, must be set to 3. For standard cluster master_config groups, must be set to 1.
     #[serde(default, rename = "numInstances")]
-    pub num_instances: Option<i32>,
+    pub num_instances: ::core::option::Option<i32>,
     /// Optional. Specifies the preemptibility of the instance group.The default value for master and worker groups is NON_PREEMPTIBLE. This default cannot be changed.The default value for secondary instances is PREEMPTIBLE. // TODO: enum values: ["PREEMPTIBILITY_UNSPECIFIED", "NON_PREEMPTIBLE", "PREEMPTIBLE", "SPOT"]
     #[serde(default)]
-    pub preemptibility: Option<String>,
+    pub preemptibility: ::core::option::Option<String>,
     /// Optional. Configuration to handle the startup of instances during cluster create and update process.
     #[serde(default, rename = "startupConfig")]
-    pub startup_config: Option<StartupConfig>,
+    pub startup_config: ::core::option::Option<::std::boxed::Box<StartupConfig>>,
 }
 
 /// A reference to a Compute Engine instance.
@@ -1457,16 +1479,16 @@ pub struct InstanceGroupConfig {
 pub struct InstanceReference {
     /// The unique identifier of the Compute Engine instance.
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
     /// The user-friendly name of the Compute Engine instance.
     #[serde(default, rename = "instanceName")]
-    pub instance_name: Option<String>,
+    pub instance_name: ::core::option::Option<String>,
     /// The public ECIES key used for sharing data with this instance.
     #[serde(default, rename = "publicEciesKey")]
-    pub public_ecies_key: Option<String>,
+    pub public_ecies_key: ::core::option::Option<String>,
     /// The public RSA key used for sharing data with this instance.
     #[serde(default, rename = "publicKey")]
-    pub public_key: Option<String>,
+    pub public_key: ::core::option::Option<String>,
 }
 
 /// Defines machines types and a rank to which the machines types belong.
@@ -1474,10 +1496,10 @@ pub struct InstanceReference {
 pub struct InstanceSelection {
     /// Optional. Full machine-type names, e.g. "n1-standard-16".
     #[serde(default, rename = "machineTypes")]
-    pub machine_types: Option<Vec<String>>,
+    pub machine_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Preference of this instance selection. Lower number means higher preference. Dataproc will first try to create a VM based on the machine-type with priority rank and fallback to next rank based on availability. Machine types and instance selections with the same priority have the same preference.
     #[serde(default)]
-    pub rank: Option<i32>,
+    pub rank: ::core::option::Option<i32>,
 }
 
 /// Defines a mapping from machine types to the number of VMs that are created with each machine type.
@@ -1485,10 +1507,10 @@ pub struct InstanceSelection {
 pub struct InstanceSelectionResult {
     /// Output only. Full machine-type names, e.g. "n1-standard-16".
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Output only. Number of VM provisioned with the machine_type.
     #[serde(default, rename = "vmCount")]
-    pub vm_count: Option<i32>,
+    pub vm_count: ::core::option::Option<i32>,
 }
 
 /// A request to instantiate a workflow template.
@@ -1496,13 +1518,13 @@ pub struct InstanceSelectionResult {
 pub struct InstantiateWorkflowTemplateRequest {
     /// Optional. Map from parameter names to values that should be used for those parameters. Values may not exceed 1000 characters.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Optional. A tag that prevents multiple concurrent workflow instances with the same tag from running. This mitigates risk of concurrent instances started due to retries.It is recommended to always set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The tag must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Optional. The version of workflow template to instantiate. If specified, the workflow will be instantiated only if the current version of the workflow template has the supplied version.This option cannot be used to instantiate a previous version of workflow template.
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive).The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
@@ -1510,10 +1532,10 @@ pub struct InstantiateWorkflowTemplateRequest {
 pub struct Interval {
     /// Optional. Exclusive end of the interval.If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. Inclusive start of the interval.If specified, a Timestamp matching this interval will have to be the same or after the start.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// A Dataproc job resource.
@@ -1521,120 +1543,121 @@ pub struct Interval {
 pub struct Job {
     /// Output only. Indicates whether the job is completed. If the value is false, the job is still in progress. If true, the job is completed, and status.state field will indicate if it was successful, failed, or cancelled.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// Output only. If present, the location of miscellaneous control files which can be used as part of job setup and handling. If not present, control files might be placed in the same location as driver_output_uri.
     #[serde(default, rename = "driverControlFilesUri")]
-    pub driver_control_files_uri: Option<String>,
+    pub driver_control_files_uri: ::core::option::Option<String>,
     /// Output only. A URI pointing to the location of the stdout of the job''s driver program.
     #[serde(default, rename = "driverOutputResourceUri")]
-    pub driver_output_resource_uri: Option<String>,
+    pub driver_output_resource_uri: ::core::option::Option<String>,
     /// Optional. Driver scheduling configuration.
     #[serde(default, rename = "driverSchedulingConfig")]
-    pub driver_scheduling_config: Option<DriverSchedulingConfig>,
+    pub driver_scheduling_config: ::core::option::Option<::std::boxed::Box<DriverSchedulingConfig>>,
     /// Optional. Job is a Flink job.
     #[serde(default, rename = "flinkJob")]
-    pub flink_job: Option<FlinkJob>,
+    pub flink_job: ::core::option::Option<::std::boxed::Box<FlinkJob>>,
     /// Optional. Job is a Hadoop job.
     #[serde(default, rename = "hadoopJob")]
-    pub hadoop_job: Option<HadoopJob>,
+    pub hadoop_job: ::core::option::Option<::std::boxed::Box<HadoopJob>>,
     /// Optional. Job is a Hive job.
     #[serde(default, rename = "hiveJob")]
-    pub hive_job: Option<HiveJob>,
+    pub hive_job: ::core::option::Option<::std::boxed::Box<HiveJob>>,
     /// Output only. A UUID that uniquely identifies a job within the project over time. This is in contrast to a user-settable reference.job_id that might be reused over time.
     #[serde(default, rename = "jobUuid")]
-    pub job_uuid: Option<String>,
+    pub job_uuid: ::core::option::Option<String>,
     /// Optional. The labels to associate with this job. Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values can be empty, but, if present, must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a job.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Job is a Pig job.
     #[serde(default, rename = "pigJob")]
-    pub pig_job: Option<PigJob>,
+    pub pig_job: ::core::option::Option<::std::boxed::Box<PigJob>>,
     /// Required. Job information, including how, when, and where to run the job.
     #[serde(default)]
-    pub placement: Option<JobPlacement>,
+    pub placement: ::core::option::Option<::std::boxed::Box<JobPlacement>>,
     /// Optional. Job is a Presto job.
     #[serde(default, rename = "prestoJob")]
-    pub presto_job: Option<PrestoJob>,
+    pub presto_job: ::core::option::Option<::std::boxed::Box<PrestoJob>>,
     /// Optional. Job is a PySpark job.
     #[serde(default, rename = "pysparkJob")]
-    pub pyspark_job: Option<PySparkJob>,
+    pub pyspark_job: ::core::option::Option<::std::boxed::Box<PySparkJob>>,
     /// Optional. The fully qualified reference to the job, which can be used to obtain the equivalent REST path of the job resource. If this property is not specified when a job is created, the server generates a job_id.
     #[serde(default)]
-    pub reference: Option<JobReference>,
+    pub reference: ::core::option::Option<::std::boxed::Box<JobReference>>,
     /// Optional. Job scheduling configuration.
     #[serde(default)]
-    pub scheduling: Option<JobScheduling>,
+    pub scheduling: ::core::option::Option<::std::boxed::Box<JobScheduling>>,
     /// Optional. Job is a Spark job.
     #[serde(default, rename = "sparkJob")]
-    pub spark_job: Option<SparkJob>,
+    pub spark_job: ::core::option::Option<::std::boxed::Box<SparkJob>>,
     /// Optional. Job is a SparkR job.
     #[serde(default, rename = "sparkRJob")]
-    pub spark_r_job: Option<SparkRJob>,
+    pub spark_r_job: ::core::option::Option<::std::boxed::Box<SparkRJob>>,
     /// Optional. Job is a SparkSql job.
     #[serde(default, rename = "sparkSqlJob")]
-    pub spark_sql_job: Option<SparkSqlJob>,
+    pub spark_sql_job: ::core::option::Option<::std::boxed::Box<SparkSqlJob>>,
     /// Output only. The job status. Additional application-specific status information might be contained in the type_job and yarn_applications fields.
     #[serde(default)]
-    pub status: Option<JobStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<JobStatus>>,
     /// Output only. The previous job status.
     #[serde(default, rename = "statusHistory")]
-    pub status_history: Option<Vec<JobStatus>>,
+    pub status_history: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<JobStatus>>>,
     /// Optional. Job is a Trino job.
     #[serde(default, rename = "trinoJob")]
-    pub trino_job: Option<TrinoJob>,
+    pub trino_job: ::core::option::Option<::std::boxed::Box<TrinoJob>>,
     /// Output only. The collection of YARN applications spun up by this job.Beta Feature: This report is available for testing purposes only. It might be changed before final release.
     #[serde(default, rename = "yarnApplications")]
-    pub yarn_applications: Option<Vec<YarnApplication>>,
+    pub yarn_applications:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<YarnApplication>>>,
 }
 
 /// Data corresponding to a spark job.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JobData {
     #[serde(default, rename = "completionTime")]
-    pub completion_time: Option<String>,
+    pub completion_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "jobGroup")]
-    pub job_group: Option<String>,
+    pub job_group: ::core::option::Option<String>,
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     #[serde(default, rename = "killTasksSummary")]
-    pub kill_tasks_summary: Option<serde_json::Value>,
+    pub kill_tasks_summary: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "numActiveStages")]
-    pub num_active_stages: Option<i32>,
+    pub num_active_stages: ::core::option::Option<i32>,
     #[serde(default, rename = "numActiveTasks")]
-    pub num_active_tasks: Option<i32>,
+    pub num_active_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numCompletedIndices")]
-    pub num_completed_indices: Option<i32>,
+    pub num_completed_indices: ::core::option::Option<i32>,
     #[serde(default, rename = "numCompletedStages")]
-    pub num_completed_stages: Option<i32>,
+    pub num_completed_stages: ::core::option::Option<i32>,
     #[serde(default, rename = "numCompletedTasks")]
-    pub num_completed_tasks: Option<i32>,
+    pub num_completed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numFailedStages")]
-    pub num_failed_stages: Option<i32>,
+    pub num_failed_stages: ::core::option::Option<i32>,
     #[serde(default, rename = "numFailedTasks")]
-    pub num_failed_tasks: Option<i32>,
+    pub num_failed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numKilledTasks")]
-    pub num_killed_tasks: Option<i32>,
+    pub num_killed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numSkippedStages")]
-    pub num_skipped_stages: Option<i32>,
+    pub num_skipped_stages: ::core::option::Option<i32>,
     #[serde(default, rename = "numSkippedTasks")]
-    pub num_skipped_tasks: Option<i32>,
+    pub num_skipped_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numTasks")]
-    pub num_tasks: Option<i32>,
+    pub num_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "skippedStages")]
-    pub skipped_stages: Option<Vec<i32>>,
+    pub skipped_stages: ::core::option::Option<::std::vec::Vec<i32>>,
     #[serde(default, rename = "sqlExecutionId")]
-    pub sql_execution_id: Option<String>,
+    pub sql_execution_id: ::core::option::Option<String>,
     #[serde(default, rename = "stageIds")]
-    pub stage_ids: Option<Vec<String>>,
+    pub stage_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// TODO: enum values: ["JOB_EXECUTION_STATUS_UNSPECIFIED", "JOB_EXECUTION_STATUS_RUNNING", "JOB_EXECUTION_STATUS_SUCCEEDED", "JOB_EXECUTION_STATUS_FAILED", "JOB_EXECUTION_STATUS_UNKNOWN"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     #[serde(default, rename = "submissionTime")]
-    pub submission_time: Option<String>,
+    pub submission_time: ::core::option::Option<String>,
 }
 
 /// Job Operation metadata.
@@ -1642,16 +1665,16 @@ pub struct JobData {
 pub struct JobMetadata {
     /// Output only. The job id.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// Output only. Operation type.
     #[serde(default, rename = "operationType")]
-    pub operation_type: Option<String>,
+    pub operation_type: ::core::option::Option<String>,
     /// Output only. Job submission time.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. Most recent job status.
     #[serde(default)]
-    pub status: Option<JobStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<JobStatus>>,
 }
 
 /// Dataproc job config.
@@ -1659,13 +1682,13 @@ pub struct JobMetadata {
 pub struct JobPlacement {
     /// Optional. Cluster labels to identify a cluster where the job will be submitted.
     #[serde(default, rename = "clusterLabels")]
-    pub cluster_labels: Option<serde_json::Value>,
+    pub cluster_labels: ::core::option::Option<serde_json::Value>,
     /// Required. The name of the cluster where the job will be submitted.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// Output only. A cluster UUID generated by the Dataproc service when the job is submitted.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
 }
 
 /// Encapsulates the full scoping used to reference a job.
@@ -1673,10 +1696,10 @@ pub struct JobPlacement {
 pub struct JobReference {
     /// Optional. The job ID, which must be unique within the project.The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), or hyphens (-). The maximum length is 100 characters.If not specified by the caller, the job ID will be provided by the server.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// Optional. The ID of the Google Cloud Platform project that the job belongs to. If specified, must match the request project ID.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
 }
 
 /// Job scheduling options.
@@ -1684,10 +1707,10 @@ pub struct JobReference {
 pub struct JobScheduling {
     /// Optional. Maximum number of times per hour a driver can be restarted as a result of driver exiting with non-zero code before job is reported failed.A job might be reported as thrashing if the driver exits with a non-zero code four times within a 10-minute window.Maximum value is 10.Note: This restartable job option is not supported in Dataproc workflow templates (https://cloud.google.com/dataproc/docs/concepts/workflows/using-workflows#adding_jobs_to_a_template).
     #[serde(default, rename = "maxFailuresPerHour")]
-    pub max_failures_per_hour: Option<i32>,
+    pub max_failures_per_hour: ::core::option::Option<i32>,
     /// Optional. Maximum total number of times a driver can be restarted as a result of the driver exiting with a non-zero code. After the maximum number is reached, the job will be reported as failed.Maximum value is 240.Note: Currently, this restartable job option is not supported in Dataproc workflow templates (https://cloud.google.com/dataproc/docs/concepts/workflows/using-workflows#adding_jobs_to_a_template).
     #[serde(default, rename = "maxFailuresTotal")]
-    pub max_failures_total: Option<i32>,
+    pub max_failures_total: ::core::option::Option<i32>,
 }
 
 /// Dataproc job status.
@@ -1695,16 +1718,16 @@ pub struct JobScheduling {
 pub struct JobStatus {
     /// Optional. Output only. Job state details, such as an error description if the state is ERROR.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// Output only. A state message specifying the overall job state. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "SETUP_DONE", "RUNNING", "CANCEL_PENDING", "CANCEL_STARTED", "CANCELLED", "DONE", "ERROR", "ATTEMPT_FAILURE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time when this state was entered.
     #[serde(default, rename = "stateStartTime")]
-    pub state_start_time: Option<String>,
+    pub state_start_time: ::core::option::Option<String>,
     /// Output only. Additional state information, which includes status reported by the agent. // TODO: enum values: ["UNSPECIFIED", "SUBMITTED", "QUEUED", "STALE_STATUS"]
     #[serde(default)]
-    pub substate: Option<String>,
+    pub substate: ::core::option::Option<String>,
 }
 
 /// Data related to Jobs page summary
@@ -1712,22 +1735,23 @@ pub struct JobStatus {
 pub struct JobsSummary {
     /// Number of active jobs
     #[serde(default, rename = "activeJobs")]
-    pub active_jobs: Option<i32>,
+    pub active_jobs: ::core::option::Option<i32>,
     /// Spark Application Id
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     /// Attempts info
     #[serde(default)]
-    pub attempts: Option<Vec<ApplicationAttemptInfo>>,
+    pub attempts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApplicationAttemptInfo>>>,
     /// Number of completed jobs
     #[serde(default, rename = "completedJobs")]
-    pub completed_jobs: Option<i32>,
+    pub completed_jobs: ::core::option::Option<i32>,
     /// Number of failed jobs
     #[serde(default, rename = "failedJobs")]
-    pub failed_jobs: Option<i32>,
+    pub failed_jobs: ::core::option::Option<i32>,
     /// Spark Scheduling mode
     #[serde(default, rename = "schedulingMode")]
-    pub scheduling_mode: Option<String>,
+    pub scheduling_mode: ::core::option::Option<String>,
 }
 
 /// Jupyter configuration for an interactive session.
@@ -1735,10 +1759,10 @@ pub struct JobsSummary {
 pub struct JupyterConfig {
     /// Optional. Display name, shown in the Jupyter kernelspec card.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. Kernel // TODO: enum values: ["KERNEL_UNSPECIFIED", "PYTHON", "SCALA"]
     #[serde(default)]
-    pub kernel: Option<String>,
+    pub kernel: ::core::option::Option<String>,
 }
 
 /// Specifies Kerberos related configuration.
@@ -1746,49 +1770,49 @@ pub struct JupyterConfig {
 pub struct KerberosConfig {
     /// Optional. The admin server (IP or hostname) for the remote trusted realm in a cross realm trust relationship.
     #[serde(default, rename = "crossRealmTrustAdminServer")]
-    pub cross_realm_trust_admin_server: Option<String>,
+    pub cross_realm_trust_admin_server: ::core::option::Option<String>,
     /// Optional. The KDC (IP or hostname) for the remote trusted realm in a cross realm trust relationship.
     #[serde(default, rename = "crossRealmTrustKdc")]
-    pub cross_realm_trust_kdc: Option<String>,
+    pub cross_realm_trust_kdc: ::core::option::Option<String>,
     /// Optional. The remote realm the Dataproc on-cluster KDC will trust, should the user enable cross realm trust.
     #[serde(default, rename = "crossRealmTrustRealm")]
-    pub cross_realm_trust_realm: Option<String>,
+    pub cross_realm_trust_realm: ::core::option::Option<String>,
     /// Optional. The Cloud Storage URI of a KMS encrypted file containing the shared password between the on-cluster Kerberos realm and the remote trusted realm, in a cross realm trust relationship.
     #[serde(default, rename = "crossRealmTrustSharedPasswordUri")]
-    pub cross_realm_trust_shared_password_uri: Option<String>,
+    pub cross_realm_trust_shared_password_uri: ::core::option::Option<String>,
     /// Optional. Flag to indicate whether to Kerberize the cluster (default: false). Set this field to true to enable Kerberos on a cluster.
     #[serde(default, rename = "enableKerberos")]
-    pub enable_kerberos: Option<bool>,
+    pub enable_kerberos: ::core::option::Option<bool>,
     /// Optional. The Cloud Storage URI of a KMS encrypted file containing the master key of the KDC database.
     #[serde(default, rename = "kdcDbKeyUri")]
-    pub kdc_db_key_uri: Option<String>,
+    pub kdc_db_key_uri: ::core::option::Option<String>,
     /// Optional. The Cloud Storage URI of a KMS encrypted file containing the password to the user provided key. For the self-signed certificate, this password is generated by Dataproc.
     #[serde(default, rename = "keyPasswordUri")]
-    pub key_password_uri: Option<String>,
+    pub key_password_uri: ::core::option::Option<String>,
     /// Optional. The Cloud Storage URI of a KMS encrypted file containing the password to the user provided keystore. For the self-signed certificate, this password is generated by Dataproc.
     #[serde(default, rename = "keystorePasswordUri")]
-    pub keystore_password_uri: Option<String>,
+    pub keystore_password_uri: ::core::option::Option<String>,
     /// Optional. The Cloud Storage URI of the keystore file used for SSL encryption. If not provided, Dataproc will provide a self-signed certificate.
     #[serde(default, rename = "keystoreUri")]
-    pub keystore_uri: Option<String>,
+    pub keystore_uri: ::core::option::Option<String>,
     /// Optional. The URI of the KMS key used to encrypt sensitive files.
     #[serde(default, rename = "kmsKeyUri")]
-    pub kms_key_uri: Option<String>,
+    pub kms_key_uri: ::core::option::Option<String>,
     /// Optional. The name of the on-cluster Kerberos realm. If not specified, the uppercased domain of hostnames will be the realm.
     #[serde(default)]
-    pub realm: Option<String>,
+    pub realm: ::core::option::Option<String>,
     /// Optional. The Cloud Storage URI of a KMS encrypted file containing the root principal password.
     #[serde(default, rename = "rootPrincipalPasswordUri")]
-    pub root_principal_password_uri: Option<String>,
+    pub root_principal_password_uri: ::core::option::Option<String>,
     /// Optional. The lifetime of the ticket granting ticket, in hours. If not specified, or user specifies 0, then default value 10 will be used.
     #[serde(default, rename = "tgtLifetimeHours")]
-    pub tgt_lifetime_hours: Option<i32>,
+    pub tgt_lifetime_hours: ::core::option::Option<i32>,
     /// Optional. The Cloud Storage URI of a KMS encrypted file containing the password to the user provided truststore. For the self-signed certificate, this password is generated by Dataproc.
     #[serde(default, rename = "truststorePasswordUri")]
-    pub truststore_password_uri: Option<String>,
+    pub truststore_password_uri: ::core::option::Option<String>,
     /// Optional. The Cloud Storage URI of the truststore file used for SSL encryption. If not provided, Dataproc will provide a self-signed certificate.
     #[serde(default, rename = "truststoreUri")]
-    pub truststore_uri: Option<String>,
+    pub truststore_uri: ::core::option::Option<String>,
 }
 
 /// The configuration for running the Dataproc cluster on Kubernetes.
@@ -1796,13 +1820,14 @@ pub struct KerberosConfig {
 pub struct KubernetesClusterConfig {
     /// Required. The configuration for running the Dataproc cluster on GKE.
     #[serde(default, rename = "gkeClusterConfig")]
-    pub gke_cluster_config: Option<GkeClusterConfig>,
+    pub gke_cluster_config: ::core::option::Option<::std::boxed::Box<GkeClusterConfig>>,
     /// Optional. A namespace within the Kubernetes cluster to deploy into. If this namespace does not exist, it is created. If it exists, Dataproc verifies that another Dataproc VirtualCluster is not installed into it. If not specified, the name of the Dataproc Cluster is used.
     #[serde(default, rename = "kubernetesNamespace")]
-    pub kubernetes_namespace: Option<String>,
+    pub kubernetes_namespace: ::core::option::Option<String>,
     /// Optional. The software configuration for this Dataproc cluster running on Kubernetes.
     #[serde(default, rename = "kubernetesSoftwareConfig")]
-    pub kubernetes_software_config: Option<KubernetesSoftwareConfig>,
+    pub kubernetes_software_config:
+        ::core::option::Option<::std::boxed::Box<KubernetesSoftwareConfig>>,
 }
 
 /// The software configuration for this Dataproc cluster running on Kubernetes.
@@ -1810,10 +1835,10 @@ pub struct KubernetesClusterConfig {
 pub struct KubernetesSoftwareConfig {
     /// The components that should be installed in this Dataproc cluster. The key must be a string from the KubernetesComponent enumeration. The value is the version of the software to be installed. At least one entry must be specified.
     #[serde(default, rename = "componentVersion")]
-    pub component_version: Option<serde_json::Value>,
+    pub component_version: ::core::option::Option<serde_json::Value>,
     /// The properties to set on daemon config files.Property keys are specified in prefix:property format, for example spark:spark.kubernetes.container.image. The following are supported prefixes and their mappings: spark: spark-defaults.confFor more information, see Cluster properties (https://cloud.google.com/dataproc/docs/concepts/cluster-properties).
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// Specifies the cluster auto-delete schedule configuration.
@@ -1821,25 +1846,25 @@ pub struct KubernetesSoftwareConfig {
 pub struct LifecycleConfig {
     /// Optional. The time when cluster will be auto-deleted (see JSON representation of Timestamp (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "autoDeleteTime")]
-    pub auto_delete_time: Option<String>,
+    pub auto_delete_time: ::core::option::Option<String>,
     /// Optional. The lifetime duration of cluster. The cluster will be auto-deleted at the end of this period. Minimum value is 10 minutes; maximum value is 14 days (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "autoDeleteTtl")]
-    pub auto_delete_ttl: Option<String>,
+    pub auto_delete_ttl: ::core::option::Option<String>,
     /// Optional. The time when cluster will be auto-stopped (see JSON representation of Timestamp (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "autoStopTime")]
-    pub auto_stop_time: Option<String>,
+    pub auto_stop_time: ::core::option::Option<String>,
     /// Optional. The lifetime duration of the cluster. The cluster will be auto-stopped at the end of this period, calculated from the time of submission of the create or update cluster request. Minimum value is 10 minutes; maximum value is 14 days (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "autoStopTtl")]
-    pub auto_stop_ttl: Option<String>,
+    pub auto_stop_ttl: ::core::option::Option<String>,
     /// Optional. The duration to keep the cluster alive while idling (when no jobs are running). Passing this threshold will cause the cluster to be deleted. Minimum value is 5 minutes; maximum value is 14 days (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "idleDeleteTtl")]
-    pub idle_delete_ttl: Option<String>,
+    pub idle_delete_ttl: ::core::option::Option<String>,
     /// Output only. The time when cluster became idle (most recent job finished) and became eligible for deletion due to idleness (see JSON representation of Timestamp (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "idleStartTime")]
-    pub idle_start_time: Option<String>,
+    pub idle_start_time: ::core::option::Option<String>,
     /// Optional. The duration to keep the cluster started while idling (when no jobs are running). Passing this threshold will cause the cluster to be stopped. Minimum value is 5 minutes; maximum value is 14 days (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "idleStopTtl")]
-    pub idle_stop_ttl: Option<String>,
+    pub idle_stop_ttl: ::core::option::Option<String>,
 }
 
 /// A response to a request to list autoscaling policies in a project.
@@ -1847,10 +1872,10 @@ pub struct LifecycleConfig {
 pub struct ListAutoscalingPoliciesResponse {
     /// Output only. This token is included in the response if there are more results to fetch.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Autoscaling policies list.
     #[serde(default)]
-    pub policies: Option<Vec<AutoscalingPolicy>>,
+    pub policies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutoscalingPolicy>>>,
 }
 
 /// A list of batch workloads.
@@ -1858,13 +1883,13 @@ pub struct ListAutoscalingPoliciesResponse {
 pub struct ListBatchesResponse {
     /// Output only. The batches from the specified collection.
     #[serde(default)]
-    pub batches: Option<Vec<Batch>>,
+    pub batches: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Batch>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. List of Batches that could not be included in the response. Attempting to get one of these resources may indicate why it was not included in the list response.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The list of all clusters in a project.
@@ -1872,10 +1897,10 @@ pub struct ListBatchesResponse {
 pub struct ListClustersResponse {
     /// Output only. The clusters in the project.
     #[serde(default)]
-    pub clusters: Option<Vec<Cluster>>,
+    pub clusters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Cluster>>>,
     /// Output only. This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent ListClustersRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A list of jobs in a project.
@@ -1883,13 +1908,13 @@ pub struct ListClustersResponse {
 pub struct ListJobsResponse {
     /// Output only. Jobs list.
     #[serde(default)]
-    pub jobs: Option<Vec<Job>>,
+    pub jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Job>>>,
     /// Optional. This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent ListJobsRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. List of jobs with kms_key-encrypted parameters that could not be decrypted. A response to a jobs.get request may indicate the reason for the decryption failure for a specific job.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1897,13 +1922,13 @@ pub struct ListJobsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A list of session templates.
@@ -1911,10 +1936,11 @@ pub struct ListOperationsResponse {
 pub struct ListSessionTemplatesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Session template list
     #[serde(default, rename = "sessionTemplates")]
-    pub session_templates: Option<Vec<SessionTemplate>>,
+    pub session_templates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SessionTemplate>>>,
 }
 
 /// A list of interactive sessions.
@@ -1922,10 +1948,10 @@ pub struct ListSessionTemplatesResponse {
 pub struct ListSessionsResponse {
     /// A token, which can be sent as page_token, to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The sessions from the specified collection.
     #[serde(default)]
-    pub sessions: Option<Vec<Session>>,
+    pub sessions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Session>>>,
 }
 
 /// A response to a request to list workflow templates in a project.
@@ -1933,13 +1959,13 @@ pub struct ListSessionsResponse {
 pub struct ListWorkflowTemplatesResponse {
     /// Output only. This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent ListWorkflowTemplatesRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. WorkflowTemplates list.
     #[serde(default)]
-    pub templates: Option<Vec<WorkflowTemplate>>,
+    pub templates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkflowTemplate>>>,
     /// Output only. List of workflow templates that could not be included in the response. Attempting to get one of these resources may indicate why it was not included in the list response.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Cluster that is managed by the workflow.
@@ -1947,13 +1973,13 @@ pub struct ListWorkflowTemplatesResponse {
 pub struct ManagedCluster {
     /// Required. The cluster name prefix. A unique cluster name will be formed by appending a random suffix.The name must contain only lower-case letters (a-z), numbers (0-9), and hyphens (-). Must begin with a letter. Cannot begin or end with hyphen. Must consist of between 2 and 35 characters.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// Required. The cluster configuration.
     #[serde(default)]
-    pub config: Option<ClusterConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<ClusterConfig>>,
     /// Optional. The labels to associate with this cluster.Label keys must be between 1 and 63 characters long, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62}Label values must be between 1 and 63 characters long, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}\p{N}_-{0,63}No more than 32 labels can be associated with a given cluster.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Specifies the resources used to actively manage an instance group.
@@ -1961,26 +1987,26 @@ pub struct ManagedCluster {
 pub struct ManagedGroupConfig {
     /// Output only. The name of the Instance Group Manager for this group.
     #[serde(default, rename = "instanceGroupManagerName")]
-    pub instance_group_manager_name: Option<String>,
+    pub instance_group_manager_name: ::core::option::Option<String>,
     /// Output only. The partial URI to the instance group manager for this group. E.g. projects/my-project/regions/us-central1/instanceGroupManagers/my-igm.
     #[serde(default, rename = "instanceGroupManagerUri")]
-    pub instance_group_manager_uri: Option<String>,
+    pub instance_group_manager_uri: ::core::option::Option<String>,
     /// Output only. The name of the Instance Template used for the Managed Instance Group.
     #[serde(default, rename = "instanceTemplateName")]
-    pub instance_template_name: Option<String>,
+    pub instance_template_name: ::core::option::Option<String>,
 }
 
 /// MemoryMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryMetrics {
     #[serde(default, rename = "totalOffHeapStorageMemory")]
-    pub total_off_heap_storage_memory: Option<String>,
+    pub total_off_heap_storage_memory: ::core::option::Option<String>,
     #[serde(default, rename = "totalOnHeapStorageMemory")]
-    pub total_on_heap_storage_memory: Option<String>,
+    pub total_on_heap_storage_memory: ::core::option::Option<String>,
     #[serde(default, rename = "usedOffHeapStorageMemory")]
-    pub used_off_heap_storage_memory: Option<String>,
+    pub used_off_heap_storage_memory: ::core::option::Option<String>,
     #[serde(default, rename = "usedOnHeapStorageMemory")]
-    pub used_on_heap_storage_memory: Option<String>,
+    pub used_on_heap_storage_memory: ::core::option::Option<String>,
 }
 
 /// Specifies a Metastore configuration.
@@ -1988,7 +2014,7 @@ pub struct MemoryMetrics {
 pub struct MetastoreConfig {
     /// Required. Resource name of an existing Dataproc Metastore service.Example: projects/[project_id]/locations/[dataproc_region]/services/[service-name]
     #[serde(default, rename = "dataprocMetastoreService")]
-    pub dataproc_metastore_service: Option<String>,
+    pub dataproc_metastore_service: ::core::option::Option<String>,
 }
 
 /// A Dataproc custom metric.
@@ -1996,10 +2022,10 @@ pub struct MetastoreConfig {
 pub struct Metric {
     /// Optional. Specify one or more Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) to collect for the metric course (for the SPARK metric source (any Spark metric (https://spark.apache.org/docs/latest/monitoring.html#metrics) can be specified).Provide metrics in the following format: METRIC_SOURCE: INSTANCE:GROUP:METRIC Use camelcase as appropriate.Examples: yarn:ResourceManager:QueueMetrics:AppsCompleted spark:driver:DAGScheduler:job.allJobs sparkHistoryServer:JVM:Memory:NonHeapMemoryUsage.committed hiveserver2:JVM:Memory:NonHeapMemoryUsage.used Notes: Only the specified overridden metrics are collected for the metric source. For example, if one or more spark:executive metrics are listed as metric overrides, other SPARK metrics are not collected. The collection of the metrics for other enabled custom metric sources is unaffected. For example, if both SPARK and YARN metric sources are enabled, and overrides are provided for Spark metrics only, all YARN metrics are collected.
     #[serde(default, rename = "metricOverrides")]
-    pub metric_overrides: Option<Vec<String>>,
+    pub metric_overrides: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. A standard set of metrics is collected unless metricOverrides are specified for the metric source (see Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) for more information). // TODO: enum values: ["METRIC_SOURCE_UNSPECIFIED", "MONITORING_AGENT_DEFAULTS", "HDFS", "SPARK", "YARN", "SPARK_HISTORY_SERVER", "HIVESERVER2", "HIVEMETASTORE", "FLINK"]
     #[serde(default, rename = "metricSource")]
-    pub metric_source: Option<String>,
+    pub metric_source: ::core::option::Option<String>,
 }
 
 /// Deprecated. Used only for the deprecated beta. A full, namespace-isolated deployment target for an existing GKE cluster.
@@ -2007,10 +2033,10 @@ pub struct Metric {
 pub struct NamespacedGkeDeploymentTarget {
     /// Optional. A namespace within the GKE cluster to deploy into.
     #[serde(default, rename = "clusterNamespace")]
-    pub cluster_namespace: Option<String>,
+    pub cluster_namespace: ::core::option::Option<String>,
     /// Optional. The target GKE cluster to deploy to. Format: ''projects/{project}/locations/{location}/clusters/{cluster_id}''
     #[serde(default, rename = "targetGkeCluster")]
-    pub target_gke_cluster: Option<String>,
+    pub target_gke_cluster: ::core::option::Option<String>,
 }
 
 /// NativeBuildInfoUiData resource type.
@@ -2018,10 +2044,10 @@ pub struct NamespacedGkeDeploymentTarget {
 pub struct NativeBuildInfoUiData {
     /// Optional. Build class of Native.
     #[serde(default, rename = "buildClass")]
-    pub build_class: Option<String>,
+    pub build_class: ::core::option::Option<String>,
     /// Optional. Build related details.
     #[serde(default, rename = "buildInfo")]
-    pub build_info: Option<Vec<BuildInfo>>,
+    pub build_info: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BuildInfo>>>,
 }
 
 /// Native SQL Execution Data
@@ -2029,22 +2055,23 @@ pub struct NativeBuildInfoUiData {
 pub struct NativeSqlExecutionUiData {
     /// Optional. Description of the execution.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Execution ID of the Native SQL Execution.
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     /// Optional. Description of the fallback.
     #[serde(default, rename = "fallbackDescription")]
-    pub fallback_description: Option<String>,
+    pub fallback_description: ::core::option::Option<String>,
     /// Optional. Fallback node to reason.
     #[serde(default, rename = "fallbackNodeToReason")]
-    pub fallback_node_to_reason: Option<Vec<FallbackReason>>,
+    pub fallback_node_to_reason:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FallbackReason>>>,
     /// Optional. Number of nodes fallen back to Spark.
     #[serde(default, rename = "numFallbackNodes")]
-    pub num_fallback_nodes: Option<i32>,
+    pub num_fallback_nodes: ::core::option::Option<i32>,
     /// Optional. Number of nodes in Native.
     #[serde(default, rename = "numNativeNodes")]
-    pub num_native_nodes: Option<i32>,
+    pub num_native_nodes: ::core::option::Option<i32>,
 }
 
 /// Dataproc Node Group. The Dataproc NodeGroup resource is not related to the Dataproc NodeGroupAffinity resource.
@@ -2052,16 +2079,16 @@ pub struct NativeSqlExecutionUiData {
 pub struct NodeGroup {
     /// Optional. Node group labels. Label keys must consist of from 1 to 63 characters and conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values can be empty. If specified, they must consist of from 1 to 63 characters and conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). The node group must have no more than 32 labels.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The Node group resource name (https://aip.dev/122).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The node group instance group configuration.
     #[serde(default, rename = "nodeGroupConfig")]
-    pub node_group_config: Option<InstanceGroupConfig>,
+    pub node_group_config: ::core::option::Option<::std::boxed::Box<InstanceGroupConfig>>,
     /// Required. Node group roles.
     #[serde(default)]
-    pub roles: Option<Vec<String>>,
+    pub roles: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Node Group Affinity for clusters using sole-tenant node groups. The Dataproc NodeGroupAffinity resource is not related to the Dataproc NodeGroup resource.
@@ -2069,7 +2096,7 @@ pub struct NodeGroup {
 pub struct NodeGroupAffinity {
     /// Required. The URI of a sole-tenant node group resource (https://cloud.google.com/compute/docs/reference/rest/v1/nodeGroups) that the cluster will be created on.A full URL, partial URI, or node group name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone]/nodeGroups/node-group-1 projects/[project_id]/zones/[zone]/nodeGroups/node-group-1 node-group-1
     #[serde(default, rename = "nodeGroupUri")]
-    pub node_group_uri: Option<String>,
+    pub node_group_uri: ::core::option::Option<String>,
 }
 
 /// Metadata describing the node group operation.
@@ -2077,28 +2104,29 @@ pub struct NodeGroupAffinity {
 pub struct NodeGroupOperationMetadata {
     /// Output only. Cluster UUID associated with the node group operation.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
     /// Output only. Short description of operation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. Labels associated with the operation.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Node group ID for the operation.
     #[serde(default, rename = "nodeGroupId")]
-    pub node_group_id: Option<String>,
+    pub node_group_id: ::core::option::Option<String>,
     /// The operation type. // TODO: enum values: ["NODE_GROUP_OPERATION_TYPE_UNSPECIFIED", "CREATE", "UPDATE", "DELETE", "RESIZE", "REPAIR", "UPDATE_LABELS", "START", "STOP", "UPDATE_METADATA_CONFIG"]
     #[serde(default, rename = "operationType")]
-    pub operation_type: Option<String>,
+    pub operation_type: ::core::option::Option<String>,
     /// Output only. Current operation status.
     #[serde(default)]
-    pub status: Option<ClusterOperationStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ClusterOperationStatus>>,
     /// Output only. The previous operation status.
     #[serde(default, rename = "statusHistory")]
-    pub status_history: Option<Vec<ClusterOperationStatus>>,
+    pub status_history:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClusterOperationStatus>>>,
     /// Output only. Errors encountered during operation execution.
     #[serde(default)]
-    pub warnings: Option<Vec<String>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Specifies an executable to run on a fully configured node and a timeout period for executable completion.
@@ -2106,10 +2134,10 @@ pub struct NodeGroupOperationMetadata {
 pub struct NodeInitializationAction {
     /// Required. Cloud Storage URI of executable file.
     #[serde(default, rename = "executableFile")]
-    pub executable_file: Option<String>,
+    pub executable_file: ::core::option::Option<String>,
     /// Optional. Amount of time executable has to complete. Default is 10 minutes (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).Cluster creation fails with an explanatory error message (the name of the executable that caused the error and the exceeded timeout period) if the executable is not completed at end of the timeout period.
     #[serde(default, rename = "executionTimeout")]
-    pub execution_timeout: Option<String>,
+    pub execution_timeout: ::core::option::Option<String>,
 }
 
 /// indicating a list of workers of same type
@@ -2117,13 +2145,13 @@ pub struct NodeInitializationAction {
 pub struct NodePool {
     /// Required. A unique id of the node pool. Primary and Secondary workers can be specified using special reserved ids PRIMARY_WORKER_POOL and SECONDARY_WORKER_POOL respectively. Aux node pools can be referenced using corresponding pool id.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Name of instances to be repaired. These instances must belong to specified node pool.
     #[serde(default, rename = "instanceNames")]
-    pub instance_names: Option<Vec<String>>,
+    pub instance_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Repair action to take on specified resources of the node pool. // TODO: enum values: ["REPAIR_ACTION_UNSPECIFIED", "DELETE"]
     #[serde(default, rename = "repairAction")]
-    pub repair_action: Option<String>,
+    pub repair_action: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -2131,19 +2159,19 @@ pub struct NodePool {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// A job executed by the workflow.
@@ -2151,64 +2179,64 @@ pub struct Operation {
 pub struct OrderedJob {
     /// Optional. Job is a Flink job.
     #[serde(default, rename = "flinkJob")]
-    pub flink_job: Option<FlinkJob>,
+    pub flink_job: ::core::option::Option<::std::boxed::Box<FlinkJob>>,
     /// Optional. Job is a Hadoop job.
     #[serde(default, rename = "hadoopJob")]
-    pub hadoop_job: Option<HadoopJob>,
+    pub hadoop_job: ::core::option::Option<::std::boxed::Box<HadoopJob>>,
     /// Optional. Job is a Hive job.
     #[serde(default, rename = "hiveJob")]
-    pub hive_job: Option<HiveJob>,
+    pub hive_job: ::core::option::Option<::std::boxed::Box<HiveJob>>,
     /// Optional. The labels to associate with this job.Label keys must be between 1 and 63 characters long, and must conform to the following regular expression: \p{Ll}\p{Lo}{0,62}Label values must be between 1 and 63 characters long, and must conform to the following regular expression: \p{Ll}\p{Lo}\p{N}_-{0,63}No more than 32 labels can be associated with a given job.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Job is a Pig job.
     #[serde(default, rename = "pigJob")]
-    pub pig_job: Option<PigJob>,
+    pub pig_job: ::core::option::Option<::std::boxed::Box<PigJob>>,
     /// Optional. The optional list of prerequisite job step_ids. If not specified, the job will start at the beginning of workflow.
     #[serde(default, rename = "prerequisiteStepIds")]
-    pub prerequisite_step_ids: Option<Vec<String>>,
+    pub prerequisite_step_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Job is a Presto job.
     #[serde(default, rename = "prestoJob")]
-    pub presto_job: Option<PrestoJob>,
+    pub presto_job: ::core::option::Option<::std::boxed::Box<PrestoJob>>,
     /// Optional. Job is a PySpark job.
     #[serde(default, rename = "pysparkJob")]
-    pub pyspark_job: Option<PySparkJob>,
+    pub pyspark_job: ::core::option::Option<::std::boxed::Box<PySparkJob>>,
     /// Optional. Job scheduling configuration.
     #[serde(default)]
-    pub scheduling: Option<JobScheduling>,
+    pub scheduling: ::core::option::Option<::std::boxed::Box<JobScheduling>>,
     /// Optional. Job is a Spark job.
     #[serde(default, rename = "sparkJob")]
-    pub spark_job: Option<SparkJob>,
+    pub spark_job: ::core::option::Option<::std::boxed::Box<SparkJob>>,
     /// Optional. Job is a SparkR job.
     #[serde(default, rename = "sparkRJob")]
-    pub spark_r_job: Option<SparkRJob>,
+    pub spark_r_job: ::core::option::Option<::std::boxed::Box<SparkRJob>>,
     /// Optional. Job is a SparkSql job.
     #[serde(default, rename = "sparkSqlJob")]
-    pub spark_sql_job: Option<SparkSqlJob>,
+    pub spark_sql_job: ::core::option::Option<::std::boxed::Box<SparkSqlJob>>,
     /// Required. The step id. The id must be unique among all jobs within the template.The step id is used as prefix for job id, as job goog-dataproc-workflow-step-id label, and in prerequisiteStepIds field from other steps.The id must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). Cannot begin or end with underscore or hyphen. Must consist of between 3 and 50 characters.
     #[serde(default, rename = "stepId")]
-    pub step_id: Option<String>,
+    pub step_id: ::core::option::Option<String>,
     /// Optional. Job is a Trino job.
     #[serde(default, rename = "trinoJob")]
-    pub trino_job: Option<TrinoJob>,
+    pub trino_job: ::core::option::Option<::std::boxed::Box<TrinoJob>>,
 }
 
 /// Metrics about the data written by the task.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OutputMetrics {
     #[serde(default, rename = "bytesWritten")]
-    pub bytes_written: Option<String>,
+    pub bytes_written: ::core::option::Option<String>,
     #[serde(default, rename = "recordsWritten")]
-    pub records_written: Option<String>,
+    pub records_written: ::core::option::Option<String>,
 }
 
 /// OutputQuantileMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OutputQuantileMetrics {
     #[serde(default, rename = "bytesWritten")]
-    pub bytes_written: Option<Quantiles>,
+    pub bytes_written: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "recordsWritten")]
-    pub records_written: Option<Quantiles>,
+    pub records_written: ::core::option::Option<::std::boxed::Box<Quantiles>>,
 }
 
 /// Configuration for parameter validation.
@@ -2216,10 +2244,10 @@ pub struct OutputQuantileMetrics {
 pub struct ParameterValidation {
     /// Validation based on regular expressions.
     #[serde(default)]
-    pub regex: Option<RegexValidation>,
+    pub regex: ::core::option::Option<::std::boxed::Box<RegexValidation>>,
     /// Validation based on a list of allowed values.
     #[serde(default)]
-    pub values: Option<ValueValidation>,
+    pub values: ::core::option::Option<::std::boxed::Box<ValueValidation>>,
 }
 
 /// Auxiliary services configuration for a workload.
@@ -2227,10 +2255,11 @@ pub struct ParameterValidation {
 pub struct PeripheralsConfig {
     /// Optional. Resource name of an existing Dataproc Metastore service.Example: projects/[project_id]/locations/[region]/services/[service_id]
     #[serde(default, rename = "metastoreService")]
-    pub metastore_service: Option<String>,
+    pub metastore_service: ::core::option::Option<String>,
     /// Optional. The Spark History Server configuration for the workload.
     #[serde(default, rename = "sparkHistoryServerConfig")]
-    pub spark_history_server_config: Option<SparkHistoryServerConfig>,
+    pub spark_history_server_config:
+        ::core::option::Option<::std::boxed::Box<SparkHistoryServerConfig>>,
 }
 
 /// A Dataproc job for running Apache Pig (https://pig.apache.org/) queries on YARN.
@@ -2238,25 +2267,25 @@ pub struct PeripheralsConfig {
 pub struct PigJob {
     /// Optional. Whether to continue executing queries if a query fails. The default value is false. Setting to true can be useful when executing independent parallel queries.
     #[serde(default, rename = "continueOnFailure")]
-    pub continue_on_failure: Option<bool>,
+    pub continue_on_failure: ::core::option::Option<bool>,
     /// Optional. HCFS URIs of jar files to add to the CLASSPATH of the Pig Client and Hadoop MapReduce (MR) tasks. Can contain Pig UDFs.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// Optional. A mapping of property names to values, used to configure Pig. Properties that conflict with values set by the Dataproc API might be overwritten. Can include properties set in /etc/hadoop/conf/*-site.xml, /etc/pig/conf/pig.properties, and classes in user code.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// The HCFS URI of the script that contains the Pig queries.
     #[serde(default, rename = "queryFileUri")]
-    pub query_file_uri: Option<String>,
+    pub query_file_uri: ::core::option::Option<String>,
     /// A list of queries.
     #[serde(default, rename = "queryList")]
-    pub query_list: Option<QueryList>,
+    pub query_list: ::core::option::Option<::std::boxed::Box<QueryList>>,
     /// Optional. Mapping of query variable names to values (equivalent to the Pig command: name=[value]).
     #[serde(default, rename = "scriptVariables")]
-    pub script_variables: Option<serde_json::Value>,
+    pub script_variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
@@ -2264,22 +2293,22 @@ pub struct PigJob {
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal.The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy.Important: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy.Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected.Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: Getting a policy that includes a conditional role binding Adding a conditional role binding to a policy Changing a conditional role binding in a policy Removing any role binding, with or without a condition, from a policy that includes conditionsImportant: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Pool Data
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PoolData {
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "stageIds")]
-    pub stage_ids: Option<Vec<String>>,
+    pub stage_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A Dataproc job for running Presto (https://prestosql.io/) queries. IMPORTANT: The Dataproc Presto Optional Component (https://cloud.google.com/dataproc/docs/concepts/components/presto) must be enabled when the cluster is created to submit a Presto job to the cluster.
@@ -2287,44 +2316,44 @@ pub struct PoolData {
 pub struct PrestoJob {
     /// Optional. Presto client tags to attach to this query
     #[serde(default, rename = "clientTags")]
-    pub client_tags: Option<Vec<String>>,
+    pub client_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Whether to continue executing queries if a query fails. The default value is false. Setting to true can be useful when executing independent parallel queries.
     #[serde(default, rename = "continueOnFailure")]
-    pub continue_on_failure: Option<bool>,
+    pub continue_on_failure: ::core::option::Option<bool>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// Optional. The format in which query output will be displayed. See the Presto documentation for supported output formats
     #[serde(default, rename = "outputFormat")]
-    pub output_format: Option<String>,
+    pub output_format: ::core::option::Option<String>,
     /// Optional. A mapping of property names to values. Used to set Presto session properties (https://prestodb.io/docs/current/sql/set-session.html) Equivalent to using the --session flag in the Presto CLI
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// The HCFS URI of the script that contains SQL queries.
     #[serde(default, rename = "queryFileUri")]
-    pub query_file_uri: Option<String>,
+    pub query_file_uri: ::core::option::Option<String>,
     /// A list of queries.
     #[serde(default, rename = "queryList")]
-    pub query_list: Option<QueryList>,
+    pub query_list: ::core::option::Option<::std::boxed::Box<QueryList>>,
 }
 
 /// Process Summary
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessSummary {
     #[serde(default, rename = "addTime")]
-    pub add_time: Option<String>,
+    pub add_time: ::core::option::Option<String>,
     #[serde(default, rename = "hostPort")]
-    pub host_port: Option<String>,
+    pub host_port: ::core::option::Option<String>,
     #[serde(default, rename = "isActive")]
-    pub is_active: Option<bool>,
+    pub is_active: ::core::option::Option<bool>,
     #[serde(default, rename = "processId")]
-    pub process_id: Option<String>,
+    pub process_id: ::core::option::Option<String>,
     #[serde(default, rename = "processLogs")]
-    pub process_logs: Option<serde_json::Value>,
+    pub process_logs: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "removeTime")]
-    pub remove_time: Option<String>,
+    pub remove_time: ::core::option::Option<String>,
     #[serde(default, rename = "totalCores")]
-    pub total_cores: Option<i32>,
+    pub total_cores: ::core::option::Option<i32>,
 }
 
 /// Defines how Dataproc should create VMs with a mixture of provisioning models.
@@ -2332,10 +2361,10 @@ pub struct ProcessSummary {
 pub struct ProvisioningModelMix {
     /// Optional. The base capacity that will always use Standard VMs to avoid risk of more preemption than the minimum capacity you need. Dataproc will create only standard VMs until it reaches standard_capacity_base, then it will start using standard_capacity_percent_above_base to mix Spot with Standard VMs. eg. If 15 instances are requested and standard_capacity_base is 5, Dataproc will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances.
     #[serde(default, rename = "standardCapacityBase")]
-    pub standard_capacity_base: Option<i32>,
+    pub standard_capacity_base: ::core::option::Option<i32>,
     /// Optional. The percentage of target capacity that should use Standard VM. The remaining percentage will use Spot VMs. The percentage applies only to the capacity above standard_capacity_base. eg. If 15 instances are requested and standard_capacity_base is 5 and standard_capacity_percent_above_base is 30, Dataproc will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances. The mix will be 30% standard and 70% spot.
     #[serde(default, rename = "standardCapacityPercentAboveBase")]
-    pub standard_capacity_percent_above_base: Option<i32>,
+    pub standard_capacity_percent_above_base: ::core::option::Option<i32>,
 }
 
 /// Configuration for PyPi repository
@@ -2343,7 +2372,7 @@ pub struct ProvisioningModelMix {
 pub struct PyPiRepositoryConfig {
     /// Optional. The PyPi repository address. Note: This field is not available for batch workloads.
     #[serde(default, rename = "pypiRepository")]
-    pub pypi_repository: Option<String>,
+    pub pypi_repository: ::core::option::Option<String>,
 }
 
 /// A configuration for running an Apache PySpark (https://spark.apache.org/docs/latest/api/python/getting_started/quickstart.html) batch workload.
@@ -2351,22 +2380,22 @@ pub struct PyPiRepositoryConfig {
 pub struct PySparkBatch {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
-    pub archive_uris: Option<Vec<String>>,
+    pub archive_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The arguments to pass to the driver. Do not include arguments that can be set as batch properties, such as --conf, since a collision can occur that causes an incorrect batch submission.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of files to be placed in the working directory of each executor.
     #[serde(default, rename = "fileUris")]
-    pub file_uris: Option<Vec<String>>,
+    pub file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of jar files to add to the classpath of the Spark driver and tasks.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The HCFS URI of the main Python file to use as the Spark driver. Must be a .py file.
     #[serde(default, rename = "mainPythonFileUri")]
-    pub main_python_file_uri: Option<String>,
+    pub main_python_file_uri: ::core::option::Option<String>,
     /// Optional. HCFS file URIs of Python files to pass to the PySpark framework. Supported file types: .py, .egg, and .zip.
     #[serde(default, rename = "pythonFileUris")]
-    pub python_file_uris: Option<Vec<String>>,
+    pub python_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A Dataproc job for running Apache PySpark (https://spark.apache.org/docs/latest/api/python/index.html#pyspark-overview) applications on YARN.
@@ -2374,47 +2403,47 @@ pub struct PySparkBatch {
 pub struct PySparkJob {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.Note: Spark applications must be deployed in cluster mode (https://spark.apache.org/docs/latest/cluster-overview.html) for correct environment propagation.
     #[serde(default, rename = "archiveUris")]
-    pub archive_uris: Option<Vec<String>>,
+    pub archive_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The arguments to pass to the driver. Do not include arguments, such as --conf, that can be set as job properties, since a collision may occur that causes an incorrect job submission.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of files to be placed in the working directory of each executor. Useful for naively parallel tasks.
     #[serde(default, rename = "fileUris")]
-    pub file_uris: Option<Vec<String>>,
+    pub file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of jar files to add to the CLASSPATHs of the Python driver and tasks.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// Required. The HCFS URI of the main Python file to use as the driver. Must be a .py file.
     #[serde(default, rename = "mainPythonFileUri")]
-    pub main_python_file_uri: Option<String>,
+    pub main_python_file_uri: ::core::option::Option<String>,
     /// Optional. A mapping of property names to values, used to configure PySpark. Properties that conflict with values set by the Dataproc API might be overwritten. Can include properties set in /etc/spark/conf/spark-defaults.conf and classes in user code.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// Optional. HCFS file URIs of Python files to pass to the PySpark framework. Supported file types: .py, .egg, and .zip.
     #[serde(default, rename = "pythonFileUris")]
-    pub python_file_uris: Option<Vec<String>>,
+    pub python_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Quantile metrics data related to Tasks. Units can be seconds, bytes, milliseconds, etc depending on the message type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Quantiles {
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     #[serde(default)]
-    pub maximum: Option<String>,
+    pub maximum: ::core::option::Option<String>,
     #[serde(default)]
-    pub minimum: Option<String>,
+    pub minimum: ::core::option::Option<String>,
     #[serde(default)]
-    pub percentile25: Option<String>,
+    pub percentile25: ::core::option::Option<String>,
     #[serde(default)]
-    pub percentile50: Option<String>,
+    pub percentile50: ::core::option::Option<String>,
     #[serde(default)]
-    pub percentile75: Option<String>,
+    pub percentile75: ::core::option::Option<String>,
     #[serde(default)]
-    pub sum: Option<String>,
+    pub sum: ::core::option::Option<String>,
 }
 
 /// A list of queries to run on a cluster.
@@ -2422,121 +2451,125 @@ pub struct Quantiles {
 pub struct QueryList {
     /// Required. The queries to execute. You do not need to end a query expression with a semicolon. Multiple queries can be specified in one string by separating each with a semicolon. Here is an example of a Dataproc API snippet that uses a QueryList to specify a HiveJob: "hiveJob": { "queryList": { "queries": [ "query1", "query2", "query3;query4", ] } }
     #[serde(default)]
-    pub queries: Option<Vec<String>>,
+    pub queries: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Details about RDD usage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RddDataDistribution {
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     #[serde(default, rename = "diskUsed")]
-    pub disk_used: Option<String>,
+    pub disk_used: ::core::option::Option<String>,
     #[serde(default, rename = "memoryRemaining")]
-    pub memory_remaining: Option<String>,
+    pub memory_remaining: ::core::option::Option<String>,
     #[serde(default, rename = "memoryUsed")]
-    pub memory_used: Option<String>,
+    pub memory_used: ::core::option::Option<String>,
     #[serde(default, rename = "offHeapMemoryRemaining")]
-    pub off_heap_memory_remaining: Option<String>,
+    pub off_heap_memory_remaining: ::core::option::Option<String>,
     #[serde(default, rename = "offHeapMemoryUsed")]
-    pub off_heap_memory_used: Option<String>,
+    pub off_heap_memory_used: ::core::option::Option<String>,
     #[serde(default, rename = "onHeapMemoryRemaining")]
-    pub on_heap_memory_remaining: Option<String>,
+    pub on_heap_memory_remaining: ::core::option::Option<String>,
     #[serde(default, rename = "onHeapMemoryUsed")]
-    pub on_heap_memory_used: Option<String>,
+    pub on_heap_memory_used: ::core::option::Option<String>,
 }
 
 /// A grouping of nodes representing higher level constructs (stage, job etc.).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RddOperationCluster {
     #[serde(default, rename = "childClusters")]
-    pub child_clusters: Option<Vec<RddOperationCluster>>,
+    pub child_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RddOperationCluster>>>,
     #[serde(default, rename = "childNodes")]
-    pub child_nodes: Option<Vec<RddOperationNode>>,
+    pub child_nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RddOperationNode>>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "rddClusterId")]
-    pub rdd_cluster_id: Option<String>,
+    pub rdd_cluster_id: ::core::option::Option<String>,
 }
 
 /// A directed edge representing dependency between two RDDs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RddOperationEdge {
     #[serde(default, rename = "fromId")]
-    pub from_id: Option<i32>,
+    pub from_id: ::core::option::Option<i32>,
     #[serde(default, rename = "toId")]
-    pub to_id: Option<i32>,
+    pub to_id: ::core::option::Option<i32>,
 }
 
 /// Graph representing RDD dependencies. Consists of edges and a root cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RddOperationGraph {
     #[serde(default)]
-    pub edges: Option<Vec<RddOperationEdge>>,
+    pub edges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RddOperationEdge>>>,
     #[serde(default, rename = "incomingEdges")]
-    pub incoming_edges: Option<Vec<RddOperationEdge>>,
+    pub incoming_edges:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RddOperationEdge>>>,
     #[serde(default, rename = "outgoingEdges")]
-    pub outgoing_edges: Option<Vec<RddOperationEdge>>,
+    pub outgoing_edges:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RddOperationEdge>>>,
     #[serde(default, rename = "rootCluster")]
-    pub root_cluster: Option<RddOperationCluster>,
+    pub root_cluster: ::core::option::Option<::std::boxed::Box<RddOperationCluster>>,
     #[serde(default, rename = "stageId")]
-    pub stage_id: Option<String>,
+    pub stage_id: ::core::option::Option<String>,
 }
 
 /// A node in the RDD operation graph. Corresponds to a single RDD.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RddOperationNode {
     #[serde(default)]
-    pub barrier: Option<bool>,
+    pub barrier: ::core::option::Option<bool>,
     #[serde(default)]
-    pub cached: Option<bool>,
+    pub cached: ::core::option::Option<bool>,
     #[serde(default)]
-    pub callsite: Option<String>,
+    pub callsite: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "nodeId")]
-    pub node_id: Option<i32>,
+    pub node_id: ::core::option::Option<i32>,
     /// TODO: enum values: ["DETERMINISTIC_LEVEL_UNSPECIFIED", "DETERMINISTIC_LEVEL_DETERMINATE", "DETERMINISTIC_LEVEL_UNORDERED", "DETERMINISTIC_LEVEL_INDETERMINATE"]
     #[serde(default, rename = "outputDeterministicLevel")]
-    pub output_deterministic_level: Option<String>,
+    pub output_deterministic_level: ::core::option::Option<String>,
 }
 
 /// Information about RDD partitions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RddPartitionInfo {
     #[serde(default, rename = "blockName")]
-    pub block_name: Option<String>,
+    pub block_name: ::core::option::Option<String>,
     #[serde(default, rename = "diskUsed")]
-    pub disk_used: Option<String>,
+    pub disk_used: ::core::option::Option<String>,
     #[serde(default)]
-    pub executors: Option<Vec<String>>,
+    pub executors: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "memoryUsed")]
-    pub memory_used: Option<String>,
+    pub memory_used: ::core::option::Option<String>,
     #[serde(default, rename = "storageLevel")]
-    pub storage_level: Option<String>,
+    pub storage_level: ::core::option::Option<String>,
 }
 
 /// Overall data about RDD storage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RddStorageInfo {
     #[serde(default, rename = "dataDistribution")]
-    pub data_distribution: Option<Vec<RddDataDistribution>>,
+    pub data_distribution:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RddDataDistribution>>>,
     #[serde(default, rename = "diskUsed")]
-    pub disk_used: Option<String>,
+    pub disk_used: ::core::option::Option<String>,
     #[serde(default, rename = "memoryUsed")]
-    pub memory_used: Option<String>,
+    pub memory_used: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "numCachedPartitions")]
-    pub num_cached_partitions: Option<i32>,
+    pub num_cached_partitions: ::core::option::Option<i32>,
     #[serde(default, rename = "numPartitions")]
-    pub num_partitions: Option<i32>,
+    pub num_partitions: ::core::option::Option<i32>,
     #[serde(default)]
-    pub partitions: Option<Vec<RddPartitionInfo>>,
+    pub partitions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RddPartitionInfo>>>,
     #[serde(default, rename = "rddStorageId")]
-    pub rdd_storage_id: Option<i32>,
+    pub rdd_storage_id: ::core::option::Option<i32>,
     #[serde(default, rename = "storageLevel")]
-    pub storage_level: Option<String>,
+    pub storage_level: ::core::option::Option<String>,
 }
 
 /// Validation based on regular expressions.
@@ -2544,7 +2577,7 @@ pub struct RddStorageInfo {
 pub struct RegexValidation {
     /// Required. RE2 regular expressions used to validate the parameter''s value. The value must match the regex in its entirety (substring matches are not sufficient).
     #[serde(default)]
-    pub regexes: Option<Vec<String>>,
+    pub regexes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A request to repair a cluster.
@@ -2552,25 +2585,25 @@ pub struct RegexValidation {
 pub struct RepairClusterRequest {
     /// Optional. Cluster to be repaired
     #[serde(default)]
-    pub cluster: Option<ClusterToRepair>,
+    pub cluster: ::core::option::Option<::std::boxed::Box<ClusterToRepair>>,
     /// Optional. Specifying the cluster_uuid means the RPC will fail (with error NOT_FOUND) if a cluster with the specified UUID does not exist.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
     /// Optional. Whether the request is submitted by Dataproc super user. If true, IAM will check ''dataproc.clusters.repair'' permission instead of ''dataproc.clusters.update'' permission. This is to give Dataproc superuser the ability to repair clusters without granting the overly broad update permission.
     #[serde(default, rename = "dataprocSuperUser")]
-    pub dataproc_super_user: Option<bool>,
+    pub dataproc_super_user: ::core::option::Option<bool>,
     /// Optional. Timeout for graceful YARN decommissioning. Graceful decommissioning facilitates the removal of cluster nodes without interrupting jobs in progress. The timeout specifies the amount of time to wait for jobs finish before forcefully removing nodes. The default timeout is 0 for forceful decommissioning, and the maximum timeout period is 1 day. (see JSON Mapping—Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).graceful_decommission_timeout is supported in Dataproc image versions 1.2+.
     #[serde(default, rename = "gracefulDecommissionTimeout")]
-    pub graceful_decommission_timeout: Option<String>,
+    pub graceful_decommission_timeout: ::core::option::Option<String>,
     /// Optional. Node pools and corresponding repair action to be taken. All node pools should be unique in this request. i.e. Multiple entries for the same node pool id are not allowed.
     #[serde(default, rename = "nodePools")]
-    pub node_pools: Option<Vec<NodePool>>,
+    pub node_pools: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NodePool>>>,
     /// Optional. operation id of the parent operation sending the repair request
     #[serde(default, rename = "parentOperationId")]
-    pub parent_operation_id: Option<String>,
+    pub parent_operation_id: ::core::option::Option<String>,
     /// Optional. A unique ID used to identify the request. If the server receives two RepairClusterRequests with the same ID, the second request is ignored, and the first google.longrunning.Operation created and stored in the backend is returned.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// RepairNodeGroupRequest resource type.
@@ -2578,13 +2611,13 @@ pub struct RepairClusterRequest {
 pub struct RepairNodeGroupRequest {
     /// Required. Name of instances to be repaired. These instances must belong to specified node pool.
     #[serde(default, rename = "instanceNames")]
-    pub instance_names: Option<Vec<String>>,
+    pub instance_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Repair action to take on specified resources of the node pool. // TODO: enum values: ["REPAIR_ACTION_UNSPECIFIED", "REPLACE"]
     #[serde(default, rename = "repairAction")]
-    pub repair_action: Option<String>,
+    pub repair_action: ::core::option::Option<String>,
     /// Optional. A unique ID used to identify the request. If the server receives two RepairNodeGroupRequest with the same ID, the second request is ignored and the first google.longrunning.Operation created and stored in the backend is returned.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Configuration for dependency repositories
@@ -2592,7 +2625,7 @@ pub struct RepairNodeGroupRequest {
 pub struct RepositoryConfig {
     /// Optional. Configuration for PyPi repository.
     #[serde(default, rename = "pypiRepositoryConfig")]
-    pub pypi_repository_config: Option<PyPiRepositoryConfig>,
+    pub pypi_repository_config: ::core::option::Option<::std::boxed::Box<PyPiRepositoryConfig>>,
 }
 
 /// Reservation Affinity for consuming Zonal reservation.
@@ -2600,13 +2633,13 @@ pub struct RepositoryConfig {
 pub struct ReservationAffinity {
     /// Optional. Type of reservation to consume // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_RESERVATION", "ANY_RESERVATION", "SPECIFIC_RESERVATION"]
     #[serde(default, rename = "consumeReservationType")]
-    pub consume_reservation_type: Option<String>,
+    pub consume_reservation_type: ::core::option::Option<String>,
     /// Optional. Corresponds to the label key of reservation resource.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Optional. Corresponds to the label values of reservation resource.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A request to resize a node group.
@@ -2614,36 +2647,36 @@ pub struct ReservationAffinity {
 pub struct ResizeNodeGroupRequest {
     /// Optional. Timeout for graceful YARN decommissioning. Graceful decommissioning (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/scaling-clusters#graceful_decommissioning) allows the removal of nodes from the Compute Engine node group without interrupting jobs in progress. This timeout specifies how long to wait for jobs in progress to finish before forcefully removing nodes (and potentially interrupting jobs). Default timeout is 0 (for forceful decommission), and the maximum allowed timeout is 1 day. (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).Only supported on Dataproc image versions 1.2 and higher.
     #[serde(default, rename = "gracefulDecommissionTimeout")]
-    pub graceful_decommission_timeout: Option<String>,
+    pub graceful_decommission_timeout: ::core::option::Option<String>,
     /// Optional. operation id of the parent operation sending the resize request
     #[serde(default, rename = "parentOperationId")]
-    pub parent_operation_id: Option<String>,
+    pub parent_operation_id: ::core::option::Option<String>,
     /// Optional. A unique ID used to identify the request. If the server receives two ResizeNodeGroupRequest (https://cloud.google.com/dataproc/docs/reference/rpc/google.cloud.dataproc.v1#google.cloud.dataproc.v1.ResizeNodeGroupRequests) with the same ID, the second request is ignored and the first google.longrunning.Operation created and stored in the backend is returned.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Required. The number of running instances for the node group to maintain. The group adds or removes instances to maintain the number of instances specified by this parameter.
     #[serde(default)]
-    pub size: Option<i32>,
+    pub size: ::core::option::Option<i32>,
 }
 
 /// ResourceInformation resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourceInformation {
     #[serde(default)]
-    pub addresses: Option<Vec<String>>,
+    pub addresses: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Resource profile that contains information about all the resources required by executors and tasks.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourceProfileInfo {
     #[serde(default, rename = "executorResources")]
-    pub executor_resources: Option<serde_json::Value>,
+    pub executor_resources: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "resourceProfileId")]
-    pub resource_profile_id: Option<i32>,
+    pub resource_profile_id: ::core::option::Option<i32>,
     #[serde(default, rename = "taskResources")]
-    pub task_resources: Option<serde_json::Value>,
+    pub task_resources: ::core::option::Option<serde_json::Value>,
 }
 
 /// Runtime configuration for a workload.
@@ -2651,22 +2684,22 @@ pub struct ResourceProfileInfo {
 pub struct RuntimeConfig {
     /// Optional. Autotuning configuration of the workload.
     #[serde(default, rename = "autotuningConfig")]
-    pub autotuning_config: Option<AutotuningConfig>,
+    pub autotuning_config: ::core::option::Option<::std::boxed::Box<AutotuningConfig>>,
     /// Optional. Cohort identifier. Identifies families of the workloads that have the same shape, for example, daily ETL jobs.
     #[serde(default)]
-    pub cohort: Option<String>,
+    pub cohort: ::core::option::Option<String>,
     /// Optional. Optional custom container image for the job runtime environment. If not specified, a default container image will be used.
     #[serde(default, rename = "containerImage")]
-    pub container_image: Option<String>,
+    pub container_image: ::core::option::Option<String>,
     /// Optional. A mapping of property names to values, which are used to configure workload execution.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// Optional. Dependency repository configuration.
     #[serde(default, rename = "repositoryConfig")]
-    pub repository_config: Option<RepositoryConfig>,
+    pub repository_config: ::core::option::Option<::std::boxed::Box<RepositoryConfig>>,
     /// Optional. Version of the batch runtime.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Runtime information about workload execution.
@@ -2674,25 +2707,25 @@ pub struct RuntimeConfig {
 pub struct RuntimeInfo {
     /// Output only. Approximate workload resource usage, calculated when the workload completes (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).Note: This metric calculation may change in the future, for example, to capture cumulative workload resource consumption during workload execution (see the Dataproc Serverless release notes (https://cloud.google.com/dataproc-serverless/docs/release-notes) for announcements, changes, fixes and other Dataproc developments).
     #[serde(default, rename = "approximateUsage")]
-    pub approximate_usage: Option<UsageMetrics>,
+    pub approximate_usage: ::core::option::Option<::std::boxed::Box<UsageMetrics>>,
     /// Output only. Information about the cohort that the workload belongs to.
     #[serde(default, rename = "cohortInfo")]
-    pub cohort_info: Option<CohortInfo>,
+    pub cohort_info: ::core::option::Option<::std::boxed::Box<CohortInfo>>,
     /// Output only. Snapshot of current workload resource usage.
     #[serde(default, rename = "currentUsage")]
-    pub current_usage: Option<UsageSnapshot>,
+    pub current_usage: ::core::option::Option<::std::boxed::Box<UsageSnapshot>>,
     /// Output only. A URI pointing to the location of the diagnostics tarball.
     #[serde(default, rename = "diagnosticOutputUri")]
-    pub diagnostic_output_uri: Option<String>,
+    pub diagnostic_output_uri: ::core::option::Option<String>,
     /// Output only. Map of remote access endpoints (such as web interfaces and APIs) to their URIs.
     #[serde(default)]
-    pub endpoints: Option<serde_json::Value>,
+    pub endpoints: ::core::option::Option<serde_json::Value>,
     /// Output only. A URI pointing to the location of the stdout and stderr of the workload.
     #[serde(default, rename = "outputUri")]
-    pub output_uri: Option<String>,
+    pub output_uri: ::core::option::Option<String>,
     /// Optional. Properties of the workload organized by origin.
     #[serde(default, rename = "propertiesInfo")]
-    pub properties_info: Option<PropertiesInfo>,
+    pub properties_info: ::core::option::Option<::std::boxed::Box<PropertiesInfo>>,
 }
 
 /// List of Executors associated with a Spark Application Stage.
@@ -2700,10 +2733,11 @@ pub struct RuntimeInfo {
 pub struct SearchSessionSparkApplicationExecutorStageSummaryResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationExecutorStageSummaryRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Details about executors used by the application stage.
     #[serde(default, rename = "sparkApplicationStageExecutors")]
-    pub spark_application_stage_executors: Option<Vec<ExecutorStageSummary>>,
+    pub spark_application_stage_executors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExecutorStageSummary>>>,
 }
 
 /// List of Executors associated with a Spark Application.
@@ -2711,10 +2745,11 @@ pub struct SearchSessionSparkApplicationExecutorStageSummaryResponse {
 pub struct SearchSessionSparkApplicationExecutorsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationExecutorsRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Details about executors used by the application.
     #[serde(default, rename = "sparkApplicationExecutors")]
-    pub spark_application_executors: Option<Vec<ExecutorSummary>>,
+    pub spark_application_executors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExecutorSummary>>>,
 }
 
 /// A list of Jobs associated with a Spark Application.
@@ -2722,10 +2757,10 @@ pub struct SearchSessionSparkApplicationExecutorsResponse {
 pub struct SearchSessionSparkApplicationJobsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationJobsRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Data corresponding to a spark job.
     #[serde(default, rename = "sparkApplicationJobs")]
-    pub spark_application_jobs: Option<Vec<JobData>>,
+    pub spark_application_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<JobData>>>,
 }
 
 /// List of all queries for a Spark Application.
@@ -2733,10 +2768,11 @@ pub struct SearchSessionSparkApplicationJobsResponse {
 pub struct SearchSessionSparkApplicationSqlQueriesResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationSqlQueriesRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. SQL Execution Data
     #[serde(default, rename = "sparkApplicationSqlQueries")]
-    pub spark_application_sql_queries: Option<Vec<SqlExecutionUiData>>,
+    pub spark_application_sql_queries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlExecutionUiData>>>,
 }
 
 /// List of tasks for a stage of a Spark Application
@@ -2744,10 +2780,11 @@ pub struct SearchSessionSparkApplicationSqlQueriesResponse {
 pub struct SearchSessionSparkApplicationStageAttemptTasksResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationStageAttemptTasksRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Data corresponding to tasks created by spark.
     #[serde(default, rename = "sparkApplicationStageAttemptTasks")]
-    pub spark_application_stage_attempt_tasks: Option<Vec<TaskData>>,
+    pub spark_application_stage_attempt_tasks:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TaskData>>>,
 }
 
 /// A list of Stage Attempts for a Stage of a Spark Application.
@@ -2755,10 +2792,11 @@ pub struct SearchSessionSparkApplicationStageAttemptTasksResponse {
 pub struct SearchSessionSparkApplicationStageAttemptsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationStageAttemptsRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Data corresponding to a stage attempts
     #[serde(default, rename = "sparkApplicationStageAttempts")]
-    pub spark_application_stage_attempts: Option<Vec<StageData>>,
+    pub spark_application_stage_attempts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StageData>>>,
 }
 
 /// A list of stages associated with a Spark Application.
@@ -2766,10 +2804,11 @@ pub struct SearchSessionSparkApplicationStageAttemptsResponse {
 pub struct SearchSessionSparkApplicationStagesResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationStages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Data corresponding to a stage.
     #[serde(default, rename = "sparkApplicationStages")]
-    pub spark_application_stages: Option<Vec<StageData>>,
+    pub spark_application_stages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StageData>>>,
 }
 
 /// A list of summary of Spark Applications
@@ -2777,10 +2816,11 @@ pub struct SearchSessionSparkApplicationStagesResponse {
 pub struct SearchSessionSparkApplicationsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationsRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. High level information corresponding to an application.
     #[serde(default, rename = "sparkApplications")]
-    pub spark_applications: Option<Vec<SparkApplication>>,
+    pub spark_applications:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SparkApplication>>>,
 }
 
 /// List of Executors associated with a Spark Application Stage.
@@ -2788,10 +2828,11 @@ pub struct SearchSessionSparkApplicationsResponse {
 pub struct SearchSparkApplicationExecutorStageSummaryResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationExecutorsListRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Details about executors used by the application stage.
     #[serde(default, rename = "sparkApplicationStageExecutors")]
-    pub spark_application_stage_executors: Option<Vec<ExecutorStageSummary>>,
+    pub spark_application_stage_executors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExecutorStageSummary>>>,
 }
 
 /// List of Executors associated with a Spark Application.
@@ -2799,10 +2840,11 @@ pub struct SearchSparkApplicationExecutorStageSummaryResponse {
 pub struct SearchSparkApplicationExecutorsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationExecutorsListRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Details about executors used by the application.
     #[serde(default, rename = "sparkApplicationExecutors")]
-    pub spark_application_executors: Option<Vec<ExecutorSummary>>,
+    pub spark_application_executors:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExecutorSummary>>>,
 }
 
 /// A list of Jobs associated with a Spark Application.
@@ -2810,10 +2852,10 @@ pub struct SearchSparkApplicationExecutorsResponse {
 pub struct SearchSparkApplicationJobsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationJobsRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Data corresponding to a spark job.
     #[serde(default, rename = "sparkApplicationJobs")]
-    pub spark_application_jobs: Option<Vec<JobData>>,
+    pub spark_application_jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<JobData>>>,
 }
 
 /// List of all queries for a Spark Application.
@@ -2821,10 +2863,11 @@ pub struct SearchSparkApplicationJobsResponse {
 pub struct SearchSparkApplicationSqlQueriesResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationSqlQueriesRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. SQL Execution Data
     #[serde(default, rename = "sparkApplicationSqlQueries")]
-    pub spark_application_sql_queries: Option<Vec<SqlExecutionUiData>>,
+    pub spark_application_sql_queries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlExecutionUiData>>>,
 }
 
 /// List of tasks for a stage of a Spark Application
@@ -2832,10 +2875,11 @@ pub struct SearchSparkApplicationSqlQueriesResponse {
 pub struct SearchSparkApplicationStageAttemptTasksResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent ListSparkApplicationStageAttemptTasksRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Data corresponding to tasks created by spark.
     #[serde(default, rename = "sparkApplicationStageAttemptTasks")]
-    pub spark_application_stage_attempt_tasks: Option<Vec<TaskData>>,
+    pub spark_application_stage_attempt_tasks:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TaskData>>>,
 }
 
 /// A list of Stage Attempts for a Stage of a Spark Application.
@@ -2843,10 +2887,11 @@ pub struct SearchSparkApplicationStageAttemptTasksResponse {
 pub struct SearchSparkApplicationStageAttemptsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent ListSparkApplicationStageAttemptsRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Data corresponding to a stage attempts
     #[serde(default, rename = "sparkApplicationStageAttempts")]
-    pub spark_application_stage_attempts: Option<Vec<StageData>>,
+    pub spark_application_stage_attempts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StageData>>>,
 }
 
 /// A list of stages associated with a Spark Application.
@@ -2854,10 +2899,11 @@ pub struct SearchSparkApplicationStageAttemptsResponse {
 pub struct SearchSparkApplicationStagesResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationStages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. Data corresponding to a stage.
     #[serde(default, rename = "sparkApplicationStages")]
-    pub spark_application_stages: Option<Vec<StageData>>,
+    pub spark_application_stages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StageData>>>,
 }
 
 /// A list of summary of Spark Applications
@@ -2865,10 +2911,11 @@ pub struct SearchSparkApplicationStagesResponse {
 pub struct SearchSparkApplicationsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationsRequest.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. High level information corresponding to an application.
     #[serde(default, rename = "sparkApplications")]
-    pub spark_applications: Option<Vec<SparkApplication>>,
+    pub spark_applications:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SparkApplication>>>,
 }
 
 /// Security related configuration, including encryption, Kerberos, etc.
@@ -2876,10 +2923,10 @@ pub struct SearchSparkApplicationsResponse {
 pub struct SecurityConfig {
     /// Optional. Identity related configuration, including service account based secure multi-tenancy user mappings.
     #[serde(default, rename = "identityConfig")]
-    pub identity_config: Option<IdentityConfig>,
+    pub identity_config: ::core::option::Option<::std::boxed::Box<IdentityConfig>>,
     /// Optional. Kerberos related configuration.
     #[serde(default, rename = "kerberosConfig")]
-    pub kerberos_config: Option<KerberosConfig>,
+    pub kerberos_config: ::core::option::Option<::std::boxed::Box<KerberosConfig>>,
 }
 
 /// A representation of a session.
@@ -2887,52 +2934,53 @@ pub struct SecurityConfig {
 pub struct Session {
     /// Output only. The time when the session was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The email address of the user who created the session.
     #[serde(default)]
-    pub creator: Option<String>,
+    pub creator: ::core::option::Option<String>,
     /// Optional. Environment configuration for the session execution.
     #[serde(default, rename = "environmentConfig")]
-    pub environment_config: Option<EnvironmentConfig>,
+    pub environment_config: ::core::option::Option<::std::boxed::Box<EnvironmentConfig>>,
     /// Optional. Jupyter session config.
     #[serde(default, rename = "jupyterSession")]
-    pub jupyter_session: Option<JupyterConfig>,
+    pub jupyter_session: ::core::option::Option<::std::boxed::Box<JupyterConfig>>,
     /// Optional. The labels to associate with the session. Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values may be empty, but, if present, must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a session.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name of the session.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Runtime configuration for the session execution.
     #[serde(default, rename = "runtimeConfig")]
-    pub runtime_config: Option<RuntimeConfig>,
+    pub runtime_config: ::core::option::Option<::std::boxed::Box<RuntimeConfig>>,
     /// Output only. Runtime information about session execution.
     #[serde(default, rename = "runtimeInfo")]
-    pub runtime_info: Option<RuntimeInfo>,
+    pub runtime_info: ::core::option::Option<::std::boxed::Box<RuntimeInfo>>,
     /// Optional. The session template used by the session.Only resource names, including project ID and location, are valid.Example: * https://www.googleapis.com/compute/v1/projects/[project_id]/locations/[dataproc_region]/sessionTemplates/[template_id] * projects/[project_id]/locations/[dataproc_region]/sessionTemplates/[template_id]The template must be in the same project and Dataproc region as the session.
     #[serde(default, rename = "sessionTemplate")]
-    pub session_template: Option<String>,
+    pub session_template: ::core::option::Option<String>,
     /// Optional. Spark connect session config.
     #[serde(default, rename = "sparkConnectSession")]
-    pub spark_connect_session: Option<serde_json::Value>,
+    pub spark_connect_session: ::core::option::Option<serde_json::Value>,
     /// Output only. A state of the session. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "TERMINATING", "TERMINATED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Historical state information for the session.
     #[serde(default, rename = "stateHistory")]
-    pub state_history: Option<Vec<SessionStateHistory>>,
+    pub state_history:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SessionStateHistory>>>,
     /// Output only. Session state details, such as the failure description if the state is FAILED.
     #[serde(default, rename = "stateMessage")]
-    pub state_message: Option<String>,
+    pub state_message: ::core::option::Option<String>,
     /// Output only. The time when the session entered the current state.
     #[serde(default, rename = "stateTime")]
-    pub state_time: Option<String>,
+    pub state_time: ::core::option::Option<String>,
     /// Optional. The email address of the user who owns the session.
     #[serde(default)]
-    pub user: Option<String>,
+    pub user: ::core::option::Option<String>,
     /// Output only. A session UUID (Unique Universal Identifier). The service generates this value when it creates the session.
     #[serde(default)]
-    pub uuid: Option<String>,
+    pub uuid: ::core::option::Option<String>,
 }
 
 /// Metadata describing the Session operation.
@@ -2940,28 +2988,28 @@ pub struct Session {
 pub struct SessionOperationMetadata {
     /// The time when the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Short description of the operation.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The time when the operation was finished.
     #[serde(default, rename = "doneTime")]
-    pub done_time: Option<String>,
+    pub done_time: ::core::option::Option<String>,
     /// Labels associated with the operation.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The operation type. // TODO: enum values: ["SESSION_OPERATION_TYPE_UNSPECIFIED", "CREATE", "TERMINATE", "DELETE"]
     #[serde(default, rename = "operationType")]
-    pub operation_type: Option<String>,
+    pub operation_type: ::core::option::Option<String>,
     /// Name of the session for the operation.
     #[serde(default)]
-    pub session: Option<String>,
+    pub session: ::core::option::Option<String>,
     /// Session UUID for the operation.
     #[serde(default, rename = "sessionUuid")]
-    pub session_uuid: Option<String>,
+    pub session_uuid: ::core::option::Option<String>,
     /// Warnings encountered during operation execution.
     #[serde(default)]
-    pub warnings: Option<Vec<String>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Historical state information.
@@ -2969,13 +3017,13 @@ pub struct SessionOperationMetadata {
 pub struct SessionStateHistory {
     /// Output only. The state of the session at this point in the session history. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "TERMINATING", "TERMINATED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Details about the state at this point in the session history.
     #[serde(default, rename = "stateMessage")]
-    pub state_message: Option<String>,
+    pub state_message: ::core::option::Option<String>,
     /// Output only. The time when the session entered the historical state.
     #[serde(default, rename = "stateStartTime")]
-    pub state_start_time: Option<String>,
+    pub state_start_time: ::core::option::Option<String>,
 }
 
 /// A representation of a session template.
@@ -2983,37 +3031,37 @@ pub struct SessionStateHistory {
 pub struct SessionTemplate {
     /// Output only. The time when the template was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The email address of the user who created the template.
     #[serde(default)]
-    pub creator: Option<String>,
+    pub creator: ::core::option::Option<String>,
     /// Optional. Brief description of the template.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Environment configuration for session execution.
     #[serde(default, rename = "environmentConfig")]
-    pub environment_config: Option<EnvironmentConfig>,
+    pub environment_config: ::core::option::Option<::std::boxed::Box<EnvironmentConfig>>,
     /// Optional. Jupyter session config.
     #[serde(default, rename = "jupyterSession")]
-    pub jupyter_session: Option<JupyterConfig>,
+    pub jupyter_session: ::core::option::Option<::std::boxed::Box<JupyterConfig>>,
     /// Optional. Labels to associate with sessions created using this template. Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values can be empty, but, if present, must contain 1 to 63 characters and conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). No more than 32 labels can be associated with a session.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. Identifier. The resource name of the session template.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Runtime configuration for session execution.
     #[serde(default, rename = "runtimeConfig")]
-    pub runtime_config: Option<RuntimeConfig>,
+    pub runtime_config: ::core::option::Option<::std::boxed::Box<RuntimeConfig>>,
     /// Optional. Spark connect session config.
     #[serde(default, rename = "sparkConnectSession")]
-    pub spark_connect_session: Option<serde_json::Value>,
+    pub spark_connect_session: ::core::option::Option<serde_json::Value>,
     /// Output only. The time the template was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. A session template UUID (Unique Universal Identifier). The service generates this value when it creates the session template.
     #[serde(default)]
-    pub uuid: Option<String>,
+    pub uuid: ::core::option::Option<String>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -3021,7 +3069,7 @@ pub struct SessionTemplate {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
 }
 
 /// Shielded Instance Config for clusters using Compute Engine Shielded VMs (https://cloud.google.com/security/shielded-cloud/shielded-vm).
@@ -3029,140 +3077,142 @@ pub struct SetIamPolicyRequest {
 pub struct ShieldedInstanceConfig {
     /// Optional. Defines whether instances have integrity monitoring enabled.
     #[serde(default, rename = "enableIntegrityMonitoring")]
-    pub enable_integrity_monitoring: Option<bool>,
+    pub enable_integrity_monitoring: ::core::option::Option<bool>,
     /// Optional. Defines whether instances have Secure Boot enabled.
     #[serde(default, rename = "enableSecureBoot")]
-    pub enable_secure_boot: Option<bool>,
+    pub enable_secure_boot: ::core::option::Option<bool>,
     /// Optional. Defines whether instances have the vTPM enabled.
     #[serde(default, rename = "enableVtpm")]
-    pub enable_vtpm: Option<bool>,
+    pub enable_vtpm: ::core::option::Option<bool>,
 }
 
 /// ShufflePushReadMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShufflePushReadMetrics {
     #[serde(default, rename = "corruptMergedBlockChunks")]
-    pub corrupt_merged_block_chunks: Option<String>,
+    pub corrupt_merged_block_chunks: ::core::option::Option<String>,
     #[serde(default, rename = "localMergedBlocksFetched")]
-    pub local_merged_blocks_fetched: Option<String>,
+    pub local_merged_blocks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "localMergedBytesRead")]
-    pub local_merged_bytes_read: Option<String>,
+    pub local_merged_bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "localMergedChunksFetched")]
-    pub local_merged_chunks_fetched: Option<String>,
+    pub local_merged_chunks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "mergedFetchFallbackCount")]
-    pub merged_fetch_fallback_count: Option<String>,
+    pub merged_fetch_fallback_count: ::core::option::Option<String>,
     #[serde(default, rename = "remoteMergedBlocksFetched")]
-    pub remote_merged_blocks_fetched: Option<String>,
+    pub remote_merged_blocks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "remoteMergedBytesRead")]
-    pub remote_merged_bytes_read: Option<String>,
+    pub remote_merged_bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "remoteMergedChunksFetched")]
-    pub remote_merged_chunks_fetched: Option<String>,
+    pub remote_merged_chunks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "remoteMergedReqsDuration")]
-    pub remote_merged_reqs_duration: Option<String>,
+    pub remote_merged_reqs_duration: ::core::option::Option<String>,
 }
 
 /// ShufflePushReadQuantileMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShufflePushReadQuantileMetrics {
     #[serde(default, rename = "corruptMergedBlockChunks")]
-    pub corrupt_merged_block_chunks: Option<Quantiles>,
+    pub corrupt_merged_block_chunks: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "localMergedBlocksFetched")]
-    pub local_merged_blocks_fetched: Option<Quantiles>,
+    pub local_merged_blocks_fetched: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "localMergedBytesRead")]
-    pub local_merged_bytes_read: Option<Quantiles>,
+    pub local_merged_bytes_read: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "localMergedChunksFetched")]
-    pub local_merged_chunks_fetched: Option<Quantiles>,
+    pub local_merged_chunks_fetched: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "mergedFetchFallbackCount")]
-    pub merged_fetch_fallback_count: Option<Quantiles>,
+    pub merged_fetch_fallback_count: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "remoteMergedBlocksFetched")]
-    pub remote_merged_blocks_fetched: Option<Quantiles>,
+    pub remote_merged_blocks_fetched: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "remoteMergedBytesRead")]
-    pub remote_merged_bytes_read: Option<Quantiles>,
+    pub remote_merged_bytes_read: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "remoteMergedChunksFetched")]
-    pub remote_merged_chunks_fetched: Option<Quantiles>,
+    pub remote_merged_chunks_fetched: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "remoteMergedReqsDuration")]
-    pub remote_merged_reqs_duration: Option<Quantiles>,
+    pub remote_merged_reqs_duration: ::core::option::Option<::std::boxed::Box<Quantiles>>,
 }
 
 /// Shuffle data read by the task.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShuffleReadMetrics {
     #[serde(default, rename = "fetchWaitTimeMillis")]
-    pub fetch_wait_time_millis: Option<String>,
+    pub fetch_wait_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "localBlocksFetched")]
-    pub local_blocks_fetched: Option<String>,
+    pub local_blocks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "localBytesRead")]
-    pub local_bytes_read: Option<String>,
+    pub local_bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "recordsRead")]
-    pub records_read: Option<String>,
+    pub records_read: ::core::option::Option<String>,
     #[serde(default, rename = "remoteBlocksFetched")]
-    pub remote_blocks_fetched: Option<String>,
+    pub remote_blocks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "remoteBytesRead")]
-    pub remote_bytes_read: Option<String>,
+    pub remote_bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "remoteBytesReadToDisk")]
-    pub remote_bytes_read_to_disk: Option<String>,
+    pub remote_bytes_read_to_disk: ::core::option::Option<String>,
     #[serde(default, rename = "remoteReqsDuration")]
-    pub remote_reqs_duration: Option<String>,
+    pub remote_reqs_duration: ::core::option::Option<String>,
     #[serde(default, rename = "shufflePushReadMetrics")]
-    pub shuffle_push_read_metrics: Option<ShufflePushReadMetrics>,
+    pub shuffle_push_read_metrics:
+        ::core::option::Option<::std::boxed::Box<ShufflePushReadMetrics>>,
 }
 
 /// ShuffleReadQuantileMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShuffleReadQuantileMetrics {
     #[serde(default, rename = "fetchWaitTimeMillis")]
-    pub fetch_wait_time_millis: Option<Quantiles>,
+    pub fetch_wait_time_millis: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "localBlocksFetched")]
-    pub local_blocks_fetched: Option<Quantiles>,
+    pub local_blocks_fetched: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "readBytes")]
-    pub read_bytes: Option<Quantiles>,
+    pub read_bytes: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "readRecords")]
-    pub read_records: Option<Quantiles>,
+    pub read_records: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "remoteBlocksFetched")]
-    pub remote_blocks_fetched: Option<Quantiles>,
+    pub remote_blocks_fetched: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "remoteBytesRead")]
-    pub remote_bytes_read: Option<Quantiles>,
+    pub remote_bytes_read: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "remoteBytesReadToDisk")]
-    pub remote_bytes_read_to_disk: Option<Quantiles>,
+    pub remote_bytes_read_to_disk: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "remoteReqsDuration")]
-    pub remote_reqs_duration: Option<Quantiles>,
+    pub remote_reqs_duration: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "shufflePushReadMetrics")]
-    pub shuffle_push_read_metrics: Option<ShufflePushReadQuantileMetrics>,
+    pub shuffle_push_read_metrics:
+        ::core::option::Option<::std::boxed::Box<ShufflePushReadQuantileMetrics>>,
     #[serde(default, rename = "totalBlocksFetched")]
-    pub total_blocks_fetched: Option<Quantiles>,
+    pub total_blocks_fetched: ::core::option::Option<::std::boxed::Box<Quantiles>>,
 }
 
 /// Shuffle data written by task.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShuffleWriteMetrics {
     #[serde(default, rename = "bytesWritten")]
-    pub bytes_written: Option<String>,
+    pub bytes_written: ::core::option::Option<String>,
     #[serde(default, rename = "recordsWritten")]
-    pub records_written: Option<String>,
+    pub records_written: ::core::option::Option<String>,
     #[serde(default, rename = "writeTimeNanos")]
-    pub write_time_nanos: Option<String>,
+    pub write_time_nanos: ::core::option::Option<String>,
 }
 
 /// ShuffleWriteQuantileMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShuffleWriteQuantileMetrics {
     #[serde(default, rename = "writeBytes")]
-    pub write_bytes: Option<Quantiles>,
+    pub write_bytes: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "writeRecords")]
-    pub write_records: Option<Quantiles>,
+    pub write_records: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "writeTimeNanos")]
-    pub write_time_nanos: Option<Quantiles>,
+    pub write_time_nanos: ::core::option::Option<::std::boxed::Box<Quantiles>>,
 }
 
 /// SinkProgress resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SinkProgress {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub metrics: Option<serde_json::Value>,
+    pub metrics: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "numOutputRows")]
-    pub num_output_rows: Option<String>,
+    pub num_output_rows: ::core::option::Option<String>,
 }
 
 /// Specifies the selection and config of software inside the cluster.
@@ -3170,34 +3220,34 @@ pub struct SinkProgress {
 pub struct SoftwareConfig {
     /// Optional. The version of software inside the cluster. It must be one of the supported Dataproc Versions (https://cloud.google.com/dataproc/docs/concepts/versioning/dataproc-versions#supported-dataproc-image-versions), such as "1.2" (including a subminor version, such as "1.2.29"), or the "preview" version (https://cloud.google.com/dataproc/docs/concepts/versioning/dataproc-versions#other_versions). If unspecified, it defaults to the latest Debian version.
     #[serde(default, rename = "imageVersion")]
-    pub image_version: Option<String>,
+    pub image_version: ::core::option::Option<String>,
     /// Optional. The set of components to activate on the cluster.
     #[serde(default, rename = "optionalComponents")]
-    pub optional_components: Option<Vec<String>>,
+    pub optional_components: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The properties to set on daemon config files.Property keys are specified in prefix:property format, for example core:hadoop.tmp.dir. The following are supported prefixes and their mappings: capacity-scheduler: capacity-scheduler.xml core: core-site.xml distcp: distcp-default.xml hdfs: hdfs-site.xml hive: hive-site.xml mapred: mapred-site.xml pig: pig.properties spark: spark-defaults.conf yarn: yarn-site.xmlFor more information, see Cluster properties (https://cloud.google.com/dataproc/docs/concepts/cluster-properties).
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// SourceProgress resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SourceProgress {
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default, rename = "endOffset")]
-    pub end_offset: Option<String>,
+    pub end_offset: ::core::option::Option<String>,
     #[serde(default, rename = "inputRowsPerSecond")]
-    pub input_rows_per_second: Option<f64>,
+    pub input_rows_per_second: ::core::option::Option<f64>,
     #[serde(default, rename = "latestOffset")]
-    pub latest_offset: Option<String>,
+    pub latest_offset: ::core::option::Option<String>,
     #[serde(default)]
-    pub metrics: Option<serde_json::Value>,
+    pub metrics: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "numInputRows")]
-    pub num_input_rows: Option<String>,
+    pub num_input_rows: ::core::option::Option<String>,
     #[serde(default, rename = "processedRowsPerSecond")]
-    pub processed_rows_per_second: Option<f64>,
+    pub processed_rows_per_second: ::core::option::Option<f64>,
     #[serde(default, rename = "startOffset")]
-    pub start_offset: Option<String>,
+    pub start_offset: ::core::option::Option<String>,
 }
 
 /// A summary of Spark Application
@@ -3205,10 +3255,10 @@ pub struct SourceProgress {
 pub struct SparkApplication {
     /// Output only. High level information corresponding to an application.
     #[serde(default)]
-    pub application: Option<ApplicationInfo>,
+    pub application: ::core::option::Option<::std::boxed::Box<ApplicationInfo>>,
     /// Identifier. Name of the spark application
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A configuration for running an Apache Spark (https://spark.apache.org/) batch workload.
@@ -3216,22 +3266,22 @@ pub struct SparkApplication {
 pub struct SparkBatch {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
-    pub archive_uris: Option<Vec<String>>,
+    pub archive_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The arguments to pass to the driver. Do not include arguments that can be set as batch properties, such as --conf, since a collision can occur that causes an incorrect batch submission.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of files to be placed in the working directory of each executor.
     #[serde(default, rename = "fileUris")]
-    pub file_uris: Option<Vec<String>>,
+    pub file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of jar files to add to the classpath of the Spark driver and tasks.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The name of the driver main class. The jar file that contains the class must be in the classpath or specified in jar_file_uris.
     #[serde(default, rename = "mainClass")]
-    pub main_class: Option<String>,
+    pub main_class: ::core::option::Option<String>,
     /// Optional. The HCFS URI of the jar file that contains the main class.
     #[serde(default, rename = "mainJarFileUri")]
-    pub main_jar_file_uri: Option<String>,
+    pub main_jar_file_uri: ::core::option::Option<String>,
 }
 
 /// Represents the lifecycle and details of an Execution via Spark Connect
@@ -3239,43 +3289,43 @@ pub struct SparkBatch {
 pub struct SparkConnectExecutionInfo {
     /// Timestamp when the execution was closed.
     #[serde(default, rename = "closeTimestamp")]
-    pub close_timestamp: Option<String>,
+    pub close_timestamp: ::core::option::Option<String>,
     /// Detailed information about the execution.
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     /// Timestamp when the execution finished.
     #[serde(default, rename = "finishTimestamp")]
-    pub finish_timestamp: Option<String>,
+    pub finish_timestamp: ::core::option::Option<String>,
     /// Optional. List of job ids associated with the execution.
     #[serde(default, rename = "jobIds")]
-    pub job_ids: Option<Vec<String>>,
+    pub job_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Job tag of the execution.
     #[serde(default, rename = "jobTag")]
-    pub job_tag: Option<String>,
+    pub job_tag: ::core::option::Option<String>,
     /// Unique identifier for the operation.
     #[serde(default, rename = "operationId")]
-    pub operation_id: Option<String>,
+    pub operation_id: ::core::option::Option<String>,
     /// Required. Session ID, ties the execution to a specific Spark Connect session.
     #[serde(default, rename = "sessionId")]
-    pub session_id: Option<String>,
+    pub session_id: ::core::option::Option<String>,
     /// Optional. Tags associated with the Spark session.
     #[serde(default, rename = "sparkSessionTags")]
-    pub spark_session_tags: Option<Vec<String>>,
+    pub spark_session_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. List of sql execution ids associated with the execution.
     #[serde(default, rename = "sqlExecIds")]
-    pub sql_exec_ids: Option<Vec<String>>,
+    pub sql_exec_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Timestamp when the execution started.
     #[serde(default, rename = "startTimestamp")]
-    pub start_timestamp: Option<String>,
+    pub start_timestamp: ::core::option::Option<String>,
     /// Output only. Current state of the execution. // TODO: enum values: ["EXECUTION_STATE_UNKNOWN", "EXECUTION_STATE_STARTED", "EXECUTION_STATE_COMPILED", "EXECUTION_STATE_READY", "EXECUTION_STATE_CANCELED", "EXECUTION_STATE_FAILED", "EXECUTION_STATE_FINISHED", "EXECUTION_STATE_CLOSED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// statement of the execution.
     #[serde(default)]
-    pub statement: Option<String>,
+    pub statement: ::core::option::Option<String>,
     /// User ID of the user who started the execution.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Represents session-level information for Spark Connect
@@ -3283,19 +3333,19 @@ pub struct SparkConnectExecutionInfo {
 pub struct SparkConnectSessionInfo {
     /// Timestamp when the session finished.
     #[serde(default, rename = "finishTimestamp")]
-    pub finish_timestamp: Option<String>,
+    pub finish_timestamp: ::core::option::Option<String>,
     /// Required. Session ID of the session.
     #[serde(default, rename = "sessionId")]
-    pub session_id: Option<String>,
+    pub session_id: ::core::option::Option<String>,
     /// Timestamp when the session started.
     #[serde(default, rename = "startTimestamp")]
-    pub start_timestamp: Option<String>,
+    pub start_timestamp: ::core::option::Option<String>,
     /// Optional. Total number of executions in the session.
     #[serde(default, rename = "totalExecution")]
-    pub total_execution: Option<String>,
+    pub total_execution: ::core::option::Option<String>,
     /// User ID of the user who started the session.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Spark History Server configuration for the workload.
@@ -3303,7 +3353,7 @@ pub struct SparkConnectSessionInfo {
 pub struct SparkHistoryServerConfig {
     /// Optional. Resource name of an existing Dataproc Cluster to act as a Spark History Server for the workload.Example: projects/[project_id]/regions/[region]/clusters/[cluster_name]
     #[serde(default, rename = "dataprocCluster")]
-    pub dataproc_cluster: Option<String>,
+    pub dataproc_cluster: ::core::option::Option<String>,
 }
 
 /// A Dataproc job for running Apache Spark (https://spark.apache.org/) applications on YARN.
@@ -3311,91 +3361,93 @@ pub struct SparkHistoryServerConfig {
 pub struct SparkJob {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
-    pub archive_uris: Option<Vec<String>>,
+    pub archive_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The arguments to pass to the driver. Do not include arguments, such as --conf, that can be set as job properties, since a collision may occur that causes an incorrect job submission.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of files to be placed in the working directory of each executor. Useful for naively parallel tasks.
     #[serde(default, rename = "fileUris")]
-    pub file_uris: Option<Vec<String>>,
+    pub file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of jar files to add to the CLASSPATHs of the Spark driver and tasks.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// The name of the driver''s main class. The jar file that contains the class must be in the default CLASSPATH or specified in SparkJob.jar_file_uris.
     #[serde(default, rename = "mainClass")]
-    pub main_class: Option<String>,
+    pub main_class: ::core::option::Option<String>,
     /// The HCFS URI of the jar file that contains the main class.
     #[serde(default, rename = "mainJarFileUri")]
-    pub main_jar_file_uri: Option<String>,
+    pub main_jar_file_uri: ::core::option::Option<String>,
     /// Optional. A mapping of property names to values, used to configure Spark. Properties that conflict with values set by the Dataproc API might be overwritten. Can include properties set in /etc/spark/conf/spark-defaults.conf and classes in user code.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// A graph used for storing information of an executionPlan of DataFrame.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SparkPlanGraph {
     #[serde(default)]
-    pub edges: Option<Vec<SparkPlanGraphEdge>>,
+    pub edges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SparkPlanGraphEdge>>>,
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub nodes: Option<Vec<SparkPlanGraphNodeWrapper>>,
+    pub nodes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SparkPlanGraphNodeWrapper>>>,
 }
 
 /// Represents a tree of spark plan.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SparkPlanGraphCluster {
     #[serde(default)]
-    pub desc: Option<String>,
+    pub desc: ::core::option::Option<String>,
     /// Optional. Additional metadata for the spark plan graph cluster.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub metrics: Option<Vec<SqlPlanMetric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlPlanMetric>>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub nodes: Option<Vec<SparkPlanGraphNodeWrapper>>,
+    pub nodes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SparkPlanGraphNodeWrapper>>>,
     #[serde(default, rename = "sparkPlanGraphClusterId")]
-    pub spark_plan_graph_cluster_id: Option<String>,
+    pub spark_plan_graph_cluster_id: ::core::option::Option<String>,
 }
 
 /// Represents a directed edge in the spark plan tree from child to parent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SparkPlanGraphEdge {
     #[serde(default, rename = "fromId")]
-    pub from_id: Option<String>,
+    pub from_id: ::core::option::Option<String>,
     #[serde(default, rename = "toId")]
-    pub to_id: Option<String>,
+    pub to_id: ::core::option::Option<String>,
 }
 
 /// Represents a node in the spark plan tree.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SparkPlanGraphNode {
     #[serde(default)]
-    pub desc: Option<String>,
+    pub desc: ::core::option::Option<String>,
     /// Optional. Additional metadata for the spark plan graph cluster.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub metrics: Option<Vec<SqlPlanMetric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlPlanMetric>>>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "sparkPlanGraphNodeId")]
-    pub spark_plan_graph_node_id: Option<String>,
+    pub spark_plan_graph_node_id: ::core::option::Option<String>,
 }
 
 /// Wrapper user to represent either a node or a cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SparkPlanGraphNodeWrapper {
     #[serde(default)]
-    pub cluster: Option<SparkPlanGraphCluster>,
+    pub cluster: ::core::option::Option<::std::boxed::Box<SparkPlanGraphCluster>>,
     #[serde(default)]
-    pub node: Option<SparkPlanGraphNode>,
+    pub node: ::core::option::Option<::std::boxed::Box<SparkPlanGraphNode>>,
 }
 
 /// A configuration for running an Apache SparkR (https://spark.apache.org/docs/latest/sparkr.html) batch workload.
@@ -3403,16 +3455,16 @@ pub struct SparkPlanGraphNodeWrapper {
 pub struct SparkRBatch {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
-    pub archive_uris: Option<Vec<String>>,
+    pub archive_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The arguments to pass to the Spark driver. Do not include arguments that can be set as batch properties, such as --conf, since a collision can occur that causes an incorrect batch submission.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of files to be placed in the working directory of each executor.
     #[serde(default, rename = "fileUris")]
-    pub file_uris: Option<Vec<String>>,
+    pub file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The HCFS URI of the main R file to use as the driver. Must be a .R or .r file.
     #[serde(default, rename = "mainRFileUri")]
-    pub main_r_file_uri: Option<String>,
+    pub main_r_file_uri: ::core::option::Option<String>,
 }
 
 /// A Dataproc job for running Apache SparkR (https://spark.apache.org/docs/latest/sparkr.html) applications on YARN.
@@ -3420,33 +3472,33 @@ pub struct SparkRBatch {
 pub struct SparkRJob {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
-    pub archive_uris: Option<Vec<String>>,
+    pub archive_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The arguments to pass to the driver. Do not include arguments, such as --conf, that can be set as job properties, since a collision may occur that causes an incorrect job submission.
     #[serde(default)]
-    pub args: Option<Vec<String>>,
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. HCFS URIs of files to be placed in the working directory of each executor. Useful for naively parallel tasks.
     #[serde(default, rename = "fileUris")]
-    pub file_uris: Option<Vec<String>>,
+    pub file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// Required. The HCFS URI of the main R file to use as the driver. Must be a .R file.
     #[serde(default, rename = "mainRFileUri")]
-    pub main_r_file_uri: Option<String>,
+    pub main_r_file_uri: ::core::option::Option<String>,
     /// Optional. A mapping of property names to values, used to configure SparkR. Properties that conflict with values set by the Dataproc API might be overwritten. Can include properties set in /etc/spark/conf/spark-defaults.conf and classes in user code.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// SparkRuntimeInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SparkRuntimeInfo {
     #[serde(default, rename = "javaHome")]
-    pub java_home: Option<String>,
+    pub java_home: ::core::option::Option<String>,
     #[serde(default, rename = "javaVersion")]
-    pub java_version: Option<String>,
+    pub java_version: ::core::option::Option<String>,
     #[serde(default, rename = "scalaVersion")]
-    pub scala_version: Option<String>,
+    pub scala_version: ::core::option::Option<String>,
 }
 
 /// A configuration for running Apache Spark SQL (https://spark.apache.org/sql/) queries as a batch workload.
@@ -3454,13 +3506,13 @@ pub struct SparkRuntimeInfo {
 pub struct SparkSqlBatch {
     /// Optional. HCFS URIs of jar files to be added to the Spark CLASSPATH.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The HCFS URI of the script that contains Spark SQL queries to execute.
     #[serde(default, rename = "queryFileUri")]
-    pub query_file_uri: Option<String>,
+    pub query_file_uri: ::core::option::Option<String>,
     /// Optional. Mapping of query variable names to values (equivalent to the Spark SQL command: SET name="value";).
     #[serde(default, rename = "queryVariables")]
-    pub query_variables: Option<serde_json::Value>,
+    pub query_variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// A Dataproc job for running Apache Spark SQL (https://spark.apache.org/sql/) queries.
@@ -3468,22 +3520,22 @@ pub struct SparkSqlBatch {
 pub struct SparkSqlJob {
     /// Optional. HCFS URIs of jar files to be added to the Spark CLASSPATH.
     #[serde(default, rename = "jarFileUris")]
-    pub jar_file_uris: Option<Vec<String>>,
+    pub jar_file_uris: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// Optional. A mapping of property names to values, used to configure Spark SQL''s SparkConf. Properties that conflict with values set by the Dataproc API might be overwritten.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// The HCFS URI of the script that contains SQL queries.
     #[serde(default, rename = "queryFileUri")]
-    pub query_file_uri: Option<String>,
+    pub query_file_uri: ::core::option::Option<String>,
     /// A list of queries.
     #[serde(default, rename = "queryList")]
-    pub query_list: Option<QueryList>,
+    pub query_list: ::core::option::Option<::std::boxed::Box<QueryList>>,
     /// Optional. Mapping of query variable names to values (equivalent to the Spark SQL command: SET name="value";).
     #[serde(default, rename = "scriptVariables")]
-    pub script_variables: Option<serde_json::Value>,
+    pub script_variables: ::core::option::Option<serde_json::Value>,
 }
 
 /// Basic autoscaling configurations for Spark Standalone.
@@ -3491,369 +3543,379 @@ pub struct SparkSqlJob {
 pub struct SparkStandaloneAutoscalingConfig {
     /// Required. Timeout for Spark graceful decommissioning of spark workers. Specifies the duration to wait for spark worker to complete spark decommissioning tasks before forcefully removing workers. Only applicable to downscaling operations.Bounds: 0s, 1d.
     #[serde(default, rename = "gracefulDecommissionTimeout")]
-    pub graceful_decommission_timeout: Option<String>,
+    pub graceful_decommission_timeout: ::core::option::Option<String>,
     /// Optional. Remove only idle workers when scaling down cluster
     #[serde(default, rename = "removeOnlyIdleWorkers")]
-    pub remove_only_idle_workers: Option<bool>,
+    pub remove_only_idle_workers: ::core::option::Option<bool>,
     /// Required. Fraction of required executors to remove from Spark Serverless clusters. A scale-down factor of 1.0 will result in scaling down so that there are no more executors for the Spark Job.(more aggressive scaling). A scale-down factor closer to 0 will result in a smaller magnitude of scaling donw (less aggressive scaling).Bounds: 0.0, 1.0.
     #[serde(default, rename = "scaleDownFactor")]
-    pub scale_down_factor: Option<f64>,
+    pub scale_down_factor: ::core::option::Option<f64>,
     /// Optional. Minimum scale-down threshold as a fraction of total cluster size before scaling occurs. For example, in a 20-worker cluster, a threshold of 0.1 means the autoscaler must recommend at least a 2 worker scale-down for the cluster to scale. A threshold of 0 means the autoscaler will scale down on any recommended change.Bounds: 0.0, 1.0. Default: 0.0.
     #[serde(default, rename = "scaleDownMinWorkerFraction")]
-    pub scale_down_min_worker_fraction: Option<f64>,
+    pub scale_down_min_worker_fraction: ::core::option::Option<f64>,
     /// Required. Fraction of required workers to add to Spark Standalone clusters. A scale-up factor of 1.0 will result in scaling up so that there are no more required workers for the Spark Job (more aggressive scaling). A scale-up factor closer to 0 will result in a smaller magnitude of scaling up (less aggressive scaling).Bounds: 0.0, 1.0.
     #[serde(default, rename = "scaleUpFactor")]
-    pub scale_up_factor: Option<f64>,
+    pub scale_up_factor: ::core::option::Option<f64>,
     /// Optional. Minimum scale-up threshold as a fraction of total cluster size before scaling occurs. For example, in a 20-worker cluster, a threshold of 0.1 means the autoscaler must recommend at least a 2-worker scale-up for the cluster to scale. A threshold of 0 means the autoscaler will scale up on any recommended change.Bounds: 0.0, 1.0. Default: 0.0.
     #[serde(default, rename = "scaleUpMinWorkerFraction")]
-    pub scale_up_min_worker_fraction: Option<f64>,
+    pub scale_up_min_worker_fraction: ::core::option::Option<f64>,
 }
 
 /// Outer message that contains the data obtained from spark listener, packaged with information that is required to process it.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SparkWrapperObject {
     #[serde(default, rename = "appSummary")]
-    pub app_summary: Option<AppSummary>,
+    pub app_summary: ::core::option::Option<::std::boxed::Box<AppSummary>>,
     #[serde(default, rename = "applicationEnvironmentInfo")]
-    pub application_environment_info: Option<ApplicationEnvironmentInfo>,
+    pub application_environment_info:
+        ::core::option::Option<::std::boxed::Box<ApplicationEnvironmentInfo>>,
     /// Application Id created by Spark.
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     #[serde(default, rename = "applicationInfo")]
-    pub application_info: Option<ApplicationInfo>,
+    pub application_info: ::core::option::Option<::std::boxed::Box<ApplicationInfo>>,
     /// VM Timestamp associated with the data object.
     #[serde(default, rename = "eventTimestamp")]
-    pub event_timestamp: Option<String>,
+    pub event_timestamp: ::core::option::Option<String>,
     #[serde(default, rename = "executorStageSummary")]
-    pub executor_stage_summary: Option<ExecutorStageSummary>,
+    pub executor_stage_summary: ::core::option::Option<::std::boxed::Box<ExecutorStageSummary>>,
     #[serde(default, rename = "executorSummary")]
-    pub executor_summary: Option<ExecutorSummary>,
+    pub executor_summary: ::core::option::Option<::std::boxed::Box<ExecutorSummary>>,
     #[serde(default, rename = "jobData")]
-    pub job_data: Option<JobData>,
+    pub job_data: ::core::option::Option<::std::boxed::Box<JobData>>,
     /// Native Build Info
     #[serde(default, rename = "nativeBuildInfoUiData")]
-    pub native_build_info_ui_data: Option<NativeBuildInfoUiData>,
+    pub native_build_info_ui_data: ::core::option::Option<::std::boxed::Box<NativeBuildInfoUiData>>,
     /// Native SQL Execution Info
     #[serde(default, rename = "nativeSqlExecutionUiData")]
-    pub native_sql_execution_ui_data: Option<NativeSqlExecutionUiData>,
+    pub native_sql_execution_ui_data:
+        ::core::option::Option<::std::boxed::Box<NativeSqlExecutionUiData>>,
     #[serde(default, rename = "poolData")]
-    pub pool_data: Option<PoolData>,
+    pub pool_data: ::core::option::Option<::std::boxed::Box<PoolData>>,
     #[serde(default, rename = "processSummary")]
-    pub process_summary: Option<ProcessSummary>,
+    pub process_summary: ::core::option::Option<::std::boxed::Box<ProcessSummary>>,
     #[serde(default, rename = "rddOperationGraph")]
-    pub rdd_operation_graph: Option<RddOperationGraph>,
+    pub rdd_operation_graph: ::core::option::Option<::std::boxed::Box<RddOperationGraph>>,
     #[serde(default, rename = "rddStorageInfo")]
-    pub rdd_storage_info: Option<RddStorageInfo>,
+    pub rdd_storage_info: ::core::option::Option<::std::boxed::Box<RddStorageInfo>>,
     #[serde(default, rename = "resourceProfileInfo")]
-    pub resource_profile_info: Option<ResourceProfileInfo>,
+    pub resource_profile_info: ::core::option::Option<::std::boxed::Box<ResourceProfileInfo>>,
     /// Spark Connect Execution Info
     #[serde(default, rename = "sparkConnectExecutionInfo")]
-    pub spark_connect_execution_info: Option<SparkConnectExecutionInfo>,
+    pub spark_connect_execution_info:
+        ::core::option::Option<::std::boxed::Box<SparkConnectExecutionInfo>>,
     /// Spark Connect Session Info
     #[serde(default, rename = "sparkConnectSessionInfo")]
-    pub spark_connect_session_info: Option<SparkConnectSessionInfo>,
+    pub spark_connect_session_info:
+        ::core::option::Option<::std::boxed::Box<SparkConnectSessionInfo>>,
     #[serde(default, rename = "sparkPlanGraph")]
-    pub spark_plan_graph: Option<SparkPlanGraph>,
+    pub spark_plan_graph: ::core::option::Option<::std::boxed::Box<SparkPlanGraph>>,
     #[serde(default, rename = "speculationStageSummary")]
-    pub speculation_stage_summary: Option<SpeculationStageSummary>,
+    pub speculation_stage_summary:
+        ::core::option::Option<::std::boxed::Box<SpeculationStageSummary>>,
     #[serde(default, rename = "sqlExecutionUiData")]
-    pub sql_execution_ui_data: Option<SqlExecutionUiData>,
+    pub sql_execution_ui_data: ::core::option::Option<::std::boxed::Box<SqlExecutionUiData>>,
     #[serde(default, rename = "stageData")]
-    pub stage_data: Option<StageData>,
+    pub stage_data: ::core::option::Option<::std::boxed::Box<StageData>>,
     #[serde(default, rename = "streamBlockData")]
-    pub stream_block_data: Option<StreamBlockData>,
+    pub stream_block_data: ::core::option::Option<::std::boxed::Box<StreamBlockData>>,
     #[serde(default, rename = "streamingQueryData")]
-    pub streaming_query_data: Option<StreamingQueryData>,
+    pub streaming_query_data: ::core::option::Option<::std::boxed::Box<StreamingQueryData>>,
     #[serde(default, rename = "streamingQueryProgress")]
-    pub streaming_query_progress: Option<StreamingQueryProgress>,
+    pub streaming_query_progress: ::core::option::Option<::std::boxed::Box<StreamingQueryProgress>>,
     #[serde(default, rename = "taskData")]
-    pub task_data: Option<TaskData>,
+    pub task_data: ::core::option::Option<::std::boxed::Box<TaskData>>,
 }
 
 /// Details of the speculation task when speculative execution is enabled.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpeculationStageSummary {
     #[serde(default, rename = "numActiveTasks")]
-    pub num_active_tasks: Option<i32>,
+    pub num_active_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numCompletedTasks")]
-    pub num_completed_tasks: Option<i32>,
+    pub num_completed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numFailedTasks")]
-    pub num_failed_tasks: Option<i32>,
+    pub num_failed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numKilledTasks")]
-    pub num_killed_tasks: Option<i32>,
+    pub num_killed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numTasks")]
-    pub num_tasks: Option<i32>,
+    pub num_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "stageAttemptId")]
-    pub stage_attempt_id: Option<i32>,
+    pub stage_attempt_id: ::core::option::Option<i32>,
     #[serde(default, rename = "stageId")]
-    pub stage_id: Option<String>,
+    pub stage_id: ::core::option::Option<String>,
 }
 
 /// SQL Execution Data
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SqlExecutionUiData {
     #[serde(default, rename = "completionTime")]
-    pub completion_time: Option<String>,
+    pub completion_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     #[serde(default, rename = "executionId")]
-    pub execution_id: Option<String>,
+    pub execution_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub jobs: Option<serde_json::Value>,
+    pub jobs: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "metricValues")]
-    pub metric_values: Option<serde_json::Value>,
+    pub metric_values: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "metricValuesIsNull")]
-    pub metric_values_is_null: Option<bool>,
+    pub metric_values_is_null: ::core::option::Option<bool>,
     #[serde(default)]
-    pub metrics: Option<Vec<SqlPlanMetric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SqlPlanMetric>>>,
     #[serde(default, rename = "modifiedConfigs")]
-    pub modified_configs: Option<serde_json::Value>,
+    pub modified_configs: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "physicalPlanDescription")]
-    pub physical_plan_description: Option<String>,
+    pub physical_plan_description: ::core::option::Option<String>,
     #[serde(default, rename = "rootExecutionId")]
-    pub root_execution_id: Option<String>,
+    pub root_execution_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub stages: Option<Vec<String>>,
+    pub stages: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "submissionTime")]
-    pub submission_time: Option<String>,
+    pub submission_time: ::core::option::Option<String>,
 }
 
 /// Metrics related to SQL execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SqlPlanMetric {
     #[serde(default, rename = "accumulatorId")]
-    pub accumulator_id: Option<String>,
+    pub accumulator_id: ::core::option::Option<String>,
     #[serde(default, rename = "metricType")]
-    pub metric_type: Option<String>,
+    pub metric_type: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Data related to tasks summary for a Spark Stage Attempt
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageAttemptTasksSummary {
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     #[serde(default, rename = "numFailedTasks")]
-    pub num_failed_tasks: Option<i32>,
+    pub num_failed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numKilledTasks")]
-    pub num_killed_tasks: Option<i32>,
+    pub num_killed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numPendingTasks")]
-    pub num_pending_tasks: Option<i32>,
+    pub num_pending_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numRunningTasks")]
-    pub num_running_tasks: Option<i32>,
+    pub num_running_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numSuccessTasks")]
-    pub num_success_tasks: Option<i32>,
+    pub num_success_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numTasks")]
-    pub num_tasks: Option<i32>,
+    pub num_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "stageAttemptId")]
-    pub stage_attempt_id: Option<i32>,
+    pub stage_attempt_id: ::core::option::Option<i32>,
     #[serde(default, rename = "stageId")]
-    pub stage_id: Option<String>,
+    pub stage_id: ::core::option::Option<String>,
 }
 
 /// Data corresponding to a stage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageData {
     #[serde(default, rename = "accumulatorUpdates")]
-    pub accumulator_updates: Option<Vec<AccumulableInfo>>,
+    pub accumulator_updates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccumulableInfo>>>,
     #[serde(default, rename = "completionTime")]
-    pub completion_time: Option<String>,
+    pub completion_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     #[serde(default, rename = "executorMetricsDistributions")]
-    pub executor_metrics_distributions: Option<ExecutorMetricsDistributions>,
+    pub executor_metrics_distributions:
+        ::core::option::Option<::std::boxed::Box<ExecutorMetricsDistributions>>,
     #[serde(default, rename = "executorSummary")]
-    pub executor_summary: Option<serde_json::Value>,
+    pub executor_summary: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "failureReason")]
-    pub failure_reason: Option<String>,
+    pub failure_reason: ::core::option::Option<String>,
     #[serde(default, rename = "firstTaskLaunchedTime")]
-    pub first_task_launched_time: Option<String>,
+    pub first_task_launched_time: ::core::option::Option<String>,
     #[serde(default, rename = "isShufflePushEnabled")]
-    pub is_shuffle_push_enabled: Option<bool>,
+    pub is_shuffle_push_enabled: ::core::option::Option<bool>,
     #[serde(default, rename = "jobIds")]
-    pub job_ids: Option<Vec<String>>,
+    pub job_ids: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "killedTasksSummary")]
-    pub killed_tasks_summary: Option<serde_json::Value>,
+    pub killed_tasks_summary: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub locality: Option<serde_json::Value>,
+    pub locality: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "numActiveTasks")]
-    pub num_active_tasks: Option<i32>,
+    pub num_active_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numCompleteTasks")]
-    pub num_complete_tasks: Option<i32>,
+    pub num_complete_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numCompletedIndices")]
-    pub num_completed_indices: Option<i32>,
+    pub num_completed_indices: ::core::option::Option<i32>,
     #[serde(default, rename = "numFailedTasks")]
-    pub num_failed_tasks: Option<i32>,
+    pub num_failed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numKilledTasks")]
-    pub num_killed_tasks: Option<i32>,
+    pub num_killed_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "numTasks")]
-    pub num_tasks: Option<i32>,
+    pub num_tasks: ::core::option::Option<i32>,
     #[serde(default, rename = "parentStageIds")]
-    pub parent_stage_ids: Option<Vec<String>>,
+    pub parent_stage_ids: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "peakExecutorMetrics")]
-    pub peak_executor_metrics: Option<ExecutorMetrics>,
+    pub peak_executor_metrics: ::core::option::Option<::std::boxed::Box<ExecutorMetrics>>,
     #[serde(default, rename = "rddIds")]
-    pub rdd_ids: Option<Vec<String>>,
+    pub rdd_ids: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default, rename = "resourceProfileId")]
-    pub resource_profile_id: Option<i32>,
+    pub resource_profile_id: ::core::option::Option<i32>,
     #[serde(default, rename = "schedulingPool")]
-    pub scheduling_pool: Option<String>,
+    pub scheduling_pool: ::core::option::Option<String>,
     #[serde(default, rename = "shuffleMergersCount")]
-    pub shuffle_mergers_count: Option<i32>,
+    pub shuffle_mergers_count: ::core::option::Option<i32>,
     #[serde(default, rename = "speculationSummary")]
-    pub speculation_summary: Option<SpeculationStageSummary>,
+    pub speculation_summary: ::core::option::Option<::std::boxed::Box<SpeculationStageSummary>>,
     #[serde(default, rename = "stageAttemptId")]
-    pub stage_attempt_id: Option<i32>,
+    pub stage_attempt_id: ::core::option::Option<i32>,
     #[serde(default, rename = "stageId")]
-    pub stage_id: Option<String>,
+    pub stage_id: ::core::option::Option<String>,
     #[serde(default, rename = "stageMetrics")]
-    pub stage_metrics: Option<StageMetrics>,
+    pub stage_metrics: ::core::option::Option<::std::boxed::Box<StageMetrics>>,
     /// TODO: enum values: ["STAGE_STATUS_UNSPECIFIED", "STAGE_STATUS_ACTIVE", "STAGE_STATUS_COMPLETE", "STAGE_STATUS_FAILED", "STAGE_STATUS_PENDING", "STAGE_STATUS_SKIPPED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     #[serde(default, rename = "submissionTime")]
-    pub submission_time: Option<String>,
+    pub submission_time: ::core::option::Option<String>,
     /// Summary metrics fields. These are included in response only if present in summary_metrics_mask field in request
     #[serde(default, rename = "taskQuantileMetrics")]
-    pub task_quantile_metrics: Option<TaskQuantileMetrics>,
+    pub task_quantile_metrics: ::core::option::Option<::std::boxed::Box<TaskQuantileMetrics>>,
     #[serde(default)]
-    pub tasks: Option<serde_json::Value>,
+    pub tasks: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metrics about the input read by the stage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageInputMetrics {
     #[serde(default, rename = "bytesRead")]
-    pub bytes_read: Option<String>,
+    pub bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "recordsRead")]
-    pub records_read: Option<String>,
+    pub records_read: ::core::option::Option<String>,
 }
 
 /// Stage Level Aggregated Metrics
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageMetrics {
     #[serde(default, rename = "diskBytesSpilled")]
-    pub disk_bytes_spilled: Option<String>,
+    pub disk_bytes_spilled: ::core::option::Option<String>,
     #[serde(default, rename = "executorCpuTimeNanos")]
-    pub executor_cpu_time_nanos: Option<String>,
+    pub executor_cpu_time_nanos: ::core::option::Option<String>,
     #[serde(default, rename = "executorDeserializeCpuTimeNanos")]
-    pub executor_deserialize_cpu_time_nanos: Option<String>,
+    pub executor_deserialize_cpu_time_nanos: ::core::option::Option<String>,
     #[serde(default, rename = "executorDeserializeTimeMillis")]
-    pub executor_deserialize_time_millis: Option<String>,
+    pub executor_deserialize_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "executorRunTimeMillis")]
-    pub executor_run_time_millis: Option<String>,
+    pub executor_run_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "jvmGcTimeMillis")]
-    pub jvm_gc_time_millis: Option<String>,
+    pub jvm_gc_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "memoryBytesSpilled")]
-    pub memory_bytes_spilled: Option<String>,
+    pub memory_bytes_spilled: ::core::option::Option<String>,
     #[serde(default, rename = "peakExecutionMemoryBytes")]
-    pub peak_execution_memory_bytes: Option<String>,
+    pub peak_execution_memory_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "resultSerializationTimeMillis")]
-    pub result_serialization_time_millis: Option<String>,
+    pub result_serialization_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "resultSize")]
-    pub result_size: Option<String>,
+    pub result_size: ::core::option::Option<String>,
     #[serde(default, rename = "stageInputMetrics")]
-    pub stage_input_metrics: Option<StageInputMetrics>,
+    pub stage_input_metrics: ::core::option::Option<::std::boxed::Box<StageInputMetrics>>,
     #[serde(default, rename = "stageOutputMetrics")]
-    pub stage_output_metrics: Option<StageOutputMetrics>,
+    pub stage_output_metrics: ::core::option::Option<::std::boxed::Box<StageOutputMetrics>>,
     #[serde(default, rename = "stageShuffleReadMetrics")]
-    pub stage_shuffle_read_metrics: Option<StageShuffleReadMetrics>,
+    pub stage_shuffle_read_metrics:
+        ::core::option::Option<::std::boxed::Box<StageShuffleReadMetrics>>,
     #[serde(default, rename = "stageShuffleWriteMetrics")]
-    pub stage_shuffle_write_metrics: Option<StageShuffleWriteMetrics>,
+    pub stage_shuffle_write_metrics:
+        ::core::option::Option<::std::boxed::Box<StageShuffleWriteMetrics>>,
 }
 
 /// Metrics about the output written by the stage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageOutputMetrics {
     #[serde(default, rename = "bytesWritten")]
-    pub bytes_written: Option<String>,
+    pub bytes_written: ::core::option::Option<String>,
     #[serde(default, rename = "recordsWritten")]
-    pub records_written: Option<String>,
+    pub records_written: ::core::option::Option<String>,
 }
 
 /// StageShufflePushReadMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageShufflePushReadMetrics {
     #[serde(default, rename = "corruptMergedBlockChunks")]
-    pub corrupt_merged_block_chunks: Option<String>,
+    pub corrupt_merged_block_chunks: ::core::option::Option<String>,
     #[serde(default, rename = "localMergedBlocksFetched")]
-    pub local_merged_blocks_fetched: Option<String>,
+    pub local_merged_blocks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "localMergedBytesRead")]
-    pub local_merged_bytes_read: Option<String>,
+    pub local_merged_bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "localMergedChunksFetched")]
-    pub local_merged_chunks_fetched: Option<String>,
+    pub local_merged_chunks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "mergedFetchFallbackCount")]
-    pub merged_fetch_fallback_count: Option<String>,
+    pub merged_fetch_fallback_count: ::core::option::Option<String>,
     #[serde(default, rename = "remoteMergedBlocksFetched")]
-    pub remote_merged_blocks_fetched: Option<String>,
+    pub remote_merged_blocks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "remoteMergedBytesRead")]
-    pub remote_merged_bytes_read: Option<String>,
+    pub remote_merged_bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "remoteMergedChunksFetched")]
-    pub remote_merged_chunks_fetched: Option<String>,
+    pub remote_merged_chunks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "remoteMergedReqsDuration")]
-    pub remote_merged_reqs_duration: Option<String>,
+    pub remote_merged_reqs_duration: ::core::option::Option<String>,
 }
 
 /// Shuffle data read for the stage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageShuffleReadMetrics {
     #[serde(default, rename = "bytesRead")]
-    pub bytes_read: Option<String>,
+    pub bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "fetchWaitTimeMillis")]
-    pub fetch_wait_time_millis: Option<String>,
+    pub fetch_wait_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "localBlocksFetched")]
-    pub local_blocks_fetched: Option<String>,
+    pub local_blocks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "localBytesRead")]
-    pub local_bytes_read: Option<String>,
+    pub local_bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "recordsRead")]
-    pub records_read: Option<String>,
+    pub records_read: ::core::option::Option<String>,
     #[serde(default, rename = "remoteBlocksFetched")]
-    pub remote_blocks_fetched: Option<String>,
+    pub remote_blocks_fetched: ::core::option::Option<String>,
     #[serde(default, rename = "remoteBytesRead")]
-    pub remote_bytes_read: Option<String>,
+    pub remote_bytes_read: ::core::option::Option<String>,
     #[serde(default, rename = "remoteBytesReadToDisk")]
-    pub remote_bytes_read_to_disk: Option<String>,
+    pub remote_bytes_read_to_disk: ::core::option::Option<String>,
     #[serde(default, rename = "remoteReqsDuration")]
-    pub remote_reqs_duration: Option<String>,
+    pub remote_reqs_duration: ::core::option::Option<String>,
     #[serde(default, rename = "stageShufflePushReadMetrics")]
-    pub stage_shuffle_push_read_metrics: Option<StageShufflePushReadMetrics>,
+    pub stage_shuffle_push_read_metrics:
+        ::core::option::Option<::std::boxed::Box<StageShufflePushReadMetrics>>,
 }
 
 /// Shuffle data written for the stage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageShuffleWriteMetrics {
     #[serde(default, rename = "bytesWritten")]
-    pub bytes_written: Option<String>,
+    pub bytes_written: ::core::option::Option<String>,
     #[serde(default, rename = "recordsWritten")]
-    pub records_written: Option<String>,
+    pub records_written: ::core::option::Option<String>,
     #[serde(default, rename = "writeTimeNanos")]
-    pub write_time_nanos: Option<String>,
+    pub write_time_nanos: ::core::option::Option<String>,
 }
 
 /// Data related to Stages page summary
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StagesSummary {
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     #[serde(default, rename = "numActiveStages")]
-    pub num_active_stages: Option<i32>,
+    pub num_active_stages: ::core::option::Option<i32>,
     #[serde(default, rename = "numCompletedStages")]
-    pub num_completed_stages: Option<i32>,
+    pub num_completed_stages: ::core::option::Option<i32>,
     #[serde(default, rename = "numFailedStages")]
-    pub num_failed_stages: Option<i32>,
+    pub num_failed_stages: ::core::option::Option<i32>,
     #[serde(default, rename = "numPendingStages")]
-    pub num_pending_stages: Option<i32>,
+    pub num_pending_stages: ::core::option::Option<i32>,
     #[serde(default, rename = "numSkippedStages")]
-    pub num_skipped_stages: Option<i32>,
+    pub num_skipped_stages: ::core::option::Option<i32>,
 }
 
 /// A request to start a cluster.
@@ -3861,10 +3923,10 @@ pub struct StagesSummary {
 pub struct StartClusterRequest {
     /// Optional. Specifying the cluster_uuid means the RPC will fail (with error NOT_FOUND) if a cluster with the specified UUID does not exist.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
     /// Optional. A unique ID used to identify the request. If the server receives two StartClusterRequest (https://cloud.google.com/dataproc/docs/reference/rpc/google.cloud.dataproc.v1#google.cloud.dataproc.v1.StartClusterRequest)s with the same id, then the second request will be ignored and the first google.longrunning.Operation created and stored in the backend is returned.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Configuration to handle the startup of instances during cluster create and update process.
@@ -3872,7 +3934,7 @@ pub struct StartClusterRequest {
 pub struct StartupConfig {
     /// Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).
     #[serde(default, rename = "requiredRegistrationFraction")]
-    pub required_registration_fraction: Option<f64>,
+    pub required_registration_fraction: ::core::option::Option<f64>,
 }
 
 /// Historical state information.
@@ -3880,42 +3942,42 @@ pub struct StartupConfig {
 pub struct StateHistory {
     /// Output only. The state of the batch at this point in history. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "RUNNING", "CANCELLING", "CANCELLED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Details about the state at this point in history.
     #[serde(default, rename = "stateMessage")]
-    pub state_message: Option<String>,
+    pub state_message: ::core::option::Option<String>,
     /// Output only. The time when the batch entered the historical state.
     #[serde(default, rename = "stateStartTime")]
-    pub state_start_time: Option<String>,
+    pub state_start_time: ::core::option::Option<String>,
 }
 
 /// StateOperatorProgress resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateOperatorProgress {
     #[serde(default, rename = "allRemovalsTimeMs")]
-    pub all_removals_time_ms: Option<String>,
+    pub all_removals_time_ms: ::core::option::Option<String>,
     #[serde(default, rename = "allUpdatesTimeMs")]
-    pub all_updates_time_ms: Option<String>,
+    pub all_updates_time_ms: ::core::option::Option<String>,
     #[serde(default, rename = "commitTimeMs")]
-    pub commit_time_ms: Option<String>,
+    pub commit_time_ms: ::core::option::Option<String>,
     #[serde(default, rename = "customMetrics")]
-    pub custom_metrics: Option<serde_json::Value>,
+    pub custom_metrics: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "memoryUsedBytes")]
-    pub memory_used_bytes: Option<String>,
+    pub memory_used_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "numRowsDroppedByWatermark")]
-    pub num_rows_dropped_by_watermark: Option<String>,
+    pub num_rows_dropped_by_watermark: ::core::option::Option<String>,
     #[serde(default, rename = "numRowsRemoved")]
-    pub num_rows_removed: Option<String>,
+    pub num_rows_removed: ::core::option::Option<String>,
     #[serde(default, rename = "numRowsTotal")]
-    pub num_rows_total: Option<String>,
+    pub num_rows_total: ::core::option::Option<String>,
     #[serde(default, rename = "numRowsUpdated")]
-    pub num_rows_updated: Option<String>,
+    pub num_rows_updated: ::core::option::Option<String>,
     #[serde(default, rename = "numShufflePartitions")]
-    pub num_shuffle_partitions: Option<String>,
+    pub num_shuffle_partitions: ::core::option::Option<String>,
     #[serde(default, rename = "numStateStoreInstances")]
-    pub num_state_store_instances: Option<String>,
+    pub num_state_store_instances: ::core::option::Option<String>,
     #[serde(default, rename = "operatorName")]
-    pub operator_name: Option<String>,
+    pub operator_name: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
@@ -3923,13 +3985,13 @@ pub struct StateOperatorProgress {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A request to stop a cluster.
@@ -3937,81 +3999,82 @@ pub struct Status {
 pub struct StopClusterRequest {
     /// Optional. Specifying the cluster_uuid means the RPC will fail (with error NOT_FOUND) if a cluster with the specified UUID does not exist.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
     /// Optional. A unique ID used to identify the request. If the server receives two StopClusterRequest (https://cloud.google.com/dataproc/docs/reference/rpc/google.cloud.dataproc.v1#google.cloud.dataproc.v1.StopClusterRequest)s with the same id, then the second request will be ignored and the first google.longrunning.Operation created and stored in the backend is returned.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Stream Block Data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamBlockData {
     #[serde(default)]
-    pub deserialized: Option<bool>,
+    pub deserialized: ::core::option::Option<bool>,
     #[serde(default, rename = "diskSize")]
-    pub disk_size: Option<String>,
+    pub disk_size: ::core::option::Option<String>,
     #[serde(default, rename = "executorId")]
-    pub executor_id: Option<String>,
+    pub executor_id: ::core::option::Option<String>,
     #[serde(default, rename = "hostPort")]
-    pub host_port: Option<String>,
+    pub host_port: ::core::option::Option<String>,
     #[serde(default, rename = "memSize")]
-    pub mem_size: Option<String>,
+    pub mem_size: ::core::option::Option<String>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "storageLevel")]
-    pub storage_level: Option<String>,
+    pub storage_level: ::core::option::Option<String>,
     #[serde(default, rename = "useDisk")]
-    pub use_disk: Option<bool>,
+    pub use_disk: ::core::option::Option<bool>,
     #[serde(default, rename = "useMemory")]
-    pub use_memory: Option<bool>,
+    pub use_memory: ::core::option::Option<bool>,
 }
 
 /// Streaming
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamingQueryData {
     #[serde(default, rename = "endTimestamp")]
-    pub end_timestamp: Option<String>,
+    pub end_timestamp: ::core::option::Option<String>,
     #[serde(default)]
-    pub exception: Option<String>,
+    pub exception: ::core::option::Option<String>,
     #[serde(default, rename = "isActive")]
-    pub is_active: Option<bool>,
+    pub is_active: ::core::option::Option<bool>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "runId")]
-    pub run_id: Option<String>,
+    pub run_id: ::core::option::Option<String>,
     #[serde(default, rename = "startTimestamp")]
-    pub start_timestamp: Option<String>,
+    pub start_timestamp: ::core::option::Option<String>,
     #[serde(default, rename = "streamingQueryId")]
-    pub streaming_query_id: Option<String>,
+    pub streaming_query_id: ::core::option::Option<String>,
 }
 
 /// StreamingQueryProgress resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamingQueryProgress {
     #[serde(default, rename = "batchDuration")]
-    pub batch_duration: Option<String>,
+    pub batch_duration: ::core::option::Option<String>,
     #[serde(default, rename = "batchId")]
-    pub batch_id: Option<String>,
+    pub batch_id: ::core::option::Option<String>,
     #[serde(default, rename = "durationMillis")]
-    pub duration_millis: Option<serde_json::Value>,
+    pub duration_millis: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "eventTime")]
-    pub event_time: Option<serde_json::Value>,
+    pub event_time: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default, rename = "observedMetrics")]
-    pub observed_metrics: Option<serde_json::Value>,
+    pub observed_metrics: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "runId")]
-    pub run_id: Option<String>,
+    pub run_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub sink: Option<SinkProgress>,
+    pub sink: ::core::option::Option<::std::boxed::Box<SinkProgress>>,
     #[serde(default)]
-    pub sources: Option<Vec<SourceProgress>>,
+    pub sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SourceProgress>>>,
     #[serde(default, rename = "stateOperators")]
-    pub state_operators: Option<Vec<StateOperatorProgress>>,
+    pub state_operators:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StateOperatorProgress>>>,
     #[serde(default, rename = "streamingQueryProgressId")]
-    pub streaming_query_progress_id: Option<String>,
+    pub streaming_query_progress_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
 }
 
 /// A request to submit a job.
@@ -4019,10 +4082,10 @@ pub struct StreamingQueryProgress {
 pub struct SubmitJobRequest {
     /// Required. The job resource.
     #[serde(default)]
-    pub job: Option<Job>,
+    pub job: ::core::option::Option<::std::boxed::Box<Job>>,
     /// Optional. A unique id used to identify the request. If the server receives two SubmitJobRequest (https://cloud.google.com/dataproc/docs/reference/rpc/google.cloud.dataproc.v1#google.cloud.dataproc.v1.SubmitJobRequest)s with the same id, then the second request will be ignored and the first Job created and stored in the backend is returned.It is recommended to always set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The id must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Consolidated summary of executors for a Spark Application.
@@ -4030,16 +4093,19 @@ pub struct SubmitJobRequest {
 pub struct SummarizeSessionSparkApplicationExecutorsResponse {
     /// Consolidated summary for active executors.
     #[serde(default, rename = "activeExecutorSummary")]
-    pub active_executor_summary: Option<ConsolidatedExecutorSummary>,
+    pub active_executor_summary:
+        ::core::option::Option<::std::boxed::Box<ConsolidatedExecutorSummary>>,
     /// Spark Application Id
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     /// Consolidated summary for dead executors.
     #[serde(default, rename = "deadExecutorSummary")]
-    pub dead_executor_summary: Option<ConsolidatedExecutorSummary>,
+    pub dead_executor_summary:
+        ::core::option::Option<::std::boxed::Box<ConsolidatedExecutorSummary>>,
     /// Overall consolidated summary for all executors.
     #[serde(default, rename = "totalExecutorSummary")]
-    pub total_executor_summary: Option<ConsolidatedExecutorSummary>,
+    pub total_executor_summary:
+        ::core::option::Option<::std::boxed::Box<ConsolidatedExecutorSummary>>,
 }
 
 /// Summary of a Spark Application jobs.
@@ -4047,7 +4113,7 @@ pub struct SummarizeSessionSparkApplicationExecutorsResponse {
 pub struct SummarizeSessionSparkApplicationJobsResponse {
     /// Summary of a Spark Application Jobs
     #[serde(default, rename = "jobsSummary")]
-    pub jobs_summary: Option<JobsSummary>,
+    pub jobs_summary: ::core::option::Option<::std::boxed::Box<JobsSummary>>,
 }
 
 /// Summary of tasks for a Spark Application stage attempt.
@@ -4055,7 +4121,8 @@ pub struct SummarizeSessionSparkApplicationJobsResponse {
 pub struct SummarizeSessionSparkApplicationStageAttemptTasksResponse {
     /// Summary of tasks for a Spark Application Stage Attempt
     #[serde(default, rename = "stageAttemptTasksSummary")]
-    pub stage_attempt_tasks_summary: Option<StageAttemptTasksSummary>,
+    pub stage_attempt_tasks_summary:
+        ::core::option::Option<::std::boxed::Box<StageAttemptTasksSummary>>,
 }
 
 /// Summary of a Spark Application stages.
@@ -4063,7 +4130,7 @@ pub struct SummarizeSessionSparkApplicationStageAttemptTasksResponse {
 pub struct SummarizeSessionSparkApplicationStagesResponse {
     /// Summary of a Spark Application Stages
     #[serde(default, rename = "stagesSummary")]
-    pub stages_summary: Option<StagesSummary>,
+    pub stages_summary: ::core::option::Option<::std::boxed::Box<StagesSummary>>,
 }
 
 /// Consolidated summary of executors for a Spark Application.
@@ -4071,16 +4138,19 @@ pub struct SummarizeSessionSparkApplicationStagesResponse {
 pub struct SummarizeSparkApplicationExecutorsResponse {
     /// Consolidated summary for active executors.
     #[serde(default, rename = "activeExecutorSummary")]
-    pub active_executor_summary: Option<ConsolidatedExecutorSummary>,
+    pub active_executor_summary:
+        ::core::option::Option<::std::boxed::Box<ConsolidatedExecutorSummary>>,
     /// Spark Application Id
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     /// Consolidated summary for dead executors.
     #[serde(default, rename = "deadExecutorSummary")]
-    pub dead_executor_summary: Option<ConsolidatedExecutorSummary>,
+    pub dead_executor_summary:
+        ::core::option::Option<::std::boxed::Box<ConsolidatedExecutorSummary>>,
     /// Overall consolidated summary for all executors.
     #[serde(default, rename = "totalExecutorSummary")]
-    pub total_executor_summary: Option<ConsolidatedExecutorSummary>,
+    pub total_executor_summary:
+        ::core::option::Option<::std::boxed::Box<ConsolidatedExecutorSummary>>,
 }
 
 /// Summary of a Spark Application jobs.
@@ -4088,7 +4158,7 @@ pub struct SummarizeSparkApplicationExecutorsResponse {
 pub struct SummarizeSparkApplicationJobsResponse {
     /// Summary of a Spark Application Jobs
     #[serde(default, rename = "jobsSummary")]
-    pub jobs_summary: Option<JobsSummary>,
+    pub jobs_summary: ::core::option::Option<::std::boxed::Box<JobsSummary>>,
 }
 
 /// Summary of tasks for a Spark Application stage attempt.
@@ -4096,7 +4166,8 @@ pub struct SummarizeSparkApplicationJobsResponse {
 pub struct SummarizeSparkApplicationStageAttemptTasksResponse {
     /// Summary of tasks for a Spark Application Stage Attempt
     #[serde(default, rename = "stageAttemptTasksSummary")]
-    pub stage_attempt_tasks_summary: Option<StageAttemptTasksSummary>,
+    pub stage_attempt_tasks_summary:
+        ::core::option::Option<::std::boxed::Box<StageAttemptTasksSummary>>,
 }
 
 /// Summary of a Spark Application stages.
@@ -4104,135 +4175,137 @@ pub struct SummarizeSparkApplicationStageAttemptTasksResponse {
 pub struct SummarizeSparkApplicationStagesResponse {
     /// Summary of a Spark Application Stages
     #[serde(default, rename = "stagesSummary")]
-    pub stages_summary: Option<StagesSummary>,
+    pub stages_summary: ::core::option::Option<::std::boxed::Box<StagesSummary>>,
 }
 
 /// Data corresponding to tasks created by spark.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskData {
     #[serde(default, rename = "accumulatorUpdates")]
-    pub accumulator_updates: Option<Vec<AccumulableInfo>>,
+    pub accumulator_updates:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccumulableInfo>>>,
     #[serde(default)]
-    pub attempt: Option<i32>,
+    pub attempt: ::core::option::Option<i32>,
     #[serde(default, rename = "durationMillis")]
-    pub duration_millis: Option<String>,
+    pub duration_millis: ::core::option::Option<String>,
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     #[serde(default, rename = "executorId")]
-    pub executor_id: Option<String>,
+    pub executor_id: ::core::option::Option<String>,
     #[serde(default, rename = "executorLogs")]
-    pub executor_logs: Option<serde_json::Value>,
+    pub executor_logs: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "gettingResultTimeMillis")]
-    pub getting_result_time_millis: Option<String>,
+    pub getting_result_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "hasMetrics")]
-    pub has_metrics: Option<bool>,
+    pub has_metrics: ::core::option::Option<bool>,
     #[serde(default)]
-    pub host: Option<String>,
+    pub host: ::core::option::Option<String>,
     #[serde(default)]
-    pub index: Option<i32>,
+    pub index: ::core::option::Option<i32>,
     #[serde(default, rename = "launchTime")]
-    pub launch_time: Option<String>,
+    pub launch_time: ::core::option::Option<String>,
     #[serde(default, rename = "partitionId")]
-    pub partition_id: Option<i32>,
+    pub partition_id: ::core::option::Option<i32>,
     #[serde(default, rename = "resultFetchStart")]
-    pub result_fetch_start: Option<String>,
+    pub result_fetch_start: ::core::option::Option<String>,
     #[serde(default, rename = "schedulerDelayMillis")]
-    pub scheduler_delay_millis: Option<String>,
+    pub scheduler_delay_millis: ::core::option::Option<String>,
     #[serde(default)]
-    pub speculative: Option<bool>,
+    pub speculative: ::core::option::Option<bool>,
     #[serde(default, rename = "stageAttemptId")]
-    pub stage_attempt_id: Option<i32>,
+    pub stage_attempt_id: ::core::option::Option<i32>,
     #[serde(default, rename = "stageId")]
-    pub stage_id: Option<String>,
+    pub stage_id: ::core::option::Option<String>,
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     #[serde(default, rename = "taskId")]
-    pub task_id: Option<String>,
+    pub task_id: ::core::option::Option<String>,
     #[serde(default, rename = "taskLocality")]
-    pub task_locality: Option<String>,
+    pub task_locality: ::core::option::Option<String>,
     #[serde(default, rename = "taskMetrics")]
-    pub task_metrics: Option<TaskMetrics>,
+    pub task_metrics: ::core::option::Option<::std::boxed::Box<TaskMetrics>>,
 }
 
 /// Executor Task Metrics
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskMetrics {
     #[serde(default, rename = "diskBytesSpilled")]
-    pub disk_bytes_spilled: Option<String>,
+    pub disk_bytes_spilled: ::core::option::Option<String>,
     #[serde(default, rename = "executorCpuTimeNanos")]
-    pub executor_cpu_time_nanos: Option<String>,
+    pub executor_cpu_time_nanos: ::core::option::Option<String>,
     #[serde(default, rename = "executorDeserializeCpuTimeNanos")]
-    pub executor_deserialize_cpu_time_nanos: Option<String>,
+    pub executor_deserialize_cpu_time_nanos: ::core::option::Option<String>,
     #[serde(default, rename = "executorDeserializeTimeMillis")]
-    pub executor_deserialize_time_millis: Option<String>,
+    pub executor_deserialize_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "executorRunTimeMillis")]
-    pub executor_run_time_millis: Option<String>,
+    pub executor_run_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "inputMetrics")]
-    pub input_metrics: Option<InputMetrics>,
+    pub input_metrics: ::core::option::Option<::std::boxed::Box<InputMetrics>>,
     #[serde(default, rename = "jvmGcTimeMillis")]
-    pub jvm_gc_time_millis: Option<String>,
+    pub jvm_gc_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "memoryBytesSpilled")]
-    pub memory_bytes_spilled: Option<String>,
+    pub memory_bytes_spilled: ::core::option::Option<String>,
     #[serde(default, rename = "outputMetrics")]
-    pub output_metrics: Option<OutputMetrics>,
+    pub output_metrics: ::core::option::Option<::std::boxed::Box<OutputMetrics>>,
     #[serde(default, rename = "peakExecutionMemoryBytes")]
-    pub peak_execution_memory_bytes: Option<String>,
+    pub peak_execution_memory_bytes: ::core::option::Option<String>,
     #[serde(default, rename = "resultSerializationTimeMillis")]
-    pub result_serialization_time_millis: Option<String>,
+    pub result_serialization_time_millis: ::core::option::Option<String>,
     #[serde(default, rename = "resultSize")]
-    pub result_size: Option<String>,
+    pub result_size: ::core::option::Option<String>,
     #[serde(default, rename = "shuffleReadMetrics")]
-    pub shuffle_read_metrics: Option<ShuffleReadMetrics>,
+    pub shuffle_read_metrics: ::core::option::Option<::std::boxed::Box<ShuffleReadMetrics>>,
     #[serde(default, rename = "shuffleWriteMetrics")]
-    pub shuffle_write_metrics: Option<ShuffleWriteMetrics>,
+    pub shuffle_write_metrics: ::core::option::Option<::std::boxed::Box<ShuffleWriteMetrics>>,
 }
 
 /// TaskQuantileMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskQuantileMetrics {
     #[serde(default, rename = "diskBytesSpilled")]
-    pub disk_bytes_spilled: Option<Quantiles>,
+    pub disk_bytes_spilled: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "durationMillis")]
-    pub duration_millis: Option<Quantiles>,
+    pub duration_millis: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "executorCpuTimeNanos")]
-    pub executor_cpu_time_nanos: Option<Quantiles>,
+    pub executor_cpu_time_nanos: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "executorDeserializeCpuTimeNanos")]
-    pub executor_deserialize_cpu_time_nanos: Option<Quantiles>,
+    pub executor_deserialize_cpu_time_nanos: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "executorDeserializeTimeMillis")]
-    pub executor_deserialize_time_millis: Option<Quantiles>,
+    pub executor_deserialize_time_millis: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "executorRunTimeMillis")]
-    pub executor_run_time_millis: Option<Quantiles>,
+    pub executor_run_time_millis: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "gettingResultTimeMillis")]
-    pub getting_result_time_millis: Option<Quantiles>,
+    pub getting_result_time_millis: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "inputMetrics")]
-    pub input_metrics: Option<InputQuantileMetrics>,
+    pub input_metrics: ::core::option::Option<::std::boxed::Box<InputQuantileMetrics>>,
     #[serde(default, rename = "jvmGcTimeMillis")]
-    pub jvm_gc_time_millis: Option<Quantiles>,
+    pub jvm_gc_time_millis: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "memoryBytesSpilled")]
-    pub memory_bytes_spilled: Option<Quantiles>,
+    pub memory_bytes_spilled: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "outputMetrics")]
-    pub output_metrics: Option<OutputQuantileMetrics>,
+    pub output_metrics: ::core::option::Option<::std::boxed::Box<OutputQuantileMetrics>>,
     #[serde(default, rename = "peakExecutionMemoryBytes")]
-    pub peak_execution_memory_bytes: Option<Quantiles>,
+    pub peak_execution_memory_bytes: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "resultSerializationTimeMillis")]
-    pub result_serialization_time_millis: Option<Quantiles>,
+    pub result_serialization_time_millis: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "resultSize")]
-    pub result_size: Option<Quantiles>,
+    pub result_size: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "schedulerDelayMillis")]
-    pub scheduler_delay_millis: Option<Quantiles>,
+    pub scheduler_delay_millis: ::core::option::Option<::std::boxed::Box<Quantiles>>,
     #[serde(default, rename = "shuffleReadMetrics")]
-    pub shuffle_read_metrics: Option<ShuffleReadQuantileMetrics>,
+    pub shuffle_read_metrics: ::core::option::Option<::std::boxed::Box<ShuffleReadQuantileMetrics>>,
     #[serde(default, rename = "shuffleWriteMetrics")]
-    pub shuffle_write_metrics: Option<ShuffleWriteQuantileMetrics>,
+    pub shuffle_write_metrics:
+        ::core::option::Option<::std::boxed::Box<ShuffleWriteQuantileMetrics>>,
 }
 
 /// Resources used per task created by the application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskResourceRequest {
     #[serde(default)]
-    pub amount: Option<f64>,
+    pub amount: ::core::option::Option<f64>,
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
 }
 
 /// A configurable parameter that replaces one or more fields in the template. Parameterizable fields: - Labels - File uris - Job properties - Job arguments - Script variables - Main class (in HadoopJob and SparkJob) - Zone (in ClusterSelector)
@@ -4240,16 +4313,16 @@ pub struct TaskResourceRequest {
 pub struct TemplateParameter {
     /// Optional. Brief description of the parameter. Must not exceed 1024 characters.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. Paths to all fields that the parameter replaces. A field is allowed to appear in at most one parameter''s list of field paths.A field path is similar in syntax to a google.protobuf.FieldMask. For example, a field path that references the zone field of a workflow template''s cluster selector would be specified as placement.clusterSelector.zone.Also, field paths can reference fields using the following syntax: Values in maps can be referenced by key: labels''key'' placement.clusterSelector.clusterLabels''key'' placement.managedCluster.labels''key'' placement.clusterSelector.clusterLabels''key'' jobs''step-id''.labels''key'' Jobs in the jobs list can be referenced by step-id: jobs''step-id''.hadoopJob.mainJarFileUri jobs''step-id''.hiveJob.queryFileUri jobs''step-id''.pySparkJob.mainPythonFileUri jobs''step-id''.hadoopJob.jarFileUris0 jobs''step-id''.hadoopJob.archiveUris0 jobs''step-id''.hadoopJob.fileUris0 jobs''step-id''.pySparkJob.pythonFileUris0 Items in repeated fields can be referenced by a zero-based index: jobs''step-id''.sparkJob.args0 Other examples: jobs''step-id''.hadoopJob.properties''key'' jobs''step-id''.hadoopJob.args0 jobs''step-id''.hiveJob.scriptVariables''key'' jobs''step-id''.hadoopJob.mainJarFileUri placement.clusterSelector.zoneIt may not be possible to parameterize maps and repeated fields in their entirety since only individual map values and individual items in repeated fields can be referenced. For example, the following field paths are invalid: placement.clusterSelector.clusterLabels jobs''step-id''.sparkJob.args
     #[serde(default)]
-    pub fields: Option<Vec<String>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Parameter name. The parameter name is used as the key, and paired with the parameter value, which are passed to the template when the template is instantiated. The name must contain only capital letters (A-Z), numbers (0-9), and underscores (_), and must not start with a number. The maximum length is 40 characters.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Validation rules to be applied to this parameter''s value.
     #[serde(default)]
-    pub validation: Option<ParameterValidation>,
+    pub validation: ::core::option::Option<::std::boxed::Box<ParameterValidation>>,
 }
 
 /// A request to terminate an interactive session.
@@ -4257,7 +4330,7 @@ pub struct TemplateParameter {
 pub struct TerminateSessionRequest {
     /// Optional. A unique ID used to identify the request. If the service receives two TerminateSessionRequest (https://cloud.google.com/dataproc/docs/reference/rpc/google.cloud.dataproc.v1#google.cloud.dataproc.v1.TerminateSessionRequest)s with the same ID, the second request is ignored.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The value must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -4265,7 +4338,7 @@ pub struct TerminateSessionRequest {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -4273,7 +4346,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A Dataproc job for running Trino (https://trino.io/) queries. IMPORTANT: The Dataproc Trino Optional Component (https://cloud.google.com/dataproc/docs/concepts/components/trino) must be enabled when the cluster is created to submit a Trino job to the cluster.
@@ -4281,25 +4354,25 @@ pub struct TestIamPermissionsResponse {
 pub struct TrinoJob {
     /// Optional. Trino client tags to attach to this query
     #[serde(default, rename = "clientTags")]
-    pub client_tags: Option<Vec<String>>,
+    pub client_tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Whether to continue executing queries if a query fails. The default value is false. Setting to true can be useful when executing independent parallel queries.
     #[serde(default, rename = "continueOnFailure")]
-    pub continue_on_failure: Option<bool>,
+    pub continue_on_failure: ::core::option::Option<bool>,
     /// Optional. The runtime log config for job execution.
     #[serde(default, rename = "loggingConfig")]
-    pub logging_config: Option<LoggingConfig>,
+    pub logging_config: ::core::option::Option<::std::boxed::Box<LoggingConfig>>,
     /// Optional. The format in which query output will be displayed. See the Trino documentation for supported output formats
     #[serde(default, rename = "outputFormat")]
-    pub output_format: Option<String>,
+    pub output_format: ::core::option::Option<String>,
     /// Optional. A mapping of property names to values. Used to set Trino session properties (https://trino.io/docs/current/sql/set-session.html) Equivalent to using the --session flag in the Trino CLI
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// The HCFS URI of the script that contains SQL queries.
     #[serde(default, rename = "queryFileUri")]
-    pub query_file_uri: Option<String>,
+    pub query_file_uri: ::core::option::Option<String>,
     /// A list of queries.
     #[serde(default, rename = "queryList")]
-    pub query_list: Option<QueryList>,
+    pub query_list: ::core::option::Option<::std::boxed::Box<QueryList>>,
 }
 
 /// Usage metrics represent approximate total resources consumed by a workload.
@@ -4307,19 +4380,19 @@ pub struct TrinoJob {
 pub struct UsageMetrics {
     /// Optional. DEPRECATED Accelerator type being used, if any
     #[serde(default, rename = "acceleratorType")]
-    pub accelerator_type: Option<String>,
+    pub accelerator_type: ::core::option::Option<String>,
     /// Optional. DEPRECATED Accelerator usage in (milliAccelerator x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).
     #[serde(default, rename = "milliAcceleratorSeconds")]
-    pub milli_accelerator_seconds: Option<String>,
+    pub milli_accelerator_seconds: ::core::option::Option<String>,
     /// Optional. DCU (Dataproc Compute Units) usage in (milliDCU x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).
     #[serde(default, rename = "milliDcuSeconds")]
-    pub milli_dcu_seconds: Option<String>,
+    pub milli_dcu_seconds: ::core::option::Option<String>,
     /// Optional. Shuffle storage usage in (GB x seconds) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).
     #[serde(default, rename = "shuffleStorageGbSeconds")]
-    pub shuffle_storage_gb_seconds: Option<String>,
+    pub shuffle_storage_gb_seconds: ::core::option::Option<String>,
     /// Optional. The timestamp of the usage metrics.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The usage snapshot represents the resources consumed by a workload at a specified time.
@@ -4327,25 +4400,25 @@ pub struct UsageMetrics {
 pub struct UsageSnapshot {
     /// Optional. Accelerator type being used, if any
     #[serde(default, rename = "acceleratorType")]
-    pub accelerator_type: Option<String>,
+    pub accelerator_type: ::core::option::Option<String>,
     /// Optional. Milli (one-thousandth) accelerator. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))
     #[serde(default, rename = "milliAccelerator")]
-    pub milli_accelerator: Option<String>,
+    pub milli_accelerator: ::core::option::Option<String>,
     /// Optional. Milli (one-thousandth) Dataproc Compute Units (DCUs) (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).
     #[serde(default, rename = "milliDcu")]
-    pub milli_dcu: Option<String>,
+    pub milli_dcu: ::core::option::Option<String>,
     /// Optional. Milli (one-thousandth) Dataproc Compute Units (DCUs) charged at premium tier (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).
     #[serde(default, rename = "milliDcuPremium")]
-    pub milli_dcu_premium: Option<String>,
+    pub milli_dcu_premium: ::core::option::Option<String>,
     /// Optional. Shuffle Storage in gigabytes (GB). (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))
     #[serde(default, rename = "shuffleStorageGb")]
-    pub shuffle_storage_gb: Option<String>,
+    pub shuffle_storage_gb: ::core::option::Option<String>,
     /// Optional. Shuffle Storage in gigabytes (GB) charged at premium tier. (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing))
     #[serde(default, rename = "shuffleStorageGbPremium")]
-    pub shuffle_storage_gb_premium: Option<String>,
+    pub shuffle_storage_gb_premium: ::core::option::Option<String>,
     /// Optional. The timestamp of the usage snapshot.
     #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: Option<String>,
+    pub snapshot_time: ::core::option::Option<String>,
 }
 
 /// Annotatated property value.
@@ -4353,13 +4426,13 @@ pub struct UsageSnapshot {
 pub struct ValueInfo {
     /// Annotation, comment or explanation why the property was set.
     #[serde(default)]
-    pub annotation: Option<String>,
+    pub annotation: ::core::option::Option<String>,
     /// Optional. Value which was replaced by the corresponding component.
     #[serde(default, rename = "overriddenValue")]
-    pub overridden_value: Option<String>,
+    pub overridden_value: ::core::option::Option<String>,
     /// Property value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Validation based on a list of allowed values.
@@ -4367,7 +4440,7 @@ pub struct ValueInfo {
 pub struct ValueValidation {
     /// Required. List of allowed values for the parameter.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Dataproc cluster config for a cluster that does not directly control the underlying compute resources, such as a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/guides/dpgke/dataproc-gke-overview).
@@ -4375,13 +4448,15 @@ pub struct ValueValidation {
 pub struct VirtualClusterConfig {
     /// Optional. Configuration of auxiliary services used by this cluster.
     #[serde(default, rename = "auxiliaryServicesConfig")]
-    pub auxiliary_services_config: Option<AuxiliaryServicesConfig>,
+    pub auxiliary_services_config:
+        ::core::option::Option<::std::boxed::Box<AuxiliaryServicesConfig>>,
     /// Required. The configuration for running the Dataproc cluster on Kubernetes.
     #[serde(default, rename = "kubernetesClusterConfig")]
-    pub kubernetes_cluster_config: Option<KubernetesClusterConfig>,
+    pub kubernetes_cluster_config:
+        ::core::option::Option<::std::boxed::Box<KubernetesClusterConfig>>,
     /// Optional. A Cloud Storage bucket used to stage job dependencies, config files, and job driver console output. If you do not specify a staging bucket, Cloud Dataproc will determine a Cloud Storage location (US, ASIA, or EU) for your cluster''s staging bucket according to the Compute Engine zone where your cluster is deployed, and then create and manage this project-level, per-location bucket (see Dataproc staging and temp buckets (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/staging-bucket)). This field requires a Cloud Storage bucket name, not a gs://... URI to a Cloud Storage bucket.
     #[serde(default, rename = "stagingBucket")]
-    pub staging_bucket: Option<String>,
+    pub staging_bucket: ::core::option::Option<String>,
 }
 
 /// The workflow graph.
@@ -4389,7 +4464,7 @@ pub struct VirtualClusterConfig {
 pub struct WorkflowGraph {
     /// Output only. The workflow nodes.
     #[serde(default)]
-    pub nodes: Option<Vec<WorkflowNode>>,
+    pub nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WorkflowNode>>>,
 }
 
 /// A Dataproc workflow template resource.
@@ -4397,46 +4472,46 @@ pub struct WorkflowGraph {
 pub struct WorkflowMetadata {
     /// Output only. The name of the target cluster.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// Output only. The UUID of target cluster.
     #[serde(default, rename = "clusterUuid")]
-    pub cluster_uuid: Option<String>,
+    pub cluster_uuid: ::core::option::Option<String>,
     /// Output only. The create cluster operation metadata.
     #[serde(default, rename = "createCluster")]
-    pub create_cluster: Option<ClusterOperation>,
+    pub create_cluster: ::core::option::Option<::std::boxed::Box<ClusterOperation>>,
     /// Output only. DAG end time, only set for workflows with dag_timeout when DAG ends.
     #[serde(default, rename = "dagEndTime")]
-    pub dag_end_time: Option<String>,
+    pub dag_end_time: ::core::option::Option<String>,
     /// Output only. DAG start time, only set for workflows with dag_timeout when DAG begins.
     #[serde(default, rename = "dagStartTime")]
-    pub dag_start_time: Option<String>,
+    pub dag_start_time: ::core::option::Option<String>,
     /// Output only. The timeout duration for the DAG of jobs, expressed in seconds (see JSON representation of duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "dagTimeout")]
-    pub dag_timeout: Option<String>,
+    pub dag_timeout: ::core::option::Option<String>,
     /// Output only. The delete cluster operation metadata.
     #[serde(default, rename = "deleteCluster")]
-    pub delete_cluster: Option<ClusterOperation>,
+    pub delete_cluster: ::core::option::Option<::std::boxed::Box<ClusterOperation>>,
     /// Output only. Workflow end time.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The workflow graph.
     #[serde(default)]
-    pub graph: Option<WorkflowGraph>,
+    pub graph: ::core::option::Option<::std::boxed::Box<WorkflowGraph>>,
     /// Map from parameter names to values that were used for those parameters.
     #[serde(default)]
-    pub parameters: Option<serde_json::Value>,
+    pub parameters: ::core::option::Option<serde_json::Value>,
     /// Output only. Workflow start time.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. The workflow state. // TODO: enum values: ["UNKNOWN", "PENDING", "RUNNING", "DONE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The resource name of the workflow template as described in https://cloud.google.com/apis/design/resource_names. For projects.regions.workflowTemplates, the resource name of the template has the following format: projects/{project_id}/regions/{region}/workflowTemplates/{template_id} For projects.locations.workflowTemplates, the resource name of the template has the following format: projects/{project_id}/locations/{location}/workflowTemplates/{template_id}
     #[serde(default)]
-    pub template: Option<String>,
+    pub template: ::core::option::Option<String>,
     /// Output only. The version of template at the time of workflow instantiation.
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// The workflow node.
@@ -4444,19 +4519,19 @@ pub struct WorkflowMetadata {
 pub struct WorkflowNode {
     /// Output only. The error detail.
     #[serde(default)]
-    pub error: Option<String>,
+    pub error: ::core::option::Option<String>,
     /// Output only. The job id; populated after the node enters RUNNING state.
     #[serde(default, rename = "jobId")]
-    pub job_id: Option<String>,
+    pub job_id: ::core::option::Option<String>,
     /// Output only. Node''s prerequisite nodes.
     #[serde(default, rename = "prerequisiteStepIds")]
-    pub prerequisite_step_ids: Option<Vec<String>>,
+    pub prerequisite_step_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The node state. // TODO: enum values: ["NODE_STATE_UNSPECIFIED", "BLOCKED", "RUNNABLE", "RUNNING", "COMPLETED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The name of the node.
     #[serde(default, rename = "stepId")]
-    pub step_id: Option<String>,
+    pub step_id: ::core::option::Option<String>,
 }
 
 /// A Dataproc workflow template resource.
@@ -4464,36 +4539,38 @@ pub struct WorkflowNode {
 pub struct WorkflowTemplate {
     /// Output only. The time template was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Timeout duration for the DAG of jobs, expressed in seconds (see JSON representation of duration (https://developers.google.com/protocol-buffers/docs/proto3#json)). The timeout duration must be from 10 minutes ("600s") to 24 hours ("86400s"). The timer begins when the first job is submitted. If the workflow is running at the end of the timeout period, any remaining jobs are cancelled, the workflow is ended, and if the workflow was running on a managed cluster, the cluster is deleted.
     #[serde(default, rename = "dagTimeout")]
-    pub dag_timeout: Option<String>,
+    pub dag_timeout: ::core::option::Option<String>,
     /// Optional. Encryption settings for encrypting workflow template job arguments.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig>,
+    pub encryption_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig>,
+    >,
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Required. The Directed Acyclic Graph of Jobs to submit.
     #[serde(default)]
-    pub jobs: Option<Vec<OrderedJob>>,
+    pub jobs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OrderedJob>>>,
     /// Optional. The labels to associate with this template. These labels will be propagated to all jobs and clusters created by the workflow instance.Label keys must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt).Label values may be empty, but, if present, must contain 1 to 63 characters, and must conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt).No more than 32 labels can be associated with a template.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The resource name of the workflow template, as described in https://cloud.google.com/apis/design/resource_names. For projects.regions.workflowTemplates, the resource name of the template has the following format: projects/{project_id}/regions/{region}/workflowTemplates/{template_id} For projects.locations.workflowTemplates, the resource name of the template has the following format: projects/{project_id}/locations/{location}/workflowTemplates/{template_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Template parameters whose values are substituted into the template. Values for parameters must be provided when the template is instantiated.
     #[serde(default)]
-    pub parameters: Option<Vec<TemplateParameter>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TemplateParameter>>>,
     /// Required. WorkflowTemplate scheduling information.
     #[serde(default)]
-    pub placement: Option<WorkflowTemplatePlacement>,
+    pub placement: ::core::option::Option<::std::boxed::Box<WorkflowTemplatePlacement>>,
     /// Output only. The time template was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Optional. Used to perform a consistent read-modify-write.This field should be left blank for a CreateWorkflowTemplate request. It is required for an UpdateWorkflowTemplate request, and must match the current server version. A typical update template flow would fetch the current template with a GetWorkflowTemplate request, which will return the current template with the version field filled in with the current server version. The user updates other fields in the template, then returns it as part of the UpdateWorkflowTemplate request.
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Specifies workflow execution target.Either managed_cluster or cluster_selector is required.
@@ -4501,10 +4578,10 @@ pub struct WorkflowTemplate {
 pub struct WorkflowTemplatePlacement {
     /// Optional. A selector that chooses target cluster for jobs based on metadata.The selector is evaluated at the time each job is submitted.
     #[serde(default, rename = "clusterSelector")]
-    pub cluster_selector: Option<ClusterSelector>,
+    pub cluster_selector: ::core::option::Option<::std::boxed::Box<ClusterSelector>>,
     /// A cluster that is managed by the workflow.
     #[serde(default, rename = "managedCluster")]
-    pub managed_cluster: Option<ManagedCluster>,
+    pub managed_cluster: ::core::option::Option<::std::boxed::Box<ManagedCluster>>,
 }
 
 /// Write Spark Application data to internal storage systems
@@ -4512,10 +4589,11 @@ pub struct WorkflowTemplatePlacement {
 pub struct WriteSessionSparkApplicationContextRequest {
     /// Required. Parent (Batch) resource reference.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Required. The batch of spark application context objects sent for ingestion.
     #[serde(default, rename = "sparkWrapperObjects")]
-    pub spark_wrapper_objects: Option<Vec<SparkWrapperObject>>,
+    pub spark_wrapper_objects:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SparkWrapperObject>>>,
 }
 
 /// Write Spark Application data to internal storage systems
@@ -4523,9 +4601,10 @@ pub struct WriteSessionSparkApplicationContextRequest {
 pub struct WriteSparkApplicationContextRequest {
     /// Required. Parent (Batch) resource reference.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     #[serde(default, rename = "sparkWrapperObjects")]
-    pub spark_wrapper_objects: Option<Vec<SparkWrapperObject>>,
+    pub spark_wrapper_objects:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SparkWrapperObject>>>,
 }
 
 /// A YARN application created by a job. Application information is a subset of org.apache.hadoop.yarn.proto.YarnProtos.ApplicationReportProto.Beta Feature: This report is available for testing purposes only. It may be changed before final release.
@@ -4533,20 +4612,20 @@ pub struct WriteSparkApplicationContextRequest {
 pub struct YarnApplication {
     /// Optional. The cumulative memory usage of the application for a job, measured in mb-seconds.
     #[serde(default, rename = "memoryMbSeconds")]
-    pub memory_mb_seconds: Option<String>,
+    pub memory_mb_seconds: ::core::option::Option<String>,
     /// Required. The application name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The numerical progress of the application, from 1 to 100.
     #[serde(default)]
-    pub progress: Option<f32>,
+    pub progress: ::core::option::Option<f32>,
     /// Required. The application state. // TODO: enum values: ["STATE_UNSPECIFIED", "NEW", "NEW_SAVING", "SUBMITTED", "ACCEPTED", "RUNNING", "FINISHED", "FAILED", "KILLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. The HTTP URL of the ApplicationMaster, HistoryServer, or TimelineServer that provides application-specific information. The URL uses the internal hostname, and requires a proxy server for resolution and, possibly, access.
     #[serde(default, rename = "trackingUrl")]
-    pub tracking_url: Option<String>,
+    pub tracking_url: ::core::option::Option<String>,
     /// Optional. The cumulative CPU time consumed by the application for a job, measured in vcore-seconds.
     #[serde(default, rename = "vcoreSeconds")]
-    pub vcore_seconds: Option<String>,
+    pub vcore_seconds: ::core::option::Option<String>,
 }

@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// ActivationOptions for the class
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActivationOptions {
     /// HTTPS URL that supports REST semantics. Would be used for requesting activation from partners for given valuable, triggered by the users.
     #[serde(default, rename = "activationUrl")]
-    pub activation_url: Option<String>,
+    pub activation_url: ::core::option::Option<String>,
     /// Flag to allow users to make activation call from different device. This allows client to render the activation button enabled even if the activationStatus is ACTIVATED but the requested device is different than the current device.
     #[serde(default, rename = "allowReactivation")]
-    pub allow_reactivation: Option<bool>,
+    pub allow_reactivation: ::core::option::Option<bool>,
 }
 
 /// The activation status of the object. This field includes activation status if valuable supports activation.
@@ -29,14 +29,14 @@ pub struct ActivationOptions {
 pub struct ActivationStatus {
     /// TODO: enum values: ["UNKNOWN_STATE", "NOT_ACTIVATED", "not_activated", "ACTIVATED", "activated"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Resource used when the AddMessage endpoints are called.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddMessageRequest {
     #[serde(default)]
-    pub message: Option<Message>,
+    pub message: ::core::option::Option<::std::boxed::Box<Message>>,
 }
 
 /// AirportInfo resource type.
@@ -44,19 +44,19 @@ pub struct AddMessageRequest {
 pub struct AirportInfo {
     /// Three character IATA airport code. This is a required field for origin and destination. Eg: "SFO"
     #[serde(default, rename = "airportIataCode")]
-    pub airport_iata_code: Option<String>,
+    pub airport_iata_code: ::core::option::Option<String>,
     /// Optional field that overrides the airport city name defined by IATA. By default, Google takes the airportIataCode provided and maps it to the official airport city name defined by IATA. Official IATA airport city names can be found at IATA airport city names website. For example, for the airport IATA code "LTN", IATA website tells us that the corresponding airport city is "London". If this field is not populated, Google would display "London". However, populating this field with a custom name (eg: "London Luton") would override it.
     #[serde(default, rename = "airportNameOverride")]
-    pub airport_name_override: Option<LocalizedString>,
+    pub airport_name_override: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A name of the gate. Eg: "B59" or "59"
     #[serde(default)]
-    pub gate: Option<String>,
+    pub gate: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#airportInfo".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Terminal name. Eg: "INTL" or "I"
     #[serde(default)]
-    pub terminal: Option<String>,
+    pub terminal: ::core::option::Option<String>,
 }
 
 /// AppLinkData resource type.
@@ -64,16 +64,16 @@ pub struct AirportInfo {
 pub struct AppLinkData {
     /// Optional information about the partner app link.
     #[serde(default, rename = "androidAppLinkInfo")]
-    pub android_app_link_info: Option<AppLinkDataAppLinkInfo>,
+    pub android_app_link_info: ::core::option::Option<::std::boxed::Box<AppLinkDataAppLinkInfo>>,
     /// Optional display text for the app link button. Character limit is 30.
     #[serde(default, rename = "displayText")]
-    pub display_text: Option<LocalizedString>,
+    pub display_text: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Deprecated. Links to open iOS apps are not supported.
     #[serde(default, rename = "iosAppLinkInfo")]
-    pub ios_app_link_info: Option<AppLinkDataAppLinkInfo>,
+    pub ios_app_link_info: ::core::option::Option<::std::boxed::Box<AppLinkDataAppLinkInfo>>,
     /// Optional information about the partner web link.
     #[serde(default, rename = "webAppLinkInfo")]
-    pub web_app_link_info: Option<AppLinkDataAppLinkInfo>,
+    pub web_app_link_info: ::core::option::Option<::std::boxed::Box<AppLinkDataAppLinkInfo>>,
 }
 
 /// AppLinkDataAppLinkInfo resource type.
@@ -81,16 +81,16 @@ pub struct AppLinkData {
 pub struct AppLinkDataAppLinkInfo {
     /// Deprecated. Image isn''t supported in the app link module.
     #[serde(default, rename = "appLogoImage")]
-    pub app_logo_image: Option<Image>,
+    pub app_logo_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Target to follow when opening the app link on clients. It will be used by partners to open their app or webpage.
     #[serde(default, rename = "appTarget")]
-    pub app_target: Option<AppLinkDataAppLinkInfoAppTarget>,
+    pub app_target: ::core::option::Option<::std::boxed::Box<AppLinkDataAppLinkInfoAppTarget>>,
     /// Deprecated. Description isn''t supported in the app link module.
     #[serde(default)]
-    pub description: Option<LocalizedString>,
+    pub description: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Deprecated. Title isn''t supported in the app link module.
     #[serde(default)]
-    pub title: Option<LocalizedString>,
+    pub title: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// AppLinkDataAppLinkInfoAppTarget resource type.
@@ -98,10 +98,10 @@ pub struct AppLinkDataAppLinkInfo {
 pub struct AppLinkDataAppLinkInfoAppTarget {
     /// Package name for AppTarget. For example: com.google.android.gm
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// URI for AppTarget. The description on the URI must be set. Prefer setting package field instead, if this target is defined for your application.
     #[serde(default, rename = "targetUri")]
-    pub target_uri: Option<Uri>,
+    pub target_uri: ::core::option::Option<::std::boxed::Box<Uri>>,
 }
 
 /// AuthenticationKey resource type.
@@ -109,10 +109,10 @@ pub struct AppLinkDataAppLinkInfoAppTarget {
 pub struct AuthenticationKey {
     /// Available only to Smart Tap enabled partners. Contact support for additional guidance.
     #[serde(default)]
-    pub id: Option<i32>,
+    pub id: ::core::option::Option<i32>,
     /// Available only to Smart Tap enabled partners. Contact support for additional guidance.
     #[serde(default, rename = "publicKeyPem")]
-    pub public_key_pem: Option<String>,
+    pub public_key_pem: ::core::option::Option<String>,
 }
 
 /// Barcode resource type.
@@ -120,22 +120,22 @@ pub struct AuthenticationKey {
 pub struct Barcode {
     /// An optional text that will override the default text that shows under the barcode. This field is intended for a human readable equivalent of the barcode value, used when the barcode cannot be scanned.
     #[serde(default, rename = "alternateText")]
-    pub alternate_text: Option<String>,
+    pub alternate_text: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#barcode".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The render encoding for the barcode. When specified, barcode is rendered in the given encoding. Otherwise best known encoding is chosen by Google. // TODO: enum values: ["RENDER_ENCODING_UNSPECIFIED", "UTF_8"]
     #[serde(default, rename = "renderEncoding")]
-    pub render_encoding: Option<String>,
+    pub render_encoding: ::core::option::Option<String>,
     /// Optional text that will be shown when the barcode is hidden behind a click action. This happens in cases where a pass has Smart Tap enabled. If not specified, a default is chosen by Google.
     #[serde(default, rename = "showCodeText")]
-    pub show_code_text: Option<LocalizedString>,
+    pub show_code_text: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The type of barcode. // TODO: enum values: ["BARCODE_TYPE_UNSPECIFIED", "AZTEC", "aztec", "CODE_39", "code39", "CODE_128", "code128", "CODABAR", "codabar", "DATA_MATRIX", "dataMatrix", "EAN_8", "ean8", "EAN_13", "ean13", "EAN13", "ITF_14", "itf14", "PDF_417", "pdf417", "PDF417", "QR_CODE", "qrCode", "qrcode", "UPC_A", "upcA", "TEXT_ONLY", "textOnly"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The value encoded in the barcode.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// BarcodeSectionDetail resource type.
@@ -143,7 +143,7 @@ pub struct Barcode {
 pub struct BarcodeSectionDetail {
     /// A reference to an existing text-based or image field to display.
     #[serde(default, rename = "fieldSelector")]
-    pub field_selector: Option<FieldSelector>,
+    pub field_selector: ::core::option::Option<::std::boxed::Box<FieldSelector>>,
 }
 
 /// Information to read/write to blobstore2.
@@ -151,25 +151,25 @@ pub struct BarcodeSectionDetail {
 pub struct Blobstore2Info {
     /// The blob generation id.
     #[serde(default, rename = "blobGeneration")]
-    pub blob_generation: Option<String>,
+    pub blob_generation: ::core::option::Option<String>,
     /// The blob id, e.g., /blobstore/prod/playground/scotty
     #[serde(default, rename = "blobId")]
-    pub blob_id: Option<String>,
+    pub blob_id: ::core::option::Option<String>,
     /// A serialized External Read Token passed from Bigstore -&gt; Scotty for a GCS download. This field must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
     #[serde(default, rename = "downloadExternalReadToken")]
-    pub download_external_read_token: Option<String>,
+    pub download_external_read_token: ::core::option::Option<String>,
     /// Read handle passed from Bigstore -&gt; Scotty for a GCS download. This is a signed, serialized blobstore2.ReadHandle proto which must never be set outside of Bigstore, and is not applicable to non-GCS media downloads.
     #[serde(default, rename = "downloadReadHandle")]
-    pub download_read_handle: Option<String>,
+    pub download_read_handle: ::core::option::Option<String>,
     /// The blob read token. Needed to read blobs that have not been replicated. Might not be available until the final call.
     #[serde(default, rename = "readToken")]
-    pub read_token: Option<String>,
+    pub read_token: ::core::option::Option<String>,
     /// A serialized Object Fragment List Creation Info passed from Bigstore -&gt; Scotty for a GCS upload. This field must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
     #[serde(default, rename = "uploadFragmentListCreationInfo")]
-    pub upload_fragment_list_creation_info: Option<String>,
+    pub upload_fragment_list_creation_info: ::core::option::Option<String>,
     /// Metadata passed from Blobstore -&gt; Scotty for a new GCS upload. This is a signed, serialized blobstore2.BlobMetadataContainer proto which must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
     #[serde(default, rename = "uploadMetadataContainer")]
-    pub upload_metadata_container: Option<String>,
+    pub upload_metadata_container: ::core::option::Option<String>,
 }
 
 /// BoardingAndSeatingInfo resource type.
@@ -177,31 +177,31 @@ pub struct Blobstore2Info {
 pub struct BoardingAndSeatingInfo {
     /// Set this field only if this flight boards through more than one door or bridge and you want to explicitly print the door location on the boarding pass. Most airlines route their passengers to the right door or bridge by refering to doors/bridges by the seatClass. In those cases boardingDoor should not be set. // TODO: enum values: ["BOARDING_DOOR_UNSPECIFIED", "FRONT", "front", "BACK", "back"]
     #[serde(default, rename = "boardingDoor")]
-    pub boarding_door: Option<String>,
+    pub boarding_door: ::core::option::Option<String>,
     /// The value of boarding group (or zone) this passenger shall board with. eg: "B" The label for this value will be determined by the boardingPolicy field in the flightClass referenced by this object.
     #[serde(default, rename = "boardingGroup")]
-    pub boarding_group: Option<String>,
+    pub boarding_group: ::core::option::Option<String>,
     /// The value of boarding position. eg: "76"
     #[serde(default, rename = "boardingPosition")]
-    pub boarding_position: Option<String>,
+    pub boarding_position: ::core::option::Option<String>,
     /// A small image shown above the boarding barcode. Airlines can use it to communicate any special boarding privileges. In the event the security program logo is also set, this image might be rendered alongside the logo for that security program.
     #[serde(default, rename = "boardingPrivilegeImage")]
-    pub boarding_privilege_image: Option<Image>,
+    pub boarding_privilege_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#boardingAndSeatingInfo".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The passenger''s seat assignment. To be used when there is no specific identifier to use in seatNumber. eg: "assigned at gate"
     #[serde(default, rename = "seatAssignment")]
-    pub seat_assignment: Option<LocalizedString>,
+    pub seat_assignment: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The value of the seat class. eg: "Economy" or "Economy Plus"
     #[serde(default, rename = "seatClass")]
-    pub seat_class: Option<String>,
+    pub seat_class: ::core::option::Option<String>,
     /// The value of passenger seat. If there is no specific identifier, use seatAssignment instead. eg: "25A"
     #[serde(default, rename = "seatNumber")]
-    pub seat_number: Option<String>,
+    pub seat_number: ::core::option::Option<String>,
     /// The sequence number on the boarding pass. This usually matches the sequence in which the passengers checked in. Airline might use the number for manual boarding and bag tags. eg: "49"
     #[serde(default, rename = "sequenceNumber")]
-    pub sequence_number: Option<String>,
+    pub sequence_number: ::core::option::Option<String>,
 }
 
 /// BoardingAndSeatingPolicy resource type.
@@ -209,13 +209,13 @@ pub struct BoardingAndSeatingInfo {
 pub struct BoardingAndSeatingPolicy {
     /// Indicates the policy the airline uses for boarding. If unset, Google will default to zoneBased. // TODO: enum values: ["BOARDING_POLICY_UNSPECIFIED", "ZONE_BASED", "zoneBased", "GROUP_BASED", "groupBased", "BOARDING_POLICY_OTHER", "boardingPolicyOther"]
     #[serde(default, rename = "boardingPolicy")]
-    pub boarding_policy: Option<String>,
+    pub boarding_policy: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#boardingAndSeatingPolicy".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Seating policy which dictates how we display the seat class. If unset, Google will default to cabinBased. // TODO: enum values: ["SEAT_CLASS_POLICY_UNSPECIFIED", "CABIN_BASED", "cabinBased", "CLASS_BASED", "classBased", "TIER_BASED", "tierBased", "SEAT_CLASS_POLICY_OTHER", "seatClassPolicyOther"]
     #[serde(default, rename = "seatClassPolicy")]
-    pub seat_class_policy: Option<String>,
+    pub seat_class_policy: ::core::option::Option<String>,
 }
 
 /// CallbackOptions resource type.
@@ -223,10 +223,10 @@ pub struct BoardingAndSeatingPolicy {
 pub struct CallbackOptions {
     /// URL for the merchant endpoint that would be called to request updates. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot. Deprecated.
     #[serde(default, rename = "updateRequestUrl")]
-    pub update_request_url: Option<String>,
+    pub update_request_url: ::core::option::Option<String>,
     /// The HTTPS url configured by the merchant. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// CardBarcodeSectionDetails resource type.
@@ -234,13 +234,13 @@ pub struct CallbackOptions {
 pub struct CardBarcodeSectionDetails {
     /// Optional information to display below the barcode.
     #[serde(default, rename = "firstBottomDetail")]
-    pub first_bottom_detail: Option<BarcodeSectionDetail>,
+    pub first_bottom_detail: ::core::option::Option<::std::boxed::Box<BarcodeSectionDetail>>,
     /// Optional information to display above the barcode. If secondTopDetail is defined, this will be displayed to the start side of this detail section.
     #[serde(default, rename = "firstTopDetail")]
-    pub first_top_detail: Option<BarcodeSectionDetail>,
+    pub first_top_detail: ::core::option::Option<::std::boxed::Box<BarcodeSectionDetail>>,
     /// Optional second piece of information to display above the barcode. If firstTopDetail is defined, this will be displayed to the end side of this detail section.
     #[serde(default, rename = "secondTopDetail")]
-    pub second_top_detail: Option<BarcodeSectionDetail>,
+    pub second_top_detail: ::core::option::Option<::std::boxed::Box<BarcodeSectionDetail>>,
 }
 
 /// CardRowOneItem resource type.
@@ -248,7 +248,7 @@ pub struct CardBarcodeSectionDetails {
 pub struct CardRowOneItem {
     /// The item to be displayed in the row. This item will be automatically centered.
     #[serde(default)]
-    pub item: Option<TemplateItem>,
+    pub item: ::core::option::Option<::std::boxed::Box<TemplateItem>>,
 }
 
 /// CardRowTemplateInfo resource type.
@@ -256,13 +256,13 @@ pub struct CardRowOneItem {
 pub struct CardRowTemplateInfo {
     /// Template for a row containing one item. Exactly one of "one_item", "two_items", "three_items" must be set.
     #[serde(default, rename = "oneItem")]
-    pub one_item: Option<CardRowOneItem>,
+    pub one_item: ::core::option::Option<::std::boxed::Box<CardRowOneItem>>,
     /// Template for a row containing three items. Exactly one of "one_item", "two_items", "three_items" must be set.
     #[serde(default, rename = "threeItems")]
-    pub three_items: Option<CardRowThreeItems>,
+    pub three_items: ::core::option::Option<::std::boxed::Box<CardRowThreeItems>>,
     /// Template for a row containing two items. Exactly one of "one_item", "two_items", "three_items" must be set.
     #[serde(default, rename = "twoItems")]
-    pub two_items: Option<CardRowTwoItems>,
+    pub two_items: ::core::option::Option<::std::boxed::Box<CardRowTwoItems>>,
 }
 
 /// CardRowThreeItems resource type.
@@ -270,13 +270,13 @@ pub struct CardRowTemplateInfo {
 pub struct CardRowThreeItems {
     /// The item to be displayed at the end of the row. This item will be aligned to the right.
     #[serde(default, rename = "endItem")]
-    pub end_item: Option<TemplateItem>,
+    pub end_item: ::core::option::Option<::std::boxed::Box<TemplateItem>>,
     /// The item to be displayed in the middle of the row. This item will be centered between the start and end items.
     #[serde(default, rename = "middleItem")]
-    pub middle_item: Option<TemplateItem>,
+    pub middle_item: ::core::option::Option<::std::boxed::Box<TemplateItem>>,
     /// The item to be displayed at the start of the row. This item will be aligned to the left.
     #[serde(default, rename = "startItem")]
-    pub start_item: Option<TemplateItem>,
+    pub start_item: ::core::option::Option<::std::boxed::Box<TemplateItem>>,
 }
 
 /// CardRowTwoItems resource type.
@@ -284,10 +284,10 @@ pub struct CardRowThreeItems {
 pub struct CardRowTwoItems {
     /// The item to be displayed at the end of the row. This item will be aligned to the right.
     #[serde(default, rename = "endItem")]
-    pub end_item: Option<TemplateItem>,
+    pub end_item: ::core::option::Option<::std::boxed::Box<TemplateItem>>,
     /// The item to be displayed at the start of the row. This item will be aligned to the left.
     #[serde(default, rename = "startItem")]
-    pub start_item: Option<TemplateItem>,
+    pub start_item: ::core::option::Option<::std::boxed::Box<TemplateItem>>,
 }
 
 /// CardTemplateOverride resource type.
@@ -295,7 +295,8 @@ pub struct CardRowTwoItems {
 pub struct CardTemplateOverride {
     /// Template information for rows in the card view. At most three rows are allowed to be specified.
     #[serde(default, rename = "cardRowTemplateInfos")]
-    pub card_row_template_infos: Option<Vec<CardRowTemplateInfo>>,
+    pub card_row_template_infos:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CardRowTemplateInfo>>>,
 }
 
 /// ClassTemplateInfo resource type.
@@ -303,16 +304,18 @@ pub struct CardTemplateOverride {
 pub struct ClassTemplateInfo {
     /// Specifies extra information to be displayed above and below the barcode.
     #[serde(default, rename = "cardBarcodeSectionDetails")]
-    pub card_barcode_section_details: Option<CardBarcodeSectionDetails>,
+    pub card_barcode_section_details:
+        ::core::option::Option<::std::boxed::Box<CardBarcodeSectionDetails>>,
     /// Override for the card view.
     #[serde(default, rename = "cardTemplateOverride")]
-    pub card_template_override: Option<CardTemplateOverride>,
+    pub card_template_override: ::core::option::Option<::std::boxed::Box<CardTemplateOverride>>,
     /// Override for the details view (beneath the card view).
     #[serde(default, rename = "detailsTemplateOverride")]
-    pub details_template_override: Option<DetailsTemplateOverride>,
+    pub details_template_override:
+        ::core::option::Option<::std::boxed::Box<DetailsTemplateOverride>>,
     /// Override for the passes list view.
     #[serde(default, rename = "listTemplateOverride")]
-    pub list_template_override: Option<ListTemplateOverride>,
+    pub list_template_override: ::core::option::Option<::std::boxed::Box<ListTemplateOverride>>,
 }
 
 /// A sequence of media data references representing composite data. Introduced to support Bigstore composite objects. For details, visit http://go/bigstore-composites.
@@ -320,37 +323,37 @@ pub struct ClassTemplateInfo {
 pub struct CompositeMedia {
     /// Blobstore v1 reference, set if reference_type is BLOBSTORE_REF This should be the byte representation of a blobstore.BlobRef. Since Blobstore is deprecating v1, use blobstore2_info instead. For now, any v2 blob will also be represented in this field as v1 BlobRef.
     #[serde(default, rename = "blobRef")]
-    pub blob_ref: Option<String>,
+    pub blob_ref: ::core::option::Option<String>,
     /// Blobstore v2 info, set if reference_type is BLOBSTORE_REF and it refers to a v2 blob.
     #[serde(default, rename = "blobstore2Info")]
-    pub blobstore2_info: Option<Blobstore2Info>,
+    pub blobstore2_info: ::core::option::Option<::std::boxed::Box<Blobstore2Info>>,
     /// A binary data reference for a media download. Serves as a technology-agnostic binary reference in some Google infrastructure. This value is a serialized storage_cosmo.BinaryReference proto. Storing it as bytes is a hack to get around the fact that the cosmo proto (as well as others it includes) doesn''t support JavaScript. This prevents us from including the actual type of this field.
     #[serde(default, rename = "cosmoBinaryReference")]
-    pub cosmo_binary_reference: Option<String>,
+    pub cosmo_binary_reference: ::core::option::Option<String>,
     /// crc32.c hash for the payload.
     #[serde(default, rename = "crc32cHash")]
-    pub crc32c_hash: Option<i64>,
+    pub crc32c_hash: ::core::option::Option<i64>,
     /// Media data, set if reference_type is INLINE
     #[serde(default)]
-    pub inline: Option<String>,
+    pub inline: ::core::option::Option<String>,
     /// Size of the data, in bytes
     #[serde(default)]
-    pub length: Option<String>,
+    pub length: ::core::option::Option<String>,
     /// MD5 hash for the payload.
     #[serde(default, rename = "md5Hash")]
-    pub md5_hash: Option<String>,
+    pub md5_hash: ::core::option::Option<String>,
     /// Reference to a TI Blob, set if reference_type is BIGSTORE_REF.
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<ObjectId>,
+    pub object_id: ::core::option::Option<::std::boxed::Box<ObjectId>>,
     /// Path to the data, set if reference_type is PATH
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Describes what the field reference contains. // TODO: enum values: ["PATH", "BLOB_REF", "INLINE", "BIGSTORE_REF", "COSMO_BINARY_REFERENCE"]
     #[serde(default, rename = "referenceType")]
-    pub reference_type: Option<String>,
+    pub reference_type: ::core::option::Option<String>,
     /// SHA-1 hash for the payload.
     #[serde(default, rename = "sha1Hash")]
-    pub sha1_hash: Option<String>,
+    pub sha1_hash: ::core::option::Option<String>,
 }
 
 /// Detailed Content-Type information from Scotty. The Content-Type of the media will typically be filled in by the header or Scotty''s best_guess, but this extended information provides the backend with more information so that it can make a better decision if needed. This is only used on media upload requests from Scotty.
@@ -358,19 +361,19 @@ pub struct CompositeMedia {
 pub struct ContentTypeInfo {
     /// Scotty''s best guess of what the content type of the file is.
     #[serde(default, rename = "bestGuess")]
-    pub best_guess: Option<String>,
+    pub best_guess: ::core::option::Option<String>,
     /// The content type of the file derived by looking at specific bytes (i.e. "magic bytes") of the actual file.
     #[serde(default, rename = "fromBytes")]
-    pub from_bytes: Option<String>,
+    pub from_bytes: ::core::option::Option<String>,
     /// The content type of the file derived from the file extension of the original file name used by the client.
     #[serde(default, rename = "fromFileName")]
-    pub from_file_name: Option<String>,
+    pub from_file_name: ::core::option::Option<String>,
     /// The content type of the file as specified in the request headers, multipart headers, or RUPIO start request.
     #[serde(default, rename = "fromHeader")]
-    pub from_header: Option<String>,
+    pub from_header: ::core::option::Option<String>,
     /// The content type of the file derived from the file extension of the URL path. The URL path is assumed to represent a file name (which is typically only true for agents that are providing a REST API).
     #[serde(default, rename = "fromUrlPath")]
-    pub from_url_path: Option<String>,
+    pub from_url_path: ::core::option::Option<String>,
 }
 
 /// DateTime resource type.
@@ -378,7 +381,7 @@ pub struct ContentTypeInfo {
 pub struct DateTime {
     /// An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field''s documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user''s time zone. For example, a time of 2018-06-19T18:30:00-04:00 will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user''s current time zone. For example, a time of 2018-06-19T18:30:00 will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.
     #[serde(default)]
-    pub date: Option<String>,
+    pub date: ::core::option::Option<String>,
 }
 
 /// DetailsItemInfo resource type.
@@ -386,7 +389,7 @@ pub struct DateTime {
 pub struct DetailsItemInfo {
     /// The item to be displayed in the details list.
     #[serde(default)]
-    pub item: Option<TemplateItem>,
+    pub item: ::core::option::Option<::std::boxed::Box<TemplateItem>>,
 }
 
 /// DetailsTemplateOverride resource type.
@@ -394,7 +397,8 @@ pub struct DetailsItemInfo {
 pub struct DetailsTemplateOverride {
     /// Information for the "nth" item displayed in the details list.
     #[serde(default, rename = "detailsItemInfos")]
-    pub details_item_infos: Option<Vec<DetailsItemInfo>>,
+    pub details_item_infos:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DetailsItemInfo>>>,
 }
 
 /// Device context associated with the object.
@@ -402,7 +406,7 @@ pub struct DetailsTemplateOverride {
 pub struct DeviceContext {
     /// If set, redemption information will only be returned to the given device upon activation of the object. This should not be used as a stable identifier to trace a user''s device. It can change across different passes for the same device or even across different activations for the same device. When setting this, callers must also set has_linked_device on the object being activated.
     #[serde(default, rename = "deviceToken")]
-    pub device_token: Option<String>,
+    pub device_token: ::core::option::Option<String>,
 }
 
 /// Backend response for a Diff get checksums response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
@@ -410,19 +414,19 @@ pub struct DeviceContext {
 pub struct DiffChecksumsResponse {
     /// Exactly one of these fields must be populated. If checksums_location is filled, the server will return the corresponding contents to the user. If object_location is filled, the server will calculate the checksums based on the content there and return that to the user. For details on the format of the checksums, see http://go/scotty-diff-protocol.
     #[serde(default, rename = "checksumsLocation")]
-    pub checksums_location: Option<CompositeMedia>,
+    pub checksums_location: ::core::option::Option<::std::boxed::Box<CompositeMedia>>,
     /// The chunk size of checksums. Must be a multiple of 256KB.
     #[serde(default, rename = "chunkSizeBytes")]
-    pub chunk_size_bytes: Option<String>,
+    pub chunk_size_bytes: ::core::option::Option<String>,
     /// If set, calculate the checksums based on the contents and return them to the caller.
     #[serde(default, rename = "objectLocation")]
-    pub object_location: Option<CompositeMedia>,
+    pub object_location: ::core::option::Option<::std::boxed::Box<CompositeMedia>>,
     /// The total size of the server object.
     #[serde(default, rename = "objectSizeBytes")]
-    pub object_size_bytes: Option<String>,
+    pub object_size_bytes: ::core::option::Option<String>,
     /// The object version of the object the checksums are being returned for.
     #[serde(default, rename = "objectVersion")]
-    pub object_version: Option<String>,
+    pub object_version: ::core::option::Option<String>,
 }
 
 /// Backend response for a Diff download response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
@@ -430,7 +434,7 @@ pub struct DiffChecksumsResponse {
 pub struct DiffDownloadResponse {
     /// The original object location.
     #[serde(default, rename = "objectLocation")]
-    pub object_location: Option<CompositeMedia>,
+    pub object_location: ::core::option::Option<::std::boxed::Box<CompositeMedia>>,
 }
 
 /// A Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
@@ -438,13 +442,13 @@ pub struct DiffDownloadResponse {
 pub struct DiffUploadRequest {
     /// The location of the checksums for the new object. Agents must clone the object located here, as the upload server will delete the contents once a response is received. For details on the format of the checksums, see http://go/scotty-diff-protocol.
     #[serde(default, rename = "checksumsInfo")]
-    pub checksums_info: Option<CompositeMedia>,
+    pub checksums_info: ::core::option::Option<::std::boxed::Box<CompositeMedia>>,
     /// The location of the new object. Agents must clone the object located here, as the upload server will delete the contents once a response is received.
     #[serde(default, rename = "objectInfo")]
-    pub object_info: Option<CompositeMedia>,
+    pub object_info: ::core::option::Option<::std::boxed::Box<CompositeMedia>>,
     /// The object version of the object that is the base version the incoming diff script will be applied to. This field will always be filled in.
     #[serde(default, rename = "objectVersion")]
-    pub object_version: Option<String>,
+    pub object_version: ::core::option::Option<String>,
 }
 
 /// Backend response for a Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
@@ -452,10 +456,10 @@ pub struct DiffUploadRequest {
 pub struct DiffUploadResponse {
     /// The object version of the object at the server. Must be included in the end notification response. The version in the end notification response must correspond to the new version of the object that is now stored at the server, after the upload.
     #[serde(default, rename = "objectVersion")]
-    pub object_version: Option<String>,
+    pub object_version: ::core::option::Option<String>,
     /// The location of the original file for a diff upload request. Must be filled in if responding to an upload start notification.
     #[serde(default, rename = "originalObject")]
-    pub original_object: Option<CompositeMedia>,
+    pub original_object: ::core::option::Option<::std::boxed::Box<CompositeMedia>>,
 }
 
 /// Backend response for a Diff get version response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
@@ -463,10 +467,10 @@ pub struct DiffUploadResponse {
 pub struct DiffVersionResponse {
     /// The total size of the server object.
     #[serde(default, rename = "objectSizeBytes")]
-    pub object_size_bytes: Option<String>,
+    pub object_size_bytes: ::core::option::Option<String>,
     /// The version of the object stored at the server.
     #[serde(default, rename = "objectVersion")]
-    pub object_version: Option<String>,
+    pub object_version: ::core::option::Option<String>,
 }
 
 /// Information about how a class may be discovered and instantiated from within the Google Wallet app. This is done by searching for a loyalty or gift card program and scanning or manually entering.
@@ -474,13 +478,15 @@ pub struct DiffVersionResponse {
 pub struct DiscoverableProgram {
     /// Information about the ability to signin and add a valuable for this program through a merchant site. Used when MERCHANT_HOSTED_SIGNIN is enabled.
     #[serde(default, rename = "merchantSigninInfo")]
-    pub merchant_signin_info: Option<DiscoverableProgramMerchantSigninInfo>,
+    pub merchant_signin_info:
+        ::core::option::Option<::std::boxed::Box<DiscoverableProgramMerchantSigninInfo>>,
     /// Information about the ability to signup and add a valuable for this program through a merchant site. Used when MERCHANT_HOSTED_SIGNUP is enabled.
     #[serde(default, rename = "merchantSignupInfo")]
-    pub merchant_signup_info: Option<DiscoverableProgramMerchantSignupInfo>,
+    pub merchant_signup_info:
+        ::core::option::Option<::std::boxed::Box<DiscoverableProgramMerchantSignupInfo>>,
     /// Visibility state of the discoverable program. // TODO: enum values: ["STATE_UNSPECIFIED", "TRUSTED_TESTERS", "trustedTesters", "LIVE", "live", "DISABLED", "disabled"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Information about the merchant hosted signin flow for a program.
@@ -488,7 +494,7 @@ pub struct DiscoverableProgram {
 pub struct DiscoverableProgramMerchantSigninInfo {
     /// The URL to direct the user to for the merchant''s signin site.
     #[serde(default, rename = "signinWebsite")]
-    pub signin_website: Option<Uri>,
+    pub signin_website: ::core::option::Option<::std::boxed::Box<Uri>>,
 }
 
 /// Information about the merchant hosted signup flow for a program.
@@ -496,10 +502,10 @@ pub struct DiscoverableProgramMerchantSigninInfo {
 pub struct DiscoverableProgramMerchantSignupInfo {
     /// User data that is sent in a POST request to the signup website URL. This information is encoded and then shared so that the merchant''s website can prefill fields used to enroll the user for the discoverable program.
     #[serde(default, rename = "signupSharedDatas")]
-    pub signup_shared_datas: Option<Vec<String>>,
+    pub signup_shared_datas: ::core::option::Option<::std::vec::Vec<String>>,
     /// The URL to direct the user to for the merchant''s signup site.
     #[serde(default, rename = "signupWebsite")]
-    pub signup_website: Option<Uri>,
+    pub signup_website: ::core::option::Option<::std::boxed::Box<Uri>>,
 }
 
 /// Parameters specific to media downloads.
@@ -507,10 +513,10 @@ pub struct DiscoverableProgramMerchantSignupInfo {
 pub struct DownloadParameters {
     /// A boolean to be returned in the response to Scotty. Allows/disallows gzip encoding of the payload content when the server thinks it''s advantageous (hence, does not guarantee compression) which allows Scotty to GZip the response to the client.
     #[serde(default, rename = "allowGzipCompression")]
-    pub allow_gzip_compression: Option<bool>,
+    pub allow_gzip_compression: ::core::option::Option<bool>,
     /// Determining whether or not Apiary should skip the inclusion of any Content-Range header on its response to Scotty.
     #[serde(default, rename = "ignoreRange")]
-    pub ignore_range: Option<bool>,
+    pub ignore_range: ::core::option::Option<bool>,
 }
 
 /// EventDateTime resource type.
@@ -518,22 +524,22 @@ pub struct DownloadParameters {
 pub struct EventDateTime {
     /// A custom label to use for the doors open value (doorsOpen) on the card detail view. This should only be used if the default "Doors Open" label or one of the doorsOpenLabel options is not sufficient. Both doorsOpenLabel and customDoorsOpenLabel may not be set. If neither is set, the label will default to "Doors Open", localized. If the doors open field is unset, this label will not be used.
     #[serde(default, rename = "customDoorsOpenLabel")]
-    pub custom_doors_open_label: Option<LocalizedString>,
+    pub custom_doors_open_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The date/time when the doors open at the venue. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the venue. For example, if the event occurs at the 20th hour of June 5th, 2018 at the venue, the local date/time portion should be 2018-06-05T20:00:00. If the local date/time at the venue is 4 hours before UTC, an offset of -04:00 may be appended. Without offset information, some rich features may not be available.
     #[serde(default, rename = "doorsOpen")]
-    pub doors_open: Option<String>,
+    pub doors_open: ::core::option::Option<String>,
     /// The label to use for the doors open value (doorsOpen) on the card detail view. Each available option maps to a set of localized strings, so that translations are shown to the user based on their locale. Both doorsOpenLabel and customDoorsOpenLabel may not be set. If neither is set, the label will default to "Doors Open", localized. If the doors open field is unset, this label will not be used. // TODO: enum values: ["DOORS_OPEN_LABEL_UNSPECIFIED", "DOORS_OPEN", "doorsOpen", "GATES_OPEN", "gatesOpen"]
     #[serde(default, rename = "doorsOpenLabel")]
-    pub doors_open_label: Option<String>,
+    pub doors_open_label: ::core::option::Option<String>,
     /// The date/time when the event ends. If the event spans multiple days, it should be the end date/time on the last day. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the venue. For example, if the event occurs at the 20th hour of June 5th, 2018 at the venue, the local date/time portion should be 2018-06-05T20:00:00. If the local date/time at the venue is 4 hours before UTC, an offset of -04:00 may be appended. Without offset information, some rich features may not be available.
     #[serde(default)]
-    pub end: Option<String>,
+    pub end: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#eventDateTime".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The date/time when the event starts. If the event spans multiple days, it should be the start date/time on the first day. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the venue. For example, if the event occurs at the 20th hour of June 5th, 2018 at the venue, the local date/time portion should be 2018-06-05T20:00:00. If the local date/time at the venue is 4 hours before UTC, an offset of -04:00 may be appended. Without offset information, some rich features may not be available.
     #[serde(default)]
-    pub start: Option<String>,
+    pub start: ::core::option::Option<String>,
 }
 
 /// EventReservationInfo resource type.
@@ -541,10 +547,10 @@ pub struct EventDateTime {
 pub struct EventReservationInfo {
     /// The confirmation code of the event reservation. This may also take the form of an "order number", "confirmation number", "reservation number", or other equivalent.
     #[serde(default, rename = "confirmationCode")]
-    pub confirmation_code: Option<String>,
+    pub confirmation_code: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#eventReservationInfo".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// EventSeat resource type.
@@ -552,19 +558,19 @@ pub struct EventReservationInfo {
 pub struct EventSeat {
     /// The gate the ticket holder should enter to get to their seat, such as "A" or "West". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.
     #[serde(default)]
-    pub gate: Option<LocalizedString>,
+    pub gate: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#eventSeat".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The row of the seat, such as "1", E", "BB", or "A5". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.
     #[serde(default)]
-    pub row: Option<LocalizedString>,
+    pub row: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The seat number, such as "1", "2", "3", or any other seat identifier. This field is localizable so you may translate words or use different alphabets for the characters in an identifier.
     #[serde(default)]
-    pub seat: Option<LocalizedString>,
+    pub seat: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The section of the seat, such as "121". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.
     #[serde(default)]
-    pub section: Option<LocalizedString>,
+    pub section: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// EventTicketClass resource type.
@@ -572,145 +578,149 @@ pub struct EventSeat {
 pub struct EventTicketClass {
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
-    pub allow_multiple_users_per_object: Option<bool>,
+    pub allow_multiple_users_per_object: ::core::option::Option<bool>,
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.
     #[serde(default, rename = "callbackOptions")]
-    pub callback_options: Option<CallbackOptions>,
+    pub callback_options: ::core::option::Option<::std::boxed::Box<CallbackOptions>>,
     /// Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.
     #[serde(default, rename = "classTemplateInfo")]
-    pub class_template_info: Option<ClassTemplateInfo>,
+    pub class_template_info: ::core::option::Option<::std::boxed::Box<ClassTemplateInfo>>,
     /// The label to use for the confirmation code value (eventTicketObject.reservationInfo.confirmationCode) on the card detail view. Each available option maps to a set of localized strings, so that translations are shown to the user based on their locale. Both confirmationCodeLabel and customConfirmationCodeLabel may not be set. If neither is set, the label will default to "Confirmation Code", localized. If the confirmation code field is unset, this label will not be used. // TODO: enum values: ["CONFIRMATION_CODE_LABEL_UNSPECIFIED", "CONFIRMATION_CODE", "confirmationCode", "CONFIRMATION_NUMBER", "confirmationNumber", "ORDER_NUMBER", "orderNumber", "RESERVATION_NUMBER", "reservationNumber"]
     #[serde(default, rename = "confirmationCodeLabel")]
-    pub confirmation_code_label: Option<String>,
+    pub confirmation_code_label: ::core::option::Option<String>,
     /// Country code used to display the card''s country (when the user is not in that country), as well as to display localized content when content is not available in the user''s locale.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// A custom label to use for the confirmation code value (eventTicketObject.reservationInfo.confirmationCode) on the card detail view. This should only be used if the default "Confirmation Code" label or one of the confirmationCodeLabel options is not sufficient. Both confirmationCodeLabel and customConfirmationCodeLabel may not be set. If neither is set, the label will default to "Confirmation Code", localized. If the confirmation code field is unset, this label will not be used.
     #[serde(default, rename = "customConfirmationCodeLabel")]
-    pub custom_confirmation_code_label: Option<LocalizedString>,
+    pub custom_confirmation_code_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the gate value (eventTicketObject.seatInfo.gate) on the card detail view. This should only be used if the default "Gate" label or one of the gateLabel options is not sufficient. Both gateLabel and customGateLabel may not be set. If neither is set, the label will default to "Gate", localized. If the gate field is unset, this label will not be used.
     #[serde(default, rename = "customGateLabel")]
-    pub custom_gate_label: Option<LocalizedString>,
+    pub custom_gate_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the row value (eventTicketObject.seatInfo.row) on the card detail view. This should only be used if the default "Row" label or one of the rowLabel options is not sufficient. Both rowLabel and customRowLabel may not be set. If neither is set, the label will default to "Row", localized. If the row field is unset, this label will not be used.
     #[serde(default, rename = "customRowLabel")]
-    pub custom_row_label: Option<LocalizedString>,
+    pub custom_row_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the seat value (eventTicketObject.seatInfo.seat) on the card detail view. This should only be used if the default "Seat" label or one of the seatLabel options is not sufficient. Both seatLabel and customSeatLabel may not be set. If neither is set, the label will default to "Seat", localized. If the seat field is unset, this label will not be used.
     #[serde(default, rename = "customSeatLabel")]
-    pub custom_seat_label: Option<LocalizedString>,
+    pub custom_seat_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the section value (eventTicketObject.seatInfo.section) on the card detail view. This should only be used if the default "Section" label or one of the sectionLabel options is not sufficient. Both sectionLabel and customSectionLabel may not be set. If neither is set, the label will default to "Section", localized. If the section field is unset, this label will not be used.
     #[serde(default, rename = "customSectionLabel")]
-    pub custom_section_label: Option<LocalizedString>,
+    pub custom_section_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The date & time information of the event.
     #[serde(default, rename = "dateTime")]
-    pub date_time: Option<EventDateTime>,
+    pub date_time: ::core::option::Option<::std::boxed::Box<EventDateTime>>,
     /// Identifies whether this class supports Smart Tap. The redemptionIssuers and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "enableSmartTap")]
-    pub enable_smart_tap: Option<bool>,
+    pub enable_smart_tap: ::core::option::Option<bool>,
     /// The ID of the event. This ID should be unique for every event in an account. It is used to group tickets together if the user has saved multiple tickets for the same event. It can be at most 64 characters. If provided, the grouping will be stable. Be wary of unintentional collision to avoid grouping tickets that should not be grouped. If you use only one class per event, you can simply set this to the classId (with or without the issuer ID portion). If not provided, the platform will attempt to use other data to group tickets (potentially unstable).
     #[serde(default, rename = "eventId")]
-    pub event_id: Option<String>,
+    pub event_id: ::core::option::Option<String>,
     /// Required. The name of the event, such as "LA Dodgers at SF Giants".
     #[serde(default, rename = "eventName")]
-    pub event_name: Option<LocalizedString>,
+    pub event_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The fine print, terms, or conditions of the ticket.
     #[serde(default, rename = "finePrint")]
-    pub fine_print: Option<LocalizedString>,
+    pub fine_print: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The label to use for the gate value (eventTicketObject.seatInfo.gate) on the card detail view. Each available option maps to a set of localized strings, so that translations are shown to the user based on their locale. Both gateLabel and customGateLabel may not be set. If neither is set, the label will default to "Gate", localized. If the gate field is unset, this label will not be used. // TODO: enum values: ["GATE_LABEL_UNSPECIFIED", "GATE", "gate", "DOOR", "door", "ENTRANCE", "entrance"]
     #[serde(default, rename = "gateLabel")]
-    pub gate_label: Option<String>,
+    pub gate_label: ::core::option::Option<String>,
     /// Optional banner image displayed on the front of the card. If none is present, nothing will be displayed. The image will display at 100% width.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// The URI of your application''s home page. Populating the URI in this field results in the exact same behavior as populating an URI in linksModuleData (when an object is rendered, a link to the homepage is shown in what would usually be thought of as the linksModuleData section of the object).
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<Uri>,
+    pub homepage_uri: ::core::option::Option<::std::boxed::Box<Uri>>,
     /// Required. The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Required. The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "issuerName")]
-    pub issuer_name: Option<String>,
+    pub issuer_name: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#eventTicketClass".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Links module data. If links module data is also defined on the object, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Translated strings for the issuer_name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedIssuerName")]
-    pub localized_issuer_name: Option<LocalizedString>,
+    pub localized_issuer_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// The logo image of the ticket. This image is displayed in the card detail view of the app.
     #[serde(default)]
-    pub logo: Option<Image>,
+    pub logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Merchant locations. There is a maximum of ten on the class. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Identifies whether multiple users and devices will save the same object referencing this class. // TODO: enum values: ["STATUS_UNSPECIFIED", "MULTIPLE_HOLDERS", "ONE_USER_ALL_DEVICES", "ONE_USER_ONE_DEVICE", "multipleHolders", "oneUserAllDevices", "oneUserOneDevice"]
     #[serde(default, rename = "multipleDevicesAndHoldersAllowedStatus")]
-    pub multiple_devices_and_holders_allowed_status: Option<String>,
+    pub multiple_devices_and_holders_allowed_status: ::core::option::Option<String>,
     /// Whether or not field updates to this class should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If not specified, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Identifies which redemption issuers can redeem the pass over Smart Tap. Redemption issuers are identified by their issuer ID. Redemption issuers must have at least one Smart Tap key configured. The enableSmartTap and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "redemptionIssuers")]
-    pub redemption_issuers: Option<Vec<String>>,
+    pub redemption_issuers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The review comments set by the platform when a class is marked approved or rejected.
     #[serde(default)]
-    pub review: Option<Review>,
+    pub review: ::core::option::Option<::std::boxed::Box<Review>>,
     /// Required. The status of the class. This field can be set to draft or underReview using the insert, patch, or update API calls. Once the review state is changed from draft it may not be changed back to draft. You should keep this field to draft when the class is under development. A draft class cannot be used to create any object. You should set this field to underReview when you believe the class is ready for use. The platform will automatically set this field to approved and it can be immediately used to create or migrate objects. When updating an already approved class you should keep setting this field to underReview. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "UNDER_REVIEW", "underReview", "APPROVED", "approved", "REJECTED", "rejected", "DRAFT", "draft"]
     #[serde(default, rename = "reviewStatus")]
-    pub review_status: Option<String>,
+    pub review_status: ::core::option::Option<String>,
     /// The label to use for the row value (eventTicketObject.seatInfo.row) on the card detail view. Each available option maps to a set of localized strings, so that translations are shown to the user based on their locale. Both rowLabel and customRowLabel may not be set. If neither is set, the label will default to "Row", localized. If the row field is unset, this label will not be used. // TODO: enum values: ["ROW_LABEL_UNSPECIFIED", "ROW", "row"]
     #[serde(default, rename = "rowLabel")]
-    pub row_label: Option<String>,
+    pub row_label: ::core::option::Option<String>,
     /// The label to use for the seat value (eventTicketObject.seatInfo.seat) on the card detail view. Each available option maps to a set of localized strings, so that translations are shown to the user based on their locale. Both seatLabel and customSeatLabel may not be set. If neither is set, the label will default to "Seat", localized. If the seat field is unset, this label will not be used. // TODO: enum values: ["SEAT_LABEL_UNSPECIFIED", "SEAT", "seat"]
     #[serde(default, rename = "seatLabel")]
-    pub seat_label: Option<String>,
+    pub seat_label: ::core::option::Option<String>,
     /// The label to use for the section value (eventTicketObject.seatInfo.section) on the card detail view. Each available option maps to a set of localized strings, so that translations are shown to the user based on their locale. Both sectionLabel and customSectionLabel may not be set. If neither is set, the label will default to "Section", localized. If the section field is unset, this label will not be used. // TODO: enum values: ["SECTION_LABEL_UNSPECIFIED", "SECTION", "section", "THEATER", "theater"]
     #[serde(default, rename = "sectionLabel")]
-    pub section_label: Option<String>,
+    pub section_label: ::core::option::Option<String>,
     /// Optional information about the security animation. If this is set a security animation will be rendered on pass details.
     #[serde(default, rename = "securityAnimation")]
-    pub security_animation: Option<SecurityAnimation>,
+    pub security_animation: ::core::option::Option<::std::boxed::Box<SecurityAnimation>>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// Optional value added module data. Maximum of fifteen on the class. For a pass only fifteen will be displayed, prioritizing those from the object.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Event venue details.
     #[serde(default)]
-    pub venue: Option<EventVenue>,
+    pub venue: ::core::option::Option<::std::boxed::Box<EventVenue>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// View Unlock Requirement options for the event ticket. // TODO: enum values: ["VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED", "UNLOCK_NOT_REQUIRED", "UNLOCK_REQUIRED_TO_VIEW"]
     #[serde(default, rename = "viewUnlockRequirement")]
-    pub view_unlock_requirement: Option<String>,
+    pub view_unlock_requirement: ::core::option::Option<String>,
     /// The wide logo of the ticket. When provided, this will be used in place of the logo in the top left of the card view.
     #[serde(default, rename = "wideLogo")]
-    pub wide_logo: Option<Image>,
+    pub wide_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Deprecated.
     #[serde(default, rename = "wordMark")]
-    pub word_mark: Option<Image>,
+    pub word_mark: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// EventTicketClassAddMessageResponse resource type.
@@ -718,7 +728,7 @@ pub struct EventTicketClass {
 pub struct EventTicketClassAddMessageResponse {
     /// The updated EventTicketClass resource.
     #[serde(default)]
-    pub resource: Option<EventTicketClass>,
+    pub resource: ::core::option::Option<::std::boxed::Box<EventTicketClass>>,
 }
 
 /// EventTicketClassListResponse resource type.
@@ -726,10 +736,10 @@ pub struct EventTicketClassAddMessageResponse {
 pub struct EventTicketClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<EventTicketClass>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventTicketClass>>>,
 }
 
 /// EventTicketObject resource type.
@@ -737,112 +747,116 @@ pub struct EventTicketClassListResponse {
 pub struct EventTicketObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// The barcode type and value.
     #[serde(default)]
-    pub barcode: Option<Barcode>,
+    pub barcode: ::core::option::Option<::std::boxed::Box<Barcode>>,
     /// Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you.
     #[serde(default, rename = "classId")]
-    pub class_id: Option<String>,
+    pub class_id: ::core::option::Option<String>,
     /// A copy of the inherited fields of the parent class. These fields are retrieved during a GET.
     #[serde(default, rename = "classReference")]
-    pub class_reference: Option<EventTicketClass>,
+    pub class_reference: ::core::option::Option<::std::boxed::Box<EventTicketClass>>,
     /// Indicates if notifications should explicitly be suppressed. If this field is set to true, regardless of the messages field, expiration notifications to the user will be suppressed. By default, this field is set to false. Currently, this can only be set for offers.
     #[serde(default, rename = "disableExpirationNotification")]
-    pub disable_expiration_notification: Option<bool>,
+    pub disable_expiration_notification: ::core::option::Option<bool>,
     /// The face value of the ticket, matching what would be printed on a physical version of the ticket.
     #[serde(default, rename = "faceValue")]
-    pub face_value: Option<Money>,
+    pub face_value: ::core::option::Option<::std::boxed::Box<Money>>,
     /// Information that controls how passes are grouped together.
     #[serde(default, rename = "groupingInfo")]
-    pub grouping_info: Option<GroupingInfo>,
+    pub grouping_info: ::core::option::Option<::std::boxed::Box<GroupingInfo>>,
     /// Whether this object is currently linked to a single device. This field is set by the platform when a user saves the object, linking it to their device. Intended for use by select partners. Contact support for additional information.
     #[serde(default, rename = "hasLinkedDevice")]
-    pub has_linked_device: Option<bool>,
+    pub has_linked_device: ::core::option::Option<bool>,
     /// Indicates if the object has users. This field is set by the platform.
     #[serde(default, rename = "hasUsers")]
-    pub has_users: Option<bool>,
+    pub has_users: ::core::option::Option<bool>,
     /// Optional banner image displayed on the front of the card. If none is present, hero image of the class, if present, will be displayed. If hero image of the class is also not present, nothing will be displayed.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// Required. The unique identifier for an object. This ID must be unique across all objects from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#eventTicketObject".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this event ticket object. If a user had saved this event ticket, then these linked_object_ids would be automatically pushed to the user''s wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID. identifier where the former is issued by Google and the latter is chosen by you.
     #[serde(default, rename = "linkedObjectIds")]
-    pub linked_object_ids: Option<Vec<String>>,
+    pub linked_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of offer objects linked to this event ticket. The offer objects must already exist. Offer object IDs should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you.
     #[serde(default, rename = "linkedOfferIds")]
-    pub linked_offer_ids: Option<Vec<String>>,
+    pub linked_offer_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Links module data. If links module data is also defined on the class, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the object. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Whether or not field updates to this object should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If set to DO_NOT_NOTIFY or NOTIFICATION_SETTINGS_UNSPECIFIED, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Pass constraints for the object. Includes limiting NFC and screenshot behaviors.
     #[serde(default, rename = "passConstraints")]
-    pub pass_constraints: Option<PassConstraints>,
+    pub pass_constraints: ::core::option::Option<::std::boxed::Box<PassConstraints>>,
     /// Reservation details for this ticket. This is expected to be shared amongst all tickets that were purchased in the same order.
     #[serde(default, rename = "reservationInfo")]
-    pub reservation_info: Option<EventReservationInfo>,
+    pub reservation_info: ::core::option::Option<::std::boxed::Box<EventReservationInfo>>,
     /// The rotating barcode type and value.
     #[serde(default, rename = "rotatingBarcode")]
-    pub rotating_barcode: Option<RotatingBarcode>,
+    pub rotating_barcode: ::core::option::Option<::std::boxed::Box<RotatingBarcode>>,
     /// Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.
     #[serde(default, rename = "saveRestrictions")]
-    pub save_restrictions: Option<SaveRestrictions>,
+    pub save_restrictions: ::core::option::Option<::std::boxed::Box<SaveRestrictions>>,
     /// Seating details for this ticket.
     #[serde(default, rename = "seatInfo")]
-    pub seat_info: Option<EventSeat>,
+    pub seat_info: ::core::option::Option<::std::boxed::Box<EventSeat>>,
     /// The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields enableSmartTap and redemptionIssuers must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported.
     #[serde(default, rename = "smartTapRedemptionValue")]
-    pub smart_tap_redemption_value: Option<String>,
+    pub smart_tap_redemption_value: ::core::option::Option<String>,
     /// Required. The state of the object. This field is used to determine how an object is displayed in the app. For example, an inactive object is moved to the "Expired passes" section. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "active", "COMPLETED", "completed", "EXPIRED", "expired", "INACTIVE", "inactive"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// Name of the ticket holder, if the ticket is assigned to a person. E.g. "John Doe" or "Jane Doe".
     #[serde(default, rename = "ticketHolderName")]
-    pub ticket_holder_name: Option<String>,
+    pub ticket_holder_name: ::core::option::Option<String>,
     /// The number of the ticket. This can be a unique identifier across all tickets in an issuer''s system, all tickets for the event (e.g. XYZ1234512345), or all tickets in the order (1, 2, 3, etc.).
     #[serde(default, rename = "ticketNumber")]
-    pub ticket_number: Option<String>,
+    pub ticket_number: ::core::option::Option<String>,
     /// The type of the ticket, such as "Adult" or "Child", or "VIP" or "Standard".
     #[serde(default, rename = "ticketType")]
-    pub ticket_type: Option<LocalizedString>,
+    pub ticket_type: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The time period this object will be active and object can be used. An object''s state will be changed to expired when this time period has passed.
     #[serde(default, rename = "validTimeInterval")]
-    pub valid_time_interval: Option<TimeInterval>,
+    pub valid_time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// Optional value added module data. Maximum of fifteen on the object. For a pass only fifteen will be displayed.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// EventTicketObjectAddMessageResponse resource type.
@@ -850,7 +864,7 @@ pub struct EventTicketObject {
 pub struct EventTicketObjectAddMessageResponse {
     /// The updated EventTicketObject resource.
     #[serde(default)]
-    pub resource: Option<EventTicketObject>,
+    pub resource: ::core::option::Option<::std::boxed::Box<EventTicketObject>>,
 }
 
 /// EventTicketObjectListResponse resource type.
@@ -858,10 +872,10 @@ pub struct EventTicketObjectAddMessageResponse {
 pub struct EventTicketObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<EventTicketObject>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventTicketObject>>>,
 }
 
 /// EventVenue resource type.
@@ -869,13 +883,13 @@ pub struct EventTicketObjectListResponse {
 pub struct EventVenue {
     /// The address of the venue, such as "24 Willie Mays Plaza\nSan Francisco, CA 94107". Address lines are separated by line feed (\n) characters. This is required.
     #[serde(default)]
-    pub address: Option<LocalizedString>,
+    pub address: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#eventVenue".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The name of the venue, such as "AT&T Park". This is required.
     #[serde(default)]
-    pub name: Option<LocalizedString>,
+    pub name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// Indicates that the issuer would like Google Wallet to send expiry notifications 2 days prior to the card expiration.
@@ -883,7 +897,7 @@ pub struct EventVenue {
 pub struct ExpiryNotification {
     /// Indicates if the object needs to have expiry notification enabled.
     #[serde(default, rename = "enableNotification")]
-    pub enable_notification: Option<bool>,
+    pub enable_notification: ::core::option::Option<bool>,
 }
 
 /// Reference definition to use with field overrides.
@@ -891,10 +905,10 @@ pub struct ExpiryNotification {
 pub struct FieldReference {
     /// Only valid if the fieldPath references a date field. Chooses how the date field will be formatted and displayed in the UI. // TODO: enum values: ["DATE_FORMAT_UNSPECIFIED", "DATE_TIME", "dateTime", "DATE_ONLY", "dateOnly", "TIME_ONLY", "timeOnly", "DATE_TIME_YEAR", "dateTimeYear", "DATE_YEAR", "dateYear", "YEAR_MONTH", "YEAR_MONTH_DAY"]
     #[serde(default, rename = "dateFormat")]
-    pub date_format: Option<String>,
+    pub date_format: ::core::option::Option<String>,
     /// Path to the field being referenced, prefixed with "object" or "class" and separated with dots. For example, it may be the string "object.purchaseDetails.purchasePrice".
     #[serde(default, rename = "fieldPath")]
-    pub field_path: Option<String>,
+    pub field_path: ::core::option::Option<String>,
 }
 
 /// Custom field selector to use with field overrides.
@@ -902,7 +916,7 @@ pub struct FieldReference {
 pub struct FieldSelector {
     /// If more than one reference is supplied, then the first one that references a non-empty field will be displayed.
     #[serde(default)]
-    pub fields: Option<Vec<FieldReference>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldReference>>>,
 }
 
 /// FirstRowOption resource type.
@@ -910,10 +924,10 @@ pub struct FieldSelector {
 pub struct FirstRowOption {
     /// A reference to the field to be displayed in the first row.
     #[serde(default, rename = "fieldOption")]
-    pub field_option: Option<FieldSelector>,
+    pub field_option: ::core::option::Option<::std::boxed::Box<FieldSelector>>,
     /// TODO: enum values: ["TRANSIT_OPTION_UNSPECIFIED", "ORIGIN_AND_DESTINATION_NAMES", "originAndDestinationNames", "ORIGIN_AND_DESTINATION_CODES", "originAndDestinationCodes", "ORIGIN_NAME", "originName"]
     #[serde(default, rename = "transitOption")]
-    pub transit_option: Option<String>,
+    pub transit_option: ::core::option::Option<String>,
 }
 
 /// FlightCarrier resource type.
@@ -921,25 +935,25 @@ pub struct FirstRowOption {
 pub struct FlightCarrier {
     /// A logo for the airline alliance, displayed below the QR code that the passenger scans to board.
     #[serde(default, rename = "airlineAllianceLogo")]
-    pub airline_alliance_logo: Option<Image>,
+    pub airline_alliance_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A logo for the airline described by carrierIataCode and localizedAirlineName. This logo will be rendered at the top of the detailed card view.
     #[serde(default, rename = "airlineLogo")]
-    pub airline_logo: Option<Image>,
+    pub airline_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// A localized name of the airline specified by carrierIataCode. If unset, issuer_name or localized_issuer_name from FlightClass will be used for display purposes. eg: "Swiss Air" for "LX"
     #[serde(default, rename = "airlineName")]
-    pub airline_name: Option<LocalizedString>,
+    pub airline_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Two character IATA airline code of the marketing carrier (as opposed to operating carrier). Exactly one of this or carrierIcaoCode needs to be provided for carrier and operatingCarrier. eg: "LX" for Swiss Air
     #[serde(default, rename = "carrierIataCode")]
-    pub carrier_iata_code: Option<String>,
+    pub carrier_iata_code: ::core::option::Option<String>,
     /// Three character ICAO airline code of the marketing carrier (as opposed to operating carrier). Exactly one of this or carrierIataCode needs to be provided for carrier and operatingCarrier. eg: "EZY" for Easy Jet
     #[serde(default, rename = "carrierIcaoCode")]
-    pub carrier_icao_code: Option<String>,
+    pub carrier_icao_code: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#flightCarrier".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The wide logo of the airline. When provided, this will be used in place of the airline logo in the top left of the card view.
     #[serde(default, rename = "wideAirlineLogo")]
-    pub wide_airline_logo: Option<Image>,
+    pub wide_airline_logo: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// FlightClass resource type.
@@ -947,130 +961,135 @@ pub struct FlightCarrier {
 pub struct FlightClass {
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
-    pub allow_multiple_users_per_object: Option<bool>,
+    pub allow_multiple_users_per_object: ::core::option::Option<bool>,
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// Policies for boarding and seating. These will inform which labels will be shown to users.
     #[serde(default, rename = "boardingAndSeatingPolicy")]
-    pub boarding_and_seating_policy: Option<BoardingAndSeatingPolicy>,
+    pub boarding_and_seating_policy:
+        ::core::option::Option<::std::boxed::Box<BoardingAndSeatingPolicy>>,
     /// Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.
     #[serde(default, rename = "callbackOptions")]
-    pub callback_options: Option<CallbackOptions>,
+    pub callback_options: ::core::option::Option<::std::boxed::Box<CallbackOptions>>,
     /// Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.
     #[serde(default, rename = "classTemplateInfo")]
-    pub class_template_info: Option<ClassTemplateInfo>,
+    pub class_template_info: ::core::option::Option<::std::boxed::Box<ClassTemplateInfo>>,
     /// Country code used to display the card''s country (when the user is not in that country), as well as to display localized content when content is not available in the user''s locale.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// Required. Destination airport.
     #[serde(default)]
-    pub destination: Option<AirportInfo>,
+    pub destination: ::core::option::Option<::std::boxed::Box<AirportInfo>>,
     /// Identifies whether this class supports Smart Tap. The redemptionIssuers and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "enableSmartTap")]
-    pub enable_smart_tap: Option<bool>,
+    pub enable_smart_tap: ::core::option::Option<bool>,
     /// Required. Information about the flight carrier and number.
     #[serde(default, rename = "flightHeader")]
-    pub flight_header: Option<FlightHeader>,
+    pub flight_header: ::core::option::Option<::std::boxed::Box<FlightHeader>>,
     /// Status of this flight. If unset, Google will compute status based on data from other sources, such as FlightStats, etc. Note: Google-computed status will not be returned in API responses. // TODO: enum values: ["FLIGHT_STATUS_UNSPECIFIED", "SCHEDULED", "scheduled", "ACTIVE", "active", "LANDED", "landed", "CANCELLED", "cancelled", "REDIRECTED", "redirected", "DIVERTED", "diverted"]
     #[serde(default, rename = "flightStatus")]
-    pub flight_status: Option<String>,
+    pub flight_status: ::core::option::Option<String>,
     /// Optional banner image displayed on the front of the card. If none is present, nothing will be displayed. The image will display at 100% width.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// The URI of your application''s home page. Populating the URI in this field results in the exact same behavior as populating an URI in linksModuleData (when an object is rendered, a link to the homepage is shown in what would usually be thought of as the linksModuleData section of the object).
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<Uri>,
+    pub homepage_uri: ::core::option::Option<::std::boxed::Box<Uri>>,
     /// Required. The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Required. The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "issuerName")]
-    pub issuer_name: Option<String>,
+    pub issuer_name: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#flightClass".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// If this field is present, boarding passes served to a user''s device will always be in this language. Represents the BCP 47 language tag. Example values are "en-US", "en-GB", "de", or "de-AT".
     #[serde(default, rename = "languageOverride")]
-    pub language_override: Option<String>,
+    pub language_override: ::core::option::Option<String>,
     /// Links module data. If links module data is also defined on the object, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// The boarding time as it would be printed on the boarding pass. This is an ISO 8601 extended format date/time without an offset. Time may be specified up to millisecond precision. eg: 2027-03-05T06:30:00 This should be the local date/time at the airport (not a UTC time). Google will reject the request if UTC offset is provided. Time zones will be calculated by Google based on departure airport.
     #[serde(default, rename = "localBoardingDateTime")]
-    pub local_boarding_date_time: Option<String>,
+    pub local_boarding_date_time: ::core::option::Option<String>,
     /// The estimated time the aircraft plans to reach the destination gate (not the runway) or the actual time it reached the gate. This field should be set if at least one of the below is true: - It differs from the scheduled time. Google will use it to calculate the delay. - The aircraft already arrived at the gate. Google will use it to inform the user that the flight has arrived at the gate. This is an ISO 8601 extended format date/time without an offset. Time may be specified up to millisecond precision. eg: 2027-03-05T06:30:00 This should be the local date/time at the airport (not a UTC time). Google will reject the request if UTC offset is provided. Time zones will be calculated by Google based on arrival airport.
     #[serde(default, rename = "localEstimatedOrActualArrivalDateTime")]
-    pub local_estimated_or_actual_arrival_date_time: Option<String>,
+    pub local_estimated_or_actual_arrival_date_time: ::core::option::Option<String>,
     /// The estimated time the aircraft plans to pull from the gate or the actual time the aircraft already pulled from the gate. Note: This is not the runway time. This field should be set if at least one of the below is true: - It differs from the scheduled time. Google will use it to calculate the delay. - The aircraft already pulled from the gate. Google will use it to inform the user when the flight actually departed. This is an ISO 8601 extended format date/time without an offset. Time may be specified up to millisecond precision. eg: 2027-03-05T06:30:00 This should be the local date/time at the airport (not a UTC time). Google will reject the request if UTC offset is provided. Time zones will be calculated by Google based on departure airport.
     #[serde(default, rename = "localEstimatedOrActualDepartureDateTime")]
-    pub local_estimated_or_actual_departure_date_time: Option<String>,
+    pub local_estimated_or_actual_departure_date_time: ::core::option::Option<String>,
     /// The gate closing time as it would be printed on the boarding pass. Do not set this field if you do not want to print it in the boarding pass. This is an ISO 8601 extended format date/time without an offset. Time may be specified up to millisecond precision. eg: 2027-03-05T06:30:00 This should be the local date/time at the airport (not a UTC time). Google will reject the request if UTC offset is provided. Time zones will be calculated by Google based on departure airport.
     #[serde(default, rename = "localGateClosingDateTime")]
-    pub local_gate_closing_date_time: Option<String>,
+    pub local_gate_closing_date_time: ::core::option::Option<String>,
     /// The scheduled time the aircraft plans to reach the destination gate (not the runway). Note: This field should not change too close to the flight time. For updates to departure times (delays, etc), please set localEstimatedOrActualArrivalDateTime. This is an ISO 8601 extended format date/time without an offset. Time may be specified up to millisecond precision. eg: 2027-03-05T06:30:00 This should be the local date/time at the airport (not a UTC time). Google will reject the request if UTC offset is provided. Time zones will be calculated by Google based on arrival airport.
     #[serde(default, rename = "localScheduledArrivalDateTime")]
-    pub local_scheduled_arrival_date_time: Option<String>,
+    pub local_scheduled_arrival_date_time: ::core::option::Option<String>,
     /// Required. The scheduled date and time when the aircraft is expected to depart the gate (not the runway) Note: This field should not change too close to the departure time. For updates to departure times (delays, etc), please set localEstimatedOrActualDepartureDateTime. This is an ISO 8601 extended format date/time without an offset. Time may be specified up to millisecond precision. eg: 2027-03-05T06:30:00 This should be the local date/time at the airport (not a UTC time). Google will reject the request if UTC offset is provided. Time zones will be calculated by Google based on departure airport.
     #[serde(default, rename = "localScheduledDepartureDateTime")]
-    pub local_scheduled_departure_date_time: Option<String>,
+    pub local_scheduled_departure_date_time: ::core::option::Option<String>,
     /// Translated strings for the issuer_name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedIssuerName")]
-    pub localized_issuer_name: Option<LocalizedString>,
+    pub localized_issuer_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the class. Any additional MerchantLocations added beyond the 10 will be rejected by the validator. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Identifies whether multiple users and devices will save the same object referencing this class. // TODO: enum values: ["STATUS_UNSPECIFIED", "MULTIPLE_HOLDERS", "ONE_USER_ALL_DEVICES", "ONE_USER_ONE_DEVICE", "multipleHolders", "oneUserAllDevices", "oneUserOneDevice"]
     #[serde(default, rename = "multipleDevicesAndHoldersAllowedStatus")]
-    pub multiple_devices_and_holders_allowed_status: Option<String>,
+    pub multiple_devices_and_holders_allowed_status: ::core::option::Option<String>,
     /// Whether or not field updates to this class should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If not specified, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Required. Origin airport.
     #[serde(default)]
-    pub origin: Option<AirportInfo>,
+    pub origin: ::core::option::Option<::std::boxed::Box<AirportInfo>>,
     /// Identifies which redemption issuers can redeem the pass over Smart Tap. Redemption issuers are identified by their issuer ID. Redemption issuers must have at least one Smart Tap key configured. The enableSmartTap and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "redemptionIssuers")]
-    pub redemption_issuers: Option<Vec<String>>,
+    pub redemption_issuers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The review comments set by the platform when a class is marked approved or rejected.
     #[serde(default)]
-    pub review: Option<Review>,
+    pub review: ::core::option::Option<::std::boxed::Box<Review>>,
     /// Required. The status of the class. This field can be set to draft or underReview using the insert, patch, or update API calls. Once the review state is changed from draft it may not be changed back to draft. You should keep this field to draft when the class is under development. A draft class cannot be used to create any object. You should set this field to underReview when you believe the class is ready for use. The platform will automatically set this field to approved and it can be immediately used to create or migrate objects. When updating an already approved class you should keep setting this field to underReview. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "UNDER_REVIEW", "underReview", "APPROVED", "approved", "REJECTED", "rejected", "DRAFT", "draft"]
     #[serde(default, rename = "reviewStatus")]
-    pub review_status: Option<String>,
+    pub review_status: ::core::option::Option<String>,
     /// Optional information about the security animation. If this is set a security animation will be rendered on pass details.
     #[serde(default, rename = "securityAnimation")]
-    pub security_animation: Option<SecurityAnimation>,
+    pub security_animation: ::core::option::Option<::std::boxed::Box<SecurityAnimation>>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// Optional value added module data. Maximum of fifteen on the class. For a pass only fifteen will be displayed, prioritizing those from the object.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// View Unlock Requirement options for the boarding pass. // TODO: enum values: ["VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED", "UNLOCK_NOT_REQUIRED", "UNLOCK_REQUIRED_TO_VIEW"]
     #[serde(default, rename = "viewUnlockRequirement")]
-    pub view_unlock_requirement: Option<String>,
+    pub view_unlock_requirement: ::core::option::Option<String>,
     /// Deprecated.
     #[serde(default, rename = "wordMark")]
-    pub word_mark: Option<Image>,
+    pub word_mark: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// FlightClassAddMessageResponse resource type.
@@ -1078,7 +1097,7 @@ pub struct FlightClass {
 pub struct FlightClassAddMessageResponse {
     /// The updated FlightClass resource.
     #[serde(default)]
-    pub resource: Option<FlightClass>,
+    pub resource: ::core::option::Option<::std::boxed::Box<FlightClass>>,
 }
 
 /// FlightClassListResponse resource type.
@@ -1086,10 +1105,10 @@ pub struct FlightClassAddMessageResponse {
 pub struct FlightClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<FlightClass>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FlightClass>>>,
 }
 
 /// FlightHeader resource type.
@@ -1097,22 +1116,22 @@ pub struct FlightClassListResponse {
 pub struct FlightHeader {
     /// Information about airline carrier. This is a required property of flightHeader.
     #[serde(default)]
-    pub carrier: Option<FlightCarrier>,
+    pub carrier: ::core::option::Option<::std::boxed::Box<FlightCarrier>>,
     /// The flight number without IATA carrier code. This field should contain only digits. This is a required property of flightHeader. eg: "123"
     #[serde(default, rename = "flightNumber")]
-    pub flight_number: Option<String>,
+    pub flight_number: ::core::option::Option<String>,
     /// Override value to use for flight number. The default value used for display purposes is carrier + flight_number. If a different value needs to be shown to passengers, use this field to override the default behavior. eg: "XX1234 / YY576"
     #[serde(default, rename = "flightNumberDisplayOverride")]
-    pub flight_number_display_override: Option<String>,
+    pub flight_number_display_override: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#flightHeader".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Information about operating airline carrier.
     #[serde(default, rename = "operatingCarrier")]
-    pub operating_carrier: Option<FlightCarrier>,
+    pub operating_carrier: ::core::option::Option<::std::boxed::Box<FlightCarrier>>,
     /// The flight number used by the operating carrier without IATA carrier code. This field should contain only digits. eg: "234"
     #[serde(default, rename = "operatingFlightNumber")]
-    pub operating_flight_number: Option<String>,
+    pub operating_flight_number: ::core::option::Option<String>,
 }
 
 /// FlightObject resource type.
@@ -1120,103 +1139,108 @@ pub struct FlightHeader {
 pub struct FlightObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// The barcode type and value.
     #[serde(default)]
-    pub barcode: Option<Barcode>,
+    pub barcode: ::core::option::Option<::std::boxed::Box<Barcode>>,
     /// Passenger specific information about boarding and seating.
     #[serde(default, rename = "boardingAndSeatingInfo")]
-    pub boarding_and_seating_info: Option<BoardingAndSeatingInfo>,
+    pub boarding_and_seating_info:
+        ::core::option::Option<::std::boxed::Box<BoardingAndSeatingInfo>>,
     /// Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you.
     #[serde(default, rename = "classId")]
-    pub class_id: Option<String>,
+    pub class_id: ::core::option::Option<String>,
     /// A copy of the inherited fields of the parent class. These fields are retrieved during a GET.
     #[serde(default, rename = "classReference")]
-    pub class_reference: Option<FlightClass>,
+    pub class_reference: ::core::option::Option<::std::boxed::Box<FlightClass>>,
     /// Indicates if notifications should explicitly be suppressed. If this field is set to true, regardless of the messages field, expiration notifications to the user will be suppressed. By default, this field is set to false. Currently, this can only be set for Flights.
     #[serde(default, rename = "disableExpirationNotification")]
-    pub disable_expiration_notification: Option<bool>,
+    pub disable_expiration_notification: ::core::option::Option<bool>,
     /// Information that controls how passes are grouped together.
     #[serde(default, rename = "groupingInfo")]
-    pub grouping_info: Option<GroupingInfo>,
+    pub grouping_info: ::core::option::Option<::std::boxed::Box<GroupingInfo>>,
     /// Whether this object is currently linked to a single device. This field is set by the platform when a user saves the object, linking it to their device. Intended for use by select partners. Contact support for additional information.
     #[serde(default, rename = "hasLinkedDevice")]
-    pub has_linked_device: Option<bool>,
+    pub has_linked_device: ::core::option::Option<bool>,
     /// Indicates if the object has users. This field is set by the platform.
     #[serde(default, rename = "hasUsers")]
-    pub has_users: Option<bool>,
+    pub has_users: ::core::option::Option<bool>,
     /// Optional banner image displayed on the front of the card. If none is present, hero image of the class, if present, will be displayed. If hero image of the class is also not present, nothing will be displayed.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// Required. The unique identifier for an object. This ID must be unique across all objects from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#flightObject".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this flight object. If a user had saved this boarding pass, then these linked_object_ids would be automatically pushed to the user''s wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID. identifier where the former is issued by Google and the latter is chosen by you.
     #[serde(default, rename = "linkedObjectIds")]
-    pub linked_object_ids: Option<Vec<String>>,
+    pub linked_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Links module data. If links module data is also defined on the class, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the object. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Whether or not field updates to this object should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If set to DO_NOT_NOTIFY or NOTIFICATION_SETTINGS_UNSPECIFIED, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Pass constraints for the object. Includes limiting NFC and screenshot behaviors.
     #[serde(default, rename = "passConstraints")]
-    pub pass_constraints: Option<PassConstraints>,
+    pub pass_constraints: ::core::option::Option<::std::boxed::Box<PassConstraints>>,
     /// Required. Passenger name as it would appear on the boarding pass. eg: "Dave M Gahan" or "Gahan/Dave" or "GAHAN/DAVEM"
     #[serde(default, rename = "passengerName")]
-    pub passenger_name: Option<String>,
+    pub passenger_name: ::core::option::Option<String>,
     /// Required. Information about flight reservation.
     #[serde(default, rename = "reservationInfo")]
-    pub reservation_info: Option<ReservationInfo>,
+    pub reservation_info: ::core::option::Option<::std::boxed::Box<ReservationInfo>>,
     /// The rotating barcode type and value.
     #[serde(default, rename = "rotatingBarcode")]
-    pub rotating_barcode: Option<RotatingBarcode>,
+    pub rotating_barcode: ::core::option::Option<::std::boxed::Box<RotatingBarcode>>,
     /// Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.
     #[serde(default, rename = "saveRestrictions")]
-    pub save_restrictions: Option<SaveRestrictions>,
+    pub save_restrictions: ::core::option::Option<::std::boxed::Box<SaveRestrictions>>,
     /// An image for the security program that applies to the passenger.
     #[serde(default, rename = "securityProgramLogo")]
-    pub security_program_logo: Option<Image>,
+    pub security_program_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields enableSmartTap and redemptionIssuers must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported.
     #[serde(default, rename = "smartTapRedemptionValue")]
-    pub smart_tap_redemption_value: Option<String>,
+    pub smart_tap_redemption_value: ::core::option::Option<String>,
     /// Required. The state of the object. This field is used to determine how an object is displayed in the app. For example, an inactive object is moved to the "Expired passes" section. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "active", "COMPLETED", "completed", "EXPIRED", "expired", "INACTIVE", "inactive"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// The time period this object will be active and object can be used. An object''s state will be changed to expired when this time period has passed.
     #[serde(default, rename = "validTimeInterval")]
-    pub valid_time_interval: Option<TimeInterval>,
+    pub valid_time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// Optional value added module data. Maximum of fifteen on the object. For a pass only fifteen will be displayed.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// FlightObjectAddMessageResponse resource type.
@@ -1224,7 +1248,7 @@ pub struct FlightObject {
 pub struct FlightObjectAddMessageResponse {
     /// The updated FlightObject resource.
     #[serde(default)]
-    pub resource: Option<FlightObject>,
+    pub resource: ::core::option::Option<::std::boxed::Box<FlightObject>>,
 }
 
 /// FlightObjectListResponse resource type.
@@ -1232,10 +1256,10 @@ pub struct FlightObjectAddMessageResponse {
 pub struct FlightObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<FlightObject>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FlightObject>>>,
 }
 
 /// FrequentFlyerInfo resource type.
@@ -1243,13 +1267,13 @@ pub struct FlightObjectListResponse {
 pub struct FrequentFlyerInfo {
     /// Frequent flyer number. Required for each nested object of kind walletobjects#frequentFlyerInfo.
     #[serde(default, rename = "frequentFlyerNumber")]
-    pub frequent_flyer_number: Option<String>,
+    pub frequent_flyer_number: ::core::option::Option<String>,
     /// Frequent flyer program name. eg: "Lufthansa Miles & More"
     #[serde(default, rename = "frequentFlyerProgramName")]
-    pub frequent_flyer_program_name: Option<LocalizedString>,
+    pub frequent_flyer_program_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#frequentFlyerInfo".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Generic Class
@@ -1257,49 +1281,53 @@ pub struct FrequentFlyerInfo {
 pub struct GenericClass {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.
     #[serde(default, rename = "callbackOptions")]
-    pub callback_options: Option<CallbackOptions>,
+    pub callback_options: ::core::option::Option<::std::boxed::Box<CallbackOptions>>,
     /// Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.
     #[serde(default, rename = "classTemplateInfo")]
-    pub class_template_info: Option<ClassTemplateInfo>,
+    pub class_template_info: ::core::option::Option<::std::boxed::Box<ClassTemplateInfo>>,
     /// Available only to Smart Tap enabled partners. Contact support for additional guidance.
     #[serde(default, rename = "enableSmartTap")]
-    pub enable_smart_tap: Option<bool>,
+    pub enable_smart_tap: ::core::option::Option<bool>,
     /// Required. The unique identifier for the class. This ID must be unique across all from an issuer. This value needs to follow the format issuerID.identifier where issuerID is issued by Google and identifier is chosen by you. The unique identifier can only include alphanumeric characters, ., _, or -.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. If imageModulesData is also defined on the object, both will be displayed. Only one of the image from class and one from object level will be rendered when both set.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Links module data. If linksModuleData is also defined on the object, both will be displayed. The maximum number of these fields displayed is 10 from class and 10 from object.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Merchant locations. There is a maximum of ten on the class. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Identifies whether multiple users and devices will save the same object referencing this class. // TODO: enum values: ["STATUS_UNSPECIFIED", "MULTIPLE_HOLDERS", "ONE_USER_ALL_DEVICES", "ONE_USER_ONE_DEVICE", "multipleHolders", "oneUserAllDevices", "oneUserOneDevice"]
     #[serde(default, rename = "multipleDevicesAndHoldersAllowedStatus")]
-    pub multiple_devices_and_holders_allowed_status: Option<String>,
+    pub multiple_devices_and_holders_allowed_status: ::core::option::Option<String>,
     /// Identifies which redemption issuers can redeem the pass over Smart Tap. Redemption issuers are identified by their issuer ID. Redemption issuers must have at least one Smart Tap key configured. The enableSmartTap and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "redemptionIssuers")]
-    pub redemption_issuers: Option<Vec<String>>,
+    pub redemption_issuers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional information about the security animation. If this is set a security animation will be rendered on pass details.
     #[serde(default, rename = "securityAnimation")]
-    pub security_animation: Option<SecurityAnimation>,
+    pub security_animation: ::core::option::Option<::std::boxed::Box<SecurityAnimation>>,
     /// Text module data. If textModulesData is also defined on the object, both will be displayed. The maximum number of these fields displayed is 10 from class and 10 from object.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// Optional value added module data. Maximum of fifteen on the class. For a pass only fifteen will be displayed, prioritizing those from the object.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// View Unlock Requirement options for the generic pass. // TODO: enum values: ["VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED", "UNLOCK_NOT_REQUIRED", "UNLOCK_REQUIRED_TO_VIEW"]
     #[serde(default, rename = "viewUnlockRequirement")]
-    pub view_unlock_requirement: Option<String>,
+    pub view_unlock_requirement: ::core::option::Option<String>,
 }
 
 /// Response to adding a new issuer message to the class. This contains the entire updated GenericClass.
@@ -1307,7 +1335,7 @@ pub struct GenericClass {
 pub struct GenericClassAddMessageResponse {
     /// The updated EventTicketClass resource.
     #[serde(default)]
-    pub resource: Option<GenericClass>,
+    pub resource: ::core::option::Option<::std::boxed::Box<GenericClass>>,
 }
 
 /// List response which contains the list of all generic classes for a given issuer ID.
@@ -1315,10 +1343,10 @@ pub struct GenericClassAddMessageResponse {
 pub struct GenericClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<GenericClass>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GenericClass>>>,
 }
 
 /// Generic Object
@@ -1326,88 +1354,92 @@ pub struct GenericClassListResponse {
 pub struct GenericObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// The barcode type and value. If pass does not have a barcode, we can allow the issuer to set Barcode.alternate_text and display just that.
     #[serde(default)]
-    pub barcode: Option<Barcode>,
+    pub barcode: ::core::option::Option<::std::boxed::Box<Barcode>>,
     /// Required. The header of the pass. This is usually the Business name such as "XXX Gym", "AAA Insurance". This field is required and appears in the header row at the very top of the pass.
     #[serde(default, rename = "cardTitle")]
-    pub card_title: Option<LocalizedString>,
+    pub card_title: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuerID.identifier where issuerID is issued by Google and identifier is chosen by you.
     #[serde(default, rename = "classId")]
-    pub class_id: Option<String>,
+    pub class_id: ::core::option::Option<String>,
     /// Specify which GenericType the card belongs to. // TODO: enum values: ["GENERIC_TYPE_UNSPECIFIED", "GENERIC_SEASON_PASS", "GENERIC_UTILITY_BILLS", "GENERIC_PARKING_PASS", "GENERIC_VOUCHER", "GENERIC_GYM_MEMBERSHIP", "GENERIC_LIBRARY_MEMBERSHIP", "GENERIC_RESERVATIONS", "GENERIC_AUTO_INSURANCE", "GENERIC_HOME_INSURANCE", "GENERIC_ENTRY_TICKET", "GENERIC_RECEIPT", "GENERIC_LOYALTY_CARD", "GENERIC_BUSINESS_CARD", "GENERIC_BARCODE_PASS", "GENERIC_MEMBERSHIP_CARD", "GENERIC_STUDENT_CARD", "GENERIC_TRANSIT_PASS", "GENERIC_VEHICLE_REGISTRATION", "GENERIC_OTHER"]
     #[serde(default, rename = "genericType")]
-    pub generic_type: Option<String>,
+    pub generic_type: ::core::option::Option<String>,
     /// Information that controls how passes are grouped together.
     #[serde(default, rename = "groupingInfo")]
-    pub grouping_info: Option<GroupingInfo>,
+    pub grouping_info: ::core::option::Option<::std::boxed::Box<GroupingInfo>>,
     /// Indicates if the object has users. This field is set by the platform.
     #[serde(default, rename = "hasUsers")]
-    pub has_users: Option<bool>,
+    pub has_users: ::core::option::Option<bool>,
     /// Required. The title of the pass, such as "50% off coupon" or "Library card" or "Voucher". This field is required and appears in the title row of the pass detail view.
     #[serde(default)]
-    pub header: Option<LocalizedString>,
+    pub header: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Banner image displayed on the front of the card if present. The image will be displayed at 100% width.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set, the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used and if logo is not set, a color would be chosen by Google.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// Required. The unique identifier for an object. This ID must be unique across all objects from an issuer. This value needs to follow the format issuerID.identifier where issuerID is issued by Google and identifier is chosen by you. The unique identifier can only include alphanumeric characters, ., _, or -.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. Only one of the image from class and one from object level will be rendered when both set.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this generic object. If a user had saved this generic card, then these linked_object_ids would be automatically pushed to the user''s wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID. identifier where the former is issued by Google and the latter is chosen by you.
     #[serde(default, rename = "linkedObjectIds")]
-    pub linked_object_ids: Option<Vec<String>>,
+    pub linked_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Links module data. If linksModuleData is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from class and 10 from object.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// The logo image of the pass. This image is displayed in the card detail view in upper left, and also on the list/thumbnail view. If the logo is not present, the first letter of cardTitle would be shown as logo.
     #[serde(default)]
-    pub logo: Option<Image>,
+    pub logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Merchant locations. There is a maximum of ten on the object. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// The notification settings that are enabled for this object.
     #[serde(default)]
-    pub notifications: Option<Notifications>,
+    pub notifications: ::core::option::Option<::std::boxed::Box<Notifications>>,
     /// Pass constraints for the object. Includes limiting NFC and screenshot behaviors.
     #[serde(default, rename = "passConstraints")]
-    pub pass_constraints: Option<PassConstraints>,
+    pub pass_constraints: ::core::option::Option<::std::boxed::Box<PassConstraints>>,
     /// The rotating barcode settings/details.
     #[serde(default, rename = "rotatingBarcode")]
-    pub rotating_barcode: Option<RotatingBarcode>,
+    pub rotating_barcode: ::core::option::Option<::std::boxed::Box<RotatingBarcode>>,
     /// Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.
     #[serde(default, rename = "saveRestrictions")]
-    pub save_restrictions: Option<SaveRestrictions>,
+    pub save_restrictions: ::core::option::Option<::std::boxed::Box<SaveRestrictions>>,
     /// The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields enableSmartTap and redemptionIssuers must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported.
     #[serde(default, rename = "smartTapRedemptionValue")]
-    pub smart_tap_redemption_value: Option<String>,
+    pub smart_tap_redemption_value: ::core::option::Option<String>,
     /// The state of the object. This field is used to determine how an object is displayed in the app. For example, an inactive object is moved to the "Expired passes" section. If this is not provided, the object would be considered ACTIVE. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "active", "COMPLETED", "completed", "EXPIRED", "expired", "INACTIVE", "inactive"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The title label of the pass, such as location where this pass can be used. Appears right above the title in the title row in the pass detail view.
     #[serde(default)]
-    pub subheader: Option<LocalizedString>,
+    pub subheader: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Text module data. If textModulesData is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from class and 10 from object.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// The time period this object will be considered valid or usable. When the time period is passed, the object will be considered expired, which will affect the rendering on user''s devices.
     #[serde(default, rename = "validTimeInterval")]
-    pub valid_time_interval: Option<TimeInterval>,
+    pub valid_time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// Optional value added module data. Maximum of fifteen on the object. For a pass only fifteen will be displayed.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// The wide logo of the pass. When provided, this will be used in place of the logo in the top left of the card view.
     #[serde(default, rename = "wideLogo")]
-    pub wide_logo: Option<Image>,
+    pub wide_logo: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// Response to adding a new issuer message to the object. This contains the entire updated GenericObject.
@@ -1415,7 +1447,7 @@ pub struct GenericObject {
 pub struct GenericObjectAddMessageResponse {
     /// The updated GenericObject resource.
     #[serde(default)]
-    pub resource: Option<GenericObject>,
+    pub resource: ::core::option::Option<::std::boxed::Box<GenericObject>>,
 }
 
 /// List response which contains the list of all generic objects for a given issuer ID.
@@ -1423,10 +1455,10 @@ pub struct GenericObjectAddMessageResponse {
 pub struct GenericObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<GenericObject>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GenericObject>>>,
 }
 
 /// GiftCardClass resource type.
@@ -1434,127 +1466,131 @@ pub struct GenericObjectListResponse {
 pub struct GiftCardClass {
     /// Determines whether the merchant supports gift card redemption using barcode. If true, app displays a barcode for the gift card on the Gift card details screen. If false, a barcode is not displayed.
     #[serde(default, rename = "allowBarcodeRedemption")]
-    pub allow_barcode_redemption: Option<bool>,
+    pub allow_barcode_redemption: ::core::option::Option<bool>,
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
-    pub allow_multiple_users_per_object: Option<bool>,
+    pub allow_multiple_users_per_object: ::core::option::Option<bool>,
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.
     #[serde(default, rename = "callbackOptions")]
-    pub callback_options: Option<CallbackOptions>,
+    pub callback_options: ::core::option::Option<::std::boxed::Box<CallbackOptions>>,
     /// The label to display for the card number, such as "Card Number".
     #[serde(default, rename = "cardNumberLabel")]
-    pub card_number_label: Option<String>,
+    pub card_number_label: ::core::option::Option<String>,
     /// Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.
     #[serde(default, rename = "classTemplateInfo")]
-    pub class_template_info: Option<ClassTemplateInfo>,
+    pub class_template_info: ::core::option::Option<::std::boxed::Box<ClassTemplateInfo>>,
     /// Country code used to display the card''s country (when the user is not in that country), as well as to display localized content when content is not available in the user''s locale.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// Identifies whether this class supports Smart Tap. The redemptionIssuers and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "enableSmartTap")]
-    pub enable_smart_tap: Option<bool>,
+    pub enable_smart_tap: ::core::option::Option<bool>,
     /// The label to display for event number, such as "Target Event #".
     #[serde(default, rename = "eventNumberLabel")]
-    pub event_number_label: Option<String>,
+    pub event_number_label: ::core::option::Option<String>,
     /// Optional banner image displayed on the front of the card. If none is present, nothing will be displayed. The image will display at 100% width.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// The URI of your application''s home page. Populating the URI in this field results in the exact same behavior as populating an URI in linksModuleData (when an object is rendered, a link to the homepage is shown in what would usually be thought of as the linksModuleData section of the object).
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<Uri>,
+    pub homepage_uri: ::core::option::Option<::std::boxed::Box<Uri>>,
     /// Required. The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Required. The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "issuerName")]
-    pub issuer_name: Option<String>,
+    pub issuer_name: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#giftCardClass".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Links module data. If links module data is also defined on the object, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Translated strings for the card_number_label.
     #[serde(default, rename = "localizedCardNumberLabel")]
-    pub localized_card_number_label: Option<LocalizedString>,
+    pub localized_card_number_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the event_number_label.
     #[serde(default, rename = "localizedEventNumberLabel")]
-    pub localized_event_number_label: Option<LocalizedString>,
+    pub localized_event_number_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the issuer_name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedIssuerName")]
-    pub localized_issuer_name: Option<LocalizedString>,
+    pub localized_issuer_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the merchant_name. The app may display an ellipsis after the first 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedMerchantName")]
-    pub localized_merchant_name: Option<LocalizedString>,
+    pub localized_merchant_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the pin_label.
     #[serde(default, rename = "localizedPinLabel")]
-    pub localized_pin_label: Option<LocalizedString>,
+    pub localized_pin_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the class. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// Merchant name, such as "Adam''s Apparel". The app may display an ellipsis after the first 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "merchantName")]
-    pub merchant_name: Option<String>,
+    pub merchant_name: ::core::option::Option<String>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Identifies whether multiple users and devices will save the same object referencing this class. // TODO: enum values: ["STATUS_UNSPECIFIED", "MULTIPLE_HOLDERS", "ONE_USER_ALL_DEVICES", "ONE_USER_ONE_DEVICE", "multipleHolders", "oneUserAllDevices", "oneUserOneDevice"]
     #[serde(default, rename = "multipleDevicesAndHoldersAllowedStatus")]
-    pub multiple_devices_and_holders_allowed_status: Option<String>,
+    pub multiple_devices_and_holders_allowed_status: ::core::option::Option<String>,
     /// Whether or not field updates to this class should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If not specified, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// The label to display for the PIN, such as "4-digit PIN".
     #[serde(default, rename = "pinLabel")]
-    pub pin_label: Option<String>,
+    pub pin_label: ::core::option::Option<String>,
     /// The logo of the gift card program or company. This logo is displayed in both the details and list views of the app.
     #[serde(default, rename = "programLogo")]
-    pub program_logo: Option<Image>,
+    pub program_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Identifies which redemption issuers can redeem the pass over Smart Tap. Redemption issuers are identified by their issuer ID. Redemption issuers must have at least one Smart Tap key configured. The enableSmartTap and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "redemptionIssuers")]
-    pub redemption_issuers: Option<Vec<String>>,
+    pub redemption_issuers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The review comments set by the platform when a class is marked approved or rejected.
     #[serde(default)]
-    pub review: Option<Review>,
+    pub review: ::core::option::Option<::std::boxed::Box<Review>>,
     /// Required. The status of the class. This field can be set to draft or underReview using the insert, patch, or update API calls. Once the review state is changed from draft it may not be changed back to draft. You should keep this field to draft when the class is under development. A draft class cannot be used to create any object. You should set this field to underReview when you believe the class is ready for use. The platform will automatically set this field to approved and it can be immediately used to create or migrate objects. When updating an already approved class you should keep setting this field to underReview. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "UNDER_REVIEW", "underReview", "APPROVED", "approved", "REJECTED", "rejected", "DRAFT", "draft"]
     #[serde(default, rename = "reviewStatus")]
-    pub review_status: Option<String>,
+    pub review_status: ::core::option::Option<String>,
     /// Optional information about the security animation. If this is set a security animation will be rendered on pass details.
     #[serde(default, rename = "securityAnimation")]
-    pub security_animation: Option<SecurityAnimation>,
+    pub security_animation: ::core::option::Option<::std::boxed::Box<SecurityAnimation>>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// Optional value added module data. Maximum of fifteen on the class. For a pass only fifteen will be displayed, prioritizing those from the object.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// View Unlock Requirement options for the gift card. // TODO: enum values: ["VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED", "UNLOCK_NOT_REQUIRED", "UNLOCK_REQUIRED_TO_VIEW"]
     #[serde(default, rename = "viewUnlockRequirement")]
-    pub view_unlock_requirement: Option<String>,
+    pub view_unlock_requirement: ::core::option::Option<String>,
     /// The wide logo of the gift card program or company. When provided, this will be used in place of the program logo in the top left of the card view.
     #[serde(default, rename = "wideProgramLogo")]
-    pub wide_program_logo: Option<Image>,
+    pub wide_program_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Deprecated.
     #[serde(default, rename = "wordMark")]
-    pub word_mark: Option<Image>,
+    pub word_mark: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// GiftCardClassAddMessageResponse resource type.
@@ -1562,7 +1598,7 @@ pub struct GiftCardClass {
 pub struct GiftCardClassAddMessageResponse {
     /// The updated GiftCardClass resource.
     #[serde(default)]
-    pub resource: Option<GiftCardClass>,
+    pub resource: ::core::option::Option<::std::boxed::Box<GiftCardClass>>,
 }
 
 /// GiftCardClassListResponse resource type.
@@ -1570,10 +1606,10 @@ pub struct GiftCardClassAddMessageResponse {
 pub struct GiftCardClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<GiftCardClass>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GiftCardClass>>>,
 }
 
 /// GiftCardObject resource type.
@@ -1581,103 +1617,107 @@ pub struct GiftCardClassListResponse {
 pub struct GiftCardObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// The card''s monetary balance.
     #[serde(default)]
-    pub balance: Option<Money>,
+    pub balance: ::core::option::Option<::std::boxed::Box<Money>>,
     /// The date and time when the balance was last updated. Offset is required. If balance is updated and this property is not provided, system will default to the current time.
     #[serde(default, rename = "balanceUpdateTime")]
-    pub balance_update_time: Option<DateTime>,
+    pub balance_update_time: ::core::option::Option<::std::boxed::Box<DateTime>>,
     /// The barcode type and value.
     #[serde(default)]
-    pub barcode: Option<Barcode>,
+    pub barcode: ::core::option::Option<::std::boxed::Box<Barcode>>,
     /// Required. The card''s number.
     #[serde(default, rename = "cardNumber")]
-    pub card_number: Option<String>,
+    pub card_number: ::core::option::Option<String>,
     /// Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you.
     #[serde(default, rename = "classId")]
-    pub class_id: Option<String>,
+    pub class_id: ::core::option::Option<String>,
     /// A copy of the inherited fields of the parent class. These fields are retrieved during a GET.
     #[serde(default, rename = "classReference")]
-    pub class_reference: Option<GiftCardClass>,
+    pub class_reference: ::core::option::Option<::std::boxed::Box<GiftCardClass>>,
     /// Indicates if notifications should explicitly be suppressed. If this field is set to true, regardless of the messages field, expiration notifications to the user will be suppressed. By default, this field is set to false. Currently, this can only be set for offers.
     #[serde(default, rename = "disableExpirationNotification")]
-    pub disable_expiration_notification: Option<bool>,
+    pub disable_expiration_notification: ::core::option::Option<bool>,
     /// The card''s event number, an optional field used by some gift cards.
     #[serde(default, rename = "eventNumber")]
-    pub event_number: Option<String>,
+    pub event_number: ::core::option::Option<String>,
     /// Information that controls how passes are grouped together.
     #[serde(default, rename = "groupingInfo")]
-    pub grouping_info: Option<GroupingInfo>,
+    pub grouping_info: ::core::option::Option<::std::boxed::Box<GroupingInfo>>,
     /// Whether this object is currently linked to a single device. This field is set by the platform when a user saves the object, linking it to their device. Intended for use by select partners. Contact support for additional information.
     #[serde(default, rename = "hasLinkedDevice")]
-    pub has_linked_device: Option<bool>,
+    pub has_linked_device: ::core::option::Option<bool>,
     /// Indicates if the object has users. This field is set by the platform.
     #[serde(default, rename = "hasUsers")]
-    pub has_users: Option<bool>,
+    pub has_users: ::core::option::Option<bool>,
     /// Optional banner image displayed on the front of the card. If none is present, hero image of the class, if present, will be displayed. If hero image of the class is also not present, nothing will be displayed.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Required. The unique identifier for an object. This ID must be unique across all objects from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#giftCardObject".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this giftcard object. If a user had saved this gift card, then these linked_object_ids would be automatically pushed to the user''s wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID. identifier where the former is issued by Google and the latter is chosen by you.
     #[serde(default, rename = "linkedObjectIds")]
-    pub linked_object_ids: Option<Vec<String>>,
+    pub linked_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Links module data. If links module data is also defined on the class, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the object. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Whether or not field updates to this object should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If set to DO_NOT_NOTIFY or NOTIFICATION_SETTINGS_UNSPECIFIED, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Pass constraints for the object. Includes limiting NFC and screenshot behaviors.
     #[serde(default, rename = "passConstraints")]
-    pub pass_constraints: Option<PassConstraints>,
+    pub pass_constraints: ::core::option::Option<::std::boxed::Box<PassConstraints>>,
     /// The card''s PIN.
     #[serde(default)]
-    pub pin: Option<String>,
+    pub pin: ::core::option::Option<String>,
     /// The rotating barcode type and value.
     #[serde(default, rename = "rotatingBarcode")]
-    pub rotating_barcode: Option<RotatingBarcode>,
+    pub rotating_barcode: ::core::option::Option<::std::boxed::Box<RotatingBarcode>>,
     /// Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.
     #[serde(default, rename = "saveRestrictions")]
-    pub save_restrictions: Option<SaveRestrictions>,
+    pub save_restrictions: ::core::option::Option<::std::boxed::Box<SaveRestrictions>>,
     /// The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields enableSmartTap and redemptionIssuers must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported.
     #[serde(default, rename = "smartTapRedemptionValue")]
-    pub smart_tap_redemption_value: Option<String>,
+    pub smart_tap_redemption_value: ::core::option::Option<String>,
     /// Required. The state of the object. This field is used to determine how an object is displayed in the app. For example, an inactive object is moved to the "Expired passes" section. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "active", "COMPLETED", "completed", "EXPIRED", "expired", "INACTIVE", "inactive"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// The time period this object will be active and object can be used. An object''s state will be changed to expired when this time period has passed.
     #[serde(default, rename = "validTimeInterval")]
-    pub valid_time_interval: Option<TimeInterval>,
+    pub valid_time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// Optional value added module data. Maximum of fifteen on the object. For a pass only fifteen will be displayed.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// GiftCardObjectAddMessageResponse resource type.
@@ -1685,7 +1725,7 @@ pub struct GiftCardObject {
 pub struct GiftCardObjectAddMessageResponse {
     /// The updated GiftCardObject resource.
     #[serde(default)]
-    pub resource: Option<GiftCardObject>,
+    pub resource: ::core::option::Option<::std::boxed::Box<GiftCardObject>>,
 }
 
 /// GiftCardObjectListResponse resource type.
@@ -1693,10 +1733,10 @@ pub struct GiftCardObjectAddMessageResponse {
 pub struct GiftCardObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<GiftCardObject>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GiftCardObject>>>,
 }
 
 /// GroupingInfo resource type.
@@ -1704,10 +1744,10 @@ pub struct GiftCardObjectListResponse {
 pub struct GroupingInfo {
     /// Optional grouping ID for grouping the passes with the same ID visually together. Grouping with different types of passes is allowed.
     #[serde(default, rename = "groupingId")]
-    pub grouping_id: Option<String>,
+    pub grouping_id: ::core::option::Option<String>,
     /// Optional index for sorting the passes when they are grouped with other passes. Passes with lower sort index are shown before passes with higher sort index. If unspecified, the value is assumed to be INT_MAX. For two passes with the same sort index, the sorting behavior is undefined.
     #[serde(default, rename = "sortIndex")]
-    pub sort_index: Option<i32>,
+    pub sort_index: ::core::option::Option<i32>,
 }
 
 /// Wrapping type for Google hosted images.
@@ -1715,16 +1755,16 @@ pub struct GroupingInfo {
 pub struct Image {
     /// Description of the image used for accessibility.
     #[serde(default, rename = "contentDescription")]
-    pub content_description: Option<LocalizedString>,
+    pub content_description: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#image".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// An ID for an already uploaded private image. Either this or source_uri should be set. Requests setting both or neither will be rejected. Please contact support to use private images.
     #[serde(default, rename = "privateImageId")]
-    pub private_image_id: Option<String>,
+    pub private_image_id: ::core::option::Option<String>,
     /// A URI for the image. Either this or private_image_id should be set. Requests setting both or neither will be rejected.
     #[serde(default, rename = "sourceUri")]
-    pub source_uri: Option<ImageUri>,
+    pub source_uri: ::core::option::Option<::std::boxed::Box<ImageUri>>,
 }
 
 /// ImageModuleData resource type.
@@ -1732,10 +1772,10 @@ pub struct Image {
 pub struct ImageModuleData {
     /// The ID associated with an image module. This field is here to enable ease of management of image modules.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// A 100% width image.
     #[serde(default, rename = "mainImage")]
-    pub main_image: Option<Image>,
+    pub main_image: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// ImageUri resource type.
@@ -1743,13 +1783,13 @@ pub struct ImageModuleData {
 pub struct ImageUri {
     /// Additional information about the image, which is unused and retained only for backward compatibility.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Translated strings for the description, which are unused and retained only for backward compatibility.
     #[serde(default, rename = "localizedDescription")]
-    pub localized_description: Option<LocalizedString>,
+    pub localized_description: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The location of the image. URIs must have a scheme.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// InfoModuleData resource type.
@@ -1757,9 +1797,9 @@ pub struct ImageUri {
 pub struct InfoModuleData {
     /// A list of collections of labels and values. These will be displayed one after the other in a singular column.
     #[serde(default, rename = "labelValueRows")]
-    pub label_value_rows: Option<Vec<LabelValueRow>>,
+    pub label_value_rows: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelValueRow>>>,
     #[serde(default, rename = "showLastUpdateTime")]
-    pub show_last_update_time: Option<bool>,
+    pub show_last_update_time: ::core::option::Option<bool>,
 }
 
 /// Issuer resource type.
@@ -1767,22 +1807,22 @@ pub struct InfoModuleData {
 pub struct Issuer {
     /// Allows the issuer to provide their callback settings.
     #[serde(default, rename = "callbackOptions")]
-    pub callback_options: Option<CallbackOptions>,
+    pub callback_options: ::core::option::Option<::std::boxed::Box<CallbackOptions>>,
     /// Issuer contact information.
     #[serde(default, rename = "contactInfo")]
-    pub contact_info: Option<IssuerContactInfo>,
+    pub contact_info: ::core::option::Option<::std::boxed::Box<IssuerContactInfo>>,
     /// URL for the issuer''s home page.
     #[serde(default, rename = "homepageUrl")]
-    pub homepage_url: Option<String>,
+    pub homepage_url: ::core::option::Option<String>,
     /// The unique identifier for an issuer account. This is automatically generated when the issuer is inserted.
     #[serde(default, rename = "issuerId")]
-    pub issuer_id: Option<String>,
+    pub issuer_id: ::core::option::Option<String>,
     /// The account name of the issuer.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Available only to Smart Tap enabled partners. Contact support for additional guidance.
     #[serde(default, rename = "smartTapMerchantData")]
-    pub smart_tap_merchant_data: Option<SmartTapMerchantData>,
+    pub smart_tap_merchant_data: ::core::option::Option<::std::boxed::Box<SmartTapMerchantData>>,
 }
 
 /// IssuerContactInfo resource type.
@@ -1790,16 +1830,16 @@ pub struct Issuer {
 pub struct IssuerContactInfo {
     /// Email addresses which will receive alerts.
     #[serde(default, rename = "alertsEmails")]
-    pub alerts_emails: Option<Vec<String>>,
+    pub alerts_emails: ::core::option::Option<::std::vec::Vec<String>>,
     /// The primary contact email address.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The primary contact name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The primary contact phone number.
     #[serde(default)]
-    pub phone: Option<String>,
+    pub phone: ::core::option::Option<String>,
 }
 
 /// IssuerListResponse resource type.
@@ -1807,7 +1847,7 @@ pub struct IssuerContactInfo {
 pub struct IssuerListResponse {
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<Issuer>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Issuer>>>,
 }
 
 /// IssuerToUserInfo resource type.
@@ -1815,15 +1855,15 @@ pub struct IssuerListResponse {
 pub struct IssuerToUserInfo {
     /// TODO: enum values: ["ACTION_UNSPECIFIED", "S2AP", "s2ap", "SIGN_UP", "signUp"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     #[serde(default, rename = "signUpInfo")]
-    pub sign_up_info: Option<SignUpInfo>,
+    pub sign_up_info: ::core::option::Option<::std::boxed::Box<SignUpInfo>>,
     /// Currently not used, consider deprecating.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
     /// JSON web token for action S2AP.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// JwtInsertResponse resource type.
@@ -1831,10 +1871,10 @@ pub struct IssuerToUserInfo {
 pub struct JwtInsertResponse {
     /// Data that corresponds to the ids of the provided classes and objects in the JWT. resources will only include the non-empty arrays (i.e. if the JWT only includes eventTicketObjects, then that is the only field that will be present in resources).
     #[serde(default)]
-    pub resources: Option<Resources>,
+    pub resources: ::core::option::Option<::std::boxed::Box<Resources>>,
     /// A URI that, when opened, will allow the end user to save the object(s) identified in the JWT to their Google account.
     #[serde(default, rename = "saveUri")]
-    pub save_uri: Option<String>,
+    pub save_uri: ::core::option::Option<String>,
 }
 
 /// A JWT representation of a pass.
@@ -1842,7 +1882,7 @@ pub struct JwtInsertResponse {
 pub struct JwtResource {
     /// Required. A string representing a JWT of the format described at https://developers.google.com/wallet/reference/rest/v1/Jwt
     #[serde(default)]
-    pub jwt: Option<String>,
+    pub jwt: ::core::option::Option<String>,
 }
 
 /// A pair of text strings to be displayed in the details view. Note we no longer display LabelValue/LabelValueRow as a table, instead a list of items.
@@ -1850,16 +1890,16 @@ pub struct JwtResource {
 pub struct LabelValue {
     /// The label for a specific row and column. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Translated strings for the label. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.
     #[serde(default, rename = "localizedLabel")]
-    pub localized_label: Option<LocalizedString>,
+    pub localized_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the value. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.
     #[serde(default, rename = "localizedValue")]
-    pub localized_value: Option<LocalizedString>,
+    pub localized_value: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The value for a specific row and column. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// LabelValueRow resource type.
@@ -1867,7 +1907,7 @@ pub struct LabelValue {
 pub struct LabelValueRow {
     /// A list of labels and values. These will be displayed in a singular column, one after the other, not in multiple columns, despite the field name.
     #[serde(default)]
-    pub columns: Option<Vec<LabelValue>>,
+    pub columns: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LabelValue>>>,
 }
 
 /// LatLongPoint resource type.
@@ -1875,13 +1915,13 @@ pub struct LabelValueRow {
 pub struct LatLongPoint {
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#latLongPoint".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The latitude specified as any value in the range of -90.0 through +90.0, both inclusive. Values outside these bounds will be rejected.
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     /// The longitude specified in the range -180.0 through +180.0, both inclusive. Values outside these bounds will be rejected.
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
 }
 
 /// LinksModuleData resource type.
@@ -1889,7 +1929,7 @@ pub struct LatLongPoint {
 pub struct LinksModuleData {
     /// The list of URIs.
     #[serde(default)]
-    pub uris: Option<Vec<Uri>>,
+    pub uris: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Uri>>>,
 }
 
 /// ListTemplateOverride resource type.
@@ -1897,13 +1937,13 @@ pub struct LinksModuleData {
 pub struct ListTemplateOverride {
     /// Specifies from a predefined set of options or from a reference to the field what will be displayed in the first row. To set this override, set the FirstRowOption.fieldOption to the FieldSelector of your choice.
     #[serde(default, rename = "firstRowOption")]
-    pub first_row_option: Option<FirstRowOption>,
+    pub first_row_option: ::core::option::Option<::std::boxed::Box<FirstRowOption>>,
     /// A reference to the field to be displayed in the second row. This option is only displayed if there are not multiple user objects in a group. If there is a group, the second row will always display a field shared by all objects. To set this override, please set secondRowOption to the FieldSelector of you choice.
     #[serde(default, rename = "secondRowOption")]
-    pub second_row_option: Option<FieldSelector>,
+    pub second_row_option: ::core::option::Option<::std::boxed::Box<FieldSelector>>,
     /// An unused/deprecated field. Setting it will have no effect on what the user sees.
     #[serde(default, rename = "thirdRowOption")]
-    pub third_row_option: Option<FieldSelector>,
+    pub third_row_option: ::core::option::Option<::std::boxed::Box<FieldSelector>>,
 }
 
 /// LocalizedString resource type.
@@ -1911,13 +1951,14 @@ pub struct ListTemplateOverride {
 pub struct LocalizedString {
     /// Contains the string to be displayed if no appropriate translation is available.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<TranslatedString>,
+    pub default_value: ::core::option::Option<::std::boxed::Box<TranslatedString>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#localizedString".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Contains the translations for the string.
     #[serde(default, rename = "translatedValues")]
-    pub translated_values: Option<Vec<TranslatedString>>,
+    pub translated_values:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TranslatedString>>>,
 }
 
 /// LoyaltyClass resource type.
@@ -1925,145 +1966,151 @@ pub struct LocalizedString {
 pub struct LoyaltyClass {
     /// The account ID label, such as "Member ID." Recommended maximum length is 15 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "accountIdLabel")]
-    pub account_id_label: Option<String>,
+    pub account_id_label: ::core::option::Option<String>,
     /// The account name label, such as "Member Name." Recommended maximum length is 15 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "accountNameLabel")]
-    pub account_name_label: Option<String>,
+    pub account_name_label: ::core::option::Option<String>,
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
-    pub allow_multiple_users_per_object: Option<bool>,
+    pub allow_multiple_users_per_object: ::core::option::Option<bool>,
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.
     #[serde(default, rename = "callbackOptions")]
-    pub callback_options: Option<CallbackOptions>,
+    pub callback_options: ::core::option::Option<::std::boxed::Box<CallbackOptions>>,
     /// Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.
     #[serde(default, rename = "classTemplateInfo")]
-    pub class_template_info: Option<ClassTemplateInfo>,
+    pub class_template_info: ::core::option::Option<::std::boxed::Box<ClassTemplateInfo>>,
     /// Country code used to display the card''s country (when the user is not in that country), as well as to display localized content when content is not available in the user''s locale.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// Information about how the class may be discovered and instantiated from within the Google Pay app.
     #[serde(default, rename = "discoverableProgram")]
-    pub discoverable_program: Option<DiscoverableProgram>,
+    pub discoverable_program: ::core::option::Option<::std::boxed::Box<DiscoverableProgram>>,
     /// Identifies whether this class supports Smart Tap. The redemptionIssuers and one of object level smartTapRedemptionLevel, barcode.value, or accountId fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "enableSmartTap")]
-    pub enable_smart_tap: Option<bool>,
+    pub enable_smart_tap: ::core::option::Option<bool>,
     /// Optional banner image displayed on the front of the card. If none is present, nothing will be displayed. The image will display at 100% width.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// The URI of your application''s home page. Populating the URI in this field results in the exact same behavior as populating an URI in linksModuleData (when an object is rendered, a link to the homepage is shown in what would usually be thought of as the linksModuleData section of the object).
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<Uri>,
+    pub homepage_uri: ::core::option::Option<::std::boxed::Box<Uri>>,
     /// Required. The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Required. The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "issuerName")]
-    pub issuer_name: Option<String>,
+    pub issuer_name: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#loyaltyClass".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Links module data. If links module data is also defined on the object, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Translated strings for the account_id_label. Recommended maximum length is 15 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedAccountIdLabel")]
-    pub localized_account_id_label: Option<LocalizedString>,
+    pub localized_account_id_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the account_name_label. Recommended maximum length is 15 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedAccountNameLabel")]
-    pub localized_account_name_label: Option<LocalizedString>,
+    pub localized_account_name_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the issuer_name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedIssuerName")]
-    pub localized_issuer_name: Option<LocalizedString>,
+    pub localized_issuer_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the program_name. The app may display an ellipsis after the first 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedProgramName")]
-    pub localized_program_name: Option<LocalizedString>,
+    pub localized_program_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the rewards_tier. Recommended maximum length is 7 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedRewardsTier")]
-    pub localized_rewards_tier: Option<LocalizedString>,
+    pub localized_rewards_tier: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the rewards_tier_label. Recommended maximum length is 9 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedRewardsTierLabel")]
-    pub localized_rewards_tier_label: Option<LocalizedString>,
+    pub localized_rewards_tier_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the secondary_rewards_tier.
     #[serde(default, rename = "localizedSecondaryRewardsTier")]
-    pub localized_secondary_rewards_tier: Option<LocalizedString>,
+    pub localized_secondary_rewards_tier:
+        ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the secondary_rewards_tier_label.
     #[serde(default, rename = "localizedSecondaryRewardsTierLabel")]
-    pub localized_secondary_rewards_tier_label: Option<LocalizedString>,
+    pub localized_secondary_rewards_tier_label:
+        ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the class. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Identifies whether multiple users and devices will save the same object referencing this class. // TODO: enum values: ["STATUS_UNSPECIFIED", "MULTIPLE_HOLDERS", "ONE_USER_ALL_DEVICES", "ONE_USER_ONE_DEVICE", "multipleHolders", "oneUserAllDevices", "oneUserOneDevice"]
     #[serde(default, rename = "multipleDevicesAndHoldersAllowedStatus")]
-    pub multiple_devices_and_holders_allowed_status: Option<String>,
+    pub multiple_devices_and_holders_allowed_status: ::core::option::Option<String>,
     /// Whether or not field updates to this class should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If not specified, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Required. The logo of the loyalty program or company. This logo is displayed in both the details and list views of the app.
     #[serde(default, rename = "programLogo")]
-    pub program_logo: Option<Image>,
+    pub program_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Required. The program name, such as "Adam''s Apparel". The app may display an ellipsis after the first 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "programName")]
-    pub program_name: Option<String>,
+    pub program_name: ::core::option::Option<String>,
     /// Identifies which redemption issuers can redeem the pass over Smart Tap. Redemption issuers are identified by their issuer ID. Redemption issuers must have at least one Smart Tap key configured. The enableSmartTap and one of object level smartTapRedemptionValue, barcode.value, or accountId fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "redemptionIssuers")]
-    pub redemption_issuers: Option<Vec<String>>,
+    pub redemption_issuers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The review comments set by the platform when a class is marked approved or rejected.
     #[serde(default)]
-    pub review: Option<Review>,
+    pub review: ::core::option::Option<::std::boxed::Box<Review>>,
     /// Required. The status of the class. This field can be set to draft or underReview using the insert, patch, or update API calls. Once the review state is changed from draft it may not be changed back to draft. You should keep this field to draft when the class is under development. A draft class cannot be used to create any object. You should set this field to underReview when you believe the class is ready for use. The platform will automatically set this field to approved and it can be immediately used to create or migrate objects. When updating an already approved class you should keep setting this field to underReview. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "UNDER_REVIEW", "underReview", "APPROVED", "approved", "REJECTED", "rejected", "DRAFT", "draft"]
     #[serde(default, rename = "reviewStatus")]
-    pub review_status: Option<String>,
+    pub review_status: ::core::option::Option<String>,
     /// The rewards tier, such as "Gold" or "Platinum." Recommended maximum length is 7 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "rewardsTier")]
-    pub rewards_tier: Option<String>,
+    pub rewards_tier: ::core::option::Option<String>,
     /// The rewards tier label, such as "Rewards Tier." Recommended maximum length is 9 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "rewardsTierLabel")]
-    pub rewards_tier_label: Option<String>,
+    pub rewards_tier_label: ::core::option::Option<String>,
     /// The secondary rewards tier, such as "Gold" or "Platinum."
     #[serde(default, rename = "secondaryRewardsTier")]
-    pub secondary_rewards_tier: Option<String>,
+    pub secondary_rewards_tier: ::core::option::Option<String>,
     /// The secondary rewards tier label, such as "Rewards Tier."
     #[serde(default, rename = "secondaryRewardsTierLabel")]
-    pub secondary_rewards_tier_label: Option<String>,
+    pub secondary_rewards_tier_label: ::core::option::Option<String>,
     /// Optional information about the security animation. If this is set a security animation will be rendered on pass details.
     #[serde(default, rename = "securityAnimation")]
-    pub security_animation: Option<SecurityAnimation>,
+    pub security_animation: ::core::option::Option<::std::boxed::Box<SecurityAnimation>>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// Optional value added module data. Maximum of fifteen on the class. For a pass only fifteen will be displayed, prioritizing those from the object.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// View Unlock Requirement options for the loyalty card. // TODO: enum values: ["VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED", "UNLOCK_NOT_REQUIRED", "UNLOCK_REQUIRED_TO_VIEW"]
     #[serde(default, rename = "viewUnlockRequirement")]
-    pub view_unlock_requirement: Option<String>,
+    pub view_unlock_requirement: ::core::option::Option<String>,
     /// The wide logo of the loyalty program or company. When provided, this will be used in place of the program logo in the top left of the card view.
     #[serde(default, rename = "wideProgramLogo")]
-    pub wide_program_logo: Option<Image>,
+    pub wide_program_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Deprecated.
     #[serde(default, rename = "wordMark")]
-    pub word_mark: Option<Image>,
+    pub word_mark: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// LoyaltyClassAddMessageResponse resource type.
@@ -2071,7 +2118,7 @@ pub struct LoyaltyClass {
 pub struct LoyaltyClassAddMessageResponse {
     /// The updated LoyaltyClass resource.
     #[serde(default)]
-    pub resource: Option<LoyaltyClass>,
+    pub resource: ::core::option::Option<::std::boxed::Box<LoyaltyClass>>,
 }
 
 /// LoyaltyClassListResponse resource type.
@@ -2079,10 +2126,10 @@ pub struct LoyaltyClassAddMessageResponse {
 pub struct LoyaltyClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<LoyaltyClass>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LoyaltyClass>>>,
 }
 
 /// LoyaltyObject resource type.
@@ -2090,103 +2137,107 @@ pub struct LoyaltyClassListResponse {
 pub struct LoyaltyObject {
     /// The loyalty account identifier. Recommended maximum length is 20 characters.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The loyalty account holder name, such as "John Smith." Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "accountName")]
-    pub account_name: Option<String>,
+    pub account_name: ::core::option::Option<String>,
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// The barcode type and value.
     #[serde(default)]
-    pub barcode: Option<Barcode>,
+    pub barcode: ::core::option::Option<::std::boxed::Box<Barcode>>,
     /// Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you.
     #[serde(default, rename = "classId")]
-    pub class_id: Option<String>,
+    pub class_id: ::core::option::Option<String>,
     /// A copy of the inherited fields of the parent class. These fields are retrieved during a GET.
     #[serde(default, rename = "classReference")]
-    pub class_reference: Option<LoyaltyClass>,
+    pub class_reference: ::core::option::Option<::std::boxed::Box<LoyaltyClass>>,
     /// Indicates if notifications should explicitly be suppressed. If this field is set to true, regardless of the messages field, expiration notifications to the user will be suppressed. By default, this field is set to false. Currently, this can only be set for offers.
     #[serde(default, rename = "disableExpirationNotification")]
-    pub disable_expiration_notification: Option<bool>,
+    pub disable_expiration_notification: ::core::option::Option<bool>,
     /// Information that controls how passes are grouped together.
     #[serde(default, rename = "groupingInfo")]
-    pub grouping_info: Option<GroupingInfo>,
+    pub grouping_info: ::core::option::Option<::std::boxed::Box<GroupingInfo>>,
     /// Whether this object is currently linked to a single device. This field is set by the platform when a user saves the object, linking it to their device. Intended for use by select partners. Contact support for additional information.
     #[serde(default, rename = "hasLinkedDevice")]
-    pub has_linked_device: Option<bool>,
+    pub has_linked_device: ::core::option::Option<bool>,
     /// Indicates if the object has users. This field is set by the platform.
     #[serde(default, rename = "hasUsers")]
-    pub has_users: Option<bool>,
+    pub has_users: ::core::option::Option<bool>,
     /// Optional banner image displayed on the front of the card. If none is present, hero image of the class, if present, will be displayed. If hero image of the class is also not present, nothing will be displayed.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Required. The unique identifier for an object. This ID must be unique across all objects from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#loyaltyObject".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this loyalty object. If a user had saved this loyalty card, then these linked_object_ids would be automatically pushed to the user''s wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID. identifier where the former is issued by Google and the latter is chosen by you.
     #[serde(default, rename = "linkedObjectIds")]
-    pub linked_object_ids: Option<Vec<String>>,
+    pub linked_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// A list of offer objects linked to this loyalty card. The offer objects must already exist. Offer object IDs should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you.
     #[serde(default, rename = "linkedOfferIds")]
-    pub linked_offer_ids: Option<Vec<String>>,
+    pub linked_offer_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Links module data. If links module data is also defined on the class, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// The loyalty reward points label, balance, and type.
     #[serde(default, rename = "loyaltyPoints")]
-    pub loyalty_points: Option<LoyaltyPoints>,
+    pub loyalty_points: ::core::option::Option<::std::boxed::Box<LoyaltyPoints>>,
     /// Merchant locations. There is a maximum of ten on the object. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Whether or not field updates to this object should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If set to DO_NOT_NOTIFY or NOTIFICATION_SETTINGS_UNSPECIFIED, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Pass constraints for the object. Includes limiting NFC and screenshot behaviors.
     #[serde(default, rename = "passConstraints")]
-    pub pass_constraints: Option<PassConstraints>,
+    pub pass_constraints: ::core::option::Option<::std::boxed::Box<PassConstraints>>,
     /// The rotating barcode type and value.
     #[serde(default, rename = "rotatingBarcode")]
-    pub rotating_barcode: Option<RotatingBarcode>,
+    pub rotating_barcode: ::core::option::Option<::std::boxed::Box<RotatingBarcode>>,
     /// Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.
     #[serde(default, rename = "saveRestrictions")]
-    pub save_restrictions: Option<SaveRestrictions>,
+    pub save_restrictions: ::core::option::Option<::std::boxed::Box<SaveRestrictions>>,
     /// The secondary loyalty reward points label, balance, and type. Shown in addition to the primary loyalty points.
     #[serde(default, rename = "secondaryLoyaltyPoints")]
-    pub secondary_loyalty_points: Option<LoyaltyPoints>,
+    pub secondary_loyalty_points: ::core::option::Option<::std::boxed::Box<LoyaltyPoints>>,
     /// The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields enableSmartTap and redemptionIssuers must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported. If this value is not set but the class level fields enableSmartTap and redemptionIssuers are set up correctly, the barcode.value or the accountId fields are used as fallback if present.
     #[serde(default, rename = "smartTapRedemptionValue")]
-    pub smart_tap_redemption_value: Option<String>,
+    pub smart_tap_redemption_value: ::core::option::Option<String>,
     /// Required. The state of the object. This field is used to determine how an object is displayed in the app. For example, an inactive object is moved to the "Expired passes" section. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "active", "COMPLETED", "completed", "EXPIRED", "expired", "INACTIVE", "inactive"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// The time period this object will be active and object can be used. An object''s state will be changed to expired when this time period has passed.
     #[serde(default, rename = "validTimeInterval")]
-    pub valid_time_interval: Option<TimeInterval>,
+    pub valid_time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// Optional value added module data. Maximum of fifteen on the object. For a pass only fifteen will be displayed.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// LoyaltyObjectAddMessageResponse resource type.
@@ -2194,7 +2245,7 @@ pub struct LoyaltyObject {
 pub struct LoyaltyObjectAddMessageResponse {
     /// The updated LoyaltyObject resource.
     #[serde(default)]
-    pub resource: Option<LoyaltyObject>,
+    pub resource: ::core::option::Option<::std::boxed::Box<LoyaltyObject>>,
 }
 
 /// LoyaltyObjectListResponse resource type.
@@ -2202,10 +2253,10 @@ pub struct LoyaltyObjectAddMessageResponse {
 pub struct LoyaltyObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<LoyaltyObject>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LoyaltyObject>>>,
 }
 
 /// LoyaltyPoints resource type.
@@ -2213,13 +2264,13 @@ pub struct LoyaltyObjectListResponse {
 pub struct LoyaltyPoints {
     /// The account holder''s loyalty point balance, such as "500" or "$10.00". Recommended maximum length is 7 characters. This is a required field of loyaltyPoints and secondaryLoyaltyPoints.
     #[serde(default)]
-    pub balance: Option<LoyaltyPointsBalance>,
+    pub balance: ::core::option::Option<::std::boxed::Box<LoyaltyPointsBalance>>,
     /// The loyalty points label, such as "Points". Recommended maximum length is 9 characters.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Translated strings for the label. Recommended maximum length is 9 characters.
     #[serde(default, rename = "localizedLabel")]
-    pub localized_label: Option<LocalizedString>,
+    pub localized_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// LoyaltyPointsBalance resource type.
@@ -2227,16 +2278,16 @@ pub struct LoyaltyPoints {
 pub struct LoyaltyPointsBalance {
     /// The double form of a balance. Only one of these subtypes (string, int, double, money) should be populated.
     #[serde(default)]
-    pub double: Option<f64>,
+    pub double: ::core::option::Option<f64>,
     /// The integer form of a balance. Only one of these subtypes (string, int, double, money) should be populated.
     #[serde(default)]
-    pub int: Option<i32>,
+    pub int: ::core::option::Option<i32>,
     /// The money form of a balance. Only one of these subtypes (string, int, double, money) should be populated.
     #[serde(default)]
-    pub money: Option<Money>,
+    pub money: ::core::option::Option<::std::boxed::Box<Money>>,
     /// The string form of a balance. Only one of these subtypes (string, int, double, money) should be populated.
     #[serde(default)]
-    pub string: Option<String>,
+    pub string: ::core::option::Option<String>,
 }
 
 /// A reference to data stored on the filesystem, on GFS or in blobstore.
@@ -2244,94 +2295,94 @@ pub struct LoyaltyPointsBalance {
 pub struct Media {
     /// Deprecated, use one of explicit hash type fields instead. Algorithm used for calculating the hash. As of 2011/01/21, "MD5" is the only possible value for this field. New values may be added at any time.
     #[serde(default)]
-    pub algorithm: Option<String>,
+    pub algorithm: ::core::option::Option<String>,
     /// Use object_id instead.
     #[serde(default, rename = "bigstoreObjectRef")]
-    pub bigstore_object_ref: Option<String>,
+    pub bigstore_object_ref: ::core::option::Option<String>,
     /// Blobstore v1 reference, set if reference_type is BLOBSTORE_REF This should be the byte representation of a blobstore.BlobRef. Since Blobstore is deprecating v1, use blobstore2_info instead. For now, any v2 blob will also be represented in this field as v1 BlobRef.
     #[serde(default, rename = "blobRef")]
-    pub blob_ref: Option<String>,
+    pub blob_ref: ::core::option::Option<String>,
     /// Blobstore v2 info, set if reference_type is BLOBSTORE_REF and it refers to a v2 blob.
     #[serde(default, rename = "blobstore2Info")]
-    pub blobstore2_info: Option<Blobstore2Info>,
+    pub blobstore2_info: ::core::option::Option<::std::boxed::Box<Blobstore2Info>>,
     /// A composite media composed of one or more media objects, set if reference_type is COMPOSITE_MEDIA. The media length field must be set to the sum of the lengths of all composite media objects. Note: All composite media must have length specified.
     #[serde(default, rename = "compositeMedia")]
-    pub composite_media: Option<Vec<CompositeMedia>>,
+    pub composite_media: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CompositeMedia>>>,
     /// MIME type of the data
     #[serde(default, rename = "contentType")]
-    pub content_type: Option<String>,
+    pub content_type: ::core::option::Option<String>,
     /// Extended content type information provided for Scotty uploads.
     #[serde(default, rename = "contentTypeInfo")]
-    pub content_type_info: Option<ContentTypeInfo>,
+    pub content_type_info: ::core::option::Option<::std::boxed::Box<ContentTypeInfo>>,
     /// A binary data reference for a media download. Serves as a technology-agnostic binary reference in some Google infrastructure. This value is a serialized storage_cosmo.BinaryReference proto. Storing it as bytes is a hack to get around the fact that the cosmo proto (as well as others it includes) doesn''t support JavaScript. This prevents us from including the actual type of this field.
     #[serde(default, rename = "cosmoBinaryReference")]
-    pub cosmo_binary_reference: Option<String>,
+    pub cosmo_binary_reference: ::core::option::Option<String>,
     /// For Scotty Uploads: Scotty-provided hashes for uploads For Scotty Downloads: (WARNING: DO NOT USE WITHOUT PERMISSION FROM THE SCOTTY TEAM.) A Hash provided by the agent to be used to verify the data being downloaded. Currently only supported for inline payloads. Further, only crc32c_hash is currently supported.
     #[serde(default, rename = "crc32cHash")]
-    pub crc32c_hash: Option<i64>,
+    pub crc32c_hash: ::core::option::Option<i64>,
     /// Set if reference_type is DIFF_CHECKSUMS_RESPONSE.
     #[serde(default, rename = "diffChecksumsResponse")]
-    pub diff_checksums_response: Option<DiffChecksumsResponse>,
+    pub diff_checksums_response: ::core::option::Option<::std::boxed::Box<DiffChecksumsResponse>>,
     /// Set if reference_type is DIFF_DOWNLOAD_RESPONSE.
     #[serde(default, rename = "diffDownloadResponse")]
-    pub diff_download_response: Option<DiffDownloadResponse>,
+    pub diff_download_response: ::core::option::Option<::std::boxed::Box<DiffDownloadResponse>>,
     /// Set if reference_type is DIFF_UPLOAD_REQUEST.
     #[serde(default, rename = "diffUploadRequest")]
-    pub diff_upload_request: Option<DiffUploadRequest>,
+    pub diff_upload_request: ::core::option::Option<::std::boxed::Box<DiffUploadRequest>>,
     /// Set if reference_type is DIFF_UPLOAD_RESPONSE.
     #[serde(default, rename = "diffUploadResponse")]
-    pub diff_upload_response: Option<DiffUploadResponse>,
+    pub diff_upload_response: ::core::option::Option<::std::boxed::Box<DiffUploadResponse>>,
     /// Set if reference_type is DIFF_VERSION_RESPONSE.
     #[serde(default, rename = "diffVersionResponse")]
-    pub diff_version_response: Option<DiffVersionResponse>,
+    pub diff_version_response: ::core::option::Option<::std::boxed::Box<DiffVersionResponse>>,
     /// Parameters for a media download.
     #[serde(default, rename = "downloadParameters")]
-    pub download_parameters: Option<DownloadParameters>,
+    pub download_parameters: ::core::option::Option<::std::boxed::Box<DownloadParameters>>,
     /// Original file name
     #[serde(default)]
-    pub filename: Option<String>,
+    pub filename: ::core::option::Option<String>,
     /// Deprecated, use one of explicit hash type fields instead. These two hash related fields will only be populated on Scotty based media uploads and will contain the content of the hash group in the NotificationRequest: http://cs/#google3/blobstore2/api/scotty/service/proto/upload_listener.proto&q=class:Hash Hex encoded hash value of the uploaded media.
     #[serde(default)]
-    pub hash: Option<String>,
+    pub hash: ::core::option::Option<String>,
     /// For Scotty uploads only. If a user sends a hash code and the backend has requested that Scotty verify the upload against the client hash, Scotty will perform the check on behalf of the backend and will reject it if the hashes don''t match. This is set to true if Scotty performed this verification.
     #[serde(default, rename = "hashVerified")]
-    pub hash_verified: Option<bool>,
+    pub hash_verified: ::core::option::Option<bool>,
     /// Media data, set if reference_type is INLINE
     #[serde(default)]
-    pub inline: Option<String>,
+    pub inline: ::core::option::Option<String>,
     /// |is_potential_retry| is set false only when Scotty is certain that it has not sent the request before. When a client resumes an upload, this field must be set true in agent calls, because Scotty cannot be certain that it has never sent the request before due to potential failure in the session state persistence.
     #[serde(default, rename = "isPotentialRetry")]
-    pub is_potential_retry: Option<bool>,
+    pub is_potential_retry: ::core::option::Option<bool>,
     /// Size of the data, in bytes
     #[serde(default)]
-    pub length: Option<String>,
+    pub length: ::core::option::Option<String>,
     /// Scotty-provided MD5 hash for an upload.
     #[serde(default, rename = "md5Hash")]
-    pub md5_hash: Option<String>,
+    pub md5_hash: ::core::option::Option<String>,
     /// Media id to forward to the operation GetMedia. Can be set if reference_type is GET_MEDIA.
     #[serde(default, rename = "mediaId")]
-    pub media_id: Option<String>,
+    pub media_id: ::core::option::Option<String>,
     /// Reference to a TI Blob, set if reference_type is BIGSTORE_REF.
     #[serde(default, rename = "objectId")]
-    pub object_id: Option<ObjectId>,
+    pub object_id: ::core::option::Option<::std::boxed::Box<ObjectId>>,
     /// Path to the data, set if reference_type is PATH
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Describes what the field reference contains. // TODO: enum values: ["PATH", "BLOB_REF", "INLINE", "GET_MEDIA", "COMPOSITE_MEDIA", "BIGSTORE_REF", "DIFF_VERSION_RESPONSE", "DIFF_CHECKSUMS_RESPONSE", "DIFF_DOWNLOAD_RESPONSE", "DIFF_UPLOAD_REQUEST", "DIFF_UPLOAD_RESPONSE", "COSMO_BINARY_REFERENCE", "ARBITRARY_BYTES"]
     #[serde(default, rename = "referenceType")]
-    pub reference_type: Option<String>,
+    pub reference_type: ::core::option::Option<String>,
     /// Scotty-provided SHA1 hash for an upload.
     #[serde(default, rename = "sha1Hash")]
-    pub sha1_hash: Option<String>,
+    pub sha1_hash: ::core::option::Option<String>,
     /// Scotty-provided SHA256 hash for an upload.
     #[serde(default, rename = "sha256Hash")]
-    pub sha256_hash: Option<String>,
+    pub sha256_hash: ::core::option::Option<String>,
     /// Time at which the media data was last updated, in milliseconds since UNIX epoch
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
     /// A unique fingerprint/version id for the media data
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// Extra information added to operations that support Scotty media requests.
@@ -2339,34 +2390,34 @@ pub struct Media {
 pub struct MediaRequestInfo {
     /// The number of current bytes uploaded or downloaded.
     #[serde(default, rename = "currentBytes")]
-    pub current_bytes: Option<String>,
+    pub current_bytes: ::core::option::Option<String>,
     /// Data to be copied to backend requests. Custom data is returned to Scotty in the agent_state field, which Scotty will then provide in subsequent upload notifications.
     #[serde(default, rename = "customData")]
-    pub custom_data: Option<String>,
+    pub custom_data: ::core::option::Option<String>,
     /// Set if the http request info is diff encoded. The value of this field is the version number of the base revision. This is corresponding to Apiary''s mediaDiffObjectVersion (//depot/google3/java/com/google/api/server/media/variable/DiffObjectVersionVariable.java). See go/esf-scotty-diff-upload for more information.
     #[serde(default, rename = "diffObjectVersion")]
-    pub diff_object_version: Option<String>,
+    pub diff_object_version: ::core::option::Option<String>,
     /// The existence of the final_status field indicates that this is the last call to the agent for this request_id. http://google3/uploader/agent/scotty_agent.proto?l=737&rcl=347601929
     #[serde(default, rename = "finalStatus")]
-    pub final_status: Option<i32>,
+    pub final_status: ::core::option::Option<i32>,
     /// The type of notification received from Scotty. // TODO: enum values: ["START", "PROGRESS", "END", "RESPONSE_SENT", "ERROR"]
     #[serde(default, rename = "notificationType")]
-    pub notification_type: Option<String>,
+    pub notification_type: ::core::option::Option<String>,
     /// The physical headers provided by RequestReceivedParameters in Scotty request. type is uploader_service.KeyValuePairs.
     #[serde(default, rename = "physicalHeaders")]
-    pub physical_headers: Option<String>,
+    pub physical_headers: ::core::option::Option<String>,
     /// The Scotty request ID.
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// The partition of the Scotty server handling this request. type is uploader_service.RequestReceivedParamsServingInfo LINT.IfChange(request_received_params_serving_info_annotations) LINT.ThenChange()
     #[serde(default, rename = "requestReceivedParamsServingInfo")]
-    pub request_received_params_serving_info: Option<String>,
+    pub request_received_params_serving_info: ::core::option::Option<String>,
     /// The total size of the file.
     #[serde(default, rename = "totalBytes")]
-    pub total_bytes: Option<String>,
+    pub total_bytes: ::core::option::Option<String>,
     /// Whether the total bytes field contains an estimated data.
     #[serde(default, rename = "totalBytesIsEstimated")]
-    pub total_bytes_is_estimated: Option<bool>,
+    pub total_bytes_is_estimated: ::core::option::Option<bool>,
 }
 
 /// Locations of interest for this class or object. Currently, this location is used for geofenced notifications. When a user is within a set radius of this lat/long, and dwells there, Google will trigger a notification. When a user exits this radius, the notification will be hidden.
@@ -2374,10 +2425,10 @@ pub struct MediaRequestInfo {
 pub struct MerchantLocation {
     /// The latitude specified as any value in the range of -90.0 through +90.0, both inclusive. Values outside these bounds will be rejected.
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     /// The longitude specified in the range -180.0 through +180.0, both inclusive. Values outside these bounds will be rejected.
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
 }
 
 /// A message that will be displayed with a Valuable
@@ -2385,28 +2436,28 @@ pub struct MerchantLocation {
 pub struct Message {
     /// The message body.
     #[serde(default)]
-    pub body: Option<String>,
+    pub body: ::core::option::Option<String>,
     /// The period of time that the message will be displayed to users. You can define both a startTime and endTime for each message. A message is displayed immediately after a Wallet Object is inserted unless a startTime is set. The message will appear in a list of messages indefinitely if endTime is not provided.
     #[serde(default, rename = "displayInterval")]
-    pub display_interval: Option<TimeInterval>,
+    pub display_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// The message header.
     #[serde(default)]
-    pub header: Option<String>,
+    pub header: ::core::option::Option<String>,
     /// The ID associated with a message. This field is here to enable ease of management of messages. Notice ID values could possibly duplicate across multiple messages in the same class/instance, and care must be taken to select a reasonable ID for each message.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#walletObjectMessage".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Translated strings for the message body.
     #[serde(default, rename = "localizedBody")]
-    pub localized_body: Option<LocalizedString>,
+    pub localized_body: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the message header.
     #[serde(default, rename = "localizedHeader")]
-    pub localized_header: Option<LocalizedString>,
+    pub localized_header: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The message type. // TODO: enum values: ["MESSAGE_TYPE_UNSPECIFIED", "TEXT", "text", "EXPIRATION_NOTIFICATION", "expirationNotification", "TEXT_AND_NOTIFY"]
     #[serde(default, rename = "messageType")]
-    pub message_type: Option<String>,
+    pub message_type: ::core::option::Option<String>,
 }
 
 /// ModifyLinkedOfferObjects resource type.
@@ -2414,10 +2465,10 @@ pub struct Message {
 pub struct ModifyLinkedOfferObjects {
     /// The linked offer object ids to add to the object.
     #[serde(default, rename = "addLinkedOfferObjectIds")]
-    pub add_linked_offer_object_ids: Option<Vec<String>>,
+    pub add_linked_offer_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The linked offer object ids to remove from the object.
     #[serde(default, rename = "removeLinkedOfferObjectIds")]
-    pub remove_linked_offer_object_ids: Option<Vec<String>>,
+    pub remove_linked_offer_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ModifyLinkedOfferObjectsRequest resource type.
@@ -2425,7 +2476,8 @@ pub struct ModifyLinkedOfferObjects {
 pub struct ModifyLinkedOfferObjectsRequest {
     /// The linked offer object ids to add or remove from the object.
     #[serde(default, rename = "linkedOfferObjectIds")]
-    pub linked_offer_object_ids: Option<ModifyLinkedOfferObjects>,
+    pub linked_offer_object_ids:
+        ::core::option::Option<::std::boxed::Box<ModifyLinkedOfferObjects>>,
 }
 
 /// Constraints that all must be met for the module to be shown.
@@ -2433,7 +2485,7 @@ pub struct ModifyLinkedOfferObjectsRequest {
 pub struct ModuleViewConstraints {
     /// The period of time that the module will be displayed to users. Can define both a startTime and endTime. The module is displayed immediately after insertion unless a startTime is set. The module is displayed indefinitely if endTime is not set.
     #[serde(default, rename = "displayInterval")]
-    pub display_interval: Option<TimeInterval>,
+    pub display_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
 }
 
 /// Money resource type.
@@ -2441,13 +2493,13 @@ pub struct ModuleViewConstraints {
 pub struct Money {
     /// The currency code, such as "USD" or "EUR."
     #[serde(default, rename = "currencyCode")]
-    pub currency_code: Option<String>,
+    pub currency_code: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#money".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The unit of money amount in micros. For example, $1 USD would be represented as 1000000 micros.
     #[serde(default)]
-    pub micros: Option<String>,
+    pub micros: ::core::option::Option<String>,
 }
 
 /// Indicates if the object needs to have notification enabled. We support only one of ExpiryNotification/UpcomingNotification. expiryNotification takes precedence over upcomingNotification. In other words if expiryNotification is set, we ignore the upcomingNotification field.
@@ -2455,10 +2507,10 @@ pub struct Money {
 pub struct Notifications {
     /// A notification would be triggered at a specific time before the card expires.
     #[serde(default, rename = "expiryNotification")]
-    pub expiry_notification: Option<ExpiryNotification>,
+    pub expiry_notification: ::core::option::Option<::std::boxed::Box<ExpiryNotification>>,
     /// A notification would be triggered at a specific time before the card becomes usable.
     #[serde(default, rename = "upcomingNotification")]
-    pub upcoming_notification: Option<UpcomingNotification>,
+    pub upcoming_notification: ::core::option::Option<::std::boxed::Box<UpcomingNotification>>,
 }
 
 /// This is a copy of the tech.blob.ObjectId proto, which could not be used directly here due to transitive closure issues with JavaScript support; see http://b/8801763.
@@ -2466,13 +2518,13 @@ pub struct Notifications {
 pub struct ObjectId {
     /// The name of the bucket to which this object belongs.
     #[serde(default, rename = "bucketName")]
-    pub bucket_name: Option<String>,
+    pub bucket_name: ::core::option::Option<String>,
     /// Generation of the object. Generations are monotonically increasing across writes, allowing them to be be compared to determine which generation is newer. If this is omitted in a request, then you are requesting the live object. See http://go/bigstore-versions
     #[serde(default)]
-    pub generation: Option<String>,
+    pub generation: ::core::option::Option<String>,
     /// The name of the object.
     #[serde(default, rename = "objectName")]
-    pub object_name: Option<String>,
+    pub object_name: ::core::option::Option<String>,
 }
 
 /// OfferClass resource type.
@@ -2480,136 +2532,140 @@ pub struct ObjectId {
 pub struct OfferClass {
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
-    pub allow_multiple_users_per_object: Option<bool>,
+    pub allow_multiple_users_per_object: ::core::option::Option<bool>,
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.
     #[serde(default, rename = "callbackOptions")]
-    pub callback_options: Option<CallbackOptions>,
+    pub callback_options: ::core::option::Option<::std::boxed::Box<CallbackOptions>>,
     /// Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.
     #[serde(default, rename = "classTemplateInfo")]
-    pub class_template_info: Option<ClassTemplateInfo>,
+    pub class_template_info: ::core::option::Option<::std::boxed::Box<ClassTemplateInfo>>,
     /// Country code used to display the card''s country (when the user is not in that country), as well as to display localized content when content is not available in the user''s locale.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// The details of the offer.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// Identifies whether this class supports Smart Tap. The redemptionIssuers and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "enableSmartTap")]
-    pub enable_smart_tap: Option<bool>,
+    pub enable_smart_tap: ::core::option::Option<bool>,
     /// The fine print or terms of the offer, such as "20% off any t-shirt at Adam''s Apparel."
     #[serde(default, rename = "finePrint")]
-    pub fine_print: Option<String>,
+    pub fine_print: ::core::option::Option<String>,
     /// The help link for the offer, such as http://myownpersonaldomain.com/help
     #[serde(default, rename = "helpUri")]
-    pub help_uri: Option<Uri>,
+    pub help_uri: ::core::option::Option<::std::boxed::Box<Uri>>,
     /// Optional banner image displayed on the front of the card. If none is present, nothing will be displayed. The image will display at 100% width.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// The URI of your application''s home page. Populating the URI in this field results in the exact same behavior as populating an URI in linksModuleData (when an object is rendered, a link to the homepage is shown in what would usually be thought of as the linksModuleData section of the object).
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<Uri>,
+    pub homepage_uri: ::core::option::Option<::std::boxed::Box<Uri>>,
     /// Required. The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Required. The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "issuerName")]
-    pub issuer_name: Option<String>,
+    pub issuer_name: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#offerClass".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Links module data. If links module data is also defined on the object, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Translated strings for the details.
     #[serde(default, rename = "localizedDetails")]
-    pub localized_details: Option<LocalizedString>,
+    pub localized_details: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the fine_print.
     #[serde(default, rename = "localizedFinePrint")]
-    pub localized_fine_print: Option<LocalizedString>,
+    pub localized_fine_print: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the issuer_name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedIssuerName")]
-    pub localized_issuer_name: Option<LocalizedString>,
+    pub localized_issuer_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the provider. Recommended maximum length is 12 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedProvider")]
-    pub localized_provider: Option<LocalizedString>,
+    pub localized_provider: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the short title. Recommended maximum length is 20 characters.
     #[serde(default, rename = "localizedShortTitle")]
-    pub localized_short_title: Option<LocalizedString>,
+    pub localized_short_title: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the title. Recommended maximum length is 60 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedTitle")]
-    pub localized_title: Option<LocalizedString>,
+    pub localized_title: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the class. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Identifies whether multiple users and devices will save the same object referencing this class. // TODO: enum values: ["STATUS_UNSPECIFIED", "MULTIPLE_HOLDERS", "ONE_USER_ALL_DEVICES", "ONE_USER_ONE_DEVICE", "multipleHolders", "oneUserAllDevices", "oneUserOneDevice"]
     #[serde(default, rename = "multipleDevicesAndHoldersAllowedStatus")]
-    pub multiple_devices_and_holders_allowed_status: Option<String>,
+    pub multiple_devices_and_holders_allowed_status: ::core::option::Option<String>,
     /// Whether or not field updates to this class should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If not specified, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Required. The offer provider (either the aggregator name or merchant name). Recommended maximum length is 12 characters to ensure full string is displayed on smaller screens.
     #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: ::core::option::Option<String>,
     /// Required. The redemption channels applicable to this offer. // TODO: enum values: ["REDEMPTION_CHANNEL_UNSPECIFIED", "INSTORE", "instore", "ONLINE", "online", "BOTH", "both", "TEMPORARY_PRICE_REDUCTION", "temporaryPriceReduction"]
     #[serde(default, rename = "redemptionChannel")]
-    pub redemption_channel: Option<String>,
+    pub redemption_channel: ::core::option::Option<String>,
     /// Identifies which redemption issuers can redeem the pass over Smart Tap. Redemption issuers are identified by their issuer ID. Redemption issuers must have at least one Smart Tap key configured. The enableSmartTap and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "redemptionIssuers")]
-    pub redemption_issuers: Option<Vec<String>>,
+    pub redemption_issuers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The review comments set by the platform when a class is marked approved or rejected.
     #[serde(default)]
-    pub review: Option<Review>,
+    pub review: ::core::option::Option<::std::boxed::Box<Review>>,
     /// Required. The status of the class. This field can be set to draft or The status of the class. This field can be set to draft or underReview using the insert, patch, or update API calls. Once the review state is changed from draft it may not be changed back to draft. You should keep this field to draft when the class is under development. A draft class cannot be used to create any object. You should set this field to underReview when you believe the class is ready for use. The platform will automatically set this field to approved and it can be immediately used to create or migrate objects. When updating an already approved class you should keep setting this field to underReview. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "UNDER_REVIEW", "underReview", "APPROVED", "approved", "REJECTED", "rejected", "DRAFT", "draft"]
     #[serde(default, rename = "reviewStatus")]
-    pub review_status: Option<String>,
+    pub review_status: ::core::option::Option<String>,
     /// Optional information about the security animation. If this is set a security animation will be rendered on pass details.
     #[serde(default, rename = "securityAnimation")]
-    pub security_animation: Option<SecurityAnimation>,
+    pub security_animation: ::core::option::Option<::std::boxed::Box<SecurityAnimation>>,
     /// A shortened version of the title of the offer, such as "20% off," shown to users as a quick reference to the offer contents. Recommended maximum length is 20 characters.
     #[serde(default, rename = "shortTitle")]
-    pub short_title: Option<String>,
+    pub short_title: ::core::option::Option<String>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// Required. The title of the offer, such as "20% off any t-shirt." Recommended maximum length is 60 characters to ensure full string is displayed on smaller screens.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The title image of the offer. This image is displayed in both the details and list views of the app.
     #[serde(default, rename = "titleImage")]
-    pub title_image: Option<Image>,
+    pub title_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Optional value added module data. Maximum of fifteen on the class. For a pass only fifteen will be displayed, prioritizing those from the object.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// View Unlock Requirement options for the offer. // TODO: enum values: ["VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED", "UNLOCK_NOT_REQUIRED", "UNLOCK_REQUIRED_TO_VIEW"]
     #[serde(default, rename = "viewUnlockRequirement")]
-    pub view_unlock_requirement: Option<String>,
+    pub view_unlock_requirement: ::core::option::Option<String>,
     /// The wide title image of the offer. When provided, this will be used in place of the title image in the top left of the card view.
     #[serde(default, rename = "wideTitleImage")]
-    pub wide_title_image: Option<Image>,
+    pub wide_title_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Deprecated.
     #[serde(default, rename = "wordMark")]
-    pub word_mark: Option<Image>,
+    pub word_mark: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// OfferClassAddMessageResponse resource type.
@@ -2617,7 +2673,7 @@ pub struct OfferClass {
 pub struct OfferClassAddMessageResponse {
     /// The updated OfferClass resource.
     #[serde(default)]
-    pub resource: Option<OfferClass>,
+    pub resource: ::core::option::Option<::std::boxed::Box<OfferClass>>,
 }
 
 /// OfferClassListResponse resource type.
@@ -2625,10 +2681,10 @@ pub struct OfferClassAddMessageResponse {
 pub struct OfferClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<OfferClass>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OfferClass>>>,
 }
 
 /// OfferObject resource type.
@@ -2636,88 +2692,92 @@ pub struct OfferClassListResponse {
 pub struct OfferObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// The barcode type and value.
     #[serde(default)]
-    pub barcode: Option<Barcode>,
+    pub barcode: ::core::option::Option<::std::boxed::Box<Barcode>>,
     /// Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you.
     #[serde(default, rename = "classId")]
-    pub class_id: Option<String>,
+    pub class_id: ::core::option::Option<String>,
     /// A copy of the inherited fields of the parent class. These fields are retrieved during a GET.
     #[serde(default, rename = "classReference")]
-    pub class_reference: Option<OfferClass>,
+    pub class_reference: ::core::option::Option<::std::boxed::Box<OfferClass>>,
     /// Indicates if notifications should explicitly be suppressed. If this field is set to true, regardless of the messages field, expiration notifications to the user will be suppressed. By default, this field is set to false. Currently, this can only be set for offers.
     #[serde(default, rename = "disableExpirationNotification")]
-    pub disable_expiration_notification: Option<bool>,
+    pub disable_expiration_notification: ::core::option::Option<bool>,
     /// Information that controls how passes are grouped together.
     #[serde(default, rename = "groupingInfo")]
-    pub grouping_info: Option<GroupingInfo>,
+    pub grouping_info: ::core::option::Option<::std::boxed::Box<GroupingInfo>>,
     /// Whether this object is currently linked to a single device. This field is set by the platform when a user saves the object, linking it to their device. Intended for use by select partners. Contact support for additional information.
     #[serde(default, rename = "hasLinkedDevice")]
-    pub has_linked_device: Option<bool>,
+    pub has_linked_device: ::core::option::Option<bool>,
     /// Indicates if the object has users. This field is set by the platform.
     #[serde(default, rename = "hasUsers")]
-    pub has_users: Option<bool>,
+    pub has_users: ::core::option::Option<bool>,
     /// Optional banner image displayed on the front of the card. If none is present, hero image of the class, if present, will be displayed. If hero image of the class is also not present, nothing will be displayed.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Required. The unique identifier for an object. This ID must be unique across all objects from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#offerObject".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this offer object. If a user had saved this offer, then these linked_object_ids would be automatically pushed to the user''s wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID.identifier where the former is issued by Google and the latter is chosen by you.
     #[serde(default, rename = "linkedObjectIds")]
-    pub linked_object_ids: Option<Vec<String>>,
+    pub linked_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Links module data. If links module data is also defined on the class, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the object. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Whether or not field updates to this object should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If set to DO_NOT_NOTIFY or NOTIFICATION_SETTINGS_UNSPECIFIED, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Pass constraints for the object. Includes limiting NFC and screenshot behaviors.
     #[serde(default, rename = "passConstraints")]
-    pub pass_constraints: Option<PassConstraints>,
+    pub pass_constraints: ::core::option::Option<::std::boxed::Box<PassConstraints>>,
     /// The rotating barcode type and value.
     #[serde(default, rename = "rotatingBarcode")]
-    pub rotating_barcode: Option<RotatingBarcode>,
+    pub rotating_barcode: ::core::option::Option<::std::boxed::Box<RotatingBarcode>>,
     /// Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.
     #[serde(default, rename = "saveRestrictions")]
-    pub save_restrictions: Option<SaveRestrictions>,
+    pub save_restrictions: ::core::option::Option<::std::boxed::Box<SaveRestrictions>>,
     /// The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields enableSmartTap and redemptionIssuers must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported.
     #[serde(default, rename = "smartTapRedemptionValue")]
-    pub smart_tap_redemption_value: Option<String>,
+    pub smart_tap_redemption_value: ::core::option::Option<String>,
     /// Required. The state of the object. This field is used to determine how an object is displayed in the app. For example, an inactive object is moved to the "Expired passes" section. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "active", "COMPLETED", "completed", "EXPIRED", "expired", "INACTIVE", "inactive"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// The time period this object will be active and object can be used. An object''s state will be changed to expired when this time period has passed.
     #[serde(default, rename = "validTimeInterval")]
-    pub valid_time_interval: Option<TimeInterval>,
+    pub valid_time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// Optional value added module data. Maximum of fifteen on the object. For a pass only fifteen will be displayed.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// OfferObjectAddMessageResponse resource type.
@@ -2725,7 +2785,7 @@ pub struct OfferObject {
 pub struct OfferObjectAddMessageResponse {
     /// The updated OfferObject resource.
     #[serde(default)]
-    pub resource: Option<OfferObject>,
+    pub resource: ::core::option::Option<::std::boxed::Box<OfferObject>>,
 }
 
 /// OfferObjectListResponse resource type.
@@ -2733,10 +2793,10 @@ pub struct OfferObjectAddMessageResponse {
 pub struct OfferObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<OfferObject>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OfferObject>>>,
 }
 
 /// Pagination resource type.
@@ -2744,13 +2804,13 @@ pub struct OfferObjectListResponse {
 pub struct Pagination {
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#pagination".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Page token to send to fetch the next page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Number of results returned in this page.
     #[serde(default, rename = "resultsPerPage")]
-    pub results_per_page: Option<i32>,
+    pub results_per_page: ::core::option::Option<i32>,
 }
 
 /// Container for any constraints that may be placed on passes.
@@ -2758,10 +2818,10 @@ pub struct Pagination {
 pub struct PassConstraints {
     /// The NFC constraints for the pass.
     #[serde(default, rename = "nfcConstraint")]
-    pub nfc_constraint: Option<Vec<String>>,
+    pub nfc_constraint: ::core::option::Option<::std::vec::Vec<String>>,
     /// The screenshot eligibility for the pass. // TODO: enum values: ["SCREENSHOT_ELIGIBILITY_UNSPECIFIED", "ELIGIBLE", "INELIGIBLE"]
     #[serde(default, rename = "screenshotEligibility")]
-    pub screenshot_eligibility: Option<String>,
+    pub screenshot_eligibility: ::core::option::Option<String>,
 }
 
 /// Permission resource type.
@@ -2769,10 +2829,10 @@ pub struct PassConstraints {
 pub struct Permission {
     /// The email address of the user, group, or service account to which this permission refers to.
     #[serde(default, rename = "emailAddress")]
-    pub email_address: Option<String>,
+    pub email_address: ::core::option::Option<String>,
     /// The role granted by this permission. // TODO: enum values: ["ROLE_UNSPECIFIED", "OWNER", "owner", "READER", "reader", "WRITER", "writer"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// Permissions resource type.
@@ -2780,10 +2840,10 @@ pub struct Permission {
 pub struct Permissions {
     /// ID of the issuer the list of permissions refer to.
     #[serde(default, rename = "issuerId")]
-    pub issuer_id: Option<String>,
+    pub issuer_id: ::core::option::Option<String>,
     /// The complete list of permissions for the issuer account.
     #[serde(default)]
-    pub permissions: Option<Vec<Permission>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Permission>>>,
 }
 
 /// PurchaseDetails resource type.
@@ -2791,19 +2851,19 @@ pub struct Permissions {
 pub struct PurchaseDetails {
     /// ID of the account used to purchase the ticket.
     #[serde(default, rename = "accountId")]
-    pub account_id: Option<String>,
+    pub account_id: ::core::option::Option<String>,
     /// The confirmation code for the purchase. This may be the same for multiple different tickets and is used to group tickets together.
     #[serde(default, rename = "confirmationCode")]
-    pub confirmation_code: Option<String>,
+    pub confirmation_code: ::core::option::Option<String>,
     /// The purchase date/time of the ticket. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Without offset information, some rich features may not be available.
     #[serde(default, rename = "purchaseDateTime")]
-    pub purchase_date_time: Option<String>,
+    pub purchase_date_time: ::core::option::Option<String>,
     /// Receipt number/identifier for tracking the ticket purchase via the body that sold the ticket.
     #[serde(default, rename = "purchaseReceiptNumber")]
-    pub purchase_receipt_number: Option<String>,
+    pub purchase_receipt_number: ::core::option::Option<String>,
     /// The cost of the ticket.
     #[serde(default, rename = "ticketCost")]
-    pub ticket_cost: Option<TicketCost>,
+    pub ticket_cost: ::core::option::Option<::std::boxed::Box<TicketCost>>,
 }
 
 /// ReservationInfo resource type.
@@ -2811,16 +2871,16 @@ pub struct PurchaseDetails {
 pub struct ReservationInfo {
     /// Confirmation code needed to check into this flight. This is the number that the passenger would enter into a kiosk at the airport to look up the flight and print a boarding pass.
     #[serde(default, rename = "confirmationCode")]
-    pub confirmation_code: Option<String>,
+    pub confirmation_code: ::core::option::Option<String>,
     /// E-ticket number.
     #[serde(default, rename = "eticketNumber")]
-    pub eticket_number: Option<String>,
+    pub eticket_number: ::core::option::Option<String>,
     /// Frequent flyer membership information.
     #[serde(default, rename = "frequentFlyerInfo")]
-    pub frequent_flyer_info: Option<FrequentFlyerInfo>,
+    pub frequent_flyer_info: ::core::option::Option<::std::boxed::Box<FrequentFlyerInfo>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#reservationInfo".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Resources resource type.
@@ -2828,53 +2888,57 @@ pub struct ReservationInfo {
 pub struct Resources {
     /// A list of event ticket classes.
     #[serde(default, rename = "eventTicketClasses")]
-    pub event_ticket_classes: Option<Vec<EventTicketClass>>,
+    pub event_ticket_classes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventTicketClass>>>,
     /// A list of event ticket objects.
     #[serde(default, rename = "eventTicketObjects")]
-    pub event_ticket_objects: Option<Vec<EventTicketObject>>,
+    pub event_ticket_objects:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EventTicketObject>>>,
     /// A list of flight classes.
     #[serde(default, rename = "flightClasses")]
-    pub flight_classes: Option<Vec<FlightClass>>,
+    pub flight_classes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FlightClass>>>,
     /// A list of flight objects.
     #[serde(default, rename = "flightObjects")]
-    pub flight_objects: Option<Vec<FlightObject>>,
+    pub flight_objects: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FlightObject>>>,
     /// A list of generic classes.
     #[serde(default, rename = "genericClasses")]
-    pub generic_classes: Option<Vec<GenericClass>>,
+    pub generic_classes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GenericClass>>>,
     /// A list of generic objects.
     #[serde(default, rename = "genericObjects")]
-    pub generic_objects: Option<Vec<GenericObject>>,
+    pub generic_objects: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GenericObject>>>,
     /// A list of gift card classes.
     #[serde(default, rename = "giftCardClasses")]
-    pub gift_card_classes: Option<Vec<GiftCardClass>>,
+    pub gift_card_classes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GiftCardClass>>>,
     /// A list of gift card objects.
     #[serde(default, rename = "giftCardObjects")]
-    pub gift_card_objects: Option<Vec<GiftCardObject>>,
+    pub gift_card_objects:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GiftCardObject>>>,
     /// A list of loyalty classes.
     #[serde(default, rename = "loyaltyClasses")]
-    pub loyalty_classes: Option<Vec<LoyaltyClass>>,
+    pub loyalty_classes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LoyaltyClass>>>,
     /// A list of loyalty objects.
     #[serde(default, rename = "loyaltyObjects")]
-    pub loyalty_objects: Option<Vec<LoyaltyObject>>,
+    pub loyalty_objects: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LoyaltyObject>>>,
     /// A list of offer classes.
     #[serde(default, rename = "offerClasses")]
-    pub offer_classes: Option<Vec<OfferClass>>,
+    pub offer_classes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OfferClass>>>,
     /// A list of offer objects.
     #[serde(default, rename = "offerObjects")]
-    pub offer_objects: Option<Vec<OfferObject>>,
+    pub offer_objects: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OfferObject>>>,
     /// A list of transit classes.
     #[serde(default, rename = "transitClasses")]
-    pub transit_classes: Option<Vec<TransitClass>>,
+    pub transit_classes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransitClass>>>,
     /// A list of transit objects.
     #[serde(default, rename = "transitObjects")]
-    pub transit_objects: Option<Vec<TransitObject>>,
+    pub transit_objects: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransitObject>>>,
 }
 
 /// Review resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Review {
     #[serde(default)]
-    pub comments: Option<String>,
+    pub comments: ::core::option::Option<String>,
 }
 
 /// RotatingBarcode resource type.
@@ -2882,25 +2946,26 @@ pub struct Review {
 pub struct RotatingBarcode {
     /// An optional text that will override the default text that shows under the barcode. This field is intended for a human readable equivalent of the barcode value, used when the barcode cannot be scanned.
     #[serde(default, rename = "alternateText")]
-    pub alternate_text: Option<String>,
+    pub alternate_text: ::core::option::Option<String>,
     /// Input only. NOTE: This feature is only available for the transit vertical. Optional set of initial rotating barcode values. This allows a small subset of barcodes to be included with the object. Further rotating barcode values must be uploaded with the UploadRotatingBarcodeValues endpoint.
     #[serde(default, rename = "initialRotatingBarcodeValues")]
-    pub initial_rotating_barcode_values: Option<RotatingBarcodeValues>,
+    pub initial_rotating_barcode_values:
+        ::core::option::Option<::std::boxed::Box<RotatingBarcodeValues>>,
     /// The render encoding for the barcode. When specified, barcode is rendered in the given encoding. Otherwise best known encoding is chosen by Google. // TODO: enum values: ["RENDER_ENCODING_UNSPECIFIED", "UTF_8"]
     #[serde(default, rename = "renderEncoding")]
-    pub render_encoding: Option<String>,
+    pub render_encoding: ::core::option::Option<String>,
     /// Optional text that will be shown when the barcode is hidden behind a click action. This happens in cases where a pass has Smart Tap enabled. If not specified, a default is chosen by Google.
     #[serde(default, rename = "showCodeText")]
-    pub show_code_text: Option<LocalizedString>,
+    pub show_code_text: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Details used to evaluate the {totp_value_n} substitutions.
     #[serde(default, rename = "totpDetails")]
-    pub totp_details: Option<RotatingBarcodeTotpDetails>,
+    pub totp_details: ::core::option::Option<::std::boxed::Box<RotatingBarcodeTotpDetails>>,
     /// The type of this barcode. // TODO: enum values: ["BARCODE_TYPE_UNSPECIFIED", "AZTEC", "aztec", "CODE_39", "code39", "CODE_128", "code128", "CODABAR", "codabar", "DATA_MATRIX", "dataMatrix", "EAN_8", "ean8", "EAN_13", "ean13", "EAN13", "ITF_14", "itf14", "PDF_417", "pdf417", "PDF417", "QR_CODE", "qrCode", "qrcode", "UPC_A", "upcA", "TEXT_ONLY", "textOnly"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// String encoded barcode value. This string supports the following substitutions: * {totp_value_n}: Replaced with the TOTP value (see TotpDetails.parameters). * {totp_timestamp_millis}: Replaced with the timestamp (millis since epoch) at which the barcode was generated. * {totp_timestamp_seconds}: Replaced with the timestamp (seconds since epoch) at which the barcode was generated.
     #[serde(default, rename = "valuePattern")]
-    pub value_pattern: Option<String>,
+    pub value_pattern: ::core::option::Option<String>,
 }
 
 /// Configuration for the time-based OTP substitutions. See https://tools.ietf.org/html/rfc6238
@@ -2908,13 +2973,15 @@ pub struct RotatingBarcode {
 pub struct RotatingBarcodeTotpDetails {
     /// The TOTP algorithm used to generate the OTP. // TODO: enum values: ["TOTP_ALGORITHM_UNSPECIFIED", "TOTP_SHA1"]
     #[serde(default)]
-    pub algorithm: Option<String>,
+    pub algorithm: ::core::option::Option<String>,
     /// The TOTP parameters for each of the {totp_value_*} substitutions. The TotpParameters at index n is used for the {totp_value_n} substitution.
     #[serde(default)]
-    pub parameters: Option<Vec<RotatingBarcodeTotpDetailsTotpParameters>>,
+    pub parameters: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<RotatingBarcodeTotpDetailsTotpParameters>>,
+    >,
     /// The time interval used for the TOTP value generation, in milliseconds.
     #[serde(default, rename = "periodMillis")]
-    pub period_millis: Option<String>,
+    pub period_millis: ::core::option::Option<String>,
 }
 
 /// Configuration for the key and value length. See https://www.rfc-editor.org/rfc/rfc4226#section-5.3
@@ -2922,10 +2989,10 @@ pub struct RotatingBarcodeTotpDetails {
 pub struct RotatingBarcodeTotpDetailsTotpParameters {
     /// The secret key used for the TOTP value generation, encoded as a Base16 string.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The length of the TOTP value in decimal digits.
     #[serde(default, rename = "valueLength")]
-    pub value_length: Option<i32>,
+    pub value_length: ::core::option::Option<i32>,
 }
 
 /// A payload containing many barcode values and start date/time.
@@ -2933,13 +3000,13 @@ pub struct RotatingBarcodeTotpDetailsTotpParameters {
 pub struct RotatingBarcodeValues {
     /// Required. The amount of time each barcode is valid for.
     #[serde(default, rename = "periodMillis")]
-    pub period_millis: Option<String>,
+    pub period_millis: ::core::option::Option<String>,
     /// Required. The date/time the first barcode is valid from. Barcodes will be rotated through using period_millis defined on the object''s RotatingBarcodeValueInfo. This is an ISO 8601 extended format date/time, with an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year.
     #[serde(default, rename = "startDateTime")]
-    pub start_date_time: Option<String>,
+    pub start_date_time: ::core::option::Option<String>,
     /// Required. The values to encode in the barcode. At least one value is required.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Defines restrictions on the object that will be verified during save. Note: this is an advanced feature, please contact Google for implementation support.
@@ -2947,7 +3014,7 @@ pub struct RotatingBarcodeValues {
 pub struct SaveRestrictions {
     /// Restrict the save of the referencing object to the given email address only. This is the hex output of SHA256 sum of the email address, all lowercase and without any notations like "." or "+", except "@". For example, for example@example.com, this value will be 31c5543c1734d25c7206f5fd591525d0295bec6fe84ff82f946a34fe970a1e66 and for Example@example.com, this value will be bc34f262c93ad7122763684ccea6f07fb7f5d8a2d11e60ce15a6f43fe70ce632 If email address of the logged-in user who tries to save this pass does not match with the defined value here, users won''t be allowed to save this pass. They will instead be prompted with an error to contact the issuer. This information should be gathered from the user with an explicit consent via Sign in with Google integration https://developers.google.com/identity/authentication. Please contact with support before using Save Restrictions.
     #[serde(default, rename = "restrictToEmailSha256")]
-    pub restrict_to_email_sha256: Option<String>,
+    pub restrict_to_email_sha256: ::core::option::Option<String>,
 }
 
 /// SecurityAnimation resource type.
@@ -2955,7 +3022,7 @@ pub struct SaveRestrictions {
 pub struct SecurityAnimation {
     /// Type of animation. // TODO: enum values: ["ANIMATION_UNSPECIFIED", "FOIL_SHIMMER", "foilShimmer"]
     #[serde(default, rename = "animationType")]
-    pub animation_type: Option<String>,
+    pub animation_type: ::core::option::Option<String>,
 }
 
 /// Request to send a private pass update notice information to Google, so that devices can then fetch the notice prompting the user to update a pass.
@@ -2963,13 +3030,13 @@ pub struct SecurityAnimation {
 pub struct SetPassUpdateNoticeRequest {
     /// Required. A fully qualified identifier of the pass that the issuer wants to notify the pass holder(s) about. Formatted as .
     #[serde(default, rename = "externalPassId")]
-    pub external_pass_id: Option<String>,
+    pub external_pass_id: ::core::option::Option<String>,
     /// Required. The issuer endpoint URI the pass holder needs to follow in order to receive an updated pass JWT. It can not contain any sensitive information. The endpoint needs to authenticate the user before giving the user the updated JWT. Example update URI https://someissuer.com/update/passId=someExternalPassId
     #[serde(default, rename = "updateUri")]
-    pub update_uri: Option<String>,
+    pub update_uri: ::core::option::Option<String>,
     /// Required. The JWT signature of the updated pass that the issuer wants to notify Google about. Only devices that report a different JWT signature than this JWT signature will receive the update notification.
     #[serde(default, rename = "updatedPassJwtSignature")]
-    pub updated_pass_jwt_signature: Option<String>,
+    pub updated_pass_jwt_signature: ::core::option::Option<String>,
 }
 
 /// SignUpInfo resource type.
@@ -2977,7 +3044,7 @@ pub struct SetPassUpdateNoticeRequest {
 pub struct SignUpInfo {
     /// ID of the class the user can sign up for.
     #[serde(default, rename = "classId")]
-    pub class_id: Option<String>,
+    pub class_id: ::core::option::Option<String>,
 }
 
 /// SmartTap resource type.
@@ -2985,16 +3052,16 @@ pub struct SignUpInfo {
 pub struct SmartTap {
     /// The unique identifier for a smart tap. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is the Smart Tap id. The Smart Tap id is a Base64 encoded string which represents the id which was generated by the Google Pay app.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Communication from merchant to user.
     #[serde(default)]
-    pub infos: Option<Vec<IssuerToUserInfo>>,
+    pub infos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<IssuerToUserInfo>>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#smartTap".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Smart Tap merchant ID of who engaged in the Smart Tap interaction.
     #[serde(default, rename = "merchantId")]
-    pub merchant_id: Option<String>,
+    pub merchant_id: ::core::option::Option<String>,
 }
 
 /// SmartTapMerchantData resource type.
@@ -3002,10 +3069,11 @@ pub struct SmartTap {
 pub struct SmartTapMerchantData {
     /// Available only to Smart Tap enabled partners. Contact support for additional guidance.
     #[serde(default, rename = "authenticationKeys")]
-    pub authentication_keys: Option<Vec<AuthenticationKey>>,
+    pub authentication_keys:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AuthenticationKey>>>,
     /// Available only to Smart Tap enabled partners. Contact support for additional guidance.
     #[serde(default, rename = "smartTapMerchantId")]
-    pub smart_tap_merchant_id: Option<String>,
+    pub smart_tap_merchant_id: ::core::option::Option<String>,
 }
 
 /// TemplateItem resource type.
@@ -3013,13 +3081,13 @@ pub struct SmartTapMerchantData {
 pub struct TemplateItem {
     /// A reference to a field to display. If both firstValue and secondValue are populated, they will both appear as one item with a slash between them. For example, values A and B would be shown as "A / B".
     #[serde(default, rename = "firstValue")]
-    pub first_value: Option<FieldSelector>,
+    pub first_value: ::core::option::Option<::std::boxed::Box<FieldSelector>>,
     /// A predefined item to display. Only one of firstValue or predefinedItem may be set. // TODO: enum values: ["PREDEFINED_ITEM_UNSPECIFIED", "FREQUENT_FLYER_PROGRAM_NAME_AND_NUMBER", "frequentFlyerProgramNameAndNumber", "FLIGHT_NUMBER_AND_OPERATING_FLIGHT_NUMBER", "flightNumberAndOperatingFlightNumber"]
     #[serde(default, rename = "predefinedItem")]
-    pub predefined_item: Option<String>,
+    pub predefined_item: ::core::option::Option<String>,
     /// A reference to a field to display. This may only be populated if the firstValue field is populated.
     #[serde(default, rename = "secondValue")]
-    pub second_value: Option<FieldSelector>,
+    pub second_value: ::core::option::Option<::std::boxed::Box<FieldSelector>>,
 }
 
 /// Data for Text module. All fields are optional. Header will be displayed if available, different types of bodies will be concatenated if they are defined.
@@ -3027,19 +3095,19 @@ pub struct TemplateItem {
 pub struct TextModuleData {
     /// The body of the Text Module, which is defined as an uninterrupted string. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.
     #[serde(default)]
-    pub body: Option<String>,
+    pub body: ::core::option::Option<String>,
     /// The header of the Text Module. Recommended maximum length is 35 characters to ensure full string is displayed on smaller screens.
     #[serde(default)]
-    pub header: Option<String>,
+    pub header: ::core::option::Option<String>,
     /// The ID associated with a text module. This field is here to enable ease of management of text modules and referencing them in template overrides. The ID should only include alphanumeric characters, ''_'', or ''-''. It can not include dots, as dots are used to separate fields within FieldReference.fieldPaths in template overrides.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Translated strings for the body. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedBody")]
-    pub localized_body: Option<LocalizedString>,
+    pub localized_body: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Translated strings for the header. Recommended maximum length is 35 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedHeader")]
-    pub localized_header: Option<LocalizedString>,
+    pub localized_header: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// TicketCost resource type.
@@ -3047,13 +3115,13 @@ pub struct TextModuleData {
 pub struct TicketCost {
     /// A message describing any kind of discount that was applied.
     #[serde(default, rename = "discountMessage")]
-    pub discount_message: Option<LocalizedString>,
+    pub discount_message: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The face value of the ticket.
     #[serde(default, rename = "faceValue")]
-    pub face_value: Option<Money>,
+    pub face_value: ::core::option::Option<::std::boxed::Box<Money>>,
     /// The actual purchase price of the ticket, after tax and/or discounts.
     #[serde(default, rename = "purchasePrice")]
-    pub purchase_price: Option<Money>,
+    pub purchase_price: ::core::option::Option<::std::boxed::Box<Money>>,
 }
 
 /// TicketLeg resource type.
@@ -3061,46 +3129,46 @@ pub struct TicketCost {
 pub struct TicketLeg {
     /// The date/time of arrival. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the destination station. For example, if the event occurs at the 20th hour of June 5th, 2018 at the destination station, the local date/time portion should be 2018-06-05T20:00:00. If the local date/time at the destination station is 4 hours before UTC, an offset of -04:00 may be appended. Without offset information, some rich features may not be available.
     #[serde(default, rename = "arrivalDateTime")]
-    pub arrival_date_time: Option<String>,
+    pub arrival_date_time: ::core::option::Option<String>,
     /// The train or ship name/number that the passsenger needs to board.
     #[serde(default)]
-    pub carriage: Option<String>,
+    pub carriage: ::core::option::Option<String>,
     /// The date/time of departure. This is required if there is no validity time interval set on the transit object. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the origin station. For example, if the departure occurs at the 20th hour of June 5th, 2018 at the origin station, the local date/time portion should be 2018-06-05T20:00:00. If the local date/time at the origin station is 4 hours before UTC, an offset of -04:00 may be appended. Without offset information, some rich features may not be available.
     #[serde(default, rename = "departureDateTime")]
-    pub departure_date_time: Option<String>,
+    pub departure_date_time: ::core::option::Option<String>,
     /// The destination name.
     #[serde(default, rename = "destinationName")]
-    pub destination_name: Option<LocalizedString>,
+    pub destination_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The destination station code.
     #[serde(default, rename = "destinationStationCode")]
-    pub destination_station_code: Option<String>,
+    pub destination_station_code: ::core::option::Option<String>,
     /// Short description/name of the fare for this leg of travel. Eg "Anytime Single Use".
     #[serde(default, rename = "fareName")]
-    pub fare_name: Option<LocalizedString>,
+    pub fare_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The name of the origin station. This is required if desinationName is present or if originStationCode is not present.
     #[serde(default, rename = "originName")]
-    pub origin_name: Option<LocalizedString>,
+    pub origin_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The origin station code. This is required if destinationStationCode is present or if originName is not present.
     #[serde(default, rename = "originStationCode")]
-    pub origin_station_code: Option<String>,
+    pub origin_station_code: ::core::option::Option<String>,
     /// The platform or gate where the passenger can board the carriage.
     #[serde(default)]
-    pub platform: Option<String>,
+    pub platform: ::core::option::Option<String>,
     /// The reserved seat for the passenger(s). If more than one seat is to be specified then use the ticketSeats field instead. Both ticketSeat and ticketSeats may not be set.
     #[serde(default, rename = "ticketSeat")]
-    pub ticket_seat: Option<TicketSeat>,
+    pub ticket_seat: ::core::option::Option<::std::boxed::Box<TicketSeat>>,
     /// The reserved seat for the passenger(s). If only one seat is to be specified then use the ticketSeat field instead. Both ticketSeat and ticketSeats may not be set.
     #[serde(default, rename = "ticketSeats")]
-    pub ticket_seats: Option<Vec<TicketSeat>>,
+    pub ticket_seats: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TicketSeat>>>,
     /// The name of the transit operator that is operating this leg of a trip.
     #[serde(default, rename = "transitOperatorName")]
-    pub transit_operator_name: Option<LocalizedString>,
+    pub transit_operator_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Terminus station or destination of the train/bus/etc.
     #[serde(default, rename = "transitTerminusName")]
-    pub transit_terminus_name: Option<LocalizedString>,
+    pub transit_terminus_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The zone of boarding within the platform.
     #[serde(default)]
-    pub zone: Option<String>,
+    pub zone: ::core::option::Option<String>,
 }
 
 /// TicketRestrictions resource type.
@@ -3108,16 +3176,16 @@ pub struct TicketLeg {
 pub struct TicketRestrictions {
     /// Extra restrictions that don''t fall under the "route" or "time" categories.
     #[serde(default, rename = "otherRestrictions")]
-    pub other_restrictions: Option<LocalizedString>,
+    pub other_restrictions: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Restrictions about routes that may be taken. For example, this may be the string "Reserved CrossCountry trains only".
     #[serde(default, rename = "routeRestrictions")]
-    pub route_restrictions: Option<LocalizedString>,
+    pub route_restrictions: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// More details about the above routeRestrictions.
     #[serde(default, rename = "routeRestrictionsDetails")]
-    pub route_restrictions_details: Option<LocalizedString>,
+    pub route_restrictions_details: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Restrictions about times this ticket may be used.
     #[serde(default, rename = "timeRestrictions")]
-    pub time_restrictions: Option<LocalizedString>,
+    pub time_restrictions: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// TicketSeat resource type.
@@ -3125,19 +3193,19 @@ pub struct TicketRestrictions {
 pub struct TicketSeat {
     /// The identifier of the train car or coach in which the ticketed seat is located. Eg. "10"
     #[serde(default)]
-    pub coach: Option<String>,
+    pub coach: ::core::option::Option<String>,
     /// A custome fare class to be used if no fareClass applies. Both fareClass and customFareClass may not be set.
     #[serde(default, rename = "customFareClass")]
-    pub custom_fare_class: Option<LocalizedString>,
+    pub custom_fare_class: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The fare class of the ticketed seat. // TODO: enum values: ["FARE_CLASS_UNSPECIFIED", "ECONOMY", "economy", "FIRST", "first", "BUSINESS", "business"]
     #[serde(default, rename = "fareClass")]
-    pub fare_class: Option<String>,
+    pub fare_class: ::core::option::Option<String>,
     /// The identifier of where the ticketed seat is located. Eg. "42". If there is no specific identifier, use seatAssigment instead.
     #[serde(default)]
-    pub seat: Option<String>,
+    pub seat: ::core::option::Option<String>,
     /// The passenger''s seat assignment. Eg. "no specific seat". To be used when there is no specific identifier to use in seat.
     #[serde(default, rename = "seatAssignment")]
-    pub seat_assignment: Option<LocalizedString>,
+    pub seat_assignment: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
 }
 
 /// TimeInterval resource type.
@@ -3145,13 +3213,13 @@ pub struct TicketSeat {
 pub struct TimeInterval {
     /// End time of the interval. Offset is not required. If an offset is provided and start time is set, start must also include an offset.
     #[serde(default)]
-    pub end: Option<DateTime>,
+    pub end: ::core::option::Option<::std::boxed::Box<DateTime>>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#timeInterval".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Start time of the interval. Offset is not required. If an offset is provided and end time is set, end must also include an offset.
     #[serde(default)]
-    pub start: Option<DateTime>,
+    pub start: ::core::option::Option<::std::boxed::Box<DateTime>>,
 }
 
 /// TransitClass resource type.
@@ -3159,172 +3227,181 @@ pub struct TimeInterval {
 pub struct TransitClass {
     /// Activation options for an activatable ticket.
     #[serde(default, rename = "activationOptions")]
-    pub activation_options: Option<ActivationOptions>,
+    pub activation_options: ::core::option::Option<::std::boxed::Box<ActivationOptions>>,
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
-    pub allow_multiple_users_per_object: Option<bool>,
+    pub allow_multiple_users_per_object: ::core::option::Option<bool>,
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// Callback options to be used to call the issuer back for every save/delete of an object for this class by the end-user. All objects of this class are eligible for the callback.
     #[serde(default, rename = "callbackOptions")]
-    pub callback_options: Option<CallbackOptions>,
+    pub callback_options: ::core::option::Option<::std::boxed::Box<CallbackOptions>>,
     /// Template information about how the class should be displayed. If unset, Google will fallback to a default set of fields to display.
     #[serde(default, rename = "classTemplateInfo")]
-    pub class_template_info: Option<ClassTemplateInfo>,
+    pub class_template_info: ::core::option::Option<::std::boxed::Box<ClassTemplateInfo>>,
     /// Country code used to display the card''s country (when the user is not in that country), as well as to display localized content when content is not available in the user''s locale.
     #[serde(default, rename = "countryCode")]
-    pub country_code: Option<String>,
+    pub country_code: ::core::option::Option<String>,
     /// A custom label to use for the carriage value (transitObject.ticketLeg.carriage).
     #[serde(default, rename = "customCarriageLabel")]
-    pub custom_carriage_label: Option<LocalizedString>,
+    pub custom_carriage_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the coach value (transitObject.ticketLeg.ticketSeat.coach).
     #[serde(default, rename = "customCoachLabel")]
-    pub custom_coach_label: Option<LocalizedString>,
+    pub custom_coach_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the transit concession category value (transitObject.concessionCategory).
     #[serde(default, rename = "customConcessionCategoryLabel")]
-    pub custom_concession_category_label: Option<LocalizedString>,
+    pub custom_concession_category_label:
+        ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the confirmation code value (transitObject.purchaseDetails.confirmationCode).
     #[serde(default, rename = "customConfirmationCodeLabel")]
-    pub custom_confirmation_code_label: Option<LocalizedString>,
+    pub custom_confirmation_code_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the transit discount message value (transitObject.purchaseDetails.ticketCost.discountMessage).
     #[serde(default, rename = "customDiscountMessageLabel")]
-    pub custom_discount_message_label: Option<LocalizedString>,
+    pub custom_discount_message_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the fare class value (transitObject.ticketLeg.ticketSeat.fareClass).
     #[serde(default, rename = "customFareClassLabel")]
-    pub custom_fare_class_label: Option<LocalizedString>,
+    pub custom_fare_class_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the transit fare name value (transitObject.ticketLeg.fareName).
     #[serde(default, rename = "customFareNameLabel")]
-    pub custom_fare_name_label: Option<LocalizedString>,
+    pub custom_fare_name_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the other restrictions value (transitObject.ticketRestrictions.otherRestrictions).
     #[serde(default, rename = "customOtherRestrictionsLabel")]
-    pub custom_other_restrictions_label: Option<LocalizedString>,
+    pub custom_other_restrictions_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the boarding platform value (transitObject.ticketLeg.platform).
     #[serde(default, rename = "customPlatformLabel")]
-    pub custom_platform_label: Option<LocalizedString>,
+    pub custom_platform_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the purchase face value (transitObject.purchaseDetails.ticketCost.faceValue).
     #[serde(default, rename = "customPurchaseFaceValueLabel")]
-    pub custom_purchase_face_value_label: Option<LocalizedString>,
+    pub custom_purchase_face_value_label:
+        ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the purchase price value (transitObject.purchaseDetails.ticketCost.purchasePrice).
     #[serde(default, rename = "customPurchasePriceLabel")]
-    pub custom_purchase_price_label: Option<LocalizedString>,
+    pub custom_purchase_price_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the purchase receipt number value (transitObject.purchaseDetails.purchaseReceiptNumber).
     #[serde(default, rename = "customPurchaseReceiptNumberLabel")]
-    pub custom_purchase_receipt_number_label: Option<LocalizedString>,
+    pub custom_purchase_receipt_number_label:
+        ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the route restrictions details value (transitObject.ticketRestrictions.routeRestrictionsDetails).
     #[serde(default, rename = "customRouteRestrictionsDetailsLabel")]
-    pub custom_route_restrictions_details_label: Option<LocalizedString>,
+    pub custom_route_restrictions_details_label:
+        ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the route restrictions value (transitObject.ticketRestrictions.routeRestrictions).
     #[serde(default, rename = "customRouteRestrictionsLabel")]
-    pub custom_route_restrictions_label: Option<LocalizedString>,
+    pub custom_route_restrictions_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the seat location value (transitObject.ticketLeg.ticketSeat.seat).
     #[serde(default, rename = "customSeatLabel")]
-    pub custom_seat_label: Option<LocalizedString>,
+    pub custom_seat_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the ticket number value (transitObject.ticketNumber).
     #[serde(default, rename = "customTicketNumberLabel")]
-    pub custom_ticket_number_label: Option<LocalizedString>,
+    pub custom_ticket_number_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the time restrictions details value (transitObject.ticketRestrictions.timeRestrictions).
     #[serde(default, rename = "customTimeRestrictionsLabel")]
-    pub custom_time_restrictions_label: Option<LocalizedString>,
+    pub custom_time_restrictions_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the transit terminus name value (transitObject.ticketLeg.transitTerminusName).
     #[serde(default, rename = "customTransitTerminusNameLabel")]
-    pub custom_transit_terminus_name_label: Option<LocalizedString>,
+    pub custom_transit_terminus_name_label:
+        ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom label to use for the boarding zone value (transitObject.ticketLeg.zone).
     #[serde(default, rename = "customZoneLabel")]
-    pub custom_zone_label: Option<LocalizedString>,
+    pub custom_zone_label: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Controls the display of the single-leg itinerary for this class. By default, an itinerary will only display for multi-leg trips.
     #[serde(default, rename = "enableSingleLegItinerary")]
-    pub enable_single_leg_itinerary: Option<bool>,
+    pub enable_single_leg_itinerary: ::core::option::Option<bool>,
     /// Identifies whether this class supports Smart Tap. The redemptionIssuers and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "enableSmartTap")]
-    pub enable_smart_tap: Option<bool>,
+    pub enable_smart_tap: ::core::option::Option<bool>,
     /// Optional banner image displayed on the front of the card. If none is present, nothing will be displayed. The image will display at 100% width.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// The URI of your application''s home page. Populating the URI in this field results in the exact same behavior as populating an URI in linksModuleData (when an object is rendered, a link to the homepage is shown in what would usually be thought of as the linksModuleData section of the object).
     #[serde(default, rename = "homepageUri")]
-    pub homepage_uri: Option<Uri>,
+    pub homepage_uri: ::core::option::Option<::std::boxed::Box<Uri>>,
     /// Required. The unique identifier for a class. This ID must be unique across all classes from an issuer. This value should follow the format issuer ID. identifier where the former is issued by Google and latter is chosen by you. Your unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// Required. The issuer name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "issuerName")]
-    pub issuer_name: Option<String>,
+    pub issuer_name: ::core::option::Option<String>,
     /// If this field is present, transit tickets served to a user''s device will always be in this language. Represents the BCP 47 language tag. Example values are "en-US", "en-GB", "de", or "de-AT".
     #[serde(default, rename = "languageOverride")]
-    pub language_override: Option<String>,
+    pub language_override: ::core::option::Option<String>,
     /// Links module data. If links module data is also defined on the object, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Translated strings for the issuer_name. Recommended maximum length is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedIssuerName")]
-    pub localized_issuer_name: Option<LocalizedString>,
+    pub localized_issuer_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Required. The logo image of the ticket. This image is displayed in the card detail view of the app.
     #[serde(default)]
-    pub logo: Option<Image>,
+    pub logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Merchant locations. There is a maximum of ten on the class. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Identifies whether multiple users and devices will save the same object referencing this class. // TODO: enum values: ["STATUS_UNSPECIFIED", "MULTIPLE_HOLDERS", "ONE_USER_ALL_DEVICES", "ONE_USER_ONE_DEVICE", "multipleHolders", "oneUserAllDevices", "oneUserOneDevice"]
     #[serde(default, rename = "multipleDevicesAndHoldersAllowedStatus")]
-    pub multiple_devices_and_holders_allowed_status: Option<String>,
+    pub multiple_devices_and_holders_allowed_status: ::core::option::Option<String>,
     /// Whether or not field updates to this class should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If set to DO_NOT_NOTIFY or NOTIFICATION_SETTINGS_UNSPECIFIED, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Identifies which redemption issuers can redeem the pass over Smart Tap. Redemption issuers are identified by their issuer ID. Redemption issuers must have at least one Smart Tap key configured. The enableSmartTap and object level smartTapRedemptionLevel fields must also be set up correctly in order for a pass to support Smart Tap.
     #[serde(default, rename = "redemptionIssuers")]
-    pub redemption_issuers: Option<Vec<String>>,
+    pub redemption_issuers: ::core::option::Option<::std::vec::Vec<String>>,
     /// The review comments set by the platform when a class is marked approved or rejected.
     #[serde(default)]
-    pub review: Option<Review>,
+    pub review: ::core::option::Option<::std::boxed::Box<Review>>,
     /// Required. The status of the class. This field can be set to draft or underReview using the insert, patch, or update API calls. Once the review state is changed from draft it may not be changed back to draft. You should keep this field to draft when the class is under development. A draft class cannot be used to create any object. You should set this field to underReview when you believe the class is ready for use. The platform will automatically set this field to approved and it can be immediately used to create or migrate objects. When updating an already approved class you should keep setting this field to underReview. // TODO: enum values: ["REVIEW_STATUS_UNSPECIFIED", "UNDER_REVIEW", "underReview", "APPROVED", "approved", "REJECTED", "rejected", "DRAFT", "draft"]
     #[serde(default, rename = "reviewStatus")]
-    pub review_status: Option<String>,
+    pub review_status: ::core::option::Option<String>,
     /// Optional information about the security animation. If this is set a security animation will be rendered on pass details.
     #[serde(default, rename = "securityAnimation")]
-    pub security_animation: Option<SecurityAnimation>,
+    pub security_animation: ::core::option::Option<::std::boxed::Box<SecurityAnimation>>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// The name of the transit operator.
     #[serde(default, rename = "transitOperatorName")]
-    pub transit_operator_name: Option<LocalizedString>,
+    pub transit_operator_name: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Required. The type of transit this class represents, such as "bus". // TODO: enum values: ["TRANSIT_TYPE_UNSPECIFIED", "BUS", "bus", "RAIL", "rail", "TRAM", "tram", "FERRY", "ferry", "OTHER", "other"]
     #[serde(default, rename = "transitType")]
-    pub transit_type: Option<String>,
+    pub transit_type: ::core::option::Option<String>,
     /// Optional value added module data. Maximum of fifteen on the class. For a pass only fifteen will be displayed, prioritizing those from the object.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// View Unlock Requirement options for the transit ticket. // TODO: enum values: ["VIEW_UNLOCK_REQUIREMENT_UNSPECIFIED", "UNLOCK_NOT_REQUIRED", "UNLOCK_REQUIRED_TO_VIEW"]
     #[serde(default, rename = "viewUnlockRequirement")]
-    pub view_unlock_requirement: Option<String>,
+    pub view_unlock_requirement: ::core::option::Option<String>,
     /// Watermark image to display on the user''s device.
     #[serde(default)]
-    pub watermark: Option<Image>,
+    pub watermark: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The wide logo of the ticket. When provided, this will be used in place of the logo in the top left of the card view.
     #[serde(default, rename = "wideLogo")]
-    pub wide_logo: Option<Image>,
+    pub wide_logo: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Deprecated.
     #[serde(default, rename = "wordMark")]
-    pub word_mark: Option<Image>,
+    pub word_mark: ::core::option::Option<::std::boxed::Box<Image>>,
 }
 
 /// TransitClassAddMessageResponse resource type.
@@ -3332,7 +3409,7 @@ pub struct TransitClass {
 pub struct TransitClassAddMessageResponse {
     /// The updated TransitClass resource.
     #[serde(default)]
-    pub resource: Option<TransitClass>,
+    pub resource: ::core::option::Option<::std::boxed::Box<TransitClass>>,
 }
 
 /// TransitClassListResponse resource type.
@@ -3340,10 +3417,10 @@ pub struct TransitClassAddMessageResponse {
 pub struct TransitClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<TransitClass>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransitClass>>>,
 }
 
 /// TransitObject resource type.
@@ -3351,133 +3428,137 @@ pub struct TransitClassListResponse {
 pub struct TransitObject {
     /// The activation status for the object. Required if the class has activationOptions set.
     #[serde(default, rename = "activationStatus")]
-    pub activation_status: Option<ActivationStatus>,
+    pub activation_status: ::core::option::Option<::std::boxed::Box<ActivationStatus>>,
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
-    pub app_link_data: Option<AppLinkData>,
+    pub app_link_data: ::core::option::Option<::std::boxed::Box<AppLinkData>>,
     /// The barcode type and value.
     #[serde(default)]
-    pub barcode: Option<Barcode>,
+    pub barcode: ::core::option::Option<::std::boxed::Box<Barcode>>,
     /// Required. The class associated with this object. The class must be of the same type as this object, must already exist, and must be approved. Class IDs should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you.
     #[serde(default, rename = "classId")]
-    pub class_id: Option<String>,
+    pub class_id: ::core::option::Option<String>,
     /// A copy of the inherited fields of the parent class. These fields are retrieved during a GET.
     #[serde(default, rename = "classReference")]
-    pub class_reference: Option<TransitClass>,
+    pub class_reference: ::core::option::Option<::std::boxed::Box<TransitClass>>,
     /// The concession category for the ticket. // TODO: enum values: ["CONCESSION_CATEGORY_UNSPECIFIED", "ADULT", "adult", "CHILD", "child", "SENIOR", "senior"]
     #[serde(default, rename = "concessionCategory")]
-    pub concession_category: Option<String>,
+    pub concession_category: ::core::option::Option<String>,
     /// A custom concession category to use when concessionCategory does not provide the right option. Both concessionCategory and customConcessionCategory may not be set.
     #[serde(default, rename = "customConcessionCategory")]
-    pub custom_concession_category: Option<LocalizedString>,
+    pub custom_concession_category: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// A custom status to use for the ticket status value when ticketStatus does not provide the right option. Both ticketStatus and customTicketStatus may not be set.
     #[serde(default, rename = "customTicketStatus")]
-    pub custom_ticket_status: Option<LocalizedString>,
+    pub custom_ticket_status: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Device context associated with the object.
     #[serde(default, rename = "deviceContext")]
-    pub device_context: Option<DeviceContext>,
+    pub device_context: ::core::option::Option<::std::boxed::Box<DeviceContext>>,
     /// Indicates if notifications should explicitly be suppressed. If this field is set to true, regardless of the messages field, expiration notifications to the user will be suppressed. By default, this field is set to false. Currently, this can only be set for offers.
     #[serde(default, rename = "disableExpirationNotification")]
-    pub disable_expiration_notification: Option<bool>,
+    pub disable_expiration_notification: ::core::option::Option<bool>,
     /// Information that controls how passes are grouped together.
     #[serde(default, rename = "groupingInfo")]
-    pub grouping_info: Option<GroupingInfo>,
+    pub grouping_info: ::core::option::Option<::std::boxed::Box<GroupingInfo>>,
     /// Whether this object is currently linked to a single device. This field is set by the platform when a user saves the object, linking it to their device. Intended for use by select partners. Contact support for additional information.
     #[serde(default, rename = "hasLinkedDevice")]
-    pub has_linked_device: Option<bool>,
+    pub has_linked_device: ::core::option::Option<bool>,
     /// Indicates if the object has users. This field is set by the platform.
     #[serde(default, rename = "hasUsers")]
-    pub has_users: Option<bool>,
+    pub has_users: ::core::option::Option<bool>,
     /// Optional banner image displayed on the front of the card. If none is present, hero image of the class, if present, will be displayed. If hero image of the class is also not present, nothing will be displayed.
     #[serde(default, rename = "heroImage")]
-    pub hero_image: Option<Image>,
+    pub hero_image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The background color for the card. If not set the dominant color of the hero image is used, and if no hero image is set, the dominant color of the logo is used. The format is #rrggbb where rrggbb is a hex RGB triplet, such as #ffcc00. You can also use the shorthand version of the RGB triplet which is #rgb, such as #fc0.
     #[serde(default, rename = "hexBackgroundColor")]
-    pub hex_background_color: Option<String>,
+    pub hex_background_color: ::core::option::Option<String>,
     /// Required. The unique identifier for an object. This ID must be unique across all objects from an issuer. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is chosen by you. The unique identifier should only include alphanumeric characters, ''.'', ''_'', or ''-''.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Image module data. The maximum number of these fields displayed is 1 from object level and 1 for class object level.
     #[serde(default, rename = "imageModulesData")]
-    pub image_modules_data: Option<Vec<ImageModuleData>>,
+    pub image_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageModuleData>>>,
     /// Deprecated. Use textModulesData instead.
     #[serde(default, rename = "infoModuleData")]
-    pub info_module_data: Option<InfoModuleData>,
+    pub info_module_data: ::core::option::Option<::std::boxed::Box<InfoModuleData>>,
     /// linked_object_ids are a list of other objects such as event ticket, loyalty, offer, generic, giftcard, transit and boarding pass that should be automatically attached to this transit object. If a user had saved this transit card, then these linked_object_ids would be automatically pushed to the user''s wallet (unless they turned off the setting to receive such linked passes). Make sure that objects present in linked_object_ids are already inserted - if not, calls would fail. Once linked, the linked objects cannot be unlinked. You cannot link objects belonging to another issuer. There is a limit to the number of objects that can be linked to a single object. After the limit is reached, new linked objects in the call will be ignored silently. Object IDs should follow the format issuer ID. identifier where the former is issued by Google and the latter is chosen by you.
     #[serde(default, rename = "linkedObjectIds")]
-    pub linked_object_ids: Option<Vec<String>>,
+    pub linked_object_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Links module data. If links module data is also defined on the class, both will be displayed.
     #[serde(default, rename = "linksModuleData")]
-    pub links_module_data: Option<LinksModuleData>,
+    pub links_module_data: ::core::option::Option<::std::boxed::Box<LinksModuleData>>,
     /// Note: This field is currently not supported to trigger geo notifications.
     #[serde(default)]
-    pub locations: Option<Vec<LatLongPoint>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LatLongPoint>>>,
     /// Merchant locations. There is a maximum of ten on the object. Any additional MerchantLocations added beyond the 10 will be rejected. These locations will trigger a notification when a user enters within a Google-set radius of the point. This field replaces the deprecated LatLongPoints.
     #[serde(default, rename = "merchantLocations")]
-    pub merchant_locations: Option<Vec<MerchantLocation>>,
+    pub merchant_locations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MerchantLocation>>>,
     /// An array of messages displayed in the app. All users of this object will receive its associated messages. The maximum number of these fields is 10.
     #[serde(default)]
-    pub messages: Option<Vec<Message>>,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Message>>>,
     /// Whether or not field updates to this object should trigger notifications. When set to NOTIFY, we will attempt to trigger a field update notification to users. These notifications will only be sent to users if the field is part of an allowlist. If set to DO_NOT_NOTIFY or NOTIFICATION_SETTINGS_UNSPECIFIED, no notification will be triggered. This setting is ephemeral and needs to be set with each PATCH or UPDATE request, otherwise a notification will not be triggered. // TODO: enum values: ["NOTIFICATION_SETTINGS_FOR_UPDATES_UNSPECIFIED", "NOTIFY_ON_UPDATE"]
     #[serde(default, rename = "notifyPreference")]
-    pub notify_preference: Option<String>,
+    pub notify_preference: ::core::option::Option<String>,
     /// Pass constraints for the object. Includes limiting NFC and screenshot behaviors.
     #[serde(default, rename = "passConstraints")]
-    pub pass_constraints: Option<PassConstraints>,
+    pub pass_constraints: ::core::option::Option<::std::boxed::Box<PassConstraints>>,
     /// The name(s) of the passengers the ticket is assigned to. The above passengerType field is meant to give Google context on this field.
     #[serde(default, rename = "passengerNames")]
-    pub passenger_names: Option<String>,
+    pub passenger_names: ::core::option::Option<String>,
     /// The number of passengers. // TODO: enum values: ["PASSENGER_TYPE_UNSPECIFIED", "SINGLE_PASSENGER", "singlePassenger", "MULTIPLE_PASSENGERS", "multiplePassengers"]
     #[serde(default, rename = "passengerType")]
-    pub passenger_type: Option<String>,
+    pub passenger_type: ::core::option::Option<String>,
     /// Purchase details for this ticket.
     #[serde(default, rename = "purchaseDetails")]
-    pub purchase_details: Option<PurchaseDetails>,
+    pub purchase_details: ::core::option::Option<::std::boxed::Box<PurchaseDetails>>,
     /// The rotating barcode type and value.
     #[serde(default, rename = "rotatingBarcode")]
-    pub rotating_barcode: Option<RotatingBarcode>,
+    pub rotating_barcode: ::core::option::Option<::std::boxed::Box<RotatingBarcode>>,
     /// Restrictions on the object that needs to be verified before the user tries to save the pass. Note that this restrictions will only be applied during save time. If the restrictions changed after a user saves the pass, the new restrictions will not be applied to an already saved pass.
     #[serde(default, rename = "saveRestrictions")]
-    pub save_restrictions: Option<SaveRestrictions>,
+    pub save_restrictions: ::core::option::Option<::std::boxed::Box<SaveRestrictions>>,
     /// The value that will be transmitted to a Smart Tap certified terminal over NFC for this object. The class level fields enableSmartTap and redemptionIssuers must also be set up correctly in order for the pass to support Smart Tap. Only ASCII characters are supported.
     #[serde(default, rename = "smartTapRedemptionValue")]
-    pub smart_tap_redemption_value: Option<String>,
+    pub smart_tap_redemption_value: ::core::option::Option<String>,
     /// Required. The state of the object. This field is used to determine how an object is displayed in the app. For example, an inactive object is moved to the "Expired passes" section. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "active", "COMPLETED", "completed", "EXPIRED", "expired", "INACTIVE", "inactive"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Text module data. If text module data is also defined on the class, both will be displayed. The maximum number of these fields displayed is 10 from the object and 10 from the class.
     #[serde(default, rename = "textModulesData")]
-    pub text_modules_data: Option<Vec<TextModuleData>>,
+    pub text_modules_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TextModuleData>>>,
     /// A single ticket leg contains departure and arrival information along with boarding and seating information. If more than one leg is to be specified then use the ticketLegs field instead. Both ticketLeg and ticketLegs may not be set.
     #[serde(default, rename = "ticketLeg")]
-    pub ticket_leg: Option<TicketLeg>,
+    pub ticket_leg: ::core::option::Option<::std::boxed::Box<TicketLeg>>,
     /// Each ticket may contain one or more legs. Each leg contains departure and arrival information along with boarding and seating information. If only one leg is to be specified then use the ticketLeg field instead. Both ticketLeg and ticketLegs may not be set.
     #[serde(default, rename = "ticketLegs")]
-    pub ticket_legs: Option<Vec<TicketLeg>>,
+    pub ticket_legs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TicketLeg>>>,
     /// The number of the ticket. This is a unique identifier for the ticket in the transit operator''s system.
     #[serde(default, rename = "ticketNumber")]
-    pub ticket_number: Option<String>,
+    pub ticket_number: ::core::option::Option<String>,
     /// Information about what kind of restrictions there are on using this ticket. For example, which days of the week it must be used, or which routes are allowed to be taken.
     #[serde(default, rename = "ticketRestrictions")]
-    pub ticket_restrictions: Option<TicketRestrictions>,
+    pub ticket_restrictions: ::core::option::Option<::std::boxed::Box<TicketRestrictions>>,
     /// The status of the ticket. For states which affect display, use the state field instead. // TODO: enum values: ["TICKET_STATUS_UNSPECIFIED", "USED", "used", "REFUNDED", "refunded", "EXCHANGED", "exchanged"]
     #[serde(default, rename = "ticketStatus")]
-    pub ticket_status: Option<String>,
+    pub ticket_status: ::core::option::Option<String>,
     /// This id is used to group tickets together if the user has saved multiple tickets for the same trip.
     #[serde(default, rename = "tripId")]
-    pub trip_id: Option<String>,
+    pub trip_id: ::core::option::Option<String>,
     /// Required. The type of trip this transit object represents. Used to determine the pass title and/or which symbol to use between the origin and destination. // TODO: enum values: ["TRIP_TYPE_UNSPECIFIED", "ROUND_TRIP", "roundTrip", "ONE_WAY", "oneWay"]
     #[serde(default, rename = "tripType")]
-    pub trip_type: Option<String>,
+    pub trip_type: ::core::option::Option<String>,
     /// The time period this object will be active and object can be used. An object''s state will be changed to expired when this time period has passed.
     #[serde(default, rename = "validTimeInterval")]
-    pub valid_time_interval: Option<TimeInterval>,
+    pub valid_time_interval: ::core::option::Option<::std::boxed::Box<TimeInterval>>,
     /// Optional value added module data. Maximum of fifteen on the object. For a pass only fifteen will be displayed.
     #[serde(default, rename = "valueAddedModuleData")]
-    pub value_added_module_data: Option<Vec<ValueAddedModuleData>>,
+    pub value_added_module_data:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueAddedModuleData>>>,
     /// Deprecated
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// TransitObjectAddMessageResponse resource type.
@@ -3485,7 +3566,7 @@ pub struct TransitObject {
 pub struct TransitObjectAddMessageResponse {
     /// The updated TransitObject resource.
     #[serde(default)]
-    pub resource: Option<TransitObject>,
+    pub resource: ::core::option::Option<::std::boxed::Box<TransitObject>>,
 }
 
 /// TransitObjectListResponse resource type.
@@ -3493,10 +3574,10 @@ pub struct TransitObjectAddMessageResponse {
 pub struct TransitObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
-    pub pagination: Option<Pagination>,
+    pub pagination: ::core::option::Option<::std::boxed::Box<Pagination>>,
     /// Resources corresponding to the list request.
     #[serde(default)]
-    pub resources: Option<Vec<TransitObject>>,
+    pub resources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransitObject>>>,
 }
 
 /// Request to upload rotating barcode values.
@@ -3504,10 +3585,10 @@ pub struct TransitObjectListResponse {
 pub struct TransitObjectUploadRotatingBarcodeValuesRequest {
     /// A reference to the rotating barcode values payload that was uploaded.
     #[serde(default)]
-    pub blob: Option<Media>,
+    pub blob: ::core::option::Option<::std::boxed::Box<Media>>,
     /// Extra information about the uploaded media.
     #[serde(default, rename = "mediaRequestInfo")]
-    pub media_request_info: Option<MediaRequestInfo>,
+    pub media_request_info: ::core::option::Option<::std::boxed::Box<MediaRequestInfo>>,
 }
 
 /// TranslatedString resource type.
@@ -3515,13 +3596,13 @@ pub struct TransitObjectUploadRotatingBarcodeValuesRequest {
 pub struct TranslatedString {
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#translatedString".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Represents the BCP 47 language tag. Example values are "en-US", "en-GB", "de", or "de-AT".
     #[serde(default)]
-    pub language: Option<String>,
+    pub language: ::core::option::Option<String>,
     /// The UTF-8 encoded translated string.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Indicates that the issuer would like Google Wallet to send an upcoming card validity notification 1 day before card becomes valid/usable.
@@ -3529,7 +3610,7 @@ pub struct TranslatedString {
 pub struct UpcomingNotification {
     /// Indicates if the object needs to have upcoming notification enabled.
     #[serde(default, rename = "enableNotification")]
-    pub enable_notification: Option<bool>,
+    pub enable_notification: ::core::option::Option<bool>,
 }
 
 /// Response for uploading the private image.
@@ -3537,7 +3618,7 @@ pub struct UpcomingNotification {
 pub struct UploadPrivateImageResponse {
     /// Unique ID of the uploaded image to be referenced later in Image.private_image_id.
     #[serde(default, rename = "privateImageId")]
-    pub private_image_id: Option<String>,
+    pub private_image_id: ::core::option::Option<String>,
 }
 
 /// Uri resource type.
@@ -3545,19 +3626,19 @@ pub struct UploadPrivateImageResponse {
 pub struct Uri {
     /// The URI''s title appearing in the app as text. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens. Note that in some contexts this text is not used, such as when description is part of an image.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The ID associated with a uri. This field is here to enable ease of management of uris.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#uri".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Translated strings for the description. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "localizedDescription")]
-    pub localized_description: Option<LocalizedString>,
+    pub localized_description: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// The location of a web page, image, or other resource. URIs in the LinksModuleData module can have different prefixes indicating the type of URI (a link to a web page, a link to a map, a telephone number, or an email address). URIs must have a scheme.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Data for Value Added module. Required fields are header and uri.
@@ -3565,20 +3646,20 @@ pub struct Uri {
 pub struct ValueAddedModuleData {
     /// Body to be displayed on the module. Character limit is 50 and longer strings will be truncated.
     #[serde(default)]
-    pub body: Option<LocalizedString>,
+    pub body: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Header to be displayed on the module. Character limit is 60 and longer strings will be truncated.
     #[serde(default)]
-    pub header: Option<LocalizedString>,
+    pub header: ::core::option::Option<::std::boxed::Box<LocalizedString>>,
     /// Image to be displayed on the module. Recommended image ratio is 1:1. Images will be resized to fit this ratio.
     #[serde(default)]
-    pub image: Option<Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// The index for sorting the modules. Modules with a lower sort index are shown before modules with a higher sort index. If unspecified, the sort index is assumed to be INT_MAX. For two modules with the same index, the sorting behavior is undefined.
     #[serde(default, rename = "sortIndex")]
-    pub sort_index: Option<i32>,
+    pub sort_index: ::core::option::Option<i32>,
     /// URI that the module leads to on click. This can be a web link or a deep link as mentioned in https://developer.android.com/training/app-links/deep-linking.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
     /// Constraints that all must be met for the module to be shown.
     #[serde(default, rename = "viewConstraints")]
-    pub view_constraints: Option<ModuleViewConstraints>,
+    pub view_constraints: ::core::option::Option<::std::boxed::Box<ModuleViewConstraints>>,
 }

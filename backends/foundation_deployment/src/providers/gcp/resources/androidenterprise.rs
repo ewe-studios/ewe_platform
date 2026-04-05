@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// This represents an enterprise admin who can manage the enterprise in the managed Google Play store.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Administrator {
     /// The admin''s email address.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// A token authorizing an admin to access an iframe.
@@ -26,7 +26,7 @@ pub struct Administrator {
 pub struct AdministratorWebToken {
     /// An opaque token to be passed to the Play front-end to generate an iframe.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// Specification for a token used to generate iframes. The token specifies what data the admin is allowed to modify and the URI the iframe is allowed to communiate with.
@@ -34,28 +34,31 @@ pub struct AdministratorWebToken {
 pub struct AdministratorWebTokenSpec {
     /// Options for displaying the Managed Configuration page.
     #[serde(default, rename = "managedConfigurations")]
-    pub managed_configurations: Option<AdministratorWebTokenSpecManagedConfigurations>,
+    pub managed_configurations:
+        ::core::option::Option<::std::boxed::Box<AdministratorWebTokenSpecManagedConfigurations>>,
     /// The URI of the parent frame hosting the iframe. To prevent XSS, the iframe may not be hosted at other URIs. This URI must be https. Use whitespaces to separate multiple parent URIs.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Deprecated. Use PlaySearch.approveApps.
     #[serde(default)]
-    pub permission: Option<Vec<String>>,
+    pub permission: ::core::option::Option<::std::vec::Vec<String>>,
     /// Options for displaying the managed Play Search apps page.
     #[serde(default, rename = "playSearch")]
-    pub play_search: Option<AdministratorWebTokenSpecPlaySearch>,
+    pub play_search: ::core::option::Option<::std::boxed::Box<AdministratorWebTokenSpecPlaySearch>>,
     /// Options for displaying the Private Apps page.
     #[serde(default, rename = "privateApps")]
-    pub private_apps: Option<AdministratorWebTokenSpecPrivateApps>,
+    pub private_apps:
+        ::core::option::Option<::std::boxed::Box<AdministratorWebTokenSpecPrivateApps>>,
     /// Options for displaying the Organize apps page.
     #[serde(default, rename = "storeBuilder")]
-    pub store_builder: Option<AdministratorWebTokenSpecStoreBuilder>,
+    pub store_builder:
+        ::core::option::Option<::std::boxed::Box<AdministratorWebTokenSpecStoreBuilder>>,
     /// Options for displaying the Web Apps page.
     #[serde(default, rename = "webApps")]
-    pub web_apps: Option<AdministratorWebTokenSpecWebApps>,
+    pub web_apps: ::core::option::Option<::std::boxed::Box<AdministratorWebTokenSpecWebApps>>,
     /// Options for displaying the Zero Touch page.
     #[serde(default, rename = "zeroTouch")]
-    pub zero_touch: Option<AdministratorWebTokenSpecZeroTouch>,
+    pub zero_touch: ::core::option::Option<::std::boxed::Box<AdministratorWebTokenSpecZeroTouch>>,
 }
 
 /// AdministratorWebTokenSpecManagedConfigurations resource type.
@@ -63,7 +66,7 @@ pub struct AdministratorWebTokenSpec {
 pub struct AdministratorWebTokenSpecManagedConfigurations {
     /// Whether the Managed Configuration page is displayed. Default is true.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// AdministratorWebTokenSpecPlaySearch resource type.
@@ -71,10 +74,10 @@ pub struct AdministratorWebTokenSpecManagedConfigurations {
 pub struct AdministratorWebTokenSpecPlaySearch {
     /// Allow access to the iframe in approve mode. Default is false.
     #[serde(default, rename = "approveApps")]
-    pub approve_apps: Option<bool>,
+    pub approve_apps: ::core::option::Option<bool>,
     /// Whether the managed Play Search apps page is displayed. Default is true.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// AdministratorWebTokenSpecPrivateApps resource type.
@@ -82,7 +85,7 @@ pub struct AdministratorWebTokenSpecPlaySearch {
 pub struct AdministratorWebTokenSpecPrivateApps {
     /// Whether the Private Apps page is displayed. Default is true.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// AdministratorWebTokenSpecStoreBuilder resource type.
@@ -90,7 +93,7 @@ pub struct AdministratorWebTokenSpecPrivateApps {
 pub struct AdministratorWebTokenSpecStoreBuilder {
     /// Whether the Organize apps page is displayed. Default is true.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// AdministratorWebTokenSpecWebApps resource type.
@@ -98,7 +101,7 @@ pub struct AdministratorWebTokenSpecStoreBuilder {
 pub struct AdministratorWebTokenSpecWebApps {
     /// Whether the Web Apps page is displayed. Default is true.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// AdministratorWebTokenSpecZeroTouch resource type.
@@ -106,7 +109,7 @@ pub struct AdministratorWebTokenSpecWebApps {
 pub struct AdministratorWebTokenSpecZeroTouch {
     /// Whether zero-touch embedded UI is usable with this token. If enabled, the admin can link zero-touch customers to this enterprise.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Represents the list of app restrictions available to be pre-configured for the product.
@@ -114,10 +117,12 @@ pub struct AdministratorWebTokenSpecZeroTouch {
 pub struct AppRestrictionsSchema {
     /// Deprecated.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The set of restrictions that make up this schema.
     #[serde(default)]
-    pub restrictions: Option<Vec<AppRestrictionsSchemaRestriction>>,
+    pub restrictions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AppRestrictionsSchemaRestriction>>,
+    >,
 }
 
 /// An event generated when a new app version is uploaded to Google Play and its app restrictions schema changed. To fetch the app restrictions schema for an app, use Products.getAppRestrictionsSchema on the EMM API.
@@ -125,7 +130,7 @@ pub struct AppRestrictionsSchema {
 pub struct AppRestrictionsSchemaChangeEvent {
     /// The id of the product (e.g. "app:com.google.android.gm") for which the app restriction schema changed. This field will always be present.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
 }
 
 /// A restriction in the App Restriction Schema represents a piece of configuration that may be pre-applied.
@@ -133,28 +138,31 @@ pub struct AppRestrictionsSchemaChangeEvent {
 pub struct AppRestrictionsSchemaRestriction {
     /// The default value of the restriction. bundle and bundleArray restrictions never have a default value.
     #[serde(default, rename = "defaultValue")]
-    pub default_value: Option<AppRestrictionsSchemaRestrictionRestrictionValue>,
+    pub default_value:
+        ::core::option::Option<::std::boxed::Box<AppRestrictionsSchemaRestrictionRestrictionValue>>,
     /// A longer description of the restriction, giving more detail of what it affects.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// For choice or multiselect restrictions, the list of possible entries'' human-readable names.
     #[serde(default)]
-    pub entry: Option<Vec<String>>,
+    pub entry: ::core::option::Option<::std::vec::Vec<String>>,
     /// For choice or multiselect restrictions, the list of possible entries'' machine-readable values. These values should be used in the configuration, either as a single string value for a choice restriction or in a stringArray for a multiselect restriction.
     #[serde(default, rename = "entryValue")]
-    pub entry_value: Option<Vec<String>>,
+    pub entry_value: ::core::option::Option<::std::vec::Vec<String>>,
     /// The unique key that the product uses to identify the restriction, e.g. "com.google.android.gm.fieldname".
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// For bundle or bundleArray restrictions, the list of nested restrictions. A bundle restriction is always nested within a bundleArray restriction, and a bundleArray restriction is at most two levels deep.
     #[serde(default, rename = "nestedRestriction")]
-    pub nested_restriction: Option<Vec<AppRestrictionsSchemaRestriction>>,
+    pub nested_restriction: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<AppRestrictionsSchemaRestriction>>,
+    >,
     /// The type of the restriction. // TODO: enum values: ["bool", "string", "integer", "choice", "multiselect", "hidden", "bundle", "bundleArray"]
     #[serde(default, rename = "restrictionType")]
-    pub restriction_type: Option<String>,
+    pub restriction_type: ::core::option::Option<String>,
     /// The name of the restriction.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A typed value for the restriction.
@@ -162,19 +170,19 @@ pub struct AppRestrictionsSchemaRestriction {
 pub struct AppRestrictionsSchemaRestrictionRestrictionValue {
     /// The type of the value being provided. // TODO: enum values: ["bool", "string", "integer", "choice", "multiselect", "hidden", "bundle", "bundleArray"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The boolean value - this will only be present if type is bool.
     #[serde(default, rename = "valueBool")]
-    pub value_bool: Option<bool>,
+    pub value_bool: ::core::option::Option<bool>,
     /// The integer value - this will only be present if type is integer.
     #[serde(default, rename = "valueInteger")]
-    pub value_integer: Option<i32>,
+    pub value_integer: ::core::option::Option<i32>,
     /// The list of string values - this will only be present if type is multiselect.
     #[serde(default, rename = "valueMultiselect")]
-    pub value_multiselect: Option<Vec<String>>,
+    pub value_multiselect: ::core::option::Option<::std::vec::Vec<String>>,
     /// The string value - this will be present for types string, choice and hidden.
     #[serde(default, rename = "valueString")]
-    pub value_string: Option<String>,
+    pub value_string: ::core::option::Option<String>,
 }
 
 /// List of states set by the app.
@@ -182,10 +190,10 @@ pub struct AppRestrictionsSchemaRestrictionRestrictionValue {
 pub struct AppState {
     /// List of keyed app states. This field will always be present.
     #[serde(default, rename = "keyedAppState")]
-    pub keyed_app_state: Option<Vec<KeyedAppState>>,
+    pub keyed_app_state: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<KeyedAppState>>>,
     /// The package name of the app. This field will always be present.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
 }
 
 /// An event generated when a new version of an app is uploaded to Google Play. Notifications are sent for new public versions only: alpha, beta, or canary versions do not generate this event. To fetch up-to-date version history for an app, use Products.Get on the EMM API.
@@ -193,7 +201,7 @@ pub struct AppState {
 pub struct AppUpdateEvent {
     /// The id of the product (e.g. "app:com.google.android.gm") that was updated. This field will always be present.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
 }
 
 /// This represents a single version of the app.
@@ -201,22 +209,22 @@ pub struct AppUpdateEvent {
 pub struct AppVersion {
     /// True if this version is a production APK.
     #[serde(default, rename = "isProduction")]
-    pub is_production: Option<bool>,
+    pub is_production: ::core::option::Option<bool>,
     /// The SDK version this app targets, as specified in the manifest of the APK. See http://developer.android.com/guide/topics/manifest/uses-sdk-element.html
     #[serde(default, rename = "targetSdkVersion")]
-    pub target_sdk_version: Option<i32>,
+    pub target_sdk_version: ::core::option::Option<i32>,
     /// Deprecated, use trackId instead. // TODO: enum values: ["appTrackUnspecified", "production", "beta", "alpha"]
     #[serde(default)]
-    pub track: Option<String>,
+    pub track: ::core::option::Option<String>,
     /// Track ids that the app version is published in. Replaces the track field (deprecated), but doesn''t include the production track (see isProduction instead).
     #[serde(default, rename = "trackId")]
-    pub track_id: Option<Vec<String>>,
+    pub track_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// Unique increasing identifier for the app version.
     #[serde(default, rename = "versionCode")]
-    pub version_code: Option<i32>,
+    pub version_code: ::core::option::Option<i32>,
     /// The string used in the Play store by the app developer to identify the version. The string is not necessarily unique or localized (for example, the string could be "1.4").
     #[serde(default, rename = "versionString")]
-    pub version_string: Option<String>,
+    pub version_string: ::core::option::Option<String>,
 }
 
 /// Information on an approval URL.
@@ -224,7 +232,7 @@ pub struct AppVersion {
 pub struct ApprovalUrlInfo {
     /// A URL that displays a product''s permissions and that can also be used to approve the product with the Products.approve call.
     #[serde(default, rename = "approvalUrl")]
-    pub approval_url: Option<String>,
+    pub approval_url: ::core::option::Option<String>,
 }
 
 /// An AuthenticationToken is used by the EMM''s device policy client on a device to provision the given EMM-managed user on that device.
@@ -232,7 +240,7 @@ pub struct ApprovalUrlInfo {
 pub struct AuthenticationToken {
     /// The authentication token to be passed to the device policy client on the device where it can be used to provision the account for which this token was generated.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// The auto-install constraint. Defines a set of restrictions for installation. At least one of the fields must be set.
@@ -240,13 +248,13 @@ pub struct AuthenticationToken {
 pub struct AutoInstallConstraint {
     /// Charging state constraint. // TODO: enum values: ["chargingStateConstraintUnspecified", "chargingNotRequired", "chargingRequired"]
     #[serde(default, rename = "chargingStateConstraint")]
-    pub charging_state_constraint: Option<String>,
+    pub charging_state_constraint: ::core::option::Option<String>,
     /// Device idle state constraint. // TODO: enum values: ["deviceIdleStateConstraintUnspecified", "deviceIdleNotRequired", "deviceIdleRequired"]
     #[serde(default, rename = "deviceIdleStateConstraint")]
-    pub device_idle_state_constraint: Option<String>,
+    pub device_idle_state_constraint: ::core::option::Option<String>,
     /// Network type constraint. // TODO: enum values: ["networkTypeConstraintUnspecified", "anyNetwork", "unmeteredNetwork"]
     #[serde(default, rename = "networkTypeConstraint")]
-    pub network_type_constraint: Option<String>,
+    pub network_type_constraint: ::core::option::Option<String>,
 }
 
 /// AutoInstallPolicy resource type.
@@ -254,16 +262,17 @@ pub struct AutoInstallConstraint {
 pub struct AutoInstallPolicy {
     /// The constraints for auto-installing the app. You can specify a maximum of one constraint.
     #[serde(default, rename = "autoInstallConstraint")]
-    pub auto_install_constraint: Option<Vec<AutoInstallConstraint>>,
+    pub auto_install_constraint:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutoInstallConstraint>>>,
     /// The auto-install mode. If unset, defaults to "doNotAutoInstall". An app is automatically installed regardless of a set maintenance window. // TODO: enum values: ["autoInstallModeUnspecified", "doNotAutoInstall", "autoInstallOnce", "forceAutoInstall"]
     #[serde(default, rename = "autoInstallMode")]
-    pub auto_install_mode: Option<String>,
+    pub auto_install_mode: ::core::option::Option<String>,
     /// The priority of the install, as an unsigned integer. A lower number means higher priority.
     #[serde(default, rename = "autoInstallPriority")]
-    pub auto_install_priority: Option<i32>,
+    pub auto_install_priority: ::core::option::Option<i32>,
     /// The minimum version of the app. If a lower version of the app is installed, then the app will be auto-updated according to the auto-install constraints, instead of waiting for the regular auto-update. You can set a minimum version code for at most 20 apps per device.
     #[serde(default, rename = "minimumVersionCode")]
-    pub minimum_version_code: Option<i32>,
+    pub minimum_version_code: ::core::option::Option<i32>,
 }
 
 /// A configuration variables resource contains the managed configuration settings ID to be applied to a single user, as well as the variable set that is attributed to the user. The variable set will be used to replace placeholders in the managed configuration settings.
@@ -271,10 +280,10 @@ pub struct AutoInstallPolicy {
 pub struct ConfigurationVariables {
     /// The ID of the managed configurations settings.
     #[serde(default, rename = "mcmId")]
-    pub mcm_id: Option<String>,
+    pub mcm_id: ::core::option::Option<String>,
     /// The variable set that is attributed to the user.
     #[serde(default, rename = "variableSet")]
-    pub variable_set: Option<Vec<VariableSet>>,
+    pub variable_set: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VariableSet>>>,
 }
 
 /// A Devices resource represents a mobile device managed by the EMM and belonging to a specific enterprise user.
@@ -282,37 +291,37 @@ pub struct ConfigurationVariables {
 pub struct Device {
     /// The Google Play Services Android ID for the device encoded as a lowercase hex string. For example, "123456789abcdef0".
     #[serde(default, rename = "androidId")]
-    pub android_id: Option<String>,
+    pub android_id: ::core::option::Option<String>,
     /// The internal hardware codename of the device. This comes from android.os.Build.DEVICE. (field named "device" per logs/wireless/android/android_checkin.proto)
     #[serde(default)]
-    pub device: Option<String>,
+    pub device: ::core::option::Option<String>,
     /// The build fingerprint of the device if known.
     #[serde(default, rename = "latestBuildFingerprint")]
-    pub latest_build_fingerprint: Option<String>,
+    pub latest_build_fingerprint: ::core::option::Option<String>,
     /// The manufacturer of the device. This comes from android.os.Build.MANUFACTURER.
     #[serde(default)]
-    pub maker: Option<String>,
+    pub maker: ::core::option::Option<String>,
     /// Identifies the extent to which the device is controlled by a managed Google Play EMM in various deployment configurations. Possible values include: - "managedDevice", a device that has the EMM''s device policy controller (DPC) as the device owner. - "managedProfile", a device that has a profile managed by the DPC (DPC is profile owner) in addition to a separate, personal profile that is unavailable to the DPC. - "containerApp", no longer used (deprecated). - "unmanagedProfile", a device that has been allowed (by the domain''s admin, using the Admin Console to enable the privilege) to use managed Google Play, but the profile is itself not owned by a DPC.  // TODO: enum values: ["managedDevice", "managedProfile", "containerApp", "unmanagedProfile"]
     #[serde(default, rename = "managementType")]
-    pub management_type: Option<String>,
+    pub management_type: ::core::option::Option<String>,
     /// The model name of the device. This comes from android.os.Build.MODEL.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// The policy enforced on the device.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
     /// The product name of the device. This comes from android.os.Build.PRODUCT.
     #[serde(default)]
-    pub product: Option<String>,
+    pub product: ::core::option::Option<String>,
     /// The device report updated with the latest app states.
     #[serde(default)]
-    pub report: Option<DeviceReport>,
+    pub report: ::core::option::Option<::std::boxed::Box<DeviceReport>>,
     /// Retail brand for the device, if set. See android.os.Build.BRAND
     #[serde(default, rename = "retailBrand")]
-    pub retail_brand: Option<String>,
+    pub retail_brand: ::core::option::Option<String>,
     /// API compatibility version.
     #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: Option<i32>,
+    pub sdk_version: ::core::option::Option<i32>,
 }
 
 /// Device report updated with the latest app states for managed apps on the device.
@@ -320,10 +329,10 @@ pub struct Device {
 pub struct DeviceReport {
     /// List of app states set by managed apps on the device. App states are defined by the app''s developers. This field will always be present.
     #[serde(default, rename = "appState")]
-    pub app_state: Option<Vec<AppState>>,
+    pub app_state: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AppState>>>,
     /// The timestamp of the last report update in milliseconds since epoch. This field will always be present.
     #[serde(default, rename = "lastUpdatedTimestampMillis")]
-    pub last_updated_timestamp_millis: Option<String>,
+    pub last_updated_timestamp_millis: ::core::option::Option<String>,
 }
 
 /// An event generated when an updated device report is available.
@@ -331,13 +340,13 @@ pub struct DeviceReport {
 pub struct DeviceReportUpdateEvent {
     /// The Android ID of the device. This field will always be present.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// The device report updated with the latest app states. This field will always be present.
     #[serde(default)]
-    pub report: Option<DeviceReport>,
+    pub report: ::core::option::Option<::std::boxed::Box<DeviceReport>>,
     /// The ID of the user. This field will always be present.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// The state of a user''s device, as accessed by the getState and setState methods on device resources.
@@ -345,7 +354,7 @@ pub struct DeviceReportUpdateEvent {
 pub struct DeviceState {
     /// The state of the Google account on the device. "enabled" indicates that the Google account on the device can be used to access Google services (including Google Play), while "disabled" means that it cannot. A new device is initially in the "disabled" state. // TODO: enum values: ["enabled", "disabled"]
     #[serde(default, rename = "accountState")]
-    pub account_state: Option<String>,
+    pub account_state: ::core::option::Option<String>,
 }
 
 /// DevicesListResponse resource type.
@@ -353,7 +362,7 @@ pub struct DeviceState {
 pub struct DevicesListResponse {
     /// A managed device.
     #[serde(default)]
-    pub device: Option<Vec<Device>>,
+    pub device: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Device>>>,
 }
 
 /// A token used to enroll a device.
@@ -361,16 +370,17 @@ pub struct DevicesListResponse {
 pub struct EnrollmentToken {
     /// [Optional] The length of time the enrollment token is valid, ranging from 1 minute to [Durations.MAX_VALUE](https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/util/Durations.html#MAX_VALUE), approximately 10,000 years. If not specified, the default duration is 1 hour.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// [Required] The type of the enrollment token. // TODO: enum values: ["enrollmentTokenTypeUnspecified", "userlessDevice", "userDevice"]
     #[serde(default, rename = "enrollmentTokenType")]
-    pub enrollment_token_type: Option<String>,
+    pub enrollment_token_type: ::core::option::Option<String>,
     /// [Optional] Provides options related to Google authentication during the enrollment.
     #[serde(default, rename = "googleAuthenticationOptions")]
-    pub google_authentication_options: Option<EnrollmentTokenGoogleAuthenticationOptions>,
+    pub google_authentication_options:
+        ::core::option::Option<::std::boxed::Box<EnrollmentTokenGoogleAuthenticationOptions>>,
     /// The token value that''s passed to the device and authorizes the device to enroll. This is a read-only field generated by the server.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
 }
 
 /// Options for Google authentication during the enrollment.
@@ -378,10 +388,10 @@ pub struct EnrollmentToken {
 pub struct EnrollmentTokenGoogleAuthenticationOptions {
     /// [Optional] Specifies whether user should authenticate with Google during enrollment. This setting, if specified,GoogleAuthenticationSettings specified for the enterprise resource is ignored for devices enrolled with this token. // TODO: enum values: ["authenticationRequirementUnspecified", "optional", "required"]
     #[serde(default, rename = "authenticationRequirement")]
-    pub authentication_requirement: Option<String>,
+    pub authentication_requirement: ::core::option::Option<String>,
     /// [Optional] Specifies the managed Google account that the user must use during enrollment.AuthenticationRequirement must be set toREQUIRED if this field is set.
     #[serde(default, rename = "requiredAccountEmail")]
-    pub required_account_email: Option<String>,
+    pub required_account_email: ::core::option::Option<String>,
 }
 
 /// An Enterprises resource represents the binding between an EMM and a specific organization. That binding can be instantiated in one of two different ways using this API as follows: - For Google managed domain customers, the process involves using Enterprises.enroll and Enterprises.setAccount (in conjunction with artifacts obtained from the Admin console and the Google API Console) and submitted to the EMM through a more-or-less manual process. - For managed Google Play Accounts customers, the process involves using Enterprises.generateSignupUrl and Enterprises.completeSignup in conjunction with the managed Google Play sign-up UI (Google-provided mechanism) to create the binding without manual steps. As an EMM, you can support either or both approaches in your EMM console. See Create an Enterprise for details.
@@ -389,25 +399,26 @@ pub struct EnrollmentTokenGoogleAuthenticationOptions {
 pub struct Enterprise {
     /// Admins of the enterprise. This is only supported for enterprises created via the EMM-initiated flow.
     #[serde(default)]
-    pub administrator: Option<Vec<Administrator>>,
+    pub administrator: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Administrator>>>,
     /// The type of the enterprise. // TODO: enum values: ["enterpriseTypeUnspecified", "managedGoogleDomain", "managedGooglePlayAccountsEnterprise"]
     #[serde(default, rename = "enterpriseType")]
-    pub enterprise_type: Option<String>,
+    pub enterprise_type: ::core::option::Option<String>,
     /// Output only. Settings for Google-provided user authentication.
     #[serde(default, rename = "googleAuthenticationSettings")]
-    pub google_authentication_settings: Option<GoogleAuthenticationSettings>,
+    pub google_authentication_settings:
+        ::core::option::Option<::std::boxed::Box<GoogleAuthenticationSettings>>,
     /// The unique ID for the enterprise.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The type of managed Google domain // TODO: enum values: ["managedGoogleDomainTypeUnspecified", "typeTeam", "typeDomain"]
     #[serde(default, rename = "managedGoogleDomainType")]
-    pub managed_google_domain_type: Option<String>,
+    pub managed_google_domain_type: ::core::option::Option<String>,
     /// The name of the enterprise, for example, "Example, Inc".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The enterprise''s primary domain, such as "example.com".
     #[serde(default, rename = "primaryDomain")]
-    pub primary_domain: Option<String>,
+    pub primary_domain: ::core::option::Option<String>,
 }
 
 /// A service account that can be used to authenticate as the enterprise to API calls that require such authentication.
@@ -415,7 +426,7 @@ pub struct Enterprise {
 pub struct EnterpriseAccount {
     /// The email address of the service account.
     #[serde(default, rename = "accountEmail")]
-    pub account_email: Option<String>,
+    pub account_email: ::core::option::Option<String>,
 }
 
 /// An authentication URL configuration for the authenticator app of an identity provider.
@@ -423,7 +434,7 @@ pub struct EnterpriseAccount {
 pub struct EnterpriseAuthenticationAppLinkConfig {
     /// An authentication url.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// An event generated when an enterprise is upgraded.
@@ -431,7 +442,7 @@ pub struct EnterpriseAuthenticationAppLinkConfig {
 pub struct EnterpriseUpgradeEvent {
     /// The upgrade state. // TODO: enum values: ["upgradeStateUnspecified", "upgradeStateSucceeded"]
     #[serde(default, rename = "upgradeState")]
-    pub upgrade_state: Option<String>,
+    pub upgrade_state: ::core::option::Option<String>,
 }
 
 /// EnterprisesListResponse resource type.
@@ -439,7 +450,7 @@ pub struct EnterpriseUpgradeEvent {
 pub struct EnterprisesListResponse {
     /// An enterprise.
     #[serde(default)]
-    pub enterprise: Option<Vec<Enterprise>>,
+    pub enterprise: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Enterprise>>>,
 }
 
 /// EnterprisesSendTestPushNotificationResponse resource type.
@@ -447,10 +458,10 @@ pub struct EnterprisesListResponse {
 pub struct EnterprisesSendTestPushNotificationResponse {
     /// The message ID of the test push notification that was sent.
     #[serde(default, rename = "messageId")]
-    pub message_id: Option<String>,
+    pub message_id: ::core::option::Option<String>,
     /// The name of the Cloud Pub/Sub topic to which notifications for this enterprise''s enrolled account will be sent.
     #[serde(default, rename = "topicName")]
-    pub topic_name: Option<String>,
+    pub topic_name: ::core::option::Option<String>,
 }
 
 ///  *Deprecated:* New integrations cannot use this method and can refer to our new recommendations.
@@ -458,10 +469,10 @@ pub struct EnterprisesSendTestPushNotificationResponse {
 pub struct Entitlement {
     /// The ID of the product that the entitlement is for. For example, "app:com.google.android.gm".
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// The reason for the entitlement. For example, "free" for free apps. This property is temporary: it will be replaced by the acquisition kind field of group licenses. // TODO: enum values: ["free", "groupLicense", "userPurchase"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// EntitlementsListResponse resource type.
@@ -469,7 +480,7 @@ pub struct Entitlement {
 pub struct EntitlementsListResponse {
     /// An entitlement of a user to a product (e.g. an app). For example, a free app that they have installed, or a paid app that they have been allocated a license to.
     #[serde(default)]
-    pub entitlement: Option<Vec<Entitlement>>,
+    pub entitlement: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entitlement>>>,
 }
 
 /// Response message for generating a URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain.
@@ -477,7 +488,7 @@ pub struct EntitlementsListResponse {
 pub struct GenerateEnterpriseUpgradeUrlResponse {
     /// A URL for an enterprise admin to upgrade their enterprise. The page can''t be rendered in an iframe.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Contains settings for Google-provided user authentication.
@@ -485,10 +496,10 @@ pub struct GenerateEnterpriseUpgradeUrlResponse {
 pub struct GoogleAuthenticationSettings {
     /// Whether dedicated devices are allowed. // TODO: enum values: ["dedicatedDevicesAllowedUnspecified", "disallowed", "allowed"]
     #[serde(default, rename = "dedicatedDevicesAllowed")]
-    pub dedicated_devices_allowed: Option<String>,
+    pub dedicated_devices_allowed: ::core::option::Option<String>,
     /// Whether Google authentication is required. // TODO: enum values: ["googleAuthenticationRequiredUnspecified", "notRequired", "required"]
     #[serde(default, rename = "googleAuthenticationRequired")]
-    pub google_authentication_required: Option<String>,
+    pub google_authentication_required: ::core::option::Option<String>,
 }
 
 ///  *Deprecated:* New integrations cannot use this method and can refer to our new recommendations
@@ -496,22 +507,22 @@ pub struct GoogleAuthenticationSettings {
 pub struct GroupLicense {
     /// How this group license was acquired. "bulkPurchase" means that this Grouplicenses resource was created because the enterprise purchased licenses for this product; otherwise, the value is "free" (for free products). // TODO: enum values: ["free", "bulkPurchase"]
     #[serde(default, rename = "acquisitionKind")]
-    pub acquisition_kind: Option<String>,
+    pub acquisition_kind: ::core::option::Option<String>,
     /// Whether the product to which this group license relates is currently approved by the enterprise. Products are approved when a group license is first created, but this approval may be revoked by an enterprise admin via Google Play. Unapproved products will not be visible to end users in collections, and new entitlements to them should not normally be created. // TODO: enum values: ["approved", "unapproved"]
     #[serde(default)]
-    pub approval: Option<String>,
+    pub approval: ::core::option::Option<String>,
     /// The total number of provisioned licenses for this product. Returned by read operations, but ignored in write operations.
     #[serde(default, rename = "numProvisioned")]
-    pub num_provisioned: Option<i32>,
+    pub num_provisioned: ::core::option::Option<i32>,
     /// The number of purchased licenses (possibly in multiple purchases). If this field is omitted, then there is no limit on the number of licenses that can be provisioned (for example, if the acquisition kind is "free").
     #[serde(default, rename = "numPurchased")]
-    pub num_purchased: Option<i32>,
+    pub num_purchased: ::core::option::Option<i32>,
     /// The permission approval status of the product. This field is only set if the product is approved. Possible states are: - "currentApproved", the current set of permissions is approved, but additional permissions will require the administrator to reapprove the product (If the product was approved without specifying the approved permissions setting, then this is the default behavior.), - "needsReapproval", the product has unapproved permissions. No additional product licenses can be assigned until the product is reapproved, - "allCurrentAndFutureApproved", the current permissions are approved and any future permission updates will be automatically approved without administrator review.  // TODO: enum values: ["currentApproved", "needsReapproval", "allCurrentAndFutureApproved"]
     #[serde(default)]
-    pub permissions: Option<String>,
+    pub permissions: ::core::option::Option<String>,
     /// The ID of the product that the license is for. For example, "app:com.google.android.gm".
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
 }
 
 /// GroupLicenseUsersListResponse resource type.
@@ -519,7 +530,7 @@ pub struct GroupLicense {
 pub struct GroupLicenseUsersListResponse {
     /// A user of an enterprise.
     #[serde(default)]
-    pub user: Option<Vec<User>>,
+    pub user: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<User>>>,
 }
 
 /// GroupLicensesListResponse resource type.
@@ -527,7 +538,7 @@ pub struct GroupLicenseUsersListResponse {
 pub struct GroupLicensesListResponse {
     /// A group license for a product approved for use in the enterprise.
     #[serde(default, rename = "groupLicense")]
-    pub group_license: Option<Vec<GroupLicense>>,
+    pub group_license: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GroupLicense>>>,
 }
 
 /// The existence of an Installs resource indicates that an app is installed on a particular device (or that an install is pending). The API can be used to create an install resource using the update method. This triggers the actual install of the app on the device. If the user does not already have an entitlement for the app, then an attempt is made to create one. If this fails (for example, because the app is not free and there is no available license), then the creation of the install fails. The API can also be used to update an installed app. If the update method is used on an existing install, then the app will be updated to the latest available version. Note that it is not possible to force the installation of a specific version of an app: the version code is read-only. If a user installs an app themselves (as permitted by the enterprise), then again an install resource and possibly an entitlement resource are automatically created. The API can also be used to delete an install resource, which triggers the removal of the app from the device. Note that deleting an install does not automatically remove the corresponding entitlement, even if there are no remaining installs. The install resource will also be deleted if the user uninstalls the app themselves.
@@ -535,13 +546,13 @@ pub struct GroupLicensesListResponse {
 pub struct Install {
     /// Install state. The state "installPending" means that an install request has recently been made and download to the device is in progress. The state "installed" means that the app has been installed. This field is read-only. // TODO: enum values: ["installed", "installPending"]
     #[serde(default, rename = "installState")]
-    pub install_state: Option<String>,
+    pub install_state: ::core::option::Option<String>,
     /// The ID of the product that the install is for. For example, "app:com.google.android.gm".
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// The version of the installed product. Guaranteed to be set only if the install state is "installed".
     #[serde(default, rename = "versionCode")]
-    pub version_code: Option<i32>,
+    pub version_code: ::core::option::Option<i32>,
 }
 
 /// An event generated when an app installation failed on a device
@@ -549,19 +560,19 @@ pub struct Install {
 pub struct InstallFailureEvent {
     /// The Android ID of the device. This field will always be present.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// Additional details on the failure if applicable.
     #[serde(default, rename = "failureDetails")]
-    pub failure_details: Option<String>,
+    pub failure_details: ::core::option::Option<String>,
     /// The reason for the installation failure. This field will always be present. // TODO: enum values: ["unknown", "timeout"]
     #[serde(default, rename = "failureReason")]
-    pub failure_reason: Option<String>,
+    pub failure_reason: ::core::option::Option<String>,
     /// The id of the product (e.g. "app:com.google.android.gm") for which the install failure event occured. This field will always be present.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// The ID of the user. This field will always be present.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// InstallsListResponse resource type.
@@ -569,7 +580,7 @@ pub struct InstallFailureEvent {
 pub struct InstallsListResponse {
     /// An installation of an app for a user on a specific device. The existence of an install implies that the user must have an entitlement to the app.
     #[serde(default)]
-    pub install: Option<Vec<Install>>,
+    pub install: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Install>>>,
 }
 
 /// Represents a keyed app state containing a key, timestamp, severity level, optional description, and optional data.
@@ -577,19 +588,19 @@ pub struct InstallsListResponse {
 pub struct KeyedAppState {
     /// Additional field intended for machine-readable data. For example, a number or JSON object. To prevent XSS, we recommend removing any HTML from the data before displaying it.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// Key indicating what the app is providing a state for. The content of the key is set by the app''s developer. To prevent XSS, we recommend removing any HTML from the key before displaying it. This field will always be present.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Free-form, human-readable message describing the app state. For example, an error message. To prevent XSS, we recommend removing any HTML from the message before displaying it.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Severity of the app state. This field will always be present. // TODO: enum values: ["severityUnknown", "severityInfo", "severityError"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
     /// Timestamp of when the app set the state in milliseconds since epoch. This field will always be present.
     #[serde(default, rename = "stateTimestampMillis")]
-    pub state_timestamp_millis: Option<String>,
+    pub state_timestamp_millis: ::core::option::Option<String>,
 }
 
 /// A localized string with its locale.
@@ -597,10 +608,10 @@ pub struct KeyedAppState {
 pub struct LocalizedText {
     /// The BCP47 tag for a locale. (e.g. "en-US", "de").
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The text localized in the associated locale.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Maintenance window for managed Google Play Accounts. This allows Play store to update the apps on the foreground in the designated window.
@@ -608,10 +619,10 @@ pub struct LocalizedText {
 pub struct MaintenanceWindow {
     /// Duration of the maintenance window, in milliseconds. The duration must be between 30 minutes and 24 hours (inclusive).
     #[serde(default, rename = "durationMs")]
-    pub duration_ms: Option<String>,
+    pub duration_ms: ::core::option::Option<String>,
     /// Start time of the maintenance window, in milliseconds after midnight on the device. Windows can span midnight.
     #[serde(default, rename = "startTimeAfterMidnightMs")]
-    pub start_time_after_midnight_ms: Option<String>,
+    pub start_time_after_midnight_ms: ::core::option::Option<String>,
 }
 
 ///  *Deprecated:* New integrations cannot use this method and can refer to our new recommendations
@@ -619,16 +630,17 @@ pub struct MaintenanceWindow {
 pub struct ManagedConfiguration {
     /// Contains the ID of the managed configuration profile and the set of configuration variables (if any) defined for the user.
     #[serde(default, rename = "configurationVariables")]
-    pub configuration_variables: Option<ConfigurationVariables>,
+    pub configuration_variables: ::core::option::Option<::std::boxed::Box<ConfigurationVariables>>,
     /// Deprecated.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The set of managed properties for this configuration.
     #[serde(default, rename = "managedProperty")]
-    pub managed_property: Option<Vec<ManagedProperty>>,
+    pub managed_property:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManagedProperty>>>,
     /// The ID of the product that the managed configuration is for, e.g. "app:com.google.android.gm".
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
 }
 
 /// ManagedConfigurationsForDeviceListResponse resource type.
@@ -636,7 +648,8 @@ pub struct ManagedConfiguration {
 pub struct ManagedConfigurationsForDeviceListResponse {
     /// A managed configuration for an app on a specific device.
     #[serde(default, rename = "managedConfigurationForDevice")]
-    pub managed_configuration_for_device: Option<Vec<ManagedConfiguration>>,
+    pub managed_configuration_for_device:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManagedConfiguration>>>,
 }
 
 /// ManagedConfigurationsForUserListResponse resource type.
@@ -644,7 +657,8 @@ pub struct ManagedConfigurationsForDeviceListResponse {
 pub struct ManagedConfigurationsForUserListResponse {
     /// A managed configuration for an app for a specific user.
     #[serde(default, rename = "managedConfigurationForUser")]
-    pub managed_configuration_for_user: Option<Vec<ManagedConfiguration>>,
+    pub managed_configuration_for_user:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManagedConfiguration>>>,
 }
 
 /// A managed configurations settings resource contains the set of managed properties that have been configured for an Android app to be applied to a set of users. The app''s developer would have defined configurable properties in the managed configurations schema.
@@ -652,13 +666,13 @@ pub struct ManagedConfigurationsForUserListResponse {
 pub struct ManagedConfigurationsSettings {
     /// The last updated time of the managed configuration settings in milliseconds since 1970-01-01T00:00:00Z.
     #[serde(default, rename = "lastUpdatedTimestampMillis")]
-    pub last_updated_timestamp_millis: Option<String>,
+    pub last_updated_timestamp_millis: ::core::option::Option<String>,
     /// The ID of the managed configurations settings.
     #[serde(default, rename = "mcmId")]
-    pub mcm_id: Option<String>,
+    pub mcm_id: ::core::option::Option<String>,
     /// The name of the managed configurations settings.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// ManagedConfigurationsSettingsListResponse resource type.
@@ -666,7 +680,8 @@ pub struct ManagedConfigurationsSettings {
 pub struct ManagedConfigurationsSettingsListResponse {
     /// A managed configurations settings for an app that may be assigned to a group of users in an enterprise.
     #[serde(default, rename = "managedConfigurationsSettings")]
-    pub managed_configurations_settings: Option<Vec<ManagedConfigurationsSettings>>,
+    pub managed_configurations_settings:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManagedConfigurationsSettings>>>,
 }
 
 /// A managed property of a managed configuration. The property must match one of the properties in the app restrictions schema of the product. Exactly one of the value fields must be populated, and it must match the property''s type in the app restrictions schema.
@@ -674,25 +689,26 @@ pub struct ManagedConfigurationsSettingsListResponse {
 pub struct ManagedProperty {
     /// The unique key that identifies the property.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The boolean value - this will only be present if type of the property is bool.
     #[serde(default, rename = "valueBool")]
-    pub value_bool: Option<bool>,
+    pub value_bool: ::core::option::Option<bool>,
     /// The bundle of managed properties - this will only be present if type of the property is bundle.
     #[serde(default, rename = "valueBundle")]
-    pub value_bundle: Option<ManagedPropertyBundle>,
+    pub value_bundle: ::core::option::Option<::std::boxed::Box<ManagedPropertyBundle>>,
     /// The list of bundles of properties - this will only be present if type of the property is bundle_array.
     #[serde(default, rename = "valueBundleArray")]
-    pub value_bundle_array: Option<Vec<ManagedPropertyBundle>>,
+    pub value_bundle_array:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManagedPropertyBundle>>>,
     /// The integer value - this will only be present if type of the property is integer.
     #[serde(default, rename = "valueInteger")]
-    pub value_integer: Option<i32>,
+    pub value_integer: ::core::option::Option<i32>,
     /// The string value - this will only be present if type of the property is string, choice or hidden.
     #[serde(default, rename = "valueString")]
-    pub value_string: Option<String>,
+    pub value_string: ::core::option::Option<String>,
     /// The list of string values - this will only be present if type of the property is multiselect.
     #[serde(default, rename = "valueStringArray")]
-    pub value_string_array: Option<Vec<String>>,
+    pub value_string_array: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A bundle of managed properties.
@@ -700,7 +716,8 @@ pub struct ManagedProperty {
 pub struct ManagedPropertyBundle {
     /// The list of managed properties.
     #[serde(default, rename = "managedProperty")]
-    pub managed_property: Option<Vec<ManagedProperty>>,
+    pub managed_property:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ManagedProperty>>>,
 }
 
 /// An event generated when a new device is ready to be managed.
@@ -708,16 +725,16 @@ pub struct ManagedPropertyBundle {
 pub struct NewDeviceEvent {
     /// The Android ID of the device. This field will always be present.
     #[serde(default, rename = "deviceId")]
-    pub device_id: Option<String>,
+    pub device_id: ::core::option::Option<String>,
     /// Policy app on the device.
     #[serde(default, rename = "dpcPackageName")]
-    pub dpc_package_name: Option<String>,
+    pub dpc_package_name: ::core::option::Option<String>,
     /// Identifies the extent to which the device is controlled by an Android EMM in various deployment configurations. Possible values include: - "managedDevice", a device where the DPC is set as device owner, - "managedProfile", a device where the DPC is set as profile owner.  // TODO: enum values: ["managedDevice", "managedProfile"]
     #[serde(default, rename = "managementType")]
-    pub management_type: Option<String>,
+    pub management_type: ::core::option::Option<String>,
     /// The ID of the user. This field will always be present.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// An event generated when new permissions are added to an app.
@@ -725,13 +742,13 @@ pub struct NewDeviceEvent {
 pub struct NewPermissionsEvent {
     /// The set of permissions that the enterprise admin has already approved for this application. Use Permissions.Get on the EMM API to retrieve details about these permissions.
     #[serde(default, rename = "approvedPermissions")]
-    pub approved_permissions: Option<Vec<String>>,
+    pub approved_permissions: ::core::option::Option<::std::vec::Vec<String>>,
     /// The id of the product (e.g. "app:com.google.android.gm") for which new permissions were added. This field will always be present.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// The set of permissions that the app is currently requesting. Use Permissions.Get on the EMM API to retrieve details about these permissions.
     #[serde(default, rename = "requestedPermissions")]
-    pub requested_permissions: Option<Vec<String>>,
+    pub requested_permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A notification of one event relating to an enterprise.
@@ -739,40 +756,43 @@ pub struct NewPermissionsEvent {
 pub struct Notification {
     /// Notifications about new app restrictions schema changes.
     #[serde(default, rename = "appRestrictionsSchemaChangeEvent")]
-    pub app_restrictions_schema_change_event: Option<AppRestrictionsSchemaChangeEvent>,
+    pub app_restrictions_schema_change_event:
+        ::core::option::Option<::std::boxed::Box<AppRestrictionsSchemaChangeEvent>>,
     /// Notifications about app updates.
     #[serde(default, rename = "appUpdateEvent")]
-    pub app_update_event: Option<AppUpdateEvent>,
+    pub app_update_event: ::core::option::Option<::std::boxed::Box<AppUpdateEvent>>,
     /// Notifications about device report updates.
     #[serde(default, rename = "deviceReportUpdateEvent")]
-    pub device_report_update_event: Option<DeviceReportUpdateEvent>,
+    pub device_report_update_event:
+        ::core::option::Option<::std::boxed::Box<DeviceReportUpdateEvent>>,
     /// The ID of the enterprise for which the notification is sent. This will always be present.
     #[serde(default, rename = "enterpriseId")]
-    pub enterprise_id: Option<String>,
+    pub enterprise_id: ::core::option::Option<String>,
     /// Notifications about enterprise upgrade.
     #[serde(default, rename = "enterpriseUpgradeEvent")]
-    pub enterprise_upgrade_event: Option<EnterpriseUpgradeEvent>,
+    pub enterprise_upgrade_event: ::core::option::Option<::std::boxed::Box<EnterpriseUpgradeEvent>>,
     /// Notifications about an app installation failure.
     #[serde(default, rename = "installFailureEvent")]
-    pub install_failure_event: Option<InstallFailureEvent>,
+    pub install_failure_event: ::core::option::Option<::std::boxed::Box<InstallFailureEvent>>,
     /// Notifications about new devices.
     #[serde(default, rename = "newDeviceEvent")]
-    pub new_device_event: Option<NewDeviceEvent>,
+    pub new_device_event: ::core::option::Option<::std::boxed::Box<NewDeviceEvent>>,
     /// Notifications about new app permissions.
     #[serde(default, rename = "newPermissionsEvent")]
-    pub new_permissions_event: Option<NewPermissionsEvent>,
+    pub new_permissions_event: ::core::option::Option<::std::boxed::Box<NewPermissionsEvent>>,
     /// Type of the notification. // TODO: enum values: ["unknown", "testNotification", "productApproval", "installFailure", "appUpdate", "newPermissions", "appRestricionsSchemaChange", "productAvailabilityChange", "newDevice", "deviceReportUpdate", "enterpriseUpgrade"]
     #[serde(default, rename = "notificationType")]
-    pub notification_type: Option<String>,
+    pub notification_type: ::core::option::Option<String>,
     /// Notifications about changes to a product''s approval status.
     #[serde(default, rename = "productApprovalEvent")]
-    pub product_approval_event: Option<ProductApprovalEvent>,
+    pub product_approval_event: ::core::option::Option<::std::boxed::Box<ProductApprovalEvent>>,
     /// Notifications about product availability changes.
     #[serde(default, rename = "productAvailabilityChangeEvent")]
-    pub product_availability_change_event: Option<ProductAvailabilityChangeEvent>,
+    pub product_availability_change_event:
+        ::core::option::Option<::std::boxed::Box<ProductAvailabilityChangeEvent>>,
     /// The time when the notification was published in milliseconds since 1970-01-01T00:00:00Z. This will always be present.
     #[serde(default, rename = "timestampMillis")]
-    pub timestamp_millis: Option<String>,
+    pub timestamp_millis: ::core::option::Option<String>,
 }
 
 /// A resource returned by the PullNotificationSet API, which contains a collection of notifications for enterprises associated with the service account authenticated for the request.
@@ -780,10 +800,10 @@ pub struct Notification {
 pub struct NotificationSet {
     /// The notifications received, or empty if no notifications are present.
     #[serde(default)]
-    pub notification: Option<Vec<Notification>>,
+    pub notification: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Notification>>>,
     /// The notification set ID, required to mark the notification as received with the Enterprises.AcknowledgeNotification API. This will be omitted if no notifications are present.
     #[serde(default, rename = "notificationSetId")]
-    pub notification_set_id: Option<String>,
+    pub notification_set_id: ::core::option::Option<String>,
 }
 
 /// Information about the current page. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned.
@@ -791,13 +811,13 @@ pub struct NotificationSet {
 pub struct PageInfo {
     /// Maximum number of results returned in one page. ! The number of results included in the API response.
     #[serde(default, rename = "resultPerPage")]
-    pub result_per_page: Option<i32>,
+    pub result_per_page: ::core::option::Option<i32>,
     /// Index of the first result returned in the current page.
     #[serde(default, rename = "startIndex")]
-    pub start_index: Option<i32>,
+    pub start_index: ::core::option::Option<i32>,
     /// Total number of results available on the backend ! The total number of results in the result set.
     #[serde(default, rename = "totalResults")]
-    pub total_results: Option<i32>,
+    pub total_results: ::core::option::Option<i32>,
 }
 
 /// A Permissions resource represents some extra capability, to be granted to an Android app, which requires explicit consent. An enterprise admin must consent to these permissions on behalf of their users before an entitlement for the app can be created. The permissions collection is read-only. The information provided for each permission (localized name and description) is intended to be used in the MDM user interface when obtaining consent from the enterprise.
@@ -805,13 +825,13 @@ pub struct PageInfo {
 pub struct Permission {
     /// A longer description of the Permissions resource, giving more details of what it affects.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The name of the permission.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// An opaque string uniquely identifying the permission.
     #[serde(default, rename = "permissionId")]
-    pub permission_id: Option<String>,
+    pub permission_id: ::core::option::Option<String>,
 }
 
 /// The device policy for a given managed device.
@@ -819,22 +839,22 @@ pub struct Permission {
 pub struct Policy {
     /// Controls when automatic app updates on the device can be applied. Recommended alternative: autoUpdateMode which is set per app, provides greater flexibility around update frequency. When autoUpdateMode is set to AUTO_UPDATE_POSTPONED or AUTO_UPDATE_HIGH_PRIORITY, autoUpdatePolicy has no effect. - choiceToTheUser allows the device''s user to configure the app update policy. - always enables auto updates. - never disables auto updates. - wifiOnly enables auto updates only when the device is connected to wifi. *Important:* Changes to app update policies don''t affect updates that are in progress. Any policy changes will apply to subsequent app updates.  // TODO: enum values: ["autoUpdatePolicyUnspecified", "choiceToTheUser", "never", "wifiOnly", "always"]
     #[serde(default, rename = "autoUpdatePolicy")]
-    pub auto_update_policy: Option<String>,
+    pub auto_update_policy: ::core::option::Option<String>,
     /// Whether the device reports app states to the EMM. The default value is "deviceReportDisabled". // TODO: enum values: ["deviceReportPolicyUnspecified", "deviceReportDisabled", "deviceReportEnabled"]
     #[serde(default, rename = "deviceReportPolicy")]
-    pub device_report_policy: Option<String>,
+    pub device_report_policy: ::core::option::Option<String>,
     /// The maintenance window defining when apps running in the foreground should be updated.
     #[serde(default, rename = "maintenanceWindow")]
-    pub maintenance_window: Option<MaintenanceWindow>,
+    pub maintenance_window: ::core::option::Option<::std::boxed::Box<MaintenanceWindow>>,
     /// An identifier for the policy that will be passed with the app install feedback sent from the Play Store.
     #[serde(default, rename = "policyId")]
-    pub policy_id: Option<String>,
+    pub policy_id: ::core::option::Option<String>,
     /// The availability granted to the device for the specified products. "all" gives the device access to all products, regardless of approval status. "all" does not enable automatic visibility of "alpha" or "beta" tracks. "whitelist" grants the device access the products specified in productPolicy[]. Only products that are approved or products that were previously approved (products with revoked approval) by the enterprise can be whitelisted. If no value is provided, the availability set at the user level is applied by default. // TODO: enum values: ["productAvailabilityPolicyUnspecified", "whitelist", "all"]
     #[serde(default, rename = "productAvailabilityPolicy")]
-    pub product_availability_policy: Option<String>,
+    pub product_availability_policy: ::core::option::Option<String>,
     /// The list of product policies. The productAvailabilityPolicy needs to be set to WHITELIST or ALL for the product policies to be applied.
     #[serde(default, rename = "productPolicy")]
-    pub product_policy: Option<Vec<ProductPolicy>>,
+    pub product_policy: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProductPolicy>>>,
 }
 
 /// A Products resource represents an app in the Google Play store that is available to at least some users in the enterprise. (Some apps are restricted to a single enterprise, and no information about them is made available outside that enterprise.) The information provided for each product (localized name, icon, link to the full Google Play details page) is intended to allow a basic representation of the product within an EMM user interface.
@@ -842,82 +862,82 @@ pub struct Policy {
 pub struct Product {
     /// The app restriction schema
     #[serde(default, rename = "appRestrictionsSchema")]
-    pub app_restrictions_schema: Option<AppRestrictionsSchema>,
+    pub app_restrictions_schema: ::core::option::Option<::std::boxed::Box<AppRestrictionsSchema>>,
     /// The tracks visible to the enterprise.
     #[serde(default, rename = "appTracks")]
-    pub app_tracks: Option<Vec<TrackInfo>>,
+    pub app_tracks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TrackInfo>>>,
     /// App versions currently available for this product.
     #[serde(default, rename = "appVersion")]
-    pub app_version: Option<Vec<AppVersion>>,
+    pub app_version: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AppVersion>>>,
     /// The name of the author of the product (for example, the app developer).
     #[serde(default, rename = "authorName")]
-    pub author_name: Option<String>,
+    pub author_name: ::core::option::Option<String>,
     /// The countries which this app is available in.
     #[serde(default, rename = "availableCountries")]
-    pub available_countries: Option<Vec<String>>,
+    pub available_countries: ::core::option::Option<::std::vec::Vec<String>>,
     /// Deprecated, use appTracks instead.
     #[serde(default, rename = "availableTracks")]
-    pub available_tracks: Option<Vec<String>>,
+    pub available_tracks: ::core::option::Option<::std::vec::Vec<String>>,
     /// The app category (e.g. RACING, SOCIAL, etc.)
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// The content rating for this app. // TODO: enum values: ["ratingUnknown", "all", "preTeen", "teen", "mature"]
     #[serde(default, rename = "contentRating")]
-    pub content_rating: Option<String>,
+    pub content_rating: ::core::option::Option<String>,
     /// The localized promotional description, if available.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// A link to the (consumer) Google Play details page for the product.
     #[serde(default, rename = "detailsUrl")]
-    pub details_url: Option<String>,
+    pub details_url: ::core::option::Option<String>,
     /// How and to whom the package is made available. The value publicGoogleHosted means that the package is available through the Play store and not restricted to a specific enterprise. The value privateGoogleHosted means that the package is a private app (restricted to an enterprise) but hosted by Google. The value privateSelfHosted means that the package is a private app (restricted to an enterprise) and is privately hosted. // TODO: enum values: ["publicGoogleHosted", "privateGoogleHosted", "privateSelfHosted"]
     #[serde(default, rename = "distributionChannel")]
-    pub distribution_channel: Option<String>,
+    pub distribution_channel: ::core::option::Option<String>,
     /// Noteworthy features (if any) of this product.
     #[serde(default)]
-    pub features: Option<Vec<String>>,
+    pub features: ::core::option::Option<::std::vec::Vec<String>>,
     /// The localized full app store description, if available.
     #[serde(default, rename = "fullDescription")]
-    pub full_description: Option<String>,
+    pub full_description: ::core::option::Option<String>,
     /// A link to an image that can be used as an icon for the product. This image is suitable for use at up to 512px x 512px.
     #[serde(default, rename = "iconUrl")]
-    pub icon_url: Option<String>,
+    pub icon_url: ::core::option::Option<String>,
     /// The approximate time (within 7 days) the app was last published, expressed in milliseconds since epoch.
     #[serde(default, rename = "lastUpdatedTimestampMillis")]
-    pub last_updated_timestamp_millis: Option<String>,
+    pub last_updated_timestamp_millis: ::core::option::Option<String>,
     /// The minimum Android SDK necessary to run the app.
     #[serde(default, rename = "minAndroidSdkVersion")]
-    pub min_android_sdk_version: Option<i32>,
+    pub min_android_sdk_version: ::core::option::Option<i32>,
     /// A list of permissions required by the app.
     #[serde(default)]
-    pub permissions: Option<Vec<ProductPermission>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProductPermission>>>,
     /// A string of the form *app:&lt;package name&gt;*. For example, app:com.google.android.gm represents the Gmail app.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// Whether this product is free, free with in-app purchases, or paid. If the pricing is unknown, this means the product is not generally available anymore (even though it might still be available to people who own it). // TODO: enum values: ["unknown", "free", "freeWithInAppPurchase", "paid"]
     #[serde(default, rename = "productPricing")]
-    pub product_pricing: Option<String>,
+    pub product_pricing: ::core::option::Option<String>,
     /// A description of the recent changes made to the app.
     #[serde(default, rename = "recentChanges")]
-    pub recent_changes: Option<String>,
+    pub recent_changes: ::core::option::Option<String>,
     /// Deprecated.
     #[serde(default, rename = "requiresContainerApp")]
-    pub requires_container_app: Option<bool>,
+    pub requires_container_app: ::core::option::Option<bool>,
     /// A list of screenshot links representing the app.
     #[serde(default, rename = "screenshotUrls")]
-    pub screenshot_urls: Option<Vec<String>>,
+    pub screenshot_urls: ::core::option::Option<::std::vec::Vec<String>>,
     /// The certificate used to sign this product.
     #[serde(default, rename = "signingCertificate")]
-    pub signing_certificate: Option<ProductSigningCertificate>,
+    pub signing_certificate: ::core::option::Option<::std::boxed::Box<ProductSigningCertificate>>,
     /// A link to a smaller image that can be used as an icon for the product. This image is suitable for use at up to 128px x 128px.
     #[serde(default, rename = "smallIconUrl")]
-    pub small_icon_url: Option<String>,
+    pub small_icon_url: ::core::option::Option<String>,
     /// The name of the product.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// A link to the managed Google Play details page for the product, for use by an Enterprise admin.
     #[serde(default, rename = "workDetailsUrl")]
-    pub work_details_url: Option<String>,
+    pub work_details_url: ::core::option::Option<String>,
 }
 
 /// An event generated when a product''s approval status is changed.
@@ -925,10 +945,10 @@ pub struct Product {
 pub struct ProductApprovalEvent {
     /// Whether the product was approved or unapproved. This field will always be present. // TODO: enum values: ["unknown", "approved", "unapproved"]
     #[serde(default)]
-    pub approved: Option<String>,
+    pub approved: ::core::option::Option<String>,
     /// The id of the product (e.g. "app:com.google.android.gm") for which the approval status has changed. This field will always be present.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
 }
 
 /// An event generated whenever a product''s availability changes.
@@ -936,10 +956,10 @@ pub struct ProductApprovalEvent {
 pub struct ProductAvailabilityChangeEvent {
     /// The new state of the product. This field will always be present. // TODO: enum values: ["unknown", "available", "removed", "unpublished"]
     #[serde(default, rename = "availabilityStatus")]
-    pub availability_status: Option<String>,
+    pub availability_status: ::core::option::Option<String>,
     /// The id of the product (e.g. "app:com.google.android.gm") for which the product availability changed. This field will always be present.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
 }
 
 /// A product permissions resource represents the set of permissions required by a specific app and whether or not they have been accepted by an enterprise admin. The API can be used to read the set of permissions, and also to update the set to indicate that permissions have been accepted.
@@ -947,10 +967,10 @@ pub struct ProductAvailabilityChangeEvent {
 pub struct ProductPermission {
     /// An opaque string uniquely identifying the permission.
     #[serde(default, rename = "permissionId")]
-    pub permission_id: Option<String>,
+    pub permission_id: ::core::option::Option<String>,
     /// Whether the permission has been accepted or not. // TODO: enum values: ["required", "accepted"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Information about the permissions required by a specific app and whether they have been accepted by the enterprise.
@@ -958,10 +978,10 @@ pub struct ProductPermission {
 pub struct ProductPermissions {
     /// The permissions required by the app.
     #[serde(default)]
-    pub permission: Option<Vec<ProductPermission>>,
+    pub permission: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProductPermission>>>,
     /// The ID of the app that the permissions relate to, e.g. "app:com.google.android.gm".
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
 }
 
 /// The policy for a product.
@@ -969,26 +989,27 @@ pub struct ProductPermissions {
 pub struct ProductPolicy {
     /// The auto-install policy for the product.
     #[serde(default, rename = "autoInstallPolicy")]
-    pub auto_install_policy: Option<AutoInstallPolicy>,
+    pub auto_install_policy: ::core::option::Option<::std::boxed::Box<AutoInstallPolicy>>,
     /// The auto-update mode for the product. When autoUpdateMode is used, it always takes precedence over the user''s choice. So when a user makes changes to the device settings manually, these changes are ignored. // TODO: enum values: ["autoUpdateModeUnspecified", "autoUpdateDefault", "autoUpdatePostponed", "autoUpdateHighPriority"]
     #[serde(default, rename = "autoUpdateMode")]
-    pub auto_update_mode: Option<String>,
+    pub auto_update_mode: ::core::option::Option<String>,
     /// An authentication URL configuration for the authenticator app of an identity provider. This helps to launch the identity provider''s authenticator app during the authentication happening in a private app using Android WebView. Authenticator app should already be the default handler for the authentication url on the device.
     #[serde(default, rename = "enterpriseAuthenticationAppLinkConfigs")]
-    pub enterprise_authentication_app_link_configs:
-        Option<Vec<EnterpriseAuthenticationAppLinkConfig>>,
+    pub enterprise_authentication_app_link_configs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<EnterpriseAuthenticationAppLinkConfig>>,
+    >,
     /// The managed configuration for the product.
     #[serde(default, rename = "managedConfiguration")]
-    pub managed_configuration: Option<ManagedConfiguration>,
+    pub managed_configuration: ::core::option::Option<::std::boxed::Box<ManagedConfiguration>>,
     /// The ID of the product. For example, "app:com.google.android.gm".
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// Grants the device visibility to the specified product release track(s), identified by trackIds. The list of release tracks of a product can be obtained by calling Products.Get.
     #[serde(default, rename = "trackIds")]
-    pub track_ids: Option<Vec<String>>,
+    pub track_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Deprecated. Use trackIds instead.
     #[serde(default)]
-    pub tracks: Option<Vec<String>>,
+    pub tracks: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A set of products.
@@ -996,13 +1017,14 @@ pub struct ProductPolicy {
 pub struct ProductSet {
     /// The list of product IDs making up the set of products.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<Vec<String>>,
+    pub product_id: ::core::option::Option<::std::vec::Vec<String>>,
     /// The interpretation of this product set. "unknown" should never be sent and is ignored if received. "whitelist" means that the user is entitled to access the product set. "includeAll" means that all products are accessible, including products that are approved, products with revoked approval, and products that have never been approved. "allApproved" means that the user is entitled to access all products that are approved for the enterprise. If the value is "allApproved" or "includeAll", the productId field is ignored. If no value is provided, it is interpreted as "whitelist" for backwards compatibility. Further "allApproved" or "includeAll" does not enable automatic visibility of "alpha" or "beta" tracks for Android app. Use ProductVisibility to enable "alpha" or "beta" tracks per user. // TODO: enum values: ["unknown", "whitelist", "includeAll", "allApproved"]
     #[serde(default, rename = "productSetBehavior")]
-    pub product_set_behavior: Option<String>,
+    pub product_set_behavior: ::core::option::Option<String>,
     /// Additional list of product IDs making up the product set. Unlike the productID array, in this list It''s possible to specify which tracks (alpha, beta, production) of a product are visible to the user. See ProductVisibility and its fields for more information. Specifying the same product ID both here and in the productId array is not allowed and it will result in an error.
     #[serde(default, rename = "productVisibility")]
-    pub product_visibility: Option<Vec<ProductVisibility>>,
+    pub product_visibility:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProductVisibility>>>,
 }
 
 /// ProductSigningCertificate resource type.
@@ -1010,10 +1032,10 @@ pub struct ProductSet {
 pub struct ProductSigningCertificate {
     /// The base64 urlsafe encoded SHA1 hash of the certificate. (This field is deprecated in favor of SHA2-256. It should not be used and may be removed at any time.)
     #[serde(default, rename = "certificateHashSha1")]
-    pub certificate_hash_sha1: Option<String>,
+    pub certificate_hash_sha1: ::core::option::Option<String>,
     /// The base64 urlsafe encoded SHA2-256 hash of the certificate.
     #[serde(default, rename = "certificateHashSha256")]
-    pub certificate_hash_sha256: Option<String>,
+    pub certificate_hash_sha256: ::core::option::Option<String>,
 }
 
 /// A product to be made visible to a user.
@@ -1021,13 +1043,13 @@ pub struct ProductSigningCertificate {
 pub struct ProductVisibility {
     /// The product ID to make visible to the user. Required for each item in the productVisibility list.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// Grants the user visibility to the specified product track(s), identified by trackIds.
     #[serde(default, rename = "trackIds")]
-    pub track_ids: Option<Vec<String>>,
+    pub track_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Deprecated. Use trackIds instead.
     #[serde(default)]
-    pub tracks: Option<Vec<String>>,
+    pub tracks: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ProductsApproveRequest resource type.
@@ -1035,10 +1057,10 @@ pub struct ProductVisibility {
 pub struct ProductsApproveRequest {
     /// The approval URL that was shown to the user. Only the permissions shown to the user with that URL will be accepted, which may not be the product''s entire set of permissions. For example, the URL may only display new permissions from an update after the product was approved, or not include new permissions if the product was updated since the URL was generated.
     #[serde(default, rename = "approvalUrlInfo")]
-    pub approval_url_info: Option<ApprovalUrlInfo>,
+    pub approval_url_info: ::core::option::Option<::std::boxed::Box<ApprovalUrlInfo>>,
     /// Sets how new permission requests for the product are handled. "allPermissions" automatically approves all current and future permissions for the product. "currentPermissionsOnly" approves the current set of permissions for the product, but any future permissions added through updates will require manual reapproval. If not specified, only the current set of permissions will be approved. // TODO: enum values: ["currentPermissionsOnly", "allPermissions"]
     #[serde(default, rename = "approvedPermissions")]
-    pub approved_permissions: Option<String>,
+    pub approved_permissions: ::core::option::Option<String>,
 }
 
 /// ProductsGenerateApprovalUrlResponse resource type.
@@ -1046,7 +1068,7 @@ pub struct ProductsApproveRequest {
 pub struct ProductsGenerateApprovalUrlResponse {
     /// A URL that can be rendered in an iframe to display the permissions (if any) of a product. This URL can be used to approve the product only once and only within 24 hours of being generated, using the Products.approve call. If the product is currently unapproved and has no permissions, this URL will point to an empty page. If the product is currently approved, a URL will only be generated if that product has added permissions since it was last approved, and the URL will only display those new permissions that have not yet been accepted.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// ProductsListResponse resource type.
@@ -1054,13 +1076,13 @@ pub struct ProductsGenerateApprovalUrlResponse {
 pub struct ProductsListResponse {
     /// General pagination information.
     #[serde(default, rename = "pageInfo")]
-    pub page_info: Option<PageInfo>,
+    pub page_info: ::core::option::Option<::std::boxed::Box<PageInfo>>,
     /// Information about a product (e.g. an app) in the Google Play store, for display to an enterprise admin.
     #[serde(default)]
-    pub product: Option<Vec<Product>>,
+    pub product: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Product>>>,
     /// Pagination information for token pagination.
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: Option<TokenPagination>,
+    pub token_pagination: ::core::option::Option<::std::boxed::Box<TokenPagination>>,
 }
 
 /// A service account identity, including the name and credentials that can be used to authenticate as the service account.
@@ -1068,10 +1090,10 @@ pub struct ProductsListResponse {
 pub struct ServiceAccount {
     /// Credentials that can be used to authenticate as this ServiceAccount.
     #[serde(default)]
-    pub key: Option<ServiceAccountKey>,
+    pub key: ::core::option::Option<::std::boxed::Box<ServiceAccountKey>>,
     /// The account name of the service account, in the form of an email address. Assigned by the server.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 ///  *Deprecated:* New integrations cannot use this method and can refer to our new recommendations
@@ -1079,16 +1101,16 @@ pub struct ServiceAccount {
 pub struct ServiceAccountKey {
     /// The body of the private key credentials file, in string format. This is only populated when the ServiceAccountKey is created, and is not stored by Google.
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: ::core::option::Option<String>,
     /// An opaque, unique identifier for this ServiceAccountKey. Assigned by the server.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Public key data for the credentials file. This is an X.509 cert. If you are using the googleCredentials key type, this is identical to the cert that can be retrieved by using the X.509 cert url inside of the credentials file.
     #[serde(default, rename = "publicData")]
-    pub public_data: Option<String>,
+    pub public_data: ::core::option::Option<String>,
     /// The file format of the generated key data. // TODO: enum values: ["googleCredentials", "pkcs12"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// ServiceAccountKeysListResponse resource type.
@@ -1096,7 +1118,8 @@ pub struct ServiceAccountKey {
 pub struct ServiceAccountKeysListResponse {
     /// The service account credentials.
     #[serde(default, rename = "serviceAccountKey")]
-    pub service_account_key: Option<Vec<ServiceAccountKey>>,
+    pub service_account_key:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServiceAccountKey>>>,
 }
 
 /// A resource returned by the GenerateSignupUrl API, which contains the Signup URL and Completion Token.
@@ -1104,13 +1127,13 @@ pub struct ServiceAccountKeysListResponse {
 pub struct SignupInfo {
     /// An opaque token that will be required, along with the Enterprise Token, for obtaining the enterprise resource from CompleteSignup.
     #[serde(default, rename = "completionToken")]
-    pub completion_token: Option<String>,
+    pub completion_token: ::core::option::Option<String>,
     /// Deprecated.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// A URL under which the Admin can sign up for an enterprise. The page pointed to cannot be rendered in an iframe.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Definition of a managed Google Play store cluster, a list of products displayed as part of a store page.
@@ -1118,16 +1141,16 @@ pub struct SignupInfo {
 pub struct StoreCluster {
     /// Unique ID of this cluster. Assigned by the server. Immutable once assigned.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Ordered list of localized strings giving the name of this page. The text displayed is the one that best matches the user locale, or the first entry if there is no good match. There needs to be at least one entry.
     #[serde(default)]
-    pub name: Option<Vec<LocalizedText>>,
+    pub name: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LocalizedText>>>,
     /// String (US-ASCII only) used to determine order of this cluster within the parent page''s elements. Page elements are sorted in lexicographic order of this field. Duplicated values are allowed, but ordering between elements with duplicate order is undefined. The value of this field is never visible to a user, it is used solely for the purpose of defining an ordering. Maximum length is 256 characters.
     #[serde(default, rename = "orderInPage")]
-    pub order_in_page: Option<String>,
+    pub order_in_page: ::core::option::Option<String>,
     /// List of products in the order they are displayed in the cluster. There should not be duplicates within a cluster.
     #[serde(default, rename = "productId")]
-    pub product_id: Option<Vec<String>>,
+    pub product_id: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// General setting for the managed Google Play store layout, currently only specifying the page to display the first time the store is opened.
@@ -1135,10 +1158,10 @@ pub struct StoreCluster {
 pub struct StoreLayout {
     /// The ID of the store page to be used as the homepage. The homepage is the first page shown in the managed Google Play Store. Not specifying a homepage is equivalent to setting the store layout type to "basic".
     #[serde(default, rename = "homepageId")]
-    pub homepage_id: Option<String>,
+    pub homepage_id: ::core::option::Option<String>,
     /// The store layout type. By default, this value is set to "basic" if the homepageId field is not set, and to "custom" otherwise. If set to "basic", the layout will consist of all approved apps that have been whitelisted for the user. // TODO: enum values: ["unknown", "basic", "custom"]
     #[serde(default, rename = "storeLayoutType")]
-    pub store_layout_type: Option<String>,
+    pub store_layout_type: ::core::option::Option<String>,
 }
 
 /// StoreLayoutClustersListResponse resource type.
@@ -1146,7 +1169,7 @@ pub struct StoreLayout {
 pub struct StoreLayoutClustersListResponse {
     /// A store cluster of an enterprise.
     #[serde(default)]
-    pub cluster: Option<Vec<StoreCluster>>,
+    pub cluster: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StoreCluster>>>,
 }
 
 /// StoreLayoutPagesListResponse resource type.
@@ -1154,7 +1177,7 @@ pub struct StoreLayoutClustersListResponse {
 pub struct StoreLayoutPagesListResponse {
     /// A store page of an enterprise.
     #[serde(default)]
-    pub page: Option<Vec<StorePage>>,
+    pub page: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StorePage>>>,
 }
 
 /// Definition of a managed Google Play store page, made of a localized name and links to other pages. A page also contains clusters defined as a subcollection.
@@ -1162,13 +1185,13 @@ pub struct StoreLayoutPagesListResponse {
 pub struct StorePage {
     /// Unique ID of this page. Assigned by the server. Immutable once assigned.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Ordered list of pages a user should be able to reach from this page. The list can''t include this page. It is recommended that the basic pages are created first, before adding the links between pages. The API doesn''t verify that the pages exist or the pages are reachable.
     #[serde(default)]
-    pub link: Option<Vec<String>>,
+    pub link: ::core::option::Option<::std::vec::Vec<String>>,
     /// Ordered list of localized strings giving the name of this page. The text displayed is the one that best matches the user locale, or the first entry if there is no good match. There needs to be at least one entry.
     #[serde(default)]
-    pub name: Option<Vec<LocalizedText>>,
+    pub name: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LocalizedText>>>,
 }
 
 /// Pagination information returned by a List operation when token pagination is enabled. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned. When using token pagination, clients should use the next/previous token to get another page of the result. The presence or absence of next/previous token indicates whether a next/previous page is available and provides a mean of accessing this page. ListRequest.page_token should be set to either next_page_token or previous_page_token to access another page.
@@ -1176,9 +1199,9 @@ pub struct StorePage {
 pub struct TokenPagination {
     /// Tokens to pass to the standard list field ''page_token''. Whenever available, tokens are preferred over manipulating start_index.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "previousPageToken")]
-    pub previous_page_token: Option<String>,
+    pub previous_page_token: ::core::option::Option<String>,
 }
 
 /// Id to name association of a track.
@@ -1186,10 +1209,10 @@ pub struct TokenPagination {
 pub struct TrackInfo {
     /// A modifiable name for a track. This is the visible name in the play developer console.
     #[serde(default, rename = "trackAlias")]
-    pub track_alias: Option<String>,
+    pub track_alias: ::core::option::Option<String>,
     /// Unmodifiable, unique track identifier. This identifier is the releaseTrackId in the url of the play developer console page that displays the track information.
     #[serde(default, rename = "trackId")]
-    pub track_id: Option<String>,
+    pub track_id: ::core::option::Option<String>,
 }
 
 /// A Users resource represents an account associated with an enterprise. The account may be specific to a device or to an individual user (who can then use the account across multiple devices). The account may provide access to managed Google Play only, or to other Google services, depending on the identity model: - The Google managed domain identity model requires synchronization to Google account sources (via primaryEmail). - The managed Google Play Accounts identity model provides a dynamic means for enterprises to create user or device accounts as needed. These accounts provide access to managed Google Play.
@@ -1197,22 +1220,22 @@ pub struct TrackInfo {
 pub struct User {
     /// A unique identifier you create for this user, such as "user342" or "asset#44418". Do not use personally identifiable information (PII) for this property. Must always be set for EMM-managed users. Not set for Google-managed users.
     #[serde(default, rename = "accountIdentifier")]
-    pub account_identifier: Option<String>,
+    pub account_identifier: ::core::option::Option<String>,
     /// The type of account that this user represents. A userAccount can be installed on multiple devices, but a deviceAccount is specific to a single device. An EMM-managed user (emmManaged) can be either type (userAccount, deviceAccount), but a Google-managed user (googleManaged) is always a userAccount. // TODO: enum values: ["deviceAccount", "userAccount"]
     #[serde(default, rename = "accountType")]
-    pub account_type: Option<String>,
+    pub account_type: ::core::option::Option<String>,
     /// The name that will appear in user interfaces. Setting this property is optional when creating EMM-managed users. If you do set this property, use something generic about the organization (such as "Example, Inc.") or your name (as EMM). Not used for Google-managed user accounts. @mutable androidenterprise.users.update
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The unique ID for the user.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The entity that manages the user. With googleManaged users, the source of truth is Google so EMMs have to make sure a Google Account exists for the user. With emmManaged users, the EMM is in charge. // TODO: enum values: ["googleManaged", "emmManaged"]
     #[serde(default, rename = "managementType")]
-    pub management_type: Option<String>,
+    pub management_type: ::core::option::Option<String>,
     /// The user''s primary email address, for example, "jsmith@example.com". Will always be set for Google managed users and not set for EMM managed users.
     #[serde(default, rename = "primaryEmail")]
-    pub primary_email: Option<String>,
+    pub primary_email: ::core::option::Option<String>,
 }
 
 /// UsersListResponse resource type.
@@ -1220,7 +1243,7 @@ pub struct User {
 pub struct UsersListResponse {
     /// A user of an enterprise.
     #[serde(default)]
-    pub user: Option<Vec<User>>,
+    pub user: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<User>>>,
 }
 
 /// A variable set is a key-value pair of EMM-provided placeholders and its corresponding value, which is attributed to a user. For example, $FIRSTNAME could be a placeholder, and its value could be Alice. Placeholders should start with a ''$'' sign and should be alphanumeric only.
@@ -1228,10 +1251,10 @@ pub struct UsersListResponse {
 pub struct VariableSet {
     /// The placeholder string; defined by EMM.
     #[serde(default)]
-    pub placeholder: Option<String>,
+    pub placeholder: ::core::option::Option<String>,
     /// The value of the placeholder, specific to the user.
     #[serde(default, rename = "userValue")]
-    pub user_value: Option<String>,
+    pub user_value: ::core::option::Option<String>,
 }
 
 /// A WebApps resource represents a web app created for an enterprise. Web apps are published to managed Google Play and can be distributed like other Android apps. On a user''s device, a web app opens its specified URL.
@@ -1239,25 +1262,25 @@ pub struct VariableSet {
 pub struct WebApp {
     /// The display mode of the web app. Possible values include: - "minimalUi", the device''s status bar, navigation bar, the app''s URL, and a refresh button are visible when the app is open. For HTTP URLs, you can only select this option. - "standalone", the device''s status bar and navigation bar are visible when the app is open. - "fullScreen", the app opens in full screen mode, hiding the device''s status and navigation bars. All browser UI elements, page URL, system status bar and back button are not visible, and the web app takes up the entirety of the available display area.  // TODO: enum values: ["displayModeUnspecified", "minimalUi", "standalone", "fullScreen"]
     #[serde(default, rename = "displayMode")]
-    pub display_mode: Option<String>,
+    pub display_mode: ::core::option::Option<String>,
     /// A list of icons representing this website. If absent, a default icon (for create) or the current icon (for update) will be used.
     #[serde(default)]
-    pub icons: Option<Vec<WebAppIcon>>,
+    pub icons: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebAppIcon>>>,
     /// A flag whether the app has been published to the Play store yet.
     #[serde(default, rename = "isPublished")]
-    pub is_published: Option<bool>,
+    pub is_published: ::core::option::Option<bool>,
     /// The start URL, i.e. the URL that should load when the user opens the application.
     #[serde(default, rename = "startUrl")]
-    pub start_url: Option<String>,
+    pub start_url: ::core::option::Option<String>,
     /// The title of the web app as displayed to the user (e.g., amongst a list of other applications, or as a label for an icon).
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The current version of the app. Note that the version can automatically increase during the lifetime of the web app, while Google does internal housekeeping to keep the web app up-to-date.
     #[serde(default, rename = "versionCode")]
-    pub version_code: Option<String>,
+    pub version_code: ::core::option::Option<String>,
     /// The ID of the application. A string of the form "app:&lt;package name&gt;" where the package name always starts with the prefix "com.google.enterprise.webapp." followed by a random id.
     #[serde(default, rename = "webAppId")]
-    pub web_app_id: Option<String>,
+    pub web_app_id: ::core::option::Option<String>,
 }
 
 /// Icon for a web app.
@@ -1265,7 +1288,7 @@ pub struct WebApp {
 pub struct WebAppIcon {
     /// The actual bytes of the image in a base64url encoded string (c.f. RFC4648, section 5 "Base 64 Encoding with URL and Filename Safe Alphabet"). - The image type can be png or jpg. - The image should ideally be square. - The image should ideally have a size of 512x512.
     #[serde(default, rename = "imageData")]
-    pub image_data: Option<String>,
+    pub image_data: ::core::option::Option<String>,
 }
 
 /// WebAppsListResponse resource type.
@@ -1273,5 +1296,5 @@ pub struct WebAppIcon {
 pub struct WebAppsListResponse {
     /// The manifest describing a web app.
     #[serde(default, rename = "webApp")]
-    pub web_app: Option<Vec<WebApp>>,
+    pub web_app: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebApp>>>,
 }

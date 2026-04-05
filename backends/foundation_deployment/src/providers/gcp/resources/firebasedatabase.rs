@@ -10,27 +10,27 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Representation of a Realtime Database instance. Details on interacting with contents of a DatabaseInstance can be found at: https://firebase.google.com/docs/database/rest/start.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatabaseInstance {
     /// Output only. Output Only. The globally unique hostname of the database.
     #[serde(default, rename = "databaseUrl")]
-    pub database_url: Option<String>,
+    pub database_url: ::core::option::Option<String>,
     /// The fully qualified resource name of the database instance, in the form: projects/{project-number}/locations/{location-id}/instances/{database-id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The resource name of the project this instance belongs to. For example: projects/{project-number}.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
     /// Output only. The database''s lifecycle state. Read-only. // TODO: enum values: ["LIFECYCLE_STATE_UNSPECIFIED", "ACTIVE", "DISABLED", "DELETED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Immutable. The database instance type. On creation only USER_DATABASE is allowed, which is also the default when omitted. // TODO: enum values: ["DATABASE_INSTANCE_TYPE_UNSPECIFIED", "DEFAULT_DATABASE", "USER_DATABASE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The response from the ListDatabaseInstances method.
@@ -38,8 +38,8 @@ pub struct DatabaseInstance {
 pub struct ListDatabaseInstancesResponse {
     /// List of each DatabaseInstance that is in the parent Firebase project.
     #[serde(default)]
-    pub instances: Option<Vec<DatabaseInstance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseInstance>>>,
     /// If the result list is too large to fit in a single response, then a token is returned. If the string is empty, then this response is the last page of results. This token can be used in a subsequent call to ListDatabaseInstances to find the next group of database instances. Page tokens are short-lived and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }

@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Specifies the base metric to query, which can be a predefined standard metric or a user-defined custom metric (if supported in the future).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseMetric {
     /// A predefined standard metric. // TODO: enum values: ["STANDARD_METRIC_UNSPECIFIED", "FEEDBACK_LOOP_ID", "FEEDBACK_LOOP_SPAM_RATE", "SPAM_RATE", "AUTH_SUCCESS_RATE", "TLS_ENCRYPTION_MESSAGE_COUNT", "TLS_ENCRYPTION_RATE", "DELIVERY_ERROR_COUNT", "DELIVERY_ERROR_RATE"]
     #[serde(default, rename = "standardMetric")]
-    pub standard_metric: Option<String>,
+    pub standard_metric: ::core::option::Option<String>,
 }
 
 /// Request message for BatchQueryDomainStats.
@@ -26,7 +26,8 @@ pub struct BaseMetric {
 pub struct BatchQueryDomainStatsRequest {
     /// Required. A list of individual query requests. Each request can be for a different domain. A maximum of 100 requests can be included in a single batch.
     #[serde(default)]
-    pub requests: Option<Vec<QueryDomainStatsRequest>>,
+    pub requests:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<QueryDomainStatsRequest>>>,
 }
 
 /// Response message for BatchQueryDomainStats.
@@ -34,7 +35,8 @@ pub struct BatchQueryDomainStatsRequest {
 pub struct BatchQueryDomainStatsResponse {
     /// A list of responses, one for each query in the BatchQueryDomainStatsRequest. The order of responses will correspond to the order of requests.
     #[serde(default)]
-    pub results: Option<Vec<BatchQueryDomainStatsResult>>,
+    pub results:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BatchQueryDomainStatsResult>>>,
 }
 
 /// Represents the result of a single QueryDomainStatsRequest within a batch.
@@ -42,10 +44,10 @@ pub struct BatchQueryDomainStatsResponse {
 pub struct BatchQueryDomainStatsResult {
     /// The error status if the individual query failed.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// The successful response for the individual query.
     #[serde(default)]
-    pub response: Option<QueryDomainStatsResponse>,
+    pub response: ::core::option::Option<::std::boxed::Box<QueryDomainStatsResponse>>,
 }
 
 /// Data for a single row of the compliance status table.
@@ -53,10 +55,10 @@ pub struct BatchQueryDomainStatsResult {
 pub struct ComplianceRowData {
     /// The compliance requirement. // TODO: enum values: ["COMPLIANCE_REQUIREMENT_UNSPECIFIED", "SPF", "DKIM", "SPF_AND_DKIM", "DMARC_POLICY", "DMARC_ALIGNMENT", "MESSAGE_FORMATTING", "DNS_RECORDS", "ENCRYPTION", "USER_REPORTED_SPAM_RATE", "ONE_CLICK_UNSUBSCRIBE", "HONOR_UNSUBSCRIBE"]
     #[serde(default)]
-    pub requirement: Option<String>,
+    pub requirement: ::core::option::Option<String>,
     /// The compliance status for the requirement.
     #[serde(default)]
-    pub status: Option<ComplianceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ComplianceStatus>>,
 }
 
 /// The status of a sender compliance requirement.
@@ -64,7 +66,7 @@ pub struct ComplianceRowData {
 pub struct ComplianceStatus {
     /// Output only. The compliance status. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLIANT", "NEEDS_WORK"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -72,13 +74,13 @@ pub struct ComplianceStatus {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// A set of specific dates.
@@ -86,7 +88,7 @@ pub struct Date {
 pub struct DateList {
     /// Required. The list of specific dates for which to retrieve data.
     #[serde(default)]
-    pub dates: Option<Vec<Date>>,
+    pub dates: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Date>>>,
 }
 
 /// A single date range defined by a start and end date.
@@ -94,10 +96,10 @@ pub struct DateList {
 pub struct DateRange {
     /// Required. The inclusive end date of the date range.
     #[serde(default)]
-    pub end: Option<Date>,
+    pub end: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Required. The inclusive start date of the date range.
     #[serde(default)]
-    pub start: Option<Date>,
+    pub start: ::core::option::Option<::std::boxed::Box<Date>>,
 }
 
 /// A set of date ranges.
@@ -105,7 +107,7 @@ pub struct DateRange {
 pub struct DateRanges {
     /// Required. The list of date ranges for which to retrieve data.
     #[serde(default, rename = "dateRanges")]
-    pub date_ranges: Option<Vec<DateRange>>,
+    pub date_ranges: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DateRange>>>,
 }
 
 /// Information about a domain registered by the user.
@@ -113,19 +115,19 @@ pub struct DateRanges {
 pub struct Domain {
     /// Output only. Immutable. The timestamp at which the domain was added to the user''s account.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The timestamp at which the domain was last verified by the user.
     #[serde(default, rename = "lastVerifyTime")]
-    pub last_verify_time: Option<String>,
+    pub last_verify_time: ::core::option::Option<String>,
     /// Identifier. The resource name of the domain. Format: domains/{domain_name}, where domain_name is the fully qualified domain name (i.e., mymail.mydomain.com).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. User''s permission of this domain. // TODO: enum values: ["PERMISSION_UNSPECIFIED", "READER", "OWNER", "NONE"]
     #[serde(default)]
-    pub permission: Option<String>,
+    pub permission: ::core::option::Option<String>,
     /// Output only. Information about a user''s verification history and properties for the domain. // TODO: enum values: ["VERIFICATION_STATE_UNSPECIFIED", "UNVERIFIED", "VERIFIED"]
     #[serde(default, rename = "verificationState")]
-    pub verification_state: Option<String>,
+    pub verification_state: ::core::option::Option<String>,
 }
 
 /// Compliance data for a given domain.
@@ -133,16 +135,18 @@ pub struct Domain {
 pub struct DomainComplianceData {
     /// Domain that this data is for.
     #[serde(default, rename = "domainId")]
-    pub domain_id: Option<String>,
+    pub domain_id: ::core::option::Option<String>,
     /// Unsubscribe honoring compliance verdict.
     #[serde(default, rename = "honorUnsubscribeVerdict")]
-    pub honor_unsubscribe_verdict: Option<HonorUnsubscribeVerdict>,
+    pub honor_unsubscribe_verdict:
+        ::core::option::Option<::std::boxed::Box<HonorUnsubscribeVerdict>>,
     /// One-click unsubscribe compliance verdict.
     #[serde(default, rename = "oneClickUnsubscribeVerdict")]
-    pub one_click_unsubscribe_verdict: Option<OneClickUnsubscribeVerdict>,
+    pub one_click_unsubscribe_verdict:
+        ::core::option::Option<::std::boxed::Box<OneClickUnsubscribeVerdict>>,
     /// Data for each of the rows of the table. Each message contains all the data that backs a single row.
     #[serde(default, rename = "rowData")]
-    pub row_data: Option<Vec<ComplianceRowData>>,
+    pub row_data: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ComplianceRowData>>>,
 }
 
 /// Compliance status for a domain.
@@ -150,13 +154,13 @@ pub struct DomainComplianceData {
 pub struct DomainComplianceStatus {
     /// Compliance data for the registrable domain part of the domain in name. For example, if name is domains/example.com/complianceStatus, this field contains compliance data for example.com.
     #[serde(default, rename = "complianceData")]
-    pub compliance_data: Option<DomainComplianceData>,
+    pub compliance_data: ::core::option::Option<::std::boxed::Box<DomainComplianceData>>,
     /// Identifier. The resource name of the domain''s compliance status. Format: domains/{domain_id}/complianceStatus.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Compliance data calculated specifically for the subdomain in name. This field is only populated if the domain in name is a subdomain that differs from its registrable domain (e.g., sub.example.com), and if compliance data is available for that specific subdomain.
     #[serde(default, rename = "subdomainComplianceData")]
-    pub subdomain_compliance_data: Option<DomainComplianceData>,
+    pub subdomain_compliance_data: ::core::option::Option<::std::boxed::Box<DomainComplianceData>>,
 }
 
 /// Email statistics for a domain for a specified time period or date.
@@ -164,16 +168,16 @@ pub struct DomainComplianceStatus {
 pub struct DomainStat {
     /// Optional. The specific date for these stats, if granularity is DAILY. This field is populated if the QueryDomainStatsRequest specified a DAILY aggregation granularity.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The user-defined name from MetricDefinition.name in the request, used to correlate this result with the requested metric.
     #[serde(default)]
-    pub metric: Option<String>,
+    pub metric: ::core::option::Option<String>,
     /// Output only. The resource name of the DomainStat resource. Format: domains/{domain}/domainStats/{domain_stat} The {domain_stat} segment is an opaque, server-generated ID. We recommend using the metric field to identify queried metrics instead of parsing the name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The value of the corresponding metric.
     #[serde(default)]
-    pub value: Option<StatisticValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<StatisticValue>>,
 }
 
 /// Compliance verdict for whether a sender meets the unsubscribe honoring compliance requirement.
@@ -181,10 +185,10 @@ pub struct DomainStat {
 pub struct HonorUnsubscribeVerdict {
     /// The specific reason for the compliance verdict. Must be empty if the status is compliant. // TODO: enum values: ["REASON_UNSPECIFIED", "NOT_HONORING", "NOT_HONORING_TOO_FEW_CAMPAIGNS", "NOT_HONORING_TOO_MANY_CAMPAIGNS"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// The compliance status.
     #[serde(default)]
-    pub status: Option<ComplianceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ComplianceStatus>>,
 }
 
 /// Response message for ListDomains.
@@ -192,10 +196,10 @@ pub struct HonorUnsubscribeVerdict {
 pub struct ListDomainsResponse {
     /// The domains that have been registered by the user.
     #[serde(default)]
-    pub domains: Option<Vec<Domain>>,
+    pub domains: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Domain>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Defines a specific metric to query, including a user-defined name, the base metric type, and optional filters.
@@ -203,13 +207,13 @@ pub struct ListDomainsResponse {
 pub struct MetricDefinition {
     /// Required. The underlying metric to query.
     #[serde(default, rename = "baseMetric")]
-    pub base_metric: Option<BaseMetric>,
+    pub base_metric: ::core::option::Option<::std::boxed::Box<BaseMetric>>,
     /// Optional. Optional filters to apply to the metric.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The user-defined name for this metric. This name will be used as the key for this metric''s value in the response.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Compliance verdict for whether a sender meets the one-click unsubscribe compliance requirement.
@@ -217,10 +221,10 @@ pub struct MetricDefinition {
 pub struct OneClickUnsubscribeVerdict {
     /// The specific reason for the compliance verdict. Must be empty if the status is compliant. // TODO: enum values: ["REASON_UNSPECIFIED", "NO_UNSUB_GENERAL", "NO_UNSUB_SPAM_REPORTS", "NO_UNSUB_PROMO_SPAM_REPORTS"]
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// The compliance status.
     #[serde(default)]
-    pub status: Option<ComplianceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ComplianceStatus>>,
 }
 
 /// Request message for QueryDomainStats.
@@ -228,22 +232,23 @@ pub struct OneClickUnsubscribeVerdict {
 pub struct QueryDomainStatsRequest {
     /// Optional. The granularity at which to aggregate the statistics. If unspecified, defaults to DAILY. // TODO: enum values: ["AGGREGATION_GRANULARITY_UNSPECIFIED", "DAILY", "OVERALL"]
     #[serde(default, rename = "aggregationGranularity")]
-    pub aggregation_granularity: Option<String>,
+    pub aggregation_granularity: ::core::option::Option<String>,
     /// Required. The specific metrics to query. You can define a custom name for each metric, which will be used in the response.
     #[serde(default, rename = "metricDefinitions")]
-    pub metric_definitions: Option<Vec<MetricDefinition>>,
+    pub metric_definitions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MetricDefinition>>>,
     /// Optional. The maximum number of DomainStats resources to return in the response. The server may return fewer than this value. If unspecified, a default value of 10 will be used. The maximum value is 200.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// Optional. The next_page_token value returned from a previous List request, if any. If the aggregation granularity is DAILY, the page token will be the encoded date + "/" + metric name. If the aggregation granularity is OVERALL, the page token will be the encoded metric name.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Required. The parent resource name where the stats are queried. Format: domains/{domain}
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Required. The time range or specific dates for which to retrieve the metrics.
     #[serde(default, rename = "timeQuery")]
-    pub time_query: Option<TimeQuery>,
+    pub time_query: ::core::option::Option<::std::boxed::Box<TimeQuery>>,
 }
 
 /// Response message for QueryDomainStats.
@@ -251,10 +256,10 @@ pub struct QueryDomainStatsRequest {
 pub struct QueryDomainStatsResponse {
     /// The list of domain statistics. Each DomainStat object contains the value for a metric requested in the QueryDomainStatsRequest.
     #[serde(default, rename = "domainStats")]
-    pub domain_stats: Option<Vec<DomainStat>>,
+    pub domain_stats: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DomainStat>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The actual value of a statistic.
@@ -262,19 +267,19 @@ pub struct QueryDomainStatsResponse {
 pub struct StatisticValue {
     /// Double value.
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// Float value.
     #[serde(default, rename = "floatValue")]
-    pub float_value: Option<f32>,
+    pub float_value: ::core::option::Option<f32>,
     /// Integer value.
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     /// List of string values.
     #[serde(default, rename = "stringList")]
-    pub string_list: Option<StringList>,
+    pub string_list: ::core::option::Option<::std::boxed::Box<StringList>>,
     /// String value.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -282,13 +287,13 @@ pub struct StatisticValue {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a list of strings.
@@ -296,7 +301,7 @@ pub struct Status {
 pub struct StringList {
     /// The string values.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The date ranges or specific dates for which you want to retrieve data.
@@ -304,8 +309,8 @@ pub struct StringList {
 pub struct TimeQuery {
     /// A list of specific dates.
     #[serde(default, rename = "dateList")]
-    pub date_list: Option<DateList>,
+    pub date_list: ::core::option::Option<::std::boxed::Box<DateList>>,
     /// A list of date ranges.
     #[serde(default, rename = "dateRanges")]
-    pub date_ranges: Option<DateRanges>,
+    pub date_ranges: ::core::option::Option<::std::boxed::Box<DateRanges>>,
 }

@@ -10,33 +10,33 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An Adaptive MT Dataset.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdaptiveMtDataset {
     /// Output only. Timestamp when this dataset was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The name of the dataset to show in the interface. The name can be up to 32 characters long and can consist only of ASCII Latin letters A-Z and a-z, underscores (_), and ASCII digits 0-9.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The number of examples in the dataset.
     #[serde(default, rename = "exampleCount")]
-    pub example_count: Option<i32>,
+    pub example_count: ::core::option::Option<i32>,
     /// Identifier. The resource name of the dataset, in form of projects/{project-number-or-id}/locations/{location_id}/adaptiveMtDatasets/{dataset_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The BCP-47 language code of the source language.
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// The BCP-47 language code of the target language.
     #[serde(default, rename = "targetLanguageCode")]
-    pub target_language_code: Option<String>,
+    pub target_language_code: ::core::option::Option<String>,
     /// Output only. Timestamp when this dataset was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An AdaptiveMtFile.
@@ -44,19 +44,19 @@ pub struct AdaptiveMtDataset {
 pub struct AdaptiveMtFile {
     /// Output only. Timestamp when this file was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The file''s display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The number of entries that the file contains.
     #[serde(default, rename = "entryCount")]
-    pub entry_count: Option<i32>,
+    pub entry_count: ::core::option::Option<i32>,
     /// Identifier. The resource name of the file, in form of projects/{project-number-or-id}/locations/{location_id}/adaptiveMtDatasets/{dataset}/adaptiveMtFiles/{file}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Timestamp when this file was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An AdaptiveMt sentence entry.
@@ -64,19 +64,19 @@ pub struct AdaptiveMtFile {
 pub struct AdaptiveMtSentence {
     /// Output only. Timestamp when this sentence was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The resource name of the file, in form of projects/{project-number-or-id}/locations/{location_id}/adaptiveMtDatasets/{dataset}/adaptiveMtFiles/{file}/adaptiveMtSentences/{sentence}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The source sentence.
     #[serde(default, rename = "sourceSentence")]
-    pub source_sentence: Option<String>,
+    pub source_sentence: ::core::option::Option<String>,
     /// Required. The target sentence.
     #[serde(default, rename = "targetSentence")]
-    pub target_sentence: Option<String>,
+    pub target_sentence: ::core::option::Option<String>,
     /// Output only. Timestamp when this sentence was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The request for sending an AdaptiveMt translation query.
@@ -84,16 +84,17 @@ pub struct AdaptiveMtSentence {
 pub struct AdaptiveMtTranslateRequest {
     /// Required. The content of the input in string format.
     #[serde(default)]
-    pub content: Option<Vec<String>>,
+    pub content: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The resource name for the dataset to use for adaptive MT translation. projects/{project}/locations/{location-id}/adaptiveMtDatasets/{dataset}
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// Optional. Glossary to be applied. The glossary must be within the same region (have the same location-id) as the model, otherwise an INVALID_ARGUMENT (400) error is returned.
     #[serde(default, rename = "glossaryConfig")]
-    pub glossary_config: Option<GlossaryConfig>,
+    pub glossary_config: ::core::option::Option<::std::boxed::Box<GlossaryConfig>>,
     /// Configuration for caller provided reference sentences.
     #[serde(default, rename = "referenceSentenceConfig")]
-    pub reference_sentence_config: Option<ReferenceSentenceConfig>,
+    pub reference_sentence_config:
+        ::core::option::Option<::std::boxed::Box<ReferenceSentenceConfig>>,
 }
 
 /// An AdaptiveMtTranslate response.
@@ -101,13 +102,15 @@ pub struct AdaptiveMtTranslateRequest {
 pub struct AdaptiveMtTranslateResponse {
     /// Text translation response if a glossary is provided in the request. This could be the same as ''translation'' above if no terms apply.
     #[serde(default, rename = "glossaryTranslations")]
-    pub glossary_translations: Option<Vec<AdaptiveMtTranslation>>,
+    pub glossary_translations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdaptiveMtTranslation>>>,
     /// Output only. The translation''s language code.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Output only. The translation.
     #[serde(default)]
-    pub translations: Option<Vec<AdaptiveMtTranslation>>,
+    pub translations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdaptiveMtTranslation>>>,
 }
 
 /// An AdaptiveMt translation.
@@ -115,7 +118,7 @@ pub struct AdaptiveMtTranslateResponse {
 pub struct AdaptiveMtTranslation {
     /// Output only. The translated text.
     #[serde(default, rename = "translatedText")]
-    pub translated_text: Option<String>,
+    pub translated_text: ::core::option::Option<String>,
 }
 
 /// Input configuration for BatchTranslateDocument request.
@@ -123,7 +126,7 @@ pub struct AdaptiveMtTranslation {
 pub struct BatchDocumentInputConfig {
     /// Google Cloud Storage location for the source input. This can be a single file (for example, gs://translation-test/input.docx) or a wildcard (for example, gs://translation-test/*). File mime type is determined based on extension. Supported mime type includes: - pdf, application/pdf - docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document - pptx, application/vnd.openxmlformats-officedocument.presentationml.presentation - xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet The max file size to support for .docx, .pptx and .xlsx is 100MB. The max file size to support for .pdf is 1GB and the max page limit is 1000 pages. The max file size to support for all input documents is 1GB.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsSource>>,
 }
 
 /// Output configuration for BatchTranslateDocument request.
@@ -131,7 +134,7 @@ pub struct BatchDocumentInputConfig {
 pub struct BatchDocumentOutputConfig {
     /// Google Cloud Storage destination for output content. For every single input document (for example, gs://a/b/c.[extension]), we generate at most 2 * n output files. (n is the # of target_language_codes in the BatchTranslateDocumentRequest). While the input documents are being processed, we write/update an index file index.csv under gcs_destination.output_uri_prefix (for example, gs://translation_output/index.csv) The index file is generated/updated as new files are being translated. The format is: input_document,target_language_code,translation_output,error_output, glossary_translation_output,glossary_error_output input_document is one file we matched using gcs_source.input_uri. target_language_code is provided in the request. translation_output contains the translations. (details provided below) error_output contains the error message during processing of the file. Both translations_file and errors_file could be empty strings if we have no content to output. glossary_translation_output and glossary_error_output are the translated output/error when we apply glossaries. They could also be empty if we have no content to output. Once a row is present in index.csv, the input/output matching never changes. Callers should also expect all the content in input_file are processed and ready to be consumed (that is, no partial output file is written). Since index.csv will be keeping updated during the process, please make sure there is no custom retention policy applied on the output bucket that may avoid file updating. (https://cloud.google.com/storage/docs/bucket-lock#retention-policy) The naming format of translation output files follows (for target language code [trg]): translation_output: gs://translation_output/a_b_c_[trg]_translation.[extension] glossary_translation_output: gs://translation_test/a_b_c_[trg]_glossary_translation.[extension]. The output document will maintain the same file format as the input document. The naming format of error output files follows (for target language code [trg]): error_output: gs://translation_test/a_b_c_[trg]_errors.txt glossary_error_output: gs://translation_test/a_b_c_[trg]_glossary_translation.txt. The error output is a txt file containing error details.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GcsDestination>,
+    pub gcs_destination: ::core::option::Option<::std::boxed::Box<GcsDestination>>,
 }
 
 /// The BatchTranslateDocument request.
@@ -139,37 +142,38 @@ pub struct BatchDocumentOutputConfig {
 pub struct BatchTranslateDocumentRequest {
     /// Optional. This flag is to support user customized attribution. If not provided, the default is Machine Translated by Google. Customized attribution should follow rules in https://cloud.google.com/translate/attribution#attribution_and_logos
     #[serde(default, rename = "customizedAttribution")]
-    pub customized_attribution: Option<String>,
+    pub customized_attribution: ::core::option::Option<String>,
     /// Optional. If true, enable auto rotation correction in DVS.
     #[serde(default, rename = "enableRotationCorrection")]
-    pub enable_rotation_correction: Option<bool>,
+    pub enable_rotation_correction: ::core::option::Option<bool>,
     /// Optional. If true, use the text removal server to remove the shadow text on background image for native pdf translation. Shadow removal feature can only be enabled when is_translate_native_pdf_only: false && pdf_native_only: false
     #[serde(default, rename = "enableShadowRemovalNativePdf")]
-    pub enable_shadow_removal_native_pdf: Option<bool>,
+    pub enable_shadow_removal_native_pdf: ::core::option::Option<bool>,
     /// Optional. The file format conversion map that is applied to all input files. The map key is the original mime_type. The map value is the target mime_type of translated documents. Supported file format conversion includes: - application/pdf to application/vnd.openxmlformats-officedocument.wordprocessingml.document If nothing specified, output files will be in the same format as the original file.
     #[serde(default, rename = "formatConversions")]
-    pub format_conversions: Option<serde_json::Value>,
+    pub format_conversions: ::core::option::Option<serde_json::Value>,
     /// Optional. Glossaries to be applied. It''s keyed by target language code.
     #[serde(default)]
-    pub glossaries: Option<serde_json::Value>,
+    pub glossaries: ::core::option::Option<serde_json::Value>,
     /// Required. Input configurations. The total number of files matched should be &lt;= 100. The total content size to translate should be &lt;= 100M Unicode codepoints. The files must use UTF-8 encoding.
     #[serde(default, rename = "inputConfigs")]
-    pub input_configs: Option<Vec<BatchDocumentInputConfig>>,
+    pub input_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BatchDocumentInputConfig>>>,
     /// Optional. The models to use for translation. Map''s key is target language code. Map''s value is the model name. Value can be a built-in general model, or an AutoML Translation model. The value format depends on model type: - AutoML Translation models: projects/{project-number-or-id}/locations/{location-id}/models/{model-id} - General (built-in) models: projects/{project-number-or-id}/locations/{location-id}/models/general/nmt, If the map is empty or a specific model is not requested for a language pair, then default google model (nmt) is used.
     #[serde(default)]
-    pub models: Option<serde_json::Value>,
+    pub models: ::core::option::Option<serde_json::Value>,
     /// Required. Output configuration. If 2 input configs match to the same file (that is, same input path), we don''t generate output for duplicate inputs.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<BatchDocumentOutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<BatchDocumentOutputConfig>>,
     /// Optional. If true, only native pdf pages will be translated.
     #[serde(default, rename = "pdfNativeOnly")]
-    pub pdf_native_only: Option<bool>,
+    pub pdf_native_only: ::core::option::Option<bool>,
     /// Required. The ISO-639 language code of the input document if known, for example, "en-US" or "sr-Latn". Supported language codes are listed in [Language Support](https://cloud.google.com/translate/docs/languages).
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// Required. The ISO-639 language code to use for translation of the input document. Specify up to 10 language codes here. Supported language codes are listed in [Language Support](https://cloud.google.com/translate/docs/languages).
     #[serde(default, rename = "targetLanguageCodes")]
-    pub target_language_codes: Option<Vec<String>>,
+    pub target_language_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The batch translation request.
@@ -177,25 +181,25 @@ pub struct BatchTranslateDocumentRequest {
 pub struct BatchTranslateTextRequest {
     /// Optional. Glossaries to be applied for translation. It''s keyed by target language code.
     #[serde(default)]
-    pub glossaries: Option<serde_json::Value>,
+    pub glossaries: ::core::option::Option<serde_json::Value>,
     /// Required. Input configurations. The total number of files matched should be &lt;= 100. The total content size should be &lt;= 100M Unicode codepoints. The files must use UTF-8 encoding.
     #[serde(default, rename = "inputConfigs")]
-    pub input_configs: Option<Vec<InputConfig>>,
+    pub input_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InputConfig>>>,
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter. See https://cloud.google.com/translate/docs/advanced/labels for more information.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The models to use for translation. Map''s key is target language code. Map''s value is model name. Value can be a built-in general model, or an AutoML Translation model. The value format depends on model type: - AutoML Translation models: projects/{project-number-or-id}/locations/{location-id}/models/{model-id} - General (built-in) models: projects/{project-number-or-id}/locations/{location-id}/models/general/nmt, If the map is empty or a specific model is not requested for a language pair, then default google model (nmt) is used.
     #[serde(default)]
-    pub models: Option<serde_json::Value>,
+    pub models: ::core::option::Option<serde_json::Value>,
     /// Required. Output configuration. If 2 input configs match to the same file (that is, same input path), we don''t generate output for duplicate inputs.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<OutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<OutputConfig>>,
     /// Required. Source language code. Supported language codes are listed in [Language Support](https://cloud.google.com/translate/docs/languages).
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// Required. Specify up to 10 language codes here. Supported language codes are listed in [Language Support](https://cloud.google.com/translate/docs/languages).
     #[serde(default, rename = "targetLanguageCodes")]
-    pub target_language_codes: Option<Vec<String>>,
+    pub target_language_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A dataset that hosts the examples (sentence pairs) used for translation models.
@@ -203,34 +207,34 @@ pub struct BatchTranslateTextRequest {
 pub struct Dataset {
     /// Output only. Timestamp when this dataset was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The name of the dataset to show in the interface. The name can be up to 32 characters long and can consist only of ASCII Latin letters A-Z and a-z, underscores (_), and ASCII digits 0-9.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The number of examples in the dataset.
     #[serde(default, rename = "exampleCount")]
-    pub example_count: Option<i32>,
+    pub example_count: ::core::option::Option<i32>,
     /// The resource name of the dataset, in form of projects/{project-number-or-id}/locations/{location_id}/datasets/{dataset_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The BCP-47 language code of the source language.
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// The BCP-47 language code of the target language.
     #[serde(default, rename = "targetLanguageCode")]
-    pub target_language_code: Option<String>,
+    pub target_language_code: ::core::option::Option<String>,
     /// Output only. Number of test examples (sentence pairs).
     #[serde(default, rename = "testExampleCount")]
-    pub test_example_count: Option<i32>,
+    pub test_example_count: ::core::option::Option<i32>,
     /// Output only. Number of training examples (sentence pairs).
     #[serde(default, rename = "trainExampleCount")]
-    pub train_example_count: Option<i32>,
+    pub train_example_count: ::core::option::Option<i32>,
     /// Output only. Timestamp when this dataset was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. Number of validation examples (sentence pairs).
     #[serde(default, rename = "validateExampleCount")]
-    pub validate_example_count: Option<i32>,
+    pub validate_example_count: ::core::option::Option<i32>,
 }
 
 /// Input configuration for datasets.
@@ -238,7 +242,7 @@ pub struct Dataset {
 pub struct DatasetInputConfig {
     /// Files containing the sentence pairs to be imported to the dataset.
     #[serde(default, rename = "inputFiles")]
-    pub input_files: Option<Vec<InputFile>>,
+    pub input_files: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<InputFile>>>,
 }
 
 /// Output configuration for datasets.
@@ -246,7 +250,7 @@ pub struct DatasetInputConfig {
 pub struct DatasetOutputConfig {
     /// Google Cloud Storage destination to write the output.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GcsOutputDestination>,
+    pub gcs_destination: ::core::option::Option<::std::boxed::Box<GcsOutputDestination>>,
 }
 
 /// The request message for language detection.
@@ -254,19 +258,19 @@ pub struct DatasetOutputConfig {
 pub struct DetectLanguageRequest {
     /// The content of the input stored as a string.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Optional. The document configuration of the input.
     #[serde(default, rename = "documentInputConfig")]
-    pub document_input_config: Option<DocumentInputConfig>,
+    pub document_input_config: ::core::option::Option<::std::boxed::Box<DocumentInputConfig>>,
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter. See https://cloud.google.com/translate/docs/advanced/labels for more information.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The format of the source text, for example, "text/html", "text/plain". If left blank, the MIME type defaults to "text/html".
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Optional. The language detection model to be used. Format: projects/{project-number-or-id}/locations/{location-id}/models/language-detection/{model-id} Only one language detection model is currently supported: projects/{project-number-or-id}/locations/{location-id}/models/language-detection/default. If not specified, the default model is used.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// The response message for language detection.
@@ -274,7 +278,7 @@ pub struct DetectLanguageRequest {
 pub struct DetectLanguageResponse {
     /// The most probable language detected by the Translation API. For each request, the Translation API will always return only one result.
     #[serde(default)]
-    pub languages: Option<Vec<DetectedLanguage>>,
+    pub languages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DetectedLanguage>>>,
 }
 
 /// The response message for language detection.
@@ -282,10 +286,10 @@ pub struct DetectLanguageResponse {
 pub struct DetectedLanguage {
     /// The confidence of the detection result for this language.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The ISO-639 language code of the source content in the request, detected automatically.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// A document translation request input config.
@@ -293,13 +297,13 @@ pub struct DetectedLanguage {
 pub struct DocumentInputConfig {
     /// Document''s content represented as a stream of bytes.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Google Cloud Storage location. This must be a single file. For example: gs://example_bucket/example_file.pdf
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsSource>>,
     /// Specifies the input document''s mime_type. If not specified it will be determined using the file extension for gcs_source provided files. For a file provided through bytes content the mime_type must be provided. Currently supported mime types are: - application/pdf - application/vnd.openxmlformats-officedocument.wordprocessingml.document - application/vnd.openxmlformats-officedocument.presentationml.presentation - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// A document translation request output config.
@@ -307,10 +311,10 @@ pub struct DocumentInputConfig {
 pub struct DocumentOutputConfig {
     /// Optional. Google Cloud Storage destination for the translation output, e.g., gs://my_bucket/my_directory/. The destination directory provided does not have to be empty, but the bucket must exist. If a file with the same name as the output file already exists in the destination an error will be returned. For a DocumentInputConfig.contents provided document, the output file will have the name "output_[trg]_translations.[ext]", where - [trg] corresponds to the translated file''s language code, - [ext] corresponds to the translated file''s extension according to its mime type. For a DocumentInputConfig.gcs_uri provided document, the output file will have a name according to its URI. For example: an input file with URI: gs://a/b/c.[extension] stored in a gcs_destination bucket with name "my_bucket" will have an output URI: gs://my_bucket/a_b_c_[trg]_translations.[ext], where - [trg] corresponds to the translated file''s language code, - [ext] corresponds to the translated file''s extension according to its mime type. If the document was directly provided through the request, then the output document will have the format: gs://my_bucket/translated_document_[trg]_translations.[ext], where - [trg] corresponds to the translated file''s language code, - [ext] corresponds to the translated file''s extension according to its mime type. If a glossary was provided, then the output URI for the glossary translation will be equal to the default output URI but have glossary_translations instead of translations. For the previous example, its glossary URI would be: gs://my_bucket/a_b_c_[trg]_glossary_translations.[ext]. Thus the max number of output files will be 2 (Translated document, Glossary translated document). Callers should expect no partial outputs. If there is any error during document translation, no output will be stored in the Cloud Storage bucket.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GcsDestination>,
+    pub gcs_destination: ::core::option::Option<::std::boxed::Box<GcsDestination>>,
     /// Optional. Specifies the translated document''s mime_type. If not specified, the translated file''s mime type will be the same as the input file''s mime type. Currently only support the output mime type to be the same as input mime type. - application/pdf - application/vnd.openxmlformats-officedocument.wordprocessingml.document - application/vnd.openxmlformats-officedocument.presentationml.presentation - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// A translated document message.
@@ -318,13 +322,13 @@ pub struct DocumentOutputConfig {
 pub struct DocumentTranslation {
     /// The array of translated documents. It is expected to be size 1 for now. We may produce multiple translated documents in the future for other type of file formats.
     #[serde(default, rename = "byteStreamOutputs")]
-    pub byte_stream_outputs: Option<Vec<String>>,
+    pub byte_stream_outputs: ::core::option::Option<::std::vec::Vec<String>>,
     /// The detected language for the input document. If the user did not provide the source language for the input document, this field will have the language code automatically detected. If the source language was passed, auto-detection of the language does not occur and this field is empty.
     #[serde(default, rename = "detectedLanguageCode")]
-    pub detected_language_code: Option<String>,
+    pub detected_language_code: ::core::option::Option<String>,
     /// The translated document''s mime type.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// A sentence pair.
@@ -332,16 +336,16 @@ pub struct DocumentTranslation {
 pub struct Example {
     /// Output only. The resource name of the example, in form of projects/{project-number-or-id}/locations/{location_id}/datasets/{dataset_id}/examples/{example_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Sentence in source language.
     #[serde(default, rename = "sourceText")]
-    pub source_text: Option<String>,
+    pub source_text: ::core::option::Option<String>,
     /// Sentence in target language.
     #[serde(default, rename = "targetText")]
-    pub target_text: Option<String>,
+    pub target_text: ::core::option::Option<String>,
     /// Output only. Usage of the sentence pair. Options are TRAIN|VALIDATION|TEST.
     #[serde(default)]
-    pub usage: Option<String>,
+    pub usage: ::core::option::Option<String>,
 }
 
 /// Request message for ExportData.
@@ -349,7 +353,7 @@ pub struct Example {
 pub struct ExportDataRequest {
     /// Required. The config for the output content.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<DatasetOutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<DatasetOutputConfig>>,
 }
 
 /// An inlined file.
@@ -357,13 +361,13 @@ pub struct ExportDataRequest {
 pub struct FileInputSource {
     /// Required. The file''s byte contents.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Required. The file''s display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. The file''s mime type.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location for the output content.
@@ -371,7 +375,7 @@ pub struct FileInputSource {
 pub struct GcsDestination {
     /// Required. The bucket used in ''output_uri_prefix'' must exist and there must be no files under ''output_uri_prefix''. ''output_uri_prefix'' must end with "/" and start with "gs://". One ''output_uri_prefix'' can only be used by one batch translation job at a time. Otherwise an INVALID_ARGUMENT (400) error is returned.
     #[serde(default, rename = "outputUriPrefix")]
-    pub output_uri_prefix: Option<String>,
+    pub output_uri_prefix: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location for the input content.
@@ -379,7 +383,7 @@ pub struct GcsDestination {
 pub struct GcsInputSource {
     /// Required. Source data URI. For example, gs://my_bucket/my_object.
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location for the output content.
@@ -387,7 +391,7 @@ pub struct GcsInputSource {
 pub struct GcsOutputDestination {
     /// Required. Google Cloud Storage URI to output directory. For example, gs://bucket/directory. The requesting user must have write permission to the bucket. The directory will be created if it doesn''t exist.
     #[serde(default, rename = "outputUriPrefix")]
-    pub output_uri_prefix: Option<String>,
+    pub output_uri_prefix: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location for the input content.
@@ -395,7 +399,7 @@ pub struct GcsOutputDestination {
 pub struct GcsSource {
     /// Required. Source data URI. For example, gs://my_bucket/my_object.
     #[serde(default, rename = "inputUri")]
-    pub input_uri: Option<String>,
+    pub input_uri: ::core::option::Option<String>,
 }
 
 /// Represents a glossary built from user-provided data.
@@ -403,28 +407,28 @@ pub struct GcsSource {
 pub struct Glossary {
     /// Optional. The display name of the glossary.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. When the glossary creation was finished.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The number of entries defined in the glossary.
     #[serde(default, rename = "entryCount")]
-    pub entry_count: Option<i32>,
+    pub entry_count: ::core::option::Option<i32>,
     /// Required. Provides examples to build the glossary from. Total glossary must not exceed 10M Unicode codepoints.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GlossaryInputConfig>,
+    pub input_config: ::core::option::Option<::std::boxed::Box<GlossaryInputConfig>>,
     /// Used with equivalent term set glossaries.
     #[serde(default, rename = "languageCodesSet")]
-    pub language_codes_set: Option<LanguageCodesSet>,
+    pub language_codes_set: ::core::option::Option<::std::boxed::Box<LanguageCodesSet>>,
     /// Used with unidirectional glossaries.
     #[serde(default, rename = "languagePair")]
-    pub language_pair: Option<LanguageCodePair>,
+    pub language_pair: ::core::option::Option<::std::boxed::Box<LanguageCodePair>>,
     /// Identifier. The resource name of the glossary. Glossary names have the form projects/{project-number-or-id}/locations/{location-id}/glossaries/{glossary-id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. When CreateGlossary was called.
     #[serde(default, rename = "submitTime")]
-    pub submit_time: Option<String>,
+    pub submit_time: ::core::option::Option<String>,
 }
 
 /// Configures which glossary is used for a specific target language and defines options for applying that glossary.
@@ -432,13 +436,13 @@ pub struct Glossary {
 pub struct GlossaryConfig {
     /// Optional. If set to true, the glossary will be used for contextual translation.
     #[serde(default, rename = "contextualTranslationEnabled")]
-    pub contextual_translation_enabled: Option<bool>,
+    pub contextual_translation_enabled: ::core::option::Option<bool>,
     /// Required. The glossary to be applied for this translation. The format depends on the glossary: - User-provided custom glossary: projects/{project-number-or-id}/locations/{location-id}/glossaries/{glossary-id}
     #[serde(default)]
-    pub glossary: Option<String>,
+    pub glossary: ::core::option::Option<String>,
     /// Optional. Indicates match is case insensitive. The default value is false if missing.
     #[serde(default, rename = "ignoreCase")]
-    pub ignore_case: Option<bool>,
+    pub ignore_case: ::core::option::Option<bool>,
 }
 
 /// Represents a single entry in a glossary.
@@ -446,16 +450,16 @@ pub struct GlossaryConfig {
 pub struct GlossaryEntry {
     /// Describes the glossary entry.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Identifier. The resource name of the entry. Format: projects/*/locations/*/glossaries/*/glossaryEntries/*
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Used for an unidirectional glossary.
     #[serde(default, rename = "termsPair")]
-    pub terms_pair: Option<GlossaryTermsPair>,
+    pub terms_pair: ::core::option::Option<::std::boxed::Box<GlossaryTermsPair>>,
     /// Used for an equivalent term sets glossary.
     #[serde(default, rename = "termsSet")]
-    pub terms_set: Option<GlossaryTermsSet>,
+    pub terms_set: ::core::option::Option<::std::boxed::Box<GlossaryTermsSet>>,
 }
 
 /// Input configuration for glossaries.
@@ -463,7 +467,7 @@ pub struct GlossaryEntry {
 pub struct GlossaryInputConfig {
     /// Required. Google Cloud Storage location of glossary data. File format is determined based on the filename extension. API returns [google.rpc.Code.INVALID_ARGUMENT] for unsupported URI-s and file formats. Wildcards are not allowed. This must be a single file in one of the following formats: For unidirectional glossaries: - TSV/CSV (.tsv/.csv): Two column file, tab- or comma-separated. The first column is source text. The second column is target text. No headers in this file. The first row contains data and not column names. - TMX (.tmx): TMX file with parallel data defining source/target term pairs. For equivalent term sets glossaries: - CSV (.csv): Multi-column CSV file defining equivalent glossary terms in multiple languages. See documentation for more information - [glossaries](https://cloud.google.com/translate/docs/advanced/glossary).
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsSource>>,
 }
 
 /// Represents a single glossary term
@@ -471,10 +475,10 @@ pub struct GlossaryInputConfig {
 pub struct GlossaryTerm {
     /// The language for this glossary term.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// The text for the glossary term.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Represents a single entry for an unidirectional glossary.
@@ -482,10 +486,10 @@ pub struct GlossaryTerm {
 pub struct GlossaryTermsPair {
     /// The source term is the term that will get match in the text,
     #[serde(default, rename = "sourceTerm")]
-    pub source_term: Option<GlossaryTerm>,
+    pub source_term: ::core::option::Option<::std::boxed::Box<GlossaryTerm>>,
     /// The term that will replace the match source term.
     #[serde(default, rename = "targetTerm")]
-    pub target_term: Option<GlossaryTerm>,
+    pub target_term: ::core::option::Option<::std::boxed::Box<GlossaryTerm>>,
 }
 
 /// Represents a single entry for an equivalent term set glossary. This is used for equivalent term sets where each term can be replaced by the other terms in the set.
@@ -493,7 +497,7 @@ pub struct GlossaryTermsPair {
 pub struct GlossaryTermsSet {
     /// Each term in the set represents a term that can be replaced by the other terms.
     #[serde(default)]
-    pub terms: Option<Vec<GlossaryTerm>>,
+    pub terms: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GlossaryTerm>>>,
 }
 
 /// The request for importing an AdaptiveMt file along with its sentences.
@@ -501,10 +505,10 @@ pub struct GlossaryTermsSet {
 pub struct ImportAdaptiveMtFileRequest {
     /// Inline file source.
     #[serde(default, rename = "fileInputSource")]
-    pub file_input_source: Option<FileInputSource>,
+    pub file_input_source: ::core::option::Option<::std::boxed::Box<FileInputSource>>,
     /// Google Cloud Storage file source.
     #[serde(default, rename = "gcsInputSource")]
-    pub gcs_input_source: Option<GcsInputSource>,
+    pub gcs_input_source: ::core::option::Option<::std::boxed::Box<GcsInputSource>>,
 }
 
 /// The response for importing an AdaptiveMtFile
@@ -512,7 +516,7 @@ pub struct ImportAdaptiveMtFileRequest {
 pub struct ImportAdaptiveMtFileResponse {
     /// Output only. The Adaptive MT file that was imported.
     #[serde(default, rename = "adaptiveMtFile")]
-    pub adaptive_mt_file: Option<AdaptiveMtFile>,
+    pub adaptive_mt_file: ::core::option::Option<::std::boxed::Box<AdaptiveMtFile>>,
 }
 
 /// Request message for ImportData.
@@ -520,7 +524,7 @@ pub struct ImportAdaptiveMtFileResponse {
 pub struct ImportDataRequest {
     /// Required. The config for the input content.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<DatasetInputConfig>,
+    pub input_config: ::core::option::Option<::std::boxed::Box<DatasetInputConfig>>,
 }
 
 /// Input configuration for BatchTranslateText request.
@@ -528,10 +532,10 @@ pub struct ImportDataRequest {
 pub struct InputConfig {
     /// Required. Google Cloud Storage location for the source input. This can be a single file (for example, gs://translation-test/input.tsv) or a wildcard (for example, gs://translation-test/*). If a file extension is .tsv, it can contain either one or two columns. The first column (optional) is the id of the text request. If the first column is missing, we use the row number (0-based) from the input file as the ID in the output file. The second column is the actual text to be translated. We recommend each row be &lt;= 10K Unicode codepoints, otherwise an error might be returned. Note that the input tsv must be RFC 4180 compliant. You could use https://github.com/Clever/csvlint to check potential formatting errors in your tsv file. csvlint --delimiter=''\t'' your_input_file.tsv The other supported file extensions are .txt or .html, which is treated as a single large chunk of text.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsSource>>,
     /// Optional. Can be "text/plain" or "text/html". For .tsv, "text/html" is used if mime_type is missing. For .html, this field must be "text/html" or empty. For .txt, this field must be "text/plain" or empty.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// An input file.
@@ -539,10 +543,10 @@ pub struct InputConfig {
 pub struct InputFile {
     /// Google Cloud Storage file source.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsInputSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsInputSource>>,
     /// Optional. Usage of the file contents. Options are TRAIN|VALIDATION|TEST, or UNASSIGNED (by default) for auto split.
     #[serde(default)]
-    pub usage: Option<String>,
+    pub usage: ::core::option::Option<String>,
 }
 
 /// Used with unidirectional glossaries.
@@ -550,10 +554,10 @@ pub struct InputFile {
 pub struct LanguageCodePair {
     /// Required. The ISO-639 language code of the input text, for example, "en-US". Expected to be an exact match for GlossaryTerm.language_code.
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// Required. The ISO-639 language code for translation output, for example, "zh-CN". Expected to be an exact match for GlossaryTerm.language_code.
     #[serde(default, rename = "targetLanguageCode")]
-    pub target_language_code: Option<String>,
+    pub target_language_code: ::core::option::Option<String>,
 }
 
 /// Used with equivalent term set glossaries.
@@ -561,7 +565,7 @@ pub struct LanguageCodePair {
 pub struct LanguageCodesSet {
     /// Optional. The ISO-639 language code(s) for terms defined in the glossary. All entries are unique. The list contains at least two entries. Expected to be an exact match for GlossaryTerm.language_code.
     #[serde(default, rename = "languageCodes")]
-    pub language_codes: Option<Vec<String>>,
+    pub language_codes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A list of AdaptiveMtDatasets.
@@ -569,10 +573,11 @@ pub struct LanguageCodesSet {
 pub struct ListAdaptiveMtDatasetsResponse {
     /// Output only. A list of Adaptive MT datasets.
     #[serde(default, rename = "adaptiveMtDatasets")]
-    pub adaptive_mt_datasets: Option<Vec<AdaptiveMtDataset>>,
+    pub adaptive_mt_datasets:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdaptiveMtDataset>>>,
     /// Optional. A token to retrieve a page of results. Pass this value in the [ListAdaptiveMtDatasetsRequest.page_token] field in the subsequent call to ListAdaptiveMtDatasets method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for listing all AdaptiveMt files under a given dataset.
@@ -580,10 +585,11 @@ pub struct ListAdaptiveMtDatasetsResponse {
 pub struct ListAdaptiveMtFilesResponse {
     /// Output only. The Adaptive MT files.
     #[serde(default, rename = "adaptiveMtFiles")]
-    pub adaptive_mt_files: Option<Vec<AdaptiveMtFile>>,
+    pub adaptive_mt_files:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdaptiveMtFile>>>,
     /// Optional. A token to retrieve a page of results. Pass this value in the ListAdaptiveMtFilesRequest.page_token field in the subsequent call to ListAdaptiveMtFiles method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// List AdaptiveMt sentences response.
@@ -591,10 +597,11 @@ pub struct ListAdaptiveMtFilesResponse {
 pub struct ListAdaptiveMtSentencesResponse {
     /// Output only. The list of AdaptiveMtSentences.
     #[serde(default, rename = "adaptiveMtSentences")]
-    pub adaptive_mt_sentences: Option<Vec<AdaptiveMtSentence>>,
+    pub adaptive_mt_sentences:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AdaptiveMtSentence>>>,
     /// Optional.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListDatasets.
@@ -602,10 +609,10 @@ pub struct ListAdaptiveMtSentencesResponse {
 pub struct ListDatasetsResponse {
     /// The datasets read.
     #[serde(default)]
-    pub datasets: Option<Vec<Dataset>>,
+    pub datasets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dataset>>>,
     /// A token to retrieve next page of results. Pass this token to the page_token field in the ListDatasetsRequest to obtain the corresponding page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListExamples.
@@ -613,10 +620,10 @@ pub struct ListDatasetsResponse {
 pub struct ListExamplesResponse {
     /// The sentence pairs.
     #[serde(default)]
-    pub examples: Option<Vec<Example>>,
+    pub examples: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Example>>>,
     /// A token to retrieve next page of results. Pass this token to the page_token field in the ListExamplesRequest to obtain the corresponding page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListGlossaries.
@@ -624,10 +631,10 @@ pub struct ListExamplesResponse {
 pub struct ListGlossariesResponse {
     /// The list of glossaries for a project.
     #[serde(default)]
-    pub glossaries: Option<Vec<Glossary>>,
+    pub glossaries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Glossary>>>,
     /// A token to retrieve a page of results. Pass this value in the [ListGlossariesRequest.page_token] field in the subsequent call to ListGlossaries method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListGlossaryEntries
@@ -635,10 +642,10 @@ pub struct ListGlossariesResponse {
 pub struct ListGlossaryEntriesResponse {
     /// Optional. The Glossary Entries
     #[serde(default, rename = "glossaryEntries")]
-    pub glossary_entries: Option<Vec<GlossaryEntry>>,
+    pub glossary_entries: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GlossaryEntry>>>,
     /// Optional. A token to retrieve a page of results. Pass this value in the [ListGLossaryEntriesRequest.page_token] field in the subsequent calls.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -646,10 +653,10 @@ pub struct ListGlossaryEntriesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListModels.
@@ -657,10 +664,10 @@ pub struct ListLocationsResponse {
 pub struct ListModelsResponse {
     /// The models read.
     #[serde(default)]
-    pub models: Option<Vec<Model>>,
+    pub models: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Model>>>,
     /// A token to retrieve next page of results. Pass this token to the page_token field in the ListModelsRequest to obtain the corresponding page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -668,13 +675,13 @@ pub struct ListModelsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -682,19 +689,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// A trained translation model.
@@ -702,34 +709,34 @@ pub struct Location {
 pub struct Model {
     /// Output only. Timestamp when the model resource was created, which is also when the training started.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. The dataset from which the model is trained, in form of projects/{project-number-or-id}/locations/{location_id}/datasets/{dataset_id}
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// The name of the model to show in the interface. The name can be up to 32 characters long and can consist only of ASCII Latin letters A-Z and a-z, underscores (_), and ASCII digits 0-9.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the model, in form of projects/{project-number-or-id}/locations/{location_id}/models/{model_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The BCP-47 language code of the source language.
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// Output only. The BCP-47 language code of the target language.
     #[serde(default, rename = "targetLanguageCode")]
-    pub target_language_code: Option<String>,
+    pub target_language_code: ::core::option::Option<String>,
     /// Output only. Number of examples (sentence pairs) used to test the model.
     #[serde(default, rename = "testExampleCount")]
-    pub test_example_count: Option<i32>,
+    pub test_example_count: ::core::option::Option<i32>,
     /// Output only. Number of examples (sentence pairs) used to train the model.
     #[serde(default, rename = "trainExampleCount")]
-    pub train_example_count: Option<i32>,
+    pub train_example_count: ::core::option::Option<i32>,
     /// Output only. Timestamp when this model was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. Number of examples (sentence pairs) used to validate the model.
     #[serde(default, rename = "validateExampleCount")]
-    pub validate_example_count: Option<i32>,
+    pub validate_example_count: ::core::option::Option<i32>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -737,19 +744,19 @@ pub struct Model {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Output configuration for BatchTranslateText request.
@@ -757,7 +764,7 @@ pub struct Operation {
 pub struct OutputConfig {
     /// Google Cloud Storage destination for output content. For every single input file (for example, gs://a/b/c.[extension]), we generate at most 2 * n output files. (n is the # of target_language_codes in the BatchTranslateTextRequest). Output files (tsv) generated are compliant with RFC 4180 except that record delimiters are ''\n'' instead of ''\r\n''. We don''t provide any way to change record delimiters. While the input files are being processed, we write/update an index file ''index.csv'' under ''output_uri_prefix'' (for example, gs://translation-test/index.csv) The index file is generated/updated as new files are being translated. The format is: input_file,target_language_code,translations_file,errors_file, glossary_translations_file,glossary_errors_file input_file is one file we matched using gcs_source.input_uri. target_language_code is provided in the request. translations_file contains the translations. (details provided below) errors_file contains the errors during processing of the file. (details below). Both translations_file and errors_file could be empty strings if we have no content to output. glossary_translations_file and glossary_errors_file are always empty strings if the input_file is tsv. They could also be empty if we have no content to output. Once a row is present in index.csv, the input/output matching never changes. Callers should also expect all the content in input_file are processed and ready to be consumed (that is, no partial output file is written). Since index.csv will be keeping updated during the process, please make sure there is no custom retention policy applied on the output bucket that may avoid file updating. (https://cloud.google.com/storage/docs/bucket-lock#retention-policy) The format of translations_file (for target language code ''trg'') is: gs://translation_test/a_b_c_''trg''_translations.[extension] If the input file extension is tsv, the output has the following columns: Column 1: ID of the request provided in the input, if it''s not provided in the input, then the input row number is used (0-based). Column 2: source sentence. Column 3: translation without applying a glossary. Empty string if there is an error. Column 4 (only present if a glossary is provided in the request): translation after applying the glossary. Empty string if there is an error applying the glossary. Could be same string as column 3 if there is no glossary applied. If input file extension is a txt or html, the translation is directly written to the output file. If glossary is requested, a separate glossary_translations_file has format of gs://translation_test/a_b_c_''trg''_glossary_translations.[extension] The format of errors file (for target language code ''trg'') is: gs://translation_test/a_b_c_''trg''_errors.[extension] If the input file extension is tsv, errors_file contains the following: Column 1: ID of the request provided in the input, if it''s not provided in the input, then the input row number is used (0-based). Column 2: source sentence. Column 3: Error detail for the translation. Could be empty. Column 4 (only present if a glossary is provided in the request): Error when applying the glossary. If the input file extension is txt or html, glossary_error_file will be generated that contains error details. glossary_error_file has format of gs://translation_test/a_b_c_''trg''_glossary_errors.[extension]
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GcsDestination>,
+    pub gcs_destination: ::core::option::Option<::std::boxed::Box<GcsDestination>>,
 }
 
 /// Message of caller-provided reference configuration.
@@ -765,13 +772,14 @@ pub struct OutputConfig {
 pub struct ReferenceSentenceConfig {
     /// Reference sentences pair lists. Each list will be used as the references to translate the sentence under "content" field at the corresponding index. Length of the list is required to be equal to the length of "content" field.
     #[serde(default, rename = "referenceSentencePairLists")]
-    pub reference_sentence_pair_lists: Option<Vec<ReferenceSentencePairList>>,
+    pub reference_sentence_pair_lists:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReferenceSentencePairList>>>,
     /// Source language code.
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// Target language code.
     #[serde(default, rename = "targetLanguageCode")]
-    pub target_language_code: Option<String>,
+    pub target_language_code: ::core::option::Option<String>,
 }
 
 /// A pair of sentences used as reference in source and target languages.
@@ -779,10 +787,10 @@ pub struct ReferenceSentenceConfig {
 pub struct ReferenceSentencePair {
     /// Source sentence in the sentence pair.
     #[serde(default, rename = "sourceSentence")]
-    pub source_sentence: Option<String>,
+    pub source_sentence: ::core::option::Option<String>,
     /// Target sentence in the sentence pair.
     #[serde(default, rename = "targetSentence")]
-    pub target_sentence: Option<String>,
+    pub target_sentence: ::core::option::Option<String>,
 }
 
 /// A list of reference sentence pairs.
@@ -790,7 +798,8 @@ pub struct ReferenceSentencePair {
 pub struct ReferenceSentencePairList {
     /// Reference sentence pairs.
     #[serde(default, rename = "referenceSentencePairs")]
-    pub reference_sentence_pairs: Option<Vec<ReferenceSentencePair>>,
+    pub reference_sentence_pairs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReferenceSentencePair>>>,
 }
 
 /// Request message for RefineText.
@@ -798,13 +807,14 @@ pub struct ReferenceSentencePairList {
 pub struct RefineTextRequest {
     /// Required. The source texts and original translations in the source and target languages.
     #[serde(default, rename = "refinementEntries")]
-    pub refinement_entries: Option<Vec<RefinementEntry>>,
+    pub refinement_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RefinementEntry>>>,
     /// Required. The BCP-47 language code of the source text in the request, for example, "en-US".
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// Required. The BCP-47 language code for translation output, for example, "zh-CN".
     #[serde(default, rename = "targetLanguageCode")]
-    pub target_language_code: Option<String>,
+    pub target_language_code: ::core::option::Option<String>,
 }
 
 /// Response message for RefineText.
@@ -812,7 +822,7 @@ pub struct RefineTextRequest {
 pub struct RefineTextResponse {
     /// The refined translations obtained from the original translations.
     #[serde(default, rename = "refinedTranslations")]
-    pub refined_translations: Option<Vec<String>>,
+    pub refined_translations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A single refinement entry for RefineTextRequest.
@@ -820,10 +830,10 @@ pub struct RefineTextResponse {
 pub struct RefinementEntry {
     /// Required. The original translation of the source text.
     #[serde(default, rename = "originalTranslation")]
-    pub original_translation: Option<String>,
+    pub original_translation: ::core::option::Option<String>,
     /// Required. The source text to be refined.
     #[serde(default, rename = "sourceText")]
-    pub source_text: Option<String>,
+    pub source_text: ::core::option::Option<String>,
 }
 
 /// A single romanization response.
@@ -831,10 +841,10 @@ pub struct RefinementEntry {
 pub struct Romanization {
     /// The ISO-639 language code of source text in the initial request, detected automatically, if no source language was passed within the initial request. If the source language was passed, auto-detection of the language does not occur and this field is empty.
     #[serde(default, rename = "detectedLanguageCode")]
-    pub detected_language_code: Option<String>,
+    pub detected_language_code: ::core::option::Option<String>,
     /// Romanized text. If an error occurs during romanization, this field might be excluded from the response.
     #[serde(default, rename = "romanizedText")]
-    pub romanized_text: Option<String>,
+    pub romanized_text: ::core::option::Option<String>,
 }
 
 /// The request message for synchronous romanization.
@@ -842,10 +852,10 @@ pub struct Romanization {
 pub struct RomanizeTextRequest {
     /// Required. The content of the input in string format.
     #[serde(default)]
-    pub contents: Option<Vec<String>>,
+    pub contents: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The ISO-639 language code of the input text if known, for example, "hi" or "zh". Supported language codes are listed in [Language Support](https://cloud.google.com/translate/docs/languages#roman). If the source language isn''t specified, the API attempts to identify the source language automatically and returns the source language for each content in the response.
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
 }
 
 /// The response message for synchronous romanization.
@@ -853,7 +863,7 @@ pub struct RomanizeTextRequest {
 pub struct RomanizeTextResponse {
     /// Text romanization responses. This field has the same length as contents.
     #[serde(default)]
-    pub romanizations: Option<Vec<Romanization>>,
+    pub romanizations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Romanization>>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -861,13 +871,13 @@ pub struct RomanizeTextResponse {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A single supported language response corresponds to information related to one supported language.
@@ -875,16 +885,16 @@ pub struct Status {
 pub struct SupportedLanguage {
     /// Human-readable name of the language localized in the display language specified in the request.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Supported language code, generally consisting of its ISO 639-1 identifier, for example, ''en'', ''ja''. In certain cases, ISO-639 codes including language and region identifiers are returned (for example, ''zh-TW'' and ''zh-CN'').
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Can be used as a source language.
     #[serde(default, rename = "supportSource")]
-    pub support_source: Option<bool>,
+    pub support_source: ::core::option::Option<bool>,
     /// Can be used as a target language.
     #[serde(default, rename = "supportTarget")]
-    pub support_target: Option<bool>,
+    pub support_target: ::core::option::Option<bool>,
 }
 
 /// The response message for discovering supported languages.
@@ -892,7 +902,7 @@ pub struct SupportedLanguage {
 pub struct SupportedLanguages {
     /// A list of supported language responses. This list contains an entry for each language the Translation API supports.
     #[serde(default)]
-    pub languages: Option<Vec<SupportedLanguage>>,
+    pub languages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SupportedLanguage>>>,
 }
 
 /// A document translation request.
@@ -900,37 +910,37 @@ pub struct SupportedLanguages {
 pub struct TranslateDocumentRequest {
     /// Optional. This flag is to support user customized attribution. If not provided, the default is Machine Translated by Google. Customized attribution should follow rules in https://cloud.google.com/translate/attribution#attribution_and_logos
     #[serde(default, rename = "customizedAttribution")]
-    pub customized_attribution: Option<String>,
+    pub customized_attribution: ::core::option::Option<String>,
     /// Required. Input configurations.
     #[serde(default, rename = "documentInputConfig")]
-    pub document_input_config: Option<DocumentInputConfig>,
+    pub document_input_config: ::core::option::Option<::std::boxed::Box<DocumentInputConfig>>,
     /// Optional. Output configurations. Defines if the output file should be stored within Cloud Storage as well as the desired output format. If not provided the translated file will only be returned through a byte-stream and its output mime type will be the same as the input file''s mime type.
     #[serde(default, rename = "documentOutputConfig")]
-    pub document_output_config: Option<DocumentOutputConfig>,
+    pub document_output_config: ::core::option::Option<::std::boxed::Box<DocumentOutputConfig>>,
     /// Optional. If true, enable auto rotation correction in DVS.
     #[serde(default, rename = "enableRotationCorrection")]
-    pub enable_rotation_correction: Option<bool>,
+    pub enable_rotation_correction: ::core::option::Option<bool>,
     /// Optional. If true, use the text removal server to remove the shadow text on background image for native pdf translation. Shadow removal feature can only be enabled when is_translate_native_pdf_only: false && pdf_native_only: false
     #[serde(default, rename = "enableShadowRemovalNativePdf")]
-    pub enable_shadow_removal_native_pdf: Option<bool>,
+    pub enable_shadow_removal_native_pdf: ::core::option::Option<bool>,
     /// Optional. Glossary to be applied. The glossary must be within the same region (have the same location-id) as the model, otherwise an INVALID_ARGUMENT (400) error is returned.
     #[serde(default, rename = "glossaryConfig")]
-    pub glossary_config: Option<TranslateTextGlossaryConfig>,
+    pub glossary_config: ::core::option::Option<::std::boxed::Box<TranslateTextGlossaryConfig>>,
     /// Optional. is_translate_native_pdf_only field for external customers. If true, the page limit of online native pdf translation is 300 and only native pdf pages will be translated.
     #[serde(default, rename = "isTranslateNativePdfOnly")]
-    pub is_translate_native_pdf_only: Option<bool>,
+    pub is_translate_native_pdf_only: ::core::option::Option<bool>,
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter. See https://cloud.google.com/translate/docs/advanced/labels for more information.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The model type requested for this translation. The format depends on model type: - AutoML Translation models: projects/{project-number-or-id}/locations/{location-id}/models/{model-id} - General (built-in) models: projects/{project-number-or-id}/locations/{location-id}/models/general/nmt, If not provided, the default Google model (NMT) will be used for translation.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// Optional. The ISO-639 language code of the input document if known, for example, "en-US" or "sr-Latn". Supported language codes are listed in [Language Support](https://cloud.google.com/translate/docs/languages). If the source language isn''t specified, the API attempts to identify the source language automatically and returns the source language within the response. Source language must be specified if the request contains a glossary or a custom model.
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// Required. The ISO-639 language code to use for translation of the input document, set to one of the language codes listed in [Language Support](https://cloud.google.com/translate/docs/languages).
     #[serde(default, rename = "targetLanguageCode")]
-    pub target_language_code: Option<String>,
+    pub target_language_code: ::core::option::Option<String>,
 }
 
 /// A translated document response message.
@@ -938,16 +948,17 @@ pub struct TranslateDocumentRequest {
 pub struct TranslateDocumentResponse {
     /// Translated document.
     #[serde(default, rename = "documentTranslation")]
-    pub document_translation: Option<DocumentTranslation>,
+    pub document_translation: ::core::option::Option<::std::boxed::Box<DocumentTranslation>>,
     /// The glossary_config used for this translation.
     #[serde(default, rename = "glossaryConfig")]
-    pub glossary_config: Option<TranslateTextGlossaryConfig>,
+    pub glossary_config: ::core::option::Option<::std::boxed::Box<TranslateTextGlossaryConfig>>,
     /// The document''s translation output if a glossary is provided in the request. This can be the same as [TranslateDocumentResponse.document_translation] if no glossary terms apply.
     #[serde(default, rename = "glossaryDocumentTranslation")]
-    pub glossary_document_translation: Option<DocumentTranslation>,
+    pub glossary_document_translation:
+        ::core::option::Option<::std::boxed::Box<DocumentTranslation>>,
     /// Only present when ''model'' is present in the request. ''model'' is normalized to have a project number. For example: If the ''model'' field in TranslateDocumentRequest is: projects/{project-id}/locations/{location-id}/models/general/nmt then model here would be normalized to projects/{project-number}/locations/{location-id}/models/general/nmt.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
 }
 
 /// Configures which glossary is used for a specific target language and defines options for applying that glossary.
@@ -955,13 +966,13 @@ pub struct TranslateDocumentResponse {
 pub struct TranslateTextGlossaryConfig {
     /// Optional. If set to true, the glossary will be used for contextual translation.
     #[serde(default, rename = "contextualTranslationEnabled")]
-    pub contextual_translation_enabled: Option<bool>,
+    pub contextual_translation_enabled: ::core::option::Option<bool>,
     /// Required. The glossary to be applied for this translation. The format depends on the glossary: - User-provided custom glossary: projects/{project-number-or-id}/locations/{location-id}/glossaries/{glossary-id}
     #[serde(default)]
-    pub glossary: Option<String>,
+    pub glossary: ::core::option::Option<String>,
     /// Optional. Indicates match is case insensitive. The default value is false if missing.
     #[serde(default, rename = "ignoreCase")]
-    pub ignore_case: Option<bool>,
+    pub ignore_case: ::core::option::Option<bool>,
 }
 
 /// The request message for synchronous translation.
@@ -969,28 +980,28 @@ pub struct TranslateTextGlossaryConfig {
 pub struct TranslateTextRequest {
     /// Required. The content of the input in string format. We recommend the total content be less than 30,000 codepoints. The max length of this field is 1024. Use BatchTranslateText for larger text.
     #[serde(default)]
-    pub contents: Option<Vec<String>>,
+    pub contents: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Glossary to be applied. The glossary must be within the same region (have the same location-id) as the model, otherwise an INVALID_ARGUMENT (400) error is returned.
     #[serde(default, rename = "glossaryConfig")]
-    pub glossary_config: Option<TranslateTextGlossaryConfig>,
+    pub glossary_config: ::core::option::Option<::std::boxed::Box<TranslateTextGlossaryConfig>>,
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter. See https://cloud.google.com/translate/docs/advanced/labels for more information.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. The format of the source text, for example, "text/html", "text/plain". If left blank, the MIME type defaults to "text/html".
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// Optional. The model type requested for this translation. The format depends on model type: - AutoML Translation models: projects/{project-number-or-id}/locations/{location-id}/models/{model-id} - General (built-in) models: projects/{project-number-or-id}/locations/{location-id}/models/general/nmt, - Translation LLM models: projects/{project-number-or-id}/locations/{location-id}/models/general/translation-llm, For global (non-regionalized) requests, use location-id global. For example, projects/{project-number-or-id}/locations/global/models/general/nmt. If not provided, the default Google model (NMT) will be used
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// Optional. The ISO-639 language code of the input text if known, for example, "en-US" or "sr-Latn". Supported language codes are listed in [Language Support](https://cloud.google.com/translate/docs/languages). If the source language isn''t specified, the API attempts to identify the source language automatically and returns the source language within the response.
     #[serde(default, rename = "sourceLanguageCode")]
-    pub source_language_code: Option<String>,
+    pub source_language_code: ::core::option::Option<String>,
     /// Required. The ISO-639 language code to use for translation of the input text, set to one of the language codes listed in [Language Support](https://cloud.google.com/translate/docs/languages).
     #[serde(default, rename = "targetLanguageCode")]
-    pub target_language_code: Option<String>,
+    pub target_language_code: ::core::option::Option<String>,
     /// Optional. Transliteration to be applied.
     #[serde(default, rename = "transliterationConfig")]
-    pub transliteration_config: Option<TransliterationConfig>,
+    pub transliteration_config: ::core::option::Option<::std::boxed::Box<TransliterationConfig>>,
 }
 
 /// TranslateTextResponse resource type.
@@ -998,10 +1009,11 @@ pub struct TranslateTextRequest {
 pub struct TranslateTextResponse {
     /// Text translation responses if a glossary is provided in the request. This can be the same as translations if no terms apply. This field has the same length as contents.
     #[serde(default, rename = "glossaryTranslations")]
-    pub glossary_translations: Option<Vec<Translation>>,
+    pub glossary_translations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Translation>>>,
     /// Text translation responses with no glossary applied. This field has the same length as contents.
     #[serde(default)]
-    pub translations: Option<Vec<Translation>>,
+    pub translations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Translation>>>,
 }
 
 /// A single translation response.
@@ -1009,16 +1021,16 @@ pub struct TranslateTextResponse {
 pub struct Translation {
     /// The ISO-639 language code of source text in the initial request, detected automatically, if no source language was passed within the initial request. If the source language was passed, auto-detection of the language does not occur and this field is empty.
     #[serde(default, rename = "detectedLanguageCode")]
-    pub detected_language_code: Option<String>,
+    pub detected_language_code: ::core::option::Option<String>,
     /// The glossary_config used for this translation.
     #[serde(default, rename = "glossaryConfig")]
-    pub glossary_config: Option<TranslateTextGlossaryConfig>,
+    pub glossary_config: ::core::option::Option<::std::boxed::Box<TranslateTextGlossaryConfig>>,
     /// Only present when model is present in the request. model here is normalized to have project number. For example: If the model requested in TranslationTextRequest is projects/{project-id}/locations/{location-id}/models/general/nmt then model here would be normalized to projects/{project-number}/locations/{location-id}/models/general/nmt.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// Text translated into the target language. If an error occurs during translation, this field might be excluded from the response.
     #[serde(default, rename = "translatedText")]
-    pub translated_text: Option<String>,
+    pub translated_text: ::core::option::Option<String>,
 }
 
 /// Configures transliteration feature on top of translation.
@@ -1026,7 +1038,7 @@ pub struct Translation {
 pub struct TransliterationConfig {
     /// If true, source text in romanized form can be translated to the target language.
     #[serde(default, rename = "enableTransliteration")]
-    pub enable_transliteration: Option<bool>,
+    pub enable_transliteration: ::core::option::Option<bool>,
 }
 
 /// The request message for Operations.WaitOperation.
@@ -1034,5 +1046,5 @@ pub struct TransliterationConfig {
 pub struct WaitOperationRequest {
     /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
     #[serde(default)]
-    pub timeout: Option<String>,
+    pub timeout: ::core::option::Option<String>,
 }

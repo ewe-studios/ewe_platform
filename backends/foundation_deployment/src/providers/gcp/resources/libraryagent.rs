@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A single book in the library.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleExampleLibraryagentV1Book {
     /// The name of the book author.
     #[serde(default)]
-    pub author: Option<String>,
+    pub author: ::core::option::Option<String>,
     /// The resource name of the book. Book names have the form shelves/{shelf_id}/books/{book_id}. The name is ignored when creating a book.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Value indicating whether the book has been read.
     #[serde(default)]
-    pub read: Option<bool>,
+    pub read: ::core::option::Option<bool>,
     /// The title of the book.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Response message for LibraryAgent.ListBooks.
@@ -35,10 +35,11 @@ pub struct GoogleExampleLibraryagentV1Book {
 pub struct GoogleExampleLibraryagentV1ListBooksResponse {
     /// The list of books.
     #[serde(default)]
-    pub books: Option<Vec<GoogleExampleLibraryagentV1Book>>,
+    pub books:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleExampleLibraryagentV1Book>>>,
     /// A token to retrieve next page of results. Pass this value in the ListBooksRequest.page_token field in the subsequent call to ListBooks method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for LibraryAgent.ListShelves.
@@ -46,10 +47,12 @@ pub struct GoogleExampleLibraryagentV1ListBooksResponse {
 pub struct GoogleExampleLibraryagentV1ListShelvesResponse {
     /// A token to retrieve next page of results. Pass this value in the ListShelvesRequest.page_token field in the subsequent call to ListShelves method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of shelves.
     #[serde(default)]
-    pub shelves: Option<Vec<GoogleExampleLibraryagentV1Shelf>>,
+    pub shelves: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleExampleLibraryagentV1Shelf>>,
+    >,
 }
 
 /// A Shelf contains a collection of books with a theme.
@@ -57,8 +60,8 @@ pub struct GoogleExampleLibraryagentV1ListShelvesResponse {
 pub struct GoogleExampleLibraryagentV1Shelf {
     /// Output only. The resource name of the shelf. Shelf names have the form shelves/{shelf_id}. The name is ignored when creating a shelf.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The theme of the shelf
     #[serde(default)]
-    pub theme: Option<String>,
+    pub theme: ::core::option::Option<String>,
 }

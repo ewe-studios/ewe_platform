@@ -10,27 +10,30 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// The analysis resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1Analysis {
     /// Output only. The result of the analysis, which is populated when the analysis finishes.
     #[serde(default, rename = "analysisResult")]
-    pub analysis_result: Option<GoogleCloudContactcenterinsightsV1AnalysisResult>,
+    pub analysis_result:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnalysisResult>>,
     /// To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    >,
     /// Output only. The time at which the analysis was created, which occurs when the long-running operation completes.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Immutable. The resource name of the analysis. Format: projects/{project}/locations/{location}/conversations/{conversation}/analyses/{analysis}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The time at which the analysis was requested.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// The result of an analysis.
@@ -38,11 +41,12 @@ pub struct GoogleCloudContactcenterinsightsV1Analysis {
 pub struct GoogleCloudContactcenterinsightsV1AnalysisResult {
     /// Call-specific metadata created by the analysis.
     #[serde(default, rename = "callAnalysisMetadata")]
-    pub call_analysis_metadata:
-        Option<GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata>,
+    pub call_analysis_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata>,
+    >,
     /// The time at which the analysis ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
 }
 
 /// Call-specific metadata created during analysis.
@@ -50,28 +54,40 @@ pub struct GoogleCloudContactcenterinsightsV1AnalysisResult {
 pub struct GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata {
     /// A list of call annotations that apply to this call.
     #[serde(default)]
-    pub annotations: Option<Vec<GoogleCloudContactcenterinsightsV1CallAnnotation>>,
+    pub annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1CallAnnotation>>,
+    >,
     /// All the entities in the call.
     #[serde(default)]
-    pub entities: Option<serde_json::Value>,
+    pub entities: ::core::option::Option<serde_json::Value>,
     /// All the matched intents in the call.
     #[serde(default)]
-    pub intents: Option<serde_json::Value>,
+    pub intents: ::core::option::Option<serde_json::Value>,
     /// Overall conversation-level issue modeling result.
     #[serde(default, rename = "issueModelResult")]
-    pub issue_model_result: Option<GoogleCloudContactcenterinsightsV1IssueModelResult>,
+    pub issue_model_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueModelResult>,
+    >,
     /// All the matched phrase matchers in the call.
     #[serde(default, rename = "phraseMatchers")]
-    pub phrase_matchers: Option<serde_json::Value>,
+    pub phrase_matchers: ::core::option::Option<serde_json::Value>,
     /// Results of scoring QaScorecards.
     #[serde(default, rename = "qaScorecardResults")]
-    pub qa_scorecard_results: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardResult>>,
+    pub qa_scorecard_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaScorecardResult>>,
+    >,
     /// Overall conversation-level sentiment for each channel of the call.
     #[serde(default)]
-    pub sentiments: Option<Vec<GoogleCloudContactcenterinsightsV1ConversationLevelSentiment>>,
+    pub sentiments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationLevelSentiment>,
+        >,
+    >,
     /// Overall conversation-level silence during the call.
     #[serde(default)]
-    pub silence: Option<GoogleCloudContactcenterinsightsV1ConversationLevelSilence>,
+    pub silence: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationLevelSilence>,
+    >,
 }
 
 /// The CCAI Insights project wide analysis rule. This rule will be applied to all conversations that match the filter defined in the rule. For a conversation matches the filter, the annotators specified in the rule will be run. If a conversation matches multiple rules, a union of all the annotators will be run. One project can have multiple analysis rules.
@@ -79,28 +95,30 @@ pub struct GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata 
 pub struct GoogleCloudContactcenterinsightsV1AnalysisRule {
     /// If true, apply this rule to conversations. Otherwise, this rule is inactive and saved as a draft.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Percentage of conversations that we should apply this analysis setting automatically, between [0, 1]. For example, 0.1 means 10%. Conversations are sampled in a determenestic way. The original runtime_percentage & upload percentage will be replaced by defining filters on the conversation.
     #[serde(default, rename = "analysisPercentage")]
-    pub analysis_percentage: Option<f64>,
+    pub analysis_percentage: ::core::option::Option<f64>,
     /// Selector of annotators to run and the phrase matchers to use for conversations that matches the conversation_filter. If not specified, NO annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    >,
     /// Filter for the conversations that should apply this analysis rule. An empty filter means this analysis rule applies to all conversations. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.
     #[serde(default, rename = "conversationFilter")]
-    pub conversation_filter: Option<String>,
+    pub conversation_filter: ::core::option::Option<String>,
     /// Output only. The time at which this analysis rule was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Display Name of the analysis rule.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. The resource name of the analysis rule. Format: projects/{project}/locations/{location}/analysisRules/{analysis_rule}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The most recent time at which this analysis rule was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A point in a conversation that marks the start or the end of an annotation.
@@ -108,10 +126,10 @@ pub struct GoogleCloudContactcenterinsightsV1AnalysisRule {
 pub struct GoogleCloudContactcenterinsightsV1AnnotationBoundary {
     /// The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.
     #[serde(default, rename = "transcriptIndex")]
-    pub transcript_index: Option<i32>,
+    pub transcript_index: ::core::option::Option<i32>,
     /// The word index of this boundary with respect to the first word in the transcript piece. This index starts at zero.
     #[serde(default, rename = "wordIndex")]
-    pub word_index: Option<i32>,
+    pub word_index: ::core::option::Option<i32>,
 }
 
 /// Selector of all available annotators and phrase matchers to run.
@@ -119,47 +137,50 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotationBoundary {
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelector {
     /// The issue model to run. If not provided, the most recently deployed topic model will be used. The provided issue model will only be used for inference if the issue model is deployed and if run_issue_model_annotator is set to true. If more than one issue model is provided, only the first provided issue model will be used for inference.
     #[serde(default, rename = "issueModels")]
-    pub issue_models: Option<Vec<String>>,
+    pub issue_models: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of phrase matchers to run. If not provided, all active phrase matchers will be used. If inactive phrase matchers are provided, they will not be used. Phrase matchers will be run only if run_phrase_matcher_annotator is set to true. Format: projects/{project}/locations/{location}/phraseMatchers/{phrase_matcher}
     #[serde(default, rename = "phraseMatchers")]
-    pub phrase_matchers: Option<Vec<String>>,
+    pub phrase_matchers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Configuration for the QA annotator.
     #[serde(default, rename = "qaConfig")]
-    pub qa_config: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig>,
+    pub qa_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig>,
+    >,
     /// Optional. Whether to run the auto-labeling annotator. If true, the auto-labeling annotator will be run. This is a non-billable operation designed for fixing or backfilling custom labels.
     #[serde(default, rename = "runAutoLabelingAnnotator")]
-    pub run_auto_labeling_annotator: Option<bool>,
+    pub run_auto_labeling_annotator: ::core::option::Option<bool>,
     /// Whether to run the entity annotator.
     #[serde(default, rename = "runEntityAnnotator")]
-    pub run_entity_annotator: Option<bool>,
+    pub run_entity_annotator: ::core::option::Option<bool>,
     /// Whether to run the intent annotator.
     #[serde(default, rename = "runIntentAnnotator")]
-    pub run_intent_annotator: Option<bool>,
+    pub run_intent_annotator: ::core::option::Option<bool>,
     /// Whether to run the interruption annotator.
     #[serde(default, rename = "runInterruptionAnnotator")]
-    pub run_interruption_annotator: Option<bool>,
+    pub run_interruption_annotator: ::core::option::Option<bool>,
     /// Whether to run the issue model annotator. A model should have already been deployed for this to take effect.
     #[serde(default, rename = "runIssueModelAnnotator")]
-    pub run_issue_model_annotator: Option<bool>,
+    pub run_issue_model_annotator: ::core::option::Option<bool>,
     /// Whether to run the active phrase matcher annotator(s).
     #[serde(default, rename = "runPhraseMatcherAnnotator")]
-    pub run_phrase_matcher_annotator: Option<bool>,
+    pub run_phrase_matcher_annotator: ::core::option::Option<bool>,
     /// Whether to run the QA annotator.
     #[serde(default, rename = "runQaAnnotator")]
-    pub run_qa_annotator: Option<bool>,
+    pub run_qa_annotator: ::core::option::Option<bool>,
     /// Whether to run the sentiment annotator.
     #[serde(default, rename = "runSentimentAnnotator")]
-    pub run_sentiment_annotator: Option<bool>,
+    pub run_sentiment_annotator: ::core::option::Option<bool>,
     /// Whether to run the silence annotator.
     #[serde(default, rename = "runSilenceAnnotator")]
-    pub run_silence_annotator: Option<bool>,
+    pub run_silence_annotator: ::core::option::Option<bool>,
     /// Whether to run the summarization annotator.
     #[serde(default, rename = "runSummarizationAnnotator")]
-    pub run_summarization_annotator: Option<bool>,
+    pub run_summarization_annotator: ::core::option::Option<bool>,
     /// Configuration for the summarization annotator.
     #[serde(default, rename = "summarizationConfig")]
-    pub summarization_config:
-        Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig>,
+    pub summarization_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig>,
+    >,
 }
 
 /// Configuration for the QA feature.
@@ -167,8 +188,9 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelector {
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
     /// A manual list of scorecards to score.
     #[serde(default, rename = "scorecardList")]
-    pub scorecard_list:
-        Option<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList>,
+    pub scorecard_list: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList>,
+    >,
 }
 
 /// Container for a list of scorecards.
@@ -176,7 +198,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList {
     /// List of QaScorecardRevisions.
     #[serde(default, rename = "qaScorecardRevisions")]
-    pub qa_scorecard_revisions: Option<Vec<String>>,
+    pub qa_scorecard_revisions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration for summarization.
@@ -184,13 +206,13 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardL
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig {
     /// Resource name of the Dialogflow conversation profile. Format: projects/{project}/locations/{location}/conversationProfiles/{conversation_profile}
     #[serde(default, rename = "conversationProfile")]
-    pub conversation_profile: Option<String>,
+    pub conversation_profile: ::core::option::Option<String>,
     /// The resource name of the existing created generator. Format: projects//locations//generators/
     #[serde(default)]
-    pub generator: Option<String>,
+    pub generator: ::core::option::Option<String>,
     /// Default summarization model to be used. // TODO: enum values: ["SUMMARIZATION_MODEL_UNSPECIFIED", "BASELINE_MODEL", "BASELINE_MODEL_V2_0"]
     #[serde(default, rename = "summarizationModel")]
-    pub summarization_model: Option<String>,
+    pub summarization_model: ::core::option::Option<String>,
 }
 
 /// The feedback that the customer has about a certain answer in the conversation.
@@ -198,13 +220,13 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfi
 pub struct GoogleCloudContactcenterinsightsV1AnswerFeedback {
     /// Indicates whether an answer or item was clicked by the human agent.
     #[serde(default)]
-    pub clicked: Option<bool>,
+    pub clicked: ::core::option::Option<bool>,
     /// The correctness level of an answer. // TODO: enum values: ["CORRECTNESS_LEVEL_UNSPECIFIED", "NOT_CORRECT", "PARTIALLY_CORRECT", "FULLY_CORRECT"]
     #[serde(default, rename = "correctnessLevel")]
-    pub correctness_level: Option<String>,
+    pub correctness_level: ::core::option::Option<String>,
     /// Indicates whether an answer or item was displayed to the human agent in the agent desktop UI.
     #[serde(default)]
-    pub displayed: Option<bool>,
+    pub displayed: ::core::option::Option<bool>,
 }
 
 /// Agent Assist Article Suggestion data.
@@ -212,22 +234,22 @@ pub struct GoogleCloudContactcenterinsightsV1AnswerFeedback {
 pub struct GoogleCloudContactcenterinsightsV1ArticleSuggestionData {
     /// The system''s confidence score that this article is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f32>,
+    pub confidence_score: ::core::option::Option<f32>,
     /// Map that contains metadata about the Article Suggestion and the document that it originates from.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The knowledge document that this answer was extracted from. Format: projects/{project}/knowledgeBases/{knowledge_base}/documents/{document}
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Article title.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Article URI.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The assessment resource.
@@ -235,19 +257,21 @@ pub struct GoogleCloudContactcenterinsightsV1ArticleSuggestionData {
 pub struct GoogleCloudContactcenterinsightsV1Assessment {
     /// Information about the agent the assessment is for.
     #[serde(default, rename = "agentInfo")]
-    pub agent_info: Option<GoogleCloudContactcenterinsightsV1ConversationQualityMetadataAgentInfo>,
+    pub agent_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationQualityMetadataAgentInfo>,
+    >,
     /// Output only. The time at which the assessment was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The resource name of the assessment. Format: projects/{project}/locations/{location}/conversations/{conversation}/assessments/{assessment}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The state of the assessment. // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "PUBLISHED", "APPEALED", "FINALIZED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time at which the assessment was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The CCAI Insights project wide assessment rule. This assessment rule will be applied to all conversations from the previous sampling cycle that match the sample rule defined in the assessment rule. One project can have multiple assessment rules.
@@ -255,25 +279,27 @@ pub struct GoogleCloudContactcenterinsightsV1Assessment {
 pub struct GoogleCloudContactcenterinsightsV1AssessmentRule {
     /// If true, apply this rule to conversations. Otherwise, this rule is inactive.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Output only. The time at which this assessment rule was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Display Name of the assessment rule.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. The resource name of the assessment rule. Format: projects/{project}/locations/{location}/assessmentRules/{assessment_rule}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The sample rule for the assessment rule.
     #[serde(default, rename = "sampleRule")]
-    pub sample_rule: Option<GoogleCloudContactcenterinsightsV1SampleRule>,
+    pub sample_rule:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SampleRule>>,
     /// Schedule info for the assessment rule.
     #[serde(default, rename = "scheduleInfo")]
-    pub schedule_info: Option<GoogleCloudContactcenterinsightsV1ScheduleInfo>,
+    pub schedule_info:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1ScheduleInfo>>,
     /// Output only. The most recent time at which this assessment rule was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An AuthorizedView represents a view of accessible Insights resources (for example, Conversation and Scorecard). Who have read access to the AuthorizedView resource will have access to these Insight resources as well.
@@ -281,19 +307,19 @@ pub struct GoogleCloudContactcenterinsightsV1AssessmentRule {
 pub struct GoogleCloudContactcenterinsightsV1AuthorizedView {
     /// A filter to reduce conversation results to a specific subset. The AuthorizedView''s assigned permission (read/write) could be applied to the subset of conversations. If conversation_filter is empty, there is no restriction on the conversations that the AuthorizedView can access. Having *authorizedViews.get* access to the AuthorizedView means having the same read/write access to the Conversations (as well as metadata/annotations linked to the conversation) that this AuthorizedView has.
     #[serde(default, rename = "conversationFilter")]
-    pub conversation_filter: Option<String>,
+    pub conversation_filter: ::core::option::Option<String>,
     /// Output only. The time at which the authorized view was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Display Name. Limit 64 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. The resource name of the AuthorizedView. Format: projects/{project}/locations/{location}/authorizedViewSets/{authorized_view_set}/authorizedViews/{authorized_view}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The most recent time at which the authorized view was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An AuthorizedViewSet contains a set of AuthorizedView resources.
@@ -301,16 +327,16 @@ pub struct GoogleCloudContactcenterinsightsV1AuthorizedView {
 pub struct GoogleCloudContactcenterinsightsV1AuthorizedViewSet {
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Display Name. Limit 64 characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. The resource name of the AuthorizedViewSet. Format: projects/{project}/locations/{location}/authorizedViewSets/{authorized_view_set}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Rule for auto-labeling conversations.
@@ -318,32 +344,35 @@ pub struct GoogleCloudContactcenterinsightsV1AuthorizedViewSet {
 pub struct GoogleCloudContactcenterinsightsV1AutoLabelingRule {
     /// Whether the rule is active.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Conditions to apply for auto-labeling the label_key. Representing sequential block of if .. else if .. else statements. The value of the first matching condition will be used.
     #[serde(default)]
-    pub conditions:
-        Option<Vec<GoogleCloudContactcenterinsightsV1AutoLabelingRuleLabelingCondition>>,
+    pub conditions: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AutoLabelingRuleLabelingCondition>,
+        >,
+    >,
     /// Output only. The time at which this rule was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The description of the rule.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The user-provided display name of the rule.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The label key. This is also the {auto_labeling_rule} in the resource name. Only settable if label_key_type is LABEL_KEY_TYPE_CUSTOM.
     #[serde(default, rename = "labelKey")]
-    pub label_key: Option<String>,
+    pub label_key: ::core::option::Option<String>,
     /// The type of the label key. // TODO: enum values: ["LABEL_KEY_TYPE_UNSPECIFIED", "LABEL_KEY_TYPE_CUSTOM"]
     #[serde(default, rename = "labelKeyType")]
-    pub label_key_type: Option<String>,
+    pub label_key_type: ::core::option::Option<String>,
     /// Identifier. The resource name of the auto-labeling rule. Format: projects/{project}/locations/{location}/autoLabelingRules/{auto_labeling_rule}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The most recent time at which the rule was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Condition for auto-labeling conversations.
@@ -351,10 +380,10 @@ pub struct GoogleCloudContactcenterinsightsV1AutoLabelingRule {
 pub struct GoogleCloudContactcenterinsightsV1AutoLabelingRuleLabelingCondition {
     /// A optional CEL expression to be evaluated as a boolean value. Once evaluated as true, then we will proceed with the value evaluation. An empty condition will be auto evaluated as true.
     #[serde(default)]
-    pub condition: Option<String>,
+    pub condition: ::core::option::Option<String>,
     /// CEL expression to be evaluated as the value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// The metadata for a bulk analyze conversations operation.
@@ -362,28 +391,30 @@ pub struct GoogleCloudContactcenterinsightsV1AutoLabelingRuleLabelingCondition {
 pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsMetadata {
     /// The number of requested analyses that have completed successfully so far.
     #[serde(default, rename = "completedAnalysesCount")]
-    pub completed_analyses_count: Option<i32>,
+    pub completed_analyses_count: ::core::option::Option<i32>,
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The number of requested analyses that have failed so far.
     #[serde(default, rename = "failedAnalysesCount")]
-    pub failed_analyses_count: Option<i32>,
+    pub failed_analyses_count: ::core::option::Option<i32>,
     /// Output only. Partial errors during bulk analyze operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. If true, the labeling rules will be re-evaluated for the conversations.
     #[serde(default)]
-    pub relabel: Option<bool>,
+    pub relabel: ::core::option::Option<bool>,
     /// The original request for bulk analyze.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest>,
+    >,
     /// Total number of analyses requested. Computed by the number of conversations returned by filter multiplied by analysis_percentage in the request.
     #[serde(default, rename = "totalRequestedAnalysesCount")]
-    pub total_requested_analyses_count: Option<i32>,
+    pub total_requested_analyses_count: ::core::option::Option<i32>,
 }
 
 /// The request to analyze conversations in bulk.
@@ -391,19 +422,21 @@ pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest {
     /// Required. Percentage of selected conversation to analyze, between [0, 100].
     #[serde(default, rename = "analysisPercentage")]
-    pub analysis_percentage: Option<f32>,
+    pub analysis_percentage: ::core::option::Option<f32>,
     /// To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    >,
     /// Required. Filter used to select the subset of conversations to analyze.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The parent resource to create analyses in.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. If true, the labeling rules will be re-evaluated for the conversations.
     #[serde(default)]
-    pub relabel: Option<bool>,
+    pub relabel: ::core::option::Option<bool>,
 }
 
 /// The response for a bulk analyze conversations operation.
@@ -411,10 +444,10 @@ pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest {
 pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsResponse {
     /// Count of failed analyses.
     #[serde(default, rename = "failedAnalysisCount")]
-    pub failed_analysis_count: Option<i32>,
+    pub failed_analysis_count: ::core::option::Option<i32>,
     /// Count of successful analyses.
     #[serde(default, rename = "successfulAnalysisCount")]
-    pub successful_analysis_count: Option<i32>,
+    pub successful_analysis_count: ::core::option::Option<i32>,
 }
 
 /// The metadata for a bulk delete conversations operation.
@@ -422,16 +455,18 @@ pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsResponse {
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Partial errors during bulk delete conversations operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The original request for bulk delete.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest>,
+    >,
 }
 
 /// The request to delete conversations in bulk.
@@ -439,16 +474,16 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest {
     /// Filter used to select the subset of conversations to delete.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// If set to true, all of this conversation''s analyses will also be deleted. Otherwise, the request will only succeed if the conversation has no analyses.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Maximum number of conversations to delete.
     #[serde(default, rename = "maxDeleteCount")]
-    pub max_delete_count: Option<i32>,
+    pub max_delete_count: ::core::option::Option<i32>,
     /// Required. The parent resource to delete conversations from. Format: projects/{project}/locations/{location}
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
@@ -456,10 +491,12 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest {
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsMetadata {
     /// Partial errors during deletion operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for delete.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest>,
+    >,
 }
 
 /// Request for the BulkDeleteFeedbackLabels endpoint.
@@ -467,10 +504,10 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest {
     /// Optional. A filter to reduce results to a specific subset. Supports disjunctions (OR) and conjunctions (AND). Supported fields: * issue_model_id * qa_question_id * qa_scorecard_id * min_create_time * max_create_time * min_update_time * max_update_time * feedback_label_type: QUALITY_AI, TOPIC_MODELING
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The parent resource for new feedback labels.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Metadata for the BulkDownloadFeedbackLabel endpoint.
@@ -478,20 +515,25 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest {
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Statistics for BulkDownloadFeedbackLabels operation.
     #[serde(default, rename = "downloadStats")]
-    pub download_stats:
-        Option<GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadataDownloadStats>,
+    pub download_stats: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadataDownloadStats,
+        >,
+    >,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Partial errors during ingest operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for download.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest>,
+    >,
 }
 
 /// Statistics for BulkDownloadFeedbackLabels operation.
@@ -499,16 +541,16 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadata 
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadataDownloadStats {
     /// Output only. Full name of the files written to Cloud storage.
     #[serde(default, rename = "fileNames")]
-    pub file_names: Option<Vec<String>>,
+    pub file_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The number of objects processed during the download operation.
     #[serde(default, rename = "processedObjectCount")]
-    pub processed_object_count: Option<i32>,
+    pub processed_object_count: ::core::option::Option<i32>,
     /// The number of new feedback labels downloaded during this operation. Different from "processed" because some labels might not be downloaded because an error.
     #[serde(default, rename = "successfulDownloadCount")]
-    pub successful_download_count: Option<i32>,
+    pub successful_download_count: ::core::option::Option<i32>,
     /// Total number of files written to the provided Cloud Storage bucket.
     #[serde(default, rename = "totalFilesWritten")]
-    pub total_files_written: Option<i32>,
+    pub total_files_written: ::core::option::Option<i32>,
 }
 
 /// Request for the BulkDownloadFeedbackLabel endpoint.
@@ -516,31 +558,36 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadataD
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest {
     /// Optional. Filter parent conversations to download feedback labels for. When specified, the feedback labels will be downloaded for the conversations that match the filter. If template_qa_scorecard_id is set, all the conversations that match the filter will be paired with the questions under the scorecard for labeling.
     #[serde(default, rename = "conversationFilter")]
-    pub conversation_filter: Option<String>,
+    pub conversation_filter: ::core::option::Option<String>,
     /// Optional. The type of feedback labels that will be downloaded. // TODO: enum values: ["FEEDBACK_LABEL_TYPE_UNSPECIFIED", "QUALITY_AI", "TOPIC_MODELING", "AGENT_ASSIST_SUMMARY"]
     #[serde(default, rename = "feedbackLabelType")]
-    pub feedback_label_type: Option<String>,
+    pub feedback_label_type: ::core::option::Option<String>,
     /// Optional. A filter to reduce results to a specific subset. Supports disjunctions (OR) and conjunctions (AND). Supported fields: * issue_model_id * qa_question_id * qa_scorecard_id * min_create_time * max_create_time * min_update_time * max_update_time * feedback_label_type: QUALITY_AI, TOPIC_MODELING
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// A cloud storage bucket destination.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination:
-        Option<GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestGcsDestination>,
+    pub gcs_destination: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestGcsDestination,
+        >,
+    >,
     /// Optional. Limits the maximum number of feedback labels that will be downloaded. The first N feedback labels will be downloaded.
     #[serde(default, rename = "maxDownloadCount")]
-    pub max_download_count: Option<i32>,
+    pub max_download_count: ::core::option::Option<i32>,
     /// Required. The parent resource for new feedback labels.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// A sheets document destination.
     #[serde(default, rename = "sheetsDestination")]
-    pub sheets_destination: Option<
-        GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestSheetsDestination,
+    pub sheets_destination: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestSheetsDestination,
+        >,
     >,
     /// Optional. If set, a template for labeling conversations and scorecard questions will be created from the conversation_filter and the questions under the scorecard(s). The feedback label filter will be ignored.
     #[serde(default, rename = "templateQaScorecardId")]
-    pub template_qa_scorecard_id: Option<Vec<String>>,
+    pub template_qa_scorecard_id: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Google Cloud Storage Object details to write the feedback labels to.
@@ -548,19 +595,19 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest {
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestGcsDestination {
     /// Optional. Add whitespace to the JSON file. Makes easier to read, but increases file size. Only applicable for JSON format.
     #[serde(default, rename = "addWhitespace")]
-    pub add_whitespace: Option<bool>,
+    pub add_whitespace: ::core::option::Option<bool>,
     /// Optional. Always print fields with no presence. This is useful for printing fields that are not set, like implicit 0 value or empty lists/maps. Only applicable for JSON format.
     #[serde(default, rename = "alwaysPrintEmptyFields")]
-    pub always_print_empty_fields: Option<bool>,
+    pub always_print_empty_fields: ::core::option::Option<bool>,
     /// Required. File format in which the labels will be exported. // TODO: enum values: ["FORMAT_UNSPECIFIED", "CSV", "JSON"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Required. The Google Cloud Storage URI to write the feedback labels to. The file name will be used as a prefix for the files written to the bucket if the output needs to be split across multiple files, otherwise it will be used as is. The file extension will be appended to the file name based on the format selected. E.g. gs://bucket_name/object_uri_prefix
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
     /// Optional. The number of records per file. Applicable for either format.
     #[serde(default, rename = "recordsPerFileCount")]
-    pub records_per_file_count: Option<String>,
+    pub records_per_file_count: ::core::option::Option<String>,
 }
 
 /// Google Sheets document details to write the feedback labels to.
@@ -568,10 +615,10 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestGc
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestSheetsDestination {
     /// Optional. The title of the new sheet to write the feedback labels to.
     #[serde(default, rename = "sheetTitle")]
-    pub sheet_title: Option<String>,
+    pub sheet_title: ::core::option::Option<String>,
     /// Required. The Google Sheets document to write the feedback labels to. Retrieved from Google Sheets URI. E.g. https://docs.google.com/spreadsheets/d/1234567890 The spreadsheet must be shared with the Insights P4SA. The spreadsheet ID written to will be returned as file_names in the BulkDownloadFeedbackLabelsMetadata.
     #[serde(default, rename = "spreadsheetUri")]
-    pub spreadsheet_uri: Option<String>,
+    pub spreadsheet_uri: ::core::option::Option<String>,
 }
 
 /// The request for bulk uploading feedback labels.
@@ -579,15 +626,21 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestSh
 pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest {
     /// A cloud storage bucket source.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source:
-        Option<GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestGcsSource>,
+    pub gcs_source: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestGcsSource,
+        >,
+    >,
     /// A sheets document source.
     #[serde(default, rename = "sheetsSource")]
-    pub sheets_source:
-        Option<GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestSheetsSource>,
+    pub sheets_source: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestSheetsSource,
+        >,
+    >,
     /// Optional. If set, upload will not happen and the labels will be validated. If not set, then default behavior will be to upload the labels after validation is complete.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Google Cloud Storage Object details to get the feedback label file from.
@@ -595,10 +648,10 @@ pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest {
 pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestGcsSource {
     /// Required. File format which will be ingested. // TODO: enum values: ["FORMAT_UNSPECIFIED", "CSV", "JSON"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Required. The Google Cloud Storage URI of the file to import. Format: gs://bucket_name/object_name
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
 }
 
 /// Google Sheets document details to get the feedback label file from.
@@ -606,7 +659,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestGcsS
 pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestSheetsSource {
     /// Required. The Google Sheets document to write the feedback labels to. Retrieved from Google Sheets URI. E.g. https://docs.google.com/spreadsheets/d/1234567890 The spreadsheet must be shared with the Insights P4SA.
     #[serde(default, rename = "spreadsheetUri")]
-    pub spreadsheet_uri: Option<String>,
+    pub spreadsheet_uri: ::core::option::Option<String>,
 }
 
 /// Response of querying an issue model''s statistics.
@@ -614,7 +667,9 @@ pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestShee
 pub struct GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse {
     /// The latest label statistics for the queried issue model. Includes results on both training data and data labeled after deployment.
     #[serde(default, rename = "currentStats")]
-    pub current_stats: Option<GoogleCloudContactcenterinsightsV1IssueModelLabelStats>,
+    pub current_stats: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueModelLabelStats>,
+    >,
 }
 
 /// The request for calculating conversation statistics.
@@ -622,7 +677,7 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse {
 pub struct GoogleCloudContactcenterinsightsV1CalculateStatsRequest {
     /// A filter to reduce results to a specific subset. This field is useful for getting statistics about conversations with specific properties.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
 }
 
 /// The response for calculating conversation statistics.
@@ -630,29 +685,30 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsRequest {
 pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponse {
     /// The average duration of all conversations. The average is calculated using only conversations that have a time duration.
     #[serde(default, rename = "averageDuration")]
-    pub average_duration: Option<String>,
+    pub average_duration: ::core::option::Option<String>,
     /// The average number of turns per conversation.
     #[serde(default, rename = "averageTurnCount")]
-    pub average_turn_count: Option<i32>,
+    pub average_turn_count: ::core::option::Option<i32>,
     /// The total number of conversations.
     #[serde(default, rename = "conversationCount")]
-    pub conversation_count: Option<i32>,
+    pub conversation_count: ::core::option::Option<i32>,
     /// A time series representing the count of conversations created over time that match that requested filter criteria.
     #[serde(default, rename = "conversationCountTimeSeries")]
-    pub conversation_count_time_series:
-        Option<GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries>,
+    pub conversation_count_time_series: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries>,
+    >,
     /// A map associating each custom highlighter resource name with its respective number of matches in the set of conversations.
     #[serde(default, rename = "customHighlighterMatches")]
-    pub custom_highlighter_matches: Option<serde_json::Value>,
+    pub custom_highlighter_matches: ::core::option::Option<serde_json::Value>,
     /// A map associating each issue resource name with its respective number of matches in the set of conversations. Key has the format: projects//locations//issueModels//issues/ Deprecated, use issue_matches_stats field instead.
     #[serde(default, rename = "issueMatches")]
-    pub issue_matches: Option<serde_json::Value>,
+    pub issue_matches: ::core::option::Option<serde_json::Value>,
     /// A map associating each issue resource name with its respective number of matches in the set of conversations. Key has the format: projects//locations//issueModels//issues/
     #[serde(default, rename = "issueMatchesStats")]
-    pub issue_matches_stats: Option<serde_json::Value>,
+    pub issue_matches_stats: ::core::option::Option<serde_json::Value>,
     /// A map associating each smart highlighter display name with its respective number of matches in the set of conversations.
     #[serde(default, rename = "smartHighlighterMatches")]
-    pub smart_highlighter_matches: Option<serde_json::Value>,
+    pub smart_highlighter_matches: ::core::option::Option<serde_json::Value>,
 }
 
 /// A time series representing conversations over time.
@@ -660,11 +716,16 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponse {
 pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries {
     /// The duration of each interval.
     #[serde(default, rename = "intervalDuration")]
-    pub interval_duration: Option<String>,
+    pub interval_duration: ::core::option::Option<String>,
     /// An ordered list of intervals from earliest to latest, where each interval represents the number of conversations that transpired during the time window.
     #[serde(default)]
-    pub points:
-        Option<Vec<GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval>>,
+    pub points: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval,
+            >,
+        >,
+    >,
 }
 
 /// A single interval in a time series.
@@ -672,10 +733,10 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries {
 pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval {
     /// The number of conversations created in this interval.
     #[serde(default, rename = "conversationCount")]
-    pub conversation_count: Option<i32>,
+    pub conversation_count: ::core::option::Option<i32>,
     /// The start time of this interval.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// A piece of metadata that applies to a window of a call.
@@ -683,37 +744,49 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInt
 pub struct GoogleCloudContactcenterinsightsV1CallAnnotation {
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "annotationEndBoundary")]
-    pub annotation_end_boundary: Option<GoogleCloudContactcenterinsightsV1AnnotationBoundary>,
+    pub annotation_end_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotationBoundary>,
+    >,
     /// The boundary in the conversation where the annotation starts, inclusive.
     #[serde(default, rename = "annotationStartBoundary")]
-    pub annotation_start_boundary: Option<GoogleCloudContactcenterinsightsV1AnnotationBoundary>,
+    pub annotation_start_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotationBoundary>,
+    >,
     /// The channel of the audio where the annotation occurs. For single-channel audio, this field is not populated.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// Data specifying an entity mention.
     #[serde(default, rename = "entityMentionData")]
-    pub entity_mention_data: Option<GoogleCloudContactcenterinsightsV1EntityMentionData>,
+    pub entity_mention_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1EntityMentionData>,
+    >,
     /// Data specifying a hold.
     #[serde(default, rename = "holdData")]
-    pub hold_data: Option<serde_json::Value>,
+    pub hold_data: ::core::option::Option<serde_json::Value>,
     /// Data specifying an intent match.
     #[serde(default, rename = "intentMatchData")]
-    pub intent_match_data: Option<GoogleCloudContactcenterinsightsV1IntentMatchData>,
+    pub intent_match_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1IntentMatchData>,
+    >,
     /// Data specifying an interruption.
     #[serde(default, rename = "interruptionData")]
-    pub interruption_data: Option<serde_json::Value>,
+    pub interruption_data: ::core::option::Option<serde_json::Value>,
     /// Data specifying an issue match.
     #[serde(default, rename = "issueMatchData")]
-    pub issue_match_data: Option<GoogleCloudContactcenterinsightsV1IssueMatchData>,
+    pub issue_match_data:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueMatchData>>,
     /// Data specifying a phrase match.
     #[serde(default, rename = "phraseMatchData")]
-    pub phrase_match_data: Option<GoogleCloudContactcenterinsightsV1PhraseMatchData>,
+    pub phrase_match_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1PhraseMatchData>,
+    >,
     /// Data specifying sentiment.
     #[serde(default, rename = "sentimentData")]
-    pub sentiment_data: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
+    pub sentiment_data:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SentimentData>>,
     /// Data specifying silence.
     #[serde(default, rename = "silenceData")]
-    pub silence_data: Option<serde_json::Value>,
+    pub silence_data: ::core::option::Option<serde_json::Value>,
 }
 
 /// Configurable dashboard''s widget that displays data as a chart.
@@ -721,42 +794,47 @@ pub struct GoogleCloudContactcenterinsightsV1CallAnnotation {
 pub struct GoogleCloudContactcenterinsightsV1Chart {
     /// Optional action to be taken when the chart is clicked.
     #[serde(default)]
-    pub action: Option<GoogleCloudContactcenterinsightsV1ChartAction>,
+    pub action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1ChartAction>>,
     /// Output only. Chart type. // TODO: enum values: ["CHART_TYPE_UNSPECIFIED", "SYSTEM_DEFINED", "USER_DEFINED"]
     #[serde(default, rename = "chartType")]
-    pub chart_type: Option<String>,
+    pub chart_type: ::core::option::Option<String>,
     /// Chart visualization type. // TODO: enum values: ["CHART_VISUALIZATION_TYPE_UNSPECIFIED", "BAR", "LINE", "AREA", "PIE", "SCATTER", "TABLE", "SCORE_CARD", "SUNBURST", "GAUGE", "SANKEY"]
     #[serde(default, rename = "chartVisualizationType")]
-    pub chart_visualization_type: Option<String>,
+    pub chart_visualization_type: ::core::option::Option<String>,
     /// Output only. Chart create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<GoogleCloudContactcenterinsightsV1ChartDataSource>,
+    pub data_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ChartDataSource>,
+    >,
     /// Date range config applied to the chart.
     #[serde(default, rename = "dateRangeConfig")]
-    pub date_range_config: Option<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    pub date_range_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    >,
     /// Chart description
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User provided display name of the chart.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Filter applied to all charts in the container. Should support scope later.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The height of the chart in grid units.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Identifier. Chart resource name. Format: projects/{project}/locations/{location}/dashboards/{dashboard}/charts/{chart}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Chart last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The width of the chart in grid units.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// The action to be taken when the chart is clicked.
@@ -764,7 +842,8 @@ pub struct GoogleCloudContactcenterinsightsV1Chart {
 pub struct GoogleCloudContactcenterinsightsV1ChartAction {
     /// Redirect action.
     #[serde(default, rename = "redirectAction")]
-    pub redirect_action: Option<GoogleCloudContactcenterinsightsV1RedirectAction>,
+    pub redirect_action:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1RedirectAction>>,
 }
 
 /// The request data for visualizing the dataset in the chart.
@@ -772,10 +851,13 @@ pub struct GoogleCloudContactcenterinsightsV1ChartAction {
 pub struct GoogleCloudContactcenterinsightsV1ChartDataSource {
     /// Use natural language query to generate the chart.
     #[serde(default, rename = "generativeInsights")]
-    pub generative_insights: Option<GoogleCloudContactcenterinsightsV1GenerativeInsights>,
+    pub generative_insights: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsights>,
+    >,
     /// Use the existing QueryMetrics to generate the chart.
     #[serde(default, rename = "queryMetrics")]
-    pub query_metrics: Option<GoogleCloudContactcenterinsightsV1QueryMetrics>,
+    pub query_metrics:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetrics>>,
 }
 
 /// The result of testing a constraint expression on a pair of conversations.
@@ -783,14 +865,18 @@ pub struct GoogleCloudContactcenterinsightsV1ChartDataSource {
 pub struct GoogleCloudContactcenterinsightsV1ConstraintEvaluationResult {
     /// The first conversation resource name.
     #[serde(default, rename = "conversationA")]
-    pub conversation_a: Option<String>,
+    pub conversation_a: ::core::option::Option<String>,
     /// The second conversation resource name.
     #[serde(default, rename = "conversationB")]
-    pub conversation_b: Option<String>,
+    pub conversation_b: ::core::option::Option<String>,
     /// The results for each applicable constraint rule.
     #[serde(default, rename = "ruleConstraintResults")]
-    pub rule_constraint_results: Option<
-        Vec<GoogleCloudContactcenterinsightsV1ConstraintEvaluationResultRuleConstraintResult>,
+    pub rule_constraint_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1ConstraintEvaluationResultRuleConstraintResult,
+            >,
+        >,
     >,
 }
 
@@ -799,13 +885,13 @@ pub struct GoogleCloudContactcenterinsightsV1ConstraintEvaluationResult {
 pub struct GoogleCloudContactcenterinsightsV1ConstraintEvaluationResultRuleConstraintResult {
     /// Whether the constraint expression evaluated to true for (A, B) or (B, A).
     #[serde(default, rename = "constraintMet")]
-    pub constraint_met: Option<bool>,
+    pub constraint_met: ::core::option::Option<bool>,
     /// The error status if the constraint expression failed to evaluate.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// The rule ID.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
 }
 
 /// Configurable dashboard''s container. Container can contain multiple widgets.
@@ -813,28 +899,32 @@ pub struct GoogleCloudContactcenterinsightsV1ConstraintEvaluationResultRuleConst
 pub struct GoogleCloudContactcenterinsightsV1Container {
     /// Output only. Unique ID for the container.
     #[serde(default, rename = "containerId")]
-    pub container_id: Option<String>,
+    pub container_id: ::core::option::Option<String>,
     /// Date range config applied to all charts in the container.
     #[serde(default, rename = "dateRangeConfig")]
-    pub date_range_config: Option<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    pub date_range_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    >,
     /// Container description
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User provided display name of the Container.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Filter applied to all charts in the container. Should support scope later.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The height of the container in grid units.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Widgets in the Container.
     #[serde(default)]
-    pub widgets: Option<Vec<GoogleCloudContactcenterinsightsV1Widget>>,
+    pub widgets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Widget>>,
+    >,
     /// The width of the container in grid units.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// The conversation resource.
@@ -842,74 +932,90 @@ pub struct GoogleCloudContactcenterinsightsV1Container {
 pub struct GoogleCloudContactcenterinsightsV1Conversation {
     /// An opaque, user-specified string representing the human agent who handled the conversation.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Call-specific metadata.
     #[serde(default, rename = "callMetadata")]
-    pub call_metadata: Option<GoogleCloudContactcenterinsightsV1ConversationCallMetadata>,
+    pub call_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationCallMetadata>,
+    >,
     /// Output only. Info for correlating across conversations.
     #[serde(default, rename = "correlationInfo")]
-    pub correlation_info: Option<GoogleCloudContactcenterinsightsV1ConversationCorrelationInfo>,
+    pub correlation_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationCorrelationInfo>,
+    >,
     /// Output only. The time at which the conversation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The source of the audio and transcription for the conversation.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<GoogleCloudContactcenterinsightsV1ConversationDataSource>,
+    pub data_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationDataSource>,
+    >,
     /// Output only. All the matched Dialogflow intents in the call. The key corresponds to a Dialogflow intent, format: projects/{project}/agent/{agent}/intents/{intent}
     #[serde(default, rename = "dialogflowIntents")]
-    pub dialogflow_intents: Option<serde_json::Value>,
+    pub dialogflow_intents: ::core::option::Option<serde_json::Value>,
     /// Output only. The duration of the conversation.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// The time at which this conversation should expire. After this time, the conversation data and any associated analyses will be deleted.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// A map for the user to specify any custom fields. A maximum of 100 labels per conversation is allowed, with a maximum of 256 characters per entry.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// A user-specified language code for the conversation.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Output only. The conversation''s latest analysis, if one exists.
     #[serde(default, rename = "latestAnalysis")]
-    pub latest_analysis: Option<GoogleCloudContactcenterinsightsV1Analysis>,
+    pub latest_analysis:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Analysis>>,
     /// Output only. Latest summary of the conversation.
     #[serde(default, rename = "latestSummary")]
-    pub latest_summary:
-        Option<GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestionData>,
+    pub latest_summary: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestionData,
+        >,
+    >,
     /// Immutable. The conversation medium. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
     /// Input only. JSON metadata encoded as a string. This field is primarily used by Insights integrations with various telephony systems and must be in one of Insight''s supported formats.
     #[serde(default, rename = "metadataJson")]
-    pub metadata_json: Option<String>,
+    pub metadata_json: ::core::option::Option<String>,
     /// Immutable. The resource name of the conversation. Format: projects/{project}/locations/{location}/conversations/{conversation}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Obfuscated user ID which the customer sent to us.
     #[serde(default, rename = "obfuscatedUserId")]
-    pub obfuscated_user_id: Option<String>,
+    pub obfuscated_user_id: ::core::option::Option<String>,
     /// Conversation metadata related to quality management.
     #[serde(default, rename = "qualityMetadata")]
-    pub quality_metadata: Option<GoogleCloudContactcenterinsightsV1ConversationQualityMetadata>,
+    pub quality_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationQualityMetadata>,
+    >,
     /// Output only. The annotations that were generated during the customer and agent interaction.
     #[serde(default, rename = "runtimeAnnotations")]
-    pub runtime_annotations: Option<Vec<GoogleCloudContactcenterinsightsV1RuntimeAnnotation>>,
+    pub runtime_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1RuntimeAnnotation>>,
+    >,
     /// The time at which the conversation started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. The conversation transcript.
     #[serde(default)]
-    pub transcript: Option<GoogleCloudContactcenterinsightsV1ConversationTranscript>,
+    pub transcript: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationTranscript>,
+    >,
     /// Input only. The TTL for this resource. If specified, then this TTL will be used to calculate the expire time.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Output only. The number of turns in the conversation.
     #[serde(default, rename = "turnCount")]
-    pub turn_count: Option<i32>,
+    pub turn_count: ::core::option::Option<i32>,
     /// Output only. The most recent time at which the conversation was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Call-specific metadata.
@@ -917,10 +1023,10 @@ pub struct GoogleCloudContactcenterinsightsV1Conversation {
 pub struct GoogleCloudContactcenterinsightsV1ConversationCallMetadata {
     /// The audio channel that contains the agent.
     #[serde(default, rename = "agentChannel")]
-    pub agent_channel: Option<i32>,
+    pub agent_channel: ::core::option::Option<i32>,
     /// The audio channel that contains the customer.
     #[serde(default, rename = "customerChannel")]
-    pub customer_channel: Option<i32>,
+    pub customer_channel: ::core::option::Option<i32>,
 }
 
 /// Info for correlating across conversations.
@@ -928,13 +1034,13 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationCallMetadata {
 pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationInfo {
     /// Output only. The correlation types of this conversation. A single conversation can have multiple correlation types. For example a conversation that only has a single segment is both a SEGMENT and a FULL_CONVERSATION.
     #[serde(default, rename = "correlationTypes")]
-    pub correlation_types: Option<Vec<String>>,
+    pub correlation_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The full conversation correlation id this conversation is a segment of.
     #[serde(default, rename = "fullConversationCorrelationId")]
-    pub full_conversation_correlation_id: Option<String>,
+    pub full_conversation_correlation_id: ::core::option::Option<String>,
     /// Output only. The full conversation correlation id this conversation is a merged conversation of.
     #[serde(default, rename = "mergedFullConversationCorrelationId")]
-    pub merged_full_conversation_correlation_id: Option<String>,
+    pub merged_full_conversation_correlation_id: ::core::option::Option<String>,
 }
 
 /// The result of testing correlation config on a single conversation.
@@ -942,12 +1048,10 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationInfo {
 pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationResult {
     /// The conversation resource name.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The results for each correlation rule.
     #[serde(default, rename = "ruleResults")]
-    pub rule_results: Option<
-        Vec<GoogleCloudContactcenterinsightsV1ConversationCorrelationResultRuleCorrelationResult>,
-    >,
+    pub rule_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationCorrelationResultRuleCorrelationResult>>>,
 }
 
 /// The result of a single correlation rule.
@@ -955,13 +1059,13 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationResult {
 pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationResultRuleCorrelationResult {
     /// The correlation ID generated by the join key expression.
     #[serde(default, rename = "correlationId")]
-    pub correlation_id: Option<String>,
+    pub correlation_id: ::core::option::Option<String>,
     /// The error status if the join key expression failed to evaluate.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// The rule ID.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
 }
 
 /// Options for configuring what metadata is included in the conversation data used in QAI and Discovery Engine.
@@ -969,7 +1073,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationResultRuleCo
 pub struct GoogleCloudContactcenterinsightsV1ConversationDataOptions {
     /// Whether to include the per turn Dialogflow interaction data in conversation transcript.
     #[serde(default, rename = "includeDialogflowInteractionData")]
-    pub include_dialogflow_interaction_data: Option<bool>,
+    pub include_dialogflow_interaction_data: ::core::option::Option<bool>,
 }
 
 /// The conversation source, which is a combination of transcript and audio.
@@ -977,17 +1081,25 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationDataOptions {
 pub struct GoogleCloudContactcenterinsightsV1ConversationDataSource {
     /// The source when the conversation comes from Dialogflow.
     #[serde(default, rename = "dialogflowSource")]
-    pub dialogflow_source: Option<GoogleCloudContactcenterinsightsV1DialogflowSource>,
+    pub dialogflow_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DialogflowSource>,
+    >,
     /// A Cloud Storage location specification for the audio and transcript.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudContactcenterinsightsV1GcsSource>,
+    pub gcs_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GcsSource>>,
     /// Cloud Storage URI that points to a file that contains the conversation metadata.
     #[serde(default, rename = "metadataUri")]
-    pub metadata_uri: Option<String>,
+    pub metadata_uri: ::core::option::Option<String>,
     /// Cloud Storage URIs that points to files that contain the conversation audio for each turn. Assume the order of the URIs is the same as the order of the transcript turns.
     #[serde(default, rename = "turnLevelAudios")]
-    pub turn_level_audios:
-        Option<Vec<GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudio>>,
+    pub turn_level_audios: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudio,
+            >,
+        >,
+    >,
 }
 
 /// A wrapper for holding the audio for any given turn.
@@ -995,10 +1107,10 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationDataSource {
 pub struct GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudio {
     /// The duration of the audio.
     #[serde(default, rename = "audioDuration")]
-    pub audio_duration: Option<String>,
+    pub audio_duration: ::core::option::Option<String>,
     /// The Cloud Storage URI of the audio for any given turn.
     #[serde(default, rename = "audioGcsUri")]
-    pub audio_gcs_uri: Option<String>,
+    pub audio_gcs_uri: ::core::option::Option<String>,
 }
 
 /// One channel of conversation-level sentiment data.
@@ -1006,10 +1118,11 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudi
 pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSentiment {
     /// The channel of the audio that the data applies to.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// Data specifying sentiment.
     #[serde(default, rename = "sentimentData")]
-    pub sentiment_data: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
+    pub sentiment_data:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SentimentData>>,
 }
 
 /// Conversation-level silence data.
@@ -1017,10 +1130,10 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSentiment {
 pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSilence {
     /// Amount of time calculated to be in silence.
     #[serde(default, rename = "silenceDuration")]
-    pub silence_duration: Option<String>,
+    pub silence_duration: ::core::option::Option<String>,
     /// Percentage of the total conversation spent in silence.
     #[serde(default, rename = "silencePercentage")]
-    pub silence_percentage: Option<f32>,
+    pub silence_percentage: ::core::option::Option<f32>,
 }
 
 /// The call participant speaking for a given utterance.
@@ -1028,19 +1141,19 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSilence {
 pub struct GoogleCloudContactcenterinsightsV1ConversationParticipant {
     /// Deprecated. Use dialogflow_participant_name instead. The name of the Dialogflow participant. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipant")]
-    pub dialogflow_participant: Option<String>,
+    pub dialogflow_participant: ::core::option::Option<String>,
     /// The name of the participant provided by Dialogflow. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipantName")]
-    pub dialogflow_participant_name: Option<String>,
+    pub dialogflow_participant_name: ::core::option::Option<String>,
     /// Obfuscated user ID from Dialogflow.
     #[serde(default, rename = "obfuscatedExternalUserId")]
-    pub obfuscated_external_user_id: Option<String>,
+    pub obfuscated_external_user_id: ::core::option::Option<String>,
     /// The role of the participant. // TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER", "ANY_AGENT"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// A user-specified ID representing the participant.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Conversation metadata related to quality management.
@@ -1048,20 +1161,27 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationParticipant {
 pub struct GoogleCloudContactcenterinsightsV1ConversationQualityMetadata {
     /// Information about agents involved in the call.
     #[serde(default, rename = "agentInfo")]
-    pub agent_info:
-        Option<Vec<GoogleCloudContactcenterinsightsV1ConversationQualityMetadataAgentInfo>>,
+    pub agent_info: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1ConversationQualityMetadataAgentInfo,
+            >,
+        >,
+    >,
     /// An arbitrary integer value indicating the customer''s satisfaction rating.
     #[serde(default, rename = "customerSatisfactionRating")]
-    pub customer_satisfaction_rating: Option<i32>,
+    pub customer_satisfaction_rating: ::core::option::Option<i32>,
     /// Input only. The feedback labels associated with the conversation.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1FeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1FeedbackLabel>>,
+    >,
     /// An arbitrary string value specifying the menu path the customer took.
     #[serde(default, rename = "menuPath")]
-    pub menu_path: Option<String>,
+    pub menu_path: ::core::option::Option<String>,
     /// The amount of time the customer waited to connect with an agent.
     #[serde(default, rename = "waitDuration")]
-    pub wait_duration: Option<String>,
+    pub wait_duration: ::core::option::Option<String>,
 }
 
 /// Information about an agent involved in the conversation.
@@ -1069,40 +1189,40 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationQualityMetadata {
 pub struct GoogleCloudContactcenterinsightsV1ConversationQualityMetadataAgentInfo {
     /// A user-specified string representing the agent.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// The agent type, e.g. HUMAN_AGENT. // TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER", "ANY_AGENT"]
     #[serde(default, rename = "agentType")]
-    pub agent_type: Option<String>,
+    pub agent_type: ::core::option::Option<String>,
     /// The agent''s deployment display name. Only applicable to automated agents.
     #[serde(default, rename = "deploymentDisplayName")]
-    pub deployment_display_name: Option<String>,
+    pub deployment_display_name: ::core::option::Option<String>,
     /// The agent''s deployment ID. Only applicable to automated agents.
     #[serde(default, rename = "deploymentId")]
-    pub deployment_id: Option<String>,
+    pub deployment_id: ::core::option::Option<String>,
     /// The agent''s name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// A user-provided string indicating the outcome of the agent''s segment of the call.
     #[serde(default, rename = "dispositionCode")]
-    pub disposition_code: Option<String>,
+    pub disposition_code: ::core::option::Option<String>,
     /// The entry subagent''s display name.
     #[serde(default, rename = "entrySubagentDisplayName")]
-    pub entry_subagent_display_name: Option<String>,
+    pub entry_subagent_display_name: ::core::option::Option<String>,
     /// The agent''s location.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// A user-specified string representing the agent''s team. Deprecated in favor of the teams field.
     #[serde(default)]
-    pub team: Option<String>,
+    pub team: ::core::option::Option<String>,
     /// User-specified strings representing the agent''s teams.
     #[serde(default)]
-    pub teams: Option<Vec<String>>,
+    pub teams: ::core::option::Option<::std::vec::Vec<String>>,
     /// The agent''s version display name. Only applicable to automated agents.
     #[serde(default, rename = "versionDisplayName")]
-    pub version_display_name: Option<String>,
+    pub version_display_name: ::core::option::Option<String>,
     /// The agent''s version ID. Only applicable to automated agents.
     #[serde(default, rename = "versionId")]
-    pub version_id: Option<String>,
+    pub version_id: ::core::option::Option<String>,
 }
 
 /// Conversation summarization suggestion data.
@@ -1110,25 +1230,25 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationQualityMetadataAgentInf
 pub struct GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestionData {
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     /// The confidence score of the summarization.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the model that generates this summary. Format: projects/{project}/locations/{location}/conversationModels/{conversation_model}
     #[serde(default, rename = "conversationModel")]
-    pub conversation_model: Option<String>,
+    pub conversation_model: ::core::option::Option<String>,
     /// Agent Assist generator ID.
     #[serde(default, rename = "generatorId")]
-    pub generator_id: Option<String>,
+    pub generator_id: ::core::option::Option<String>,
     /// A map that contains metadata about the summarization and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The summarization content that is concatenated into one string.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// The summarization content that is divided into sections. The key is the section''s name and the value is the section''s content. There is no specific format for the key or value.
     #[serde(default, rename = "textSections")]
-    pub text_sections: Option<serde_json::Value>,
+    pub text_sections: ::core::option::Option<serde_json::Value>,
 }
 
 /// A message representing the transcript of a conversation.
@@ -1136,8 +1256,13 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestion
 pub struct GoogleCloudContactcenterinsightsV1ConversationTranscript {
     /// A list of sequential transcript segments that comprise the conversation.
     #[serde(default, rename = "transcriptSegments")]
-    pub transcript_segments:
-        Option<Vec<GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegment>>,
+    pub transcript_segments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegment,
+            >,
+        >,
+    >,
 }
 
 /// A segment of a full transcript.
@@ -1145,34 +1270,34 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationTranscript {
 pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegment {
     /// For conversations derived from multi-channel audio, this is the channel number corresponding to the audio from that channel. For audioChannelCount = N, its output values can range from ''1'' to ''N''. A channel tag of 0 indicates that the audio is mono.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this segment. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// CCAI metadata relating to the current transcript segment.
     #[serde(default, rename = "dialogflowSegmentMetadata")]
-    pub dialogflow_segment_metadata: Option<GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata>,
+    pub dialogflow_segment_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata>>,
     /// The language code of this segment as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag. Example: "en-US".
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// The time that the message occurred, if provided.
     #[serde(default, rename = "messageTime")]
-    pub message_time: Option<String>,
+    pub message_time: ::core::option::Option<String>,
     /// The participant of this segment.
     #[serde(default, rename = "segmentParticipant")]
-    pub segment_participant: Option<GoogleCloudContactcenterinsightsV1ConversationParticipant>,
+    pub segment_participant: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationParticipant>>,
     /// The sentiment for this transcript segment.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
+    pub sentiment: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SentimentData>>,
     /// The text of this segment.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Turn level audio for this transcript segment.
     #[serde(default, rename = "turnLevelAudio")]
-    pub turn_level_audio: Option<GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudio>,
+    pub turn_level_audio: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudio>>,
     /// A list of the word-specific information for each word in the segment.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegmentWordInfo>>,
+    pub words: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegmentWordInfo>>>,
 }
 
 /// Metadata from Dialogflow relating to the current transcript segment.
@@ -1181,7 +1306,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSeg
 {
     /// Whether the transcript segment was covered under the configured smart reply allowlist in Agent Assist.
     #[serde(default, rename = "smartReplyAllowlistCovered")]
-    pub smart_reply_allowlist_covered: Option<bool>,
+    pub smart_reply_allowlist_covered: ::core::option::Option<bool>,
 }
 
 /// Word-level info for words in a transcript.
@@ -1189,16 +1314,16 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSeg
 pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegmentWordInfo {
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this word. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time offset of the end of this word relative to the beginning of the total conversation.
     #[serde(default, rename = "endOffset")]
-    pub end_offset: Option<String>,
+    pub end_offset: ::core::option::Option<String>,
     /// Time offset of the start of this word relative to the beginning of the total conversation.
     #[serde(default, rename = "startOffset")]
-    pub start_offset: Option<String>,
+    pub start_offset: ::core::option::Option<String>,
     /// The word itself. Includes punctuation marks that surround the word.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// A configuration that defines how to correlate conversations for a given a given project.
@@ -1206,16 +1331,18 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSeg
 pub struct GoogleCloudContactcenterinsightsV1CorrelationConfig {
     /// Output only. The time at which the correlation config was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The correlation type config for full conversations.
     #[serde(default, rename = "fullConversationConfig")]
-    pub full_conversation_config: Option<GoogleCloudContactcenterinsightsV1CorrelationTypeConfig>,
+    pub full_conversation_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1CorrelationTypeConfig>,
+    >,
     /// Immutable. Identifier. The resource name of the correlation config. Format: projects/{project}/locations/{location}/correlationConfig
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The time at which the correlation config was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A correlation rule that defines how to join conversations for a given correlation type.
@@ -1223,16 +1350,16 @@ pub struct GoogleCloudContactcenterinsightsV1CorrelationConfig {
 pub struct GoogleCloudContactcenterinsightsV1CorrelationRule {
     /// Optional. Whether the config is active to be evaluated.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// Optional. A cel expression (go/cel) to be evaluated as a boolean value. Two variables conversation_a and conversation_b will be available for evaluation. This expression should evaluate to true if conversation_a and conversation_b should be joined. This is used as an extra constraint on top of the join_key_expression to further refine the group of conversations that are joined together and will be evaluated in both directions. for two conversations c1 and c2 and the result will be OR''d. We will evaluate: f(c1, c2) OR f(c2, c1)
     #[serde(default, rename = "constraintExpression")]
-    pub constraint_expression: Option<String>,
+    pub constraint_expression: ::core::option::Option<String>,
     /// Optional. A cel expression (go/cel) to be evaluated as a string value. This string value will be used as the join key for the correlation.
     #[serde(default, rename = "joinKeyExpression")]
-    pub join_key_expression: Option<String>,
+    pub join_key_expression: ::core::option::Option<String>,
     /// Required. The unique identifier of the rule.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
 }
 
 /// A list of correlation rules for a given correlation type.
@@ -1240,7 +1367,9 @@ pub struct GoogleCloudContactcenterinsightsV1CorrelationRule {
 pub struct GoogleCloudContactcenterinsightsV1CorrelationTypeConfig {
     /// A list of correlation rules to be evaluated for correlation.
     #[serde(default, rename = "correlationRules")]
-    pub correlation_rules: Option<Vec<GoogleCloudContactcenterinsightsV1CorrelationRule>>,
+    pub correlation_rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1CorrelationRule>>,
+    >,
 }
 
 /// Metadata for a create analysis operation.
@@ -1248,16 +1377,18 @@ pub struct GoogleCloudContactcenterinsightsV1CorrelationTypeConfig {
 pub struct GoogleCloudContactcenterinsightsV1CreateAnalysisOperationMetadata {
     /// Output only. The annotator selector used for the analysis (if any).
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    >,
     /// Output only. The Conversation that this Analysis Operation belongs to.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
 }
 
 /// Metadata for creating an issue.
@@ -1265,13 +1396,15 @@ pub struct GoogleCloudContactcenterinsightsV1CreateAnalysisOperationMetadata {
 pub struct GoogleCloudContactcenterinsightsV1CreateIssueMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for creation.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1CreateIssueRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1CreateIssueRequest>,
+    >,
 }
 
 /// Metadata for creating an issue model.
@@ -1279,13 +1412,15 @@ pub struct GoogleCloudContactcenterinsightsV1CreateIssueMetadata {
 pub struct GoogleCloudContactcenterinsightsV1CreateIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for creation.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1CreateIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1CreateIssueModelRequest>,
+    >,
 }
 
 /// The request to create an issue model.
@@ -1293,10 +1428,11 @@ pub struct GoogleCloudContactcenterinsightsV1CreateIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1CreateIssueModelRequest {
     /// Required. The issue model to create.
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<GoogleCloudContactcenterinsightsV1IssueModel>,
+    pub issue_model:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueModel>>,
     /// Required. The parent resource of the issue model.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// The request to create an issue.
@@ -1304,10 +1440,10 @@ pub struct GoogleCloudContactcenterinsightsV1CreateIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1CreateIssueRequest {
     /// Required. The values for the new issue.
     #[serde(default)]
-    pub issue: Option<GoogleCloudContactcenterinsightsV1Issue>,
+    pub issue: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Issue>>,
     /// Required. The parent resource of the issue.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Configurable dashboard
@@ -1315,31 +1451,34 @@ pub struct GoogleCloudContactcenterinsightsV1CreateIssueRequest {
 pub struct GoogleCloudContactcenterinsightsV1Dashboard {
     /// Output only. Dashboard creation time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Date range config applied to all charts in the dashboard.
     #[serde(default, rename = "dateRangeConfig")]
-    pub date_range_config: Option<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    pub date_range_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DateRangeConfig>,
+    >,
     /// Dashboard description
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User provided display name of the dashboard.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Filter applied to all charts in the dashboard. Should support scope later.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Identifier. Dashboard resource name. Format: projects/{project}/locations/{location}/dashboards/{dashboard}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Whether the dashboard is read-only. All predefined dashboards are read-only and cannot be modified by the user.
     #[serde(default, rename = "readOnly")]
-    pub read_only: Option<bool>,
+    pub read_only: ::core::option::Option<bool>,
     /// The dashboard''s root widget container. We want to display the dashboard layout in a tree-like structure, where the root container contains other widgets (containers or charts) as children.
     #[serde(default, rename = "rootContainer")]
-    pub root_container: Option<GoogleCloudContactcenterinsightsV1Container>,
+    pub root_container:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Container>>,
     /// Output only. Dashboard last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Dataset resource represents a collection of conversations that may be bounded (Static Dataset, e.g. golden dataset for training), or unbounded (Dynamic Dataset, e.g. live traffic, or agent training traffic)
@@ -1347,25 +1486,25 @@ pub struct GoogleCloudContactcenterinsightsV1Dashboard {
 pub struct GoogleCloudContactcenterinsightsV1Dataset {
     /// Output only. Dataset create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Dataset description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Display name for the dataaset
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. Identifier. Resource name of the dataset. Format: projects/{project}/locations/{location}/datasets/{dataset}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Option TTL for the dataset.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Dataset usage type. // TODO: enum values: ["TYPE_UNSPECIFIED", "EVAL", "LIVE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Dataset update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Date range configuration for dashboard charts.
@@ -1373,11 +1512,13 @@ pub struct GoogleCloudContactcenterinsightsV1Dataset {
 pub struct GoogleCloudContactcenterinsightsV1DateRangeConfig {
     /// An absolute date range.
     #[serde(default, rename = "absoluteDateRange")]
-    pub absolute_date_range: Option<GoogleCloudContactcenterinsightsV1QueryInterval>,
+    pub absolute_date_range:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryInterval>>,
     /// A relative date range.
     #[serde(default, rename = "relativeDateRange")]
-    pub relative_date_range:
-        Option<GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange>,
+    pub relative_date_range: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange>,
+    >,
 }
 
 /// Relative date range configuration.
@@ -1385,10 +1526,10 @@ pub struct GoogleCloudContactcenterinsightsV1DateRangeConfig {
 pub struct GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange {
     /// Required. The quantity of units in the past.
     #[serde(default)]
-    pub quantity: Option<String>,
+    pub quantity: ::core::option::Option<String>,
     /// Required. The unit of time. // TODO: enum values: ["TIME_UNIT_UNSPECIFIED", "DAY", "WEEK", "MONTH", "QUARTER", "YEAR"]
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
 }
 
 /// Metadata for deleting an issue model.
@@ -1396,13 +1537,15 @@ pub struct GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange {
 pub struct GoogleCloudContactcenterinsightsV1DeleteIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for deletion.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1DeleteIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DeleteIssueModelRequest>,
+    >,
 }
 
 /// The request to delete an issue model.
@@ -1410,7 +1553,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeleteIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1DeleteIssueModelRequest {
     /// Required. The name of the issue model to delete.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The metadata for deleting a QaQuestionTag Resource.
@@ -1418,13 +1561,15 @@ pub struct GoogleCloudContactcenterinsightsV1DeleteIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagRequest>,
+    >,
 }
 
 /// The request for deleting a QaQuestionTag.
@@ -1432,7 +1577,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagMetadata {
 pub struct GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagRequest {
     /// Required. The name of the QaQuestionTag to delete.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metadata for deploying an issue model.
@@ -1440,13 +1585,15 @@ pub struct GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagRequest {
 pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for deployment.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1DeployIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DeployIssueModelRequest>,
+    >,
 }
 
 /// The request to deploy an issue model.
@@ -1454,7 +1601,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelRequest {
     /// Required. The issue model to deploy.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
@@ -1462,7 +1609,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1DialogflowIntent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Dialogflow interaction data.
@@ -1470,10 +1617,10 @@ pub struct GoogleCloudContactcenterinsightsV1DialogflowIntent {
 pub struct GoogleCloudContactcenterinsightsV1DialogflowInteractionData {
     /// The confidence of the match ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The Dialogflow intent resource path. Format: projects/{project}/agent/{agent}/intents/{intent}
     #[serde(default, rename = "dialogflowIntentId")]
-    pub dialogflow_intent_id: Option<String>,
+    pub dialogflow_intent_id: ::core::option::Option<String>,
 }
 
 /// A Dialogflow source of conversation data.
@@ -1481,10 +1628,10 @@ pub struct GoogleCloudContactcenterinsightsV1DialogflowInteractionData {
 pub struct GoogleCloudContactcenterinsightsV1DialogflowSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
     /// Output only. The name of the Dialogflow conversation that this conversation resource is derived from. Format: projects/{project}/locations/{location}/conversations/{conversation}
     #[serde(default, rename = "dialogflowConversation")]
-    pub dialogflow_conversation: Option<String>,
+    pub dialogflow_conversation: ::core::option::Option<String>,
 }
 
 /// A dimension determines the grouping key for the query. In SQL terms, these would be part of both the "SELECT" and "GROUP BY" clauses.
@@ -1492,53 +1639,40 @@ pub struct GoogleCloudContactcenterinsightsV1DialogflowSource {
 pub struct GoogleCloudContactcenterinsightsV1Dimension {
     /// Output only. Metadata about the agent dimension.
     #[serde(default, rename = "agentDimensionMetadata")]
-    pub agent_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionAgentDimensionMetadata>,
+    pub agent_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionAgentDimensionMetadata>>,
     /// Output only. Metadata about the client sentiment category dimension.
     #[serde(default, rename = "clientSentimentCategoryDimensionMetadata")]
-    pub client_sentiment_category_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionClientSentimentCategoryDimensionMetadata>,
+    pub client_sentiment_category_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionClientSentimentCategoryDimensionMetadata>>,
     /// Output only. Metadata about the conversation profile dimension.
     #[serde(default, rename = "conversationProfileDimensionMetadata")]
-    pub conversation_profile_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionConversationProfileDimensionMetadata>,
+    pub conversation_profile_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionConversationProfileDimensionMetadata>>,
     /// Output only. Metadata about the Conversational Agents playbook dimension.
     #[serde(default, rename = "conversationalAgentsPlaybookDimensionMetadata")]
-    pub conversational_agents_playbook_dimension_metadata: Option<
-        GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsPlaybookDimensionMetadata,
-    >,
+    pub conversational_agents_playbook_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsPlaybookDimensionMetadata>>,
     /// Output only. Metadata about the Conversational Agents tool dimension.
     #[serde(default, rename = "conversationalAgentsToolDimensionMetadata")]
-    pub conversational_agents_tool_dimension_metadata: Option<
-        GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsToolDimensionMetadata,
-    >,
+    pub conversational_agents_tool_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsToolDimensionMetadata>>,
     /// The key of the dimension. // TODO: enum values: ["DIMENSION_KEY_UNSPECIFIED", "ISSUE", "ISSUE_NAME", "AGENT", "AGENT_TEAM", "QA_QUESTION_ID", "QA_QUESTION_ANSWER_VALUE", "QA_SCORECARD_ID", "CONVERSATION_PROFILE_ID", "MEDIUM", "CONVERSATIONAL_AGENTS_PLAYBOOK_ID", "CONVERSATIONAL_AGENTS_PLAYBOOK_NAME", "CONVERSATIONAL_AGENTS_TOOL_ID", "CONVERSATIONAL_AGENTS_TOOL_NAME", "CLIENT_SENTIMENT_CATEGORY", "AGENT_VERSION_ID", "AGENT_DEPLOYMENT_ID", "AGENT_ASSIST_SUPERVISOR_ID", "LABEL_KEY", "LABEL_VALUE", "LABEL_KEY_AND_VALUE", "LAST_TRANSFER_SUB_AGENT_NAME"]
     #[serde(default, rename = "dimensionKey")]
-    pub dimension_key: Option<String>,
+    pub dimension_key: ::core::option::Option<String>,
     /// Output only. Metadata about the issue dimension.
     #[serde(default, rename = "issueDimensionMetadata")]
-    pub issue_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionIssueDimensionMetadata>,
+    pub issue_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionIssueDimensionMetadata>>,
     /// Output only. Metadata about conversation labels.
     #[serde(default, rename = "labelDimensionMetadata")]
-    pub label_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionLabelDimensionMetadata>,
+    pub label_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionLabelDimensionMetadata>>,
     /// Output only. Metadata about the conversation medium dimension.
     #[serde(default, rename = "mediumDimensionMetadata")]
-    pub medium_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionMediumDimensionMetadata>,
+    pub medium_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionMediumDimensionMetadata>>,
     /// Output only. Metadata about the QA question-answer dimension.
     #[serde(default, rename = "qaQuestionAnswerDimensionMetadata")]
-    pub qa_question_answer_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionQaQuestionAnswerDimensionMetadata>,
+    pub qa_question_answer_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionQaQuestionAnswerDimensionMetadata>>,
     /// Output only. Metadata about the QA question dimension.
     #[serde(default, rename = "qaQuestionDimensionMetadata")]
-    pub qa_question_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionQaQuestionDimensionMetadata>,
+    pub qa_question_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionQaQuestionDimensionMetadata>>,
     /// Output only. Metadata about the QA scorecard dimension.
     #[serde(default, rename = "qaScorecardDimensionMetadata")]
-    pub qa_scorecard_dimension_metadata:
-        Option<GoogleCloudContactcenterinsightsV1DimensionQaScorecardDimensionMetadata>,
+    pub qa_scorecard_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1DimensionQaScorecardDimensionMetadata>>,
 }
 
 /// Metadata about the agent dimension.
@@ -1546,25 +1680,25 @@ pub struct GoogleCloudContactcenterinsightsV1Dimension {
 pub struct GoogleCloudContactcenterinsightsV1DimensionAgentDimensionMetadata {
     /// Optional. The agent''s deployment display name. Only applicable to automated agents. This will be populated for AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentDisplayName")]
-    pub agent_deployment_display_name: Option<String>,
+    pub agent_deployment_display_name: ::core::option::Option<String>,
     /// Optional. The agent''s deployment ID. Only applicable to automated agents. This will be populated for AGENT and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentId")]
-    pub agent_deployment_id: Option<String>,
+    pub agent_deployment_id: ::core::option::Option<String>,
     /// Optional. The agent''s name This will be populated for AGENT, AGENT_TEAM, AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDisplayName")]
-    pub agent_display_name: Option<String>,
+    pub agent_display_name: ::core::option::Option<String>,
     /// Optional. A user-specified string representing the agent. This will be populated for AGENT, AGENT_TEAM, AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Optional. A user-specified string representing the agent''s team.
     #[serde(default, rename = "agentTeam")]
-    pub agent_team: Option<String>,
+    pub agent_team: ::core::option::Option<String>,
     /// Optional. The agent''s version display name. Only applicable to automated agents. This will be populated for AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentVersionDisplayName")]
-    pub agent_version_display_name: Option<String>,
+    pub agent_version_display_name: ::core::option::Option<String>,
     /// Optional. The agent''s version ID. Only applicable to automated agents. This will be populated for AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentVersionId")]
-    pub agent_version_id: Option<String>,
+    pub agent_version_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the client sentiment category dimension.
@@ -1572,7 +1706,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionAgentDimensionMetadata {
 pub struct GoogleCloudContactcenterinsightsV1DimensionClientSentimentCategoryDimensionMetadata {
     /// Optional. The client sentiment category.
     #[serde(default, rename = "sentimentCategory")]
-    pub sentiment_category: Option<String>,
+    pub sentiment_category: ::core::option::Option<String>,
 }
 
 /// Metadata about the conversation profile dimension.
@@ -1580,7 +1714,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionClientSentimentCategoryDim
 pub struct GoogleCloudContactcenterinsightsV1DimensionConversationProfileDimensionMetadata {
     /// Optional. The conversation profile ID.
     #[serde(default, rename = "conversationProfileId")]
-    pub conversation_profile_id: Option<String>,
+    pub conversation_profile_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the Conversational Agents playbook dimension.
@@ -1589,10 +1723,10 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsPlaybo
 {
     /// Optional. The dialogflow playbook display name.
     #[serde(default, rename = "playbookDisplayName")]
-    pub playbook_display_name: Option<String>,
+    pub playbook_display_name: ::core::option::Option<String>,
     /// Optional. The dialogflow playbook ID.
     #[serde(default, rename = "playbookId")]
-    pub playbook_id: Option<String>,
+    pub playbook_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the Conversational Agents tool dimension.
@@ -1600,10 +1734,10 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsPlaybo
 pub struct GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsToolDimensionMetadata {
     /// Optional. The dialogflow tool display name.
     #[serde(default, rename = "toolDisplayName")]
-    pub tool_display_name: Option<String>,
+    pub tool_display_name: ::core::option::Option<String>,
     /// Optional. The dialogflow tool ID.
     #[serde(default, rename = "toolId")]
-    pub tool_id: Option<String>,
+    pub tool_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the issue dimension.
@@ -1611,13 +1745,13 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsToolDi
 pub struct GoogleCloudContactcenterinsightsV1DimensionIssueDimensionMetadata {
     /// The issue display name.
     #[serde(default, rename = "issueDisplayName")]
-    pub issue_display_name: Option<String>,
+    pub issue_display_name: ::core::option::Option<String>,
     /// The issue ID.
     #[serde(default, rename = "issueId")]
-    pub issue_id: Option<String>,
+    pub issue_id: ::core::option::Option<String>,
     /// The parent issue model ID.
     #[serde(default, rename = "issueModelId")]
-    pub issue_model_id: Option<String>,
+    pub issue_model_id: ::core::option::Option<String>,
 }
 
 /// Metadata about conversation labels.
@@ -1625,10 +1759,10 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionIssueDimensionMetadata {
 pub struct GoogleCloudContactcenterinsightsV1DimensionLabelDimensionMetadata {
     /// Optional. The label key.
     #[serde(default, rename = "labelKey")]
-    pub label_key: Option<String>,
+    pub label_key: ::core::option::Option<String>,
     /// Optional. The label value.
     #[serde(default, rename = "labelValue")]
-    pub label_value: Option<String>,
+    pub label_value: ::core::option::Option<String>,
 }
 
 /// Metadata about the conversation medium dimension.
@@ -1636,7 +1770,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionLabelDimensionMetadata {
 pub struct GoogleCloudContactcenterinsightsV1DimensionMediumDimensionMetadata {
     /// Optional. The conversation medium. Currently supports : PHONE_CALL, CHAT.
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA question-answer dimension. This is useful for showing the answer distribution for questions for a given scorecard.
@@ -1644,16 +1778,16 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionMediumDimensionMetadata {
 pub struct GoogleCloudContactcenterinsightsV1DimensionQaQuestionAnswerDimensionMetadata {
     /// Optional. The full body of the question.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<String>,
+    pub answer_value: ::core::option::Option<String>,
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
-    pub qa_question_id: Option<String>,
+    pub qa_question_id: ::core::option::Option<String>,
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
     /// Optional. The full body of the question.
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA question dimension.
@@ -1661,13 +1795,13 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionQaQuestionAnswerDimensionM
 pub struct GoogleCloudContactcenterinsightsV1DimensionQaQuestionDimensionMetadata {
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
-    pub qa_question_id: Option<String>,
+    pub qa_question_id: ::core::option::Option<String>,
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
     /// Optional. The full body of the question.
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA scorecard dimension.
@@ -1675,7 +1809,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionQaQuestionDimensionMetadat
 pub struct GoogleCloudContactcenterinsightsV1DimensionQaScorecardDimensionMetadata {
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
 }
 
 /// A customer-managed encryption key specification that can be applied to all created resources (e.g. Conversation).
@@ -1683,10 +1817,10 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionQaScorecardDimensionMetada
 pub struct GoogleCloudContactcenterinsightsV1EncryptionSpec {
     /// Required. The name of customer-managed encryption key that is used to secure a resource and its sub-resources. If empty, the resource is secured by our default encryption key. Only the key in the same location as this resource is allowed to be used for encryption. Format: projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Immutable. The resource name of the encryption key specification resource. Format: projects/{project}/locations/{location}/encryptionSpec
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The data for an entity annotation. Represents a phrase in the conversation that is a known entity, such as a person, an organization, or location.
@@ -1694,19 +1828,20 @@ pub struct GoogleCloudContactcenterinsightsV1EncryptionSpec {
 pub struct GoogleCloudContactcenterinsightsV1Entity {
     /// The representative name for the entity.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Metadata associated with the entity. For most entity types, the metadata is a Wikipedia URL (wikipedia_url) and Knowledge Graph MID (mid), if they are available. For the metadata associated with other entity types, see the Type table below.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The salience score associated with the entity in the [0, 1.0] range. The salience score for an entity provides information about the importance or centrality of that entity to the entire document text. Scores closer to 0 are less salient, while scores closer to 1.0 are highly salient.
     #[serde(default)]
-    pub salience: Option<f32>,
+    pub salience: ::core::option::Option<f32>,
     /// The aggregate sentiment expressed for this entity in the conversation.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
+    pub sentiment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SentimentData>>,
     /// The entity type. // TODO: enum values: ["TYPE_UNSPECIFIED", "PERSON", "LOCATION", "ORGANIZATION", "EVENT", "WORK_OF_ART", "CONSUMER_GOOD", "OTHER", "PHONE_NUMBER", "ADDRESS", "DATE", "NUMBER", "PRICE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The data for an entity mention annotation. This represents a mention of an Entity in the conversation.
@@ -1714,13 +1849,14 @@ pub struct GoogleCloudContactcenterinsightsV1Entity {
 pub struct GoogleCloudContactcenterinsightsV1EntityMentionData {
     /// The key of this entity in conversation entities. Can be used to retrieve the exact Entity this mention is attached to.
     #[serde(default, rename = "entityUniqueId")]
-    pub entity_unique_id: Option<String>,
+    pub entity_unique_id: ::core::option::Option<String>,
     /// Sentiment expressed for this mention of the entity.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1SentimentData>,
+    pub sentiment:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SentimentData>>,
     /// The type of the entity mention. // TODO: enum values: ["MENTION_TYPE_UNSPECIFIED", "PROPER", "COMMON"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Exact match configuration.
@@ -1728,7 +1864,7 @@ pub struct GoogleCloudContactcenterinsightsV1EntityMentionData {
 pub struct GoogleCloudContactcenterinsightsV1ExactMatchConfig {
     /// Whether to consider case sensitivity when performing an exact match.
     #[serde(default, rename = "caseSensitive")]
-    pub case_sensitive: Option<bool>,
+    pub case_sensitive: ::core::option::Option<bool>,
 }
 
 /// Metadata for an export insights operation.
@@ -1736,22 +1872,24 @@ pub struct GoogleCloudContactcenterinsightsV1ExactMatchConfig {
 pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataMetadata {
     /// The number of conversations that were exported successfully.
     #[serde(default, rename = "completedExportCount")]
-    pub completed_export_count: Option<i32>,
+    pub completed_export_count: ::core::option::Option<i32>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The number of conversations that failed to be exported.
     #[serde(default, rename = "failedExportCount")]
-    pub failed_export_count: Option<i32>,
+    pub failed_export_count: ::core::option::Option<i32>,
     /// Partial errors during export operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The original request for export.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest>,
+    >,
 }
 
 /// The request to export insights.
@@ -1759,23 +1897,26 @@ pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataMetadata {
 pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest {
     /// Specified if sink is a BigQuery table.
     #[serde(default, rename = "bigQueryDestination")]
-    pub big_query_destination:
-        Option<GoogleCloudContactcenterinsightsV1ExportInsightsDataRequestBigQueryDestination>,
+    pub big_query_destination: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1ExportInsightsDataRequestBigQueryDestination,
+        >,
+    >,
     /// Optional. Version of the export schema. // TODO: enum values: ["EXPORT_SCHEMA_VERSION_UNSPECIFIED", "EXPORT_V1", "EXPORT_V2", "EXPORT_V3", "EXPORT_V4", "EXPORT_V5", "EXPORT_V6", "EXPORT_V7", "EXPORT_V8", "EXPORT_V9", "EXPORT_V10", "EXPORT_V11", "EXPORT_V12", "EXPORT_V13", "EXPORT_V14", "EXPORT_V15", "EXPORT_V16", "EXPORT_V17", "EXPORT_VERSION_LATEST_AVAILABLE"]
     #[serde(default, rename = "exportSchemaVersion")]
-    pub export_schema_version: Option<String>,
+    pub export_schema_version: ::core::option::Option<String>,
     /// A filter to reduce results to a specific subset. Useful for exporting conversations with specific properties.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// A fully qualified KMS key name for BigQuery tables protected by CMEK. Format: projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}/cryptoKeyVersions/{version}
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Required. The parent resource to export data from.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Options for what to do if the destination table already exists. // TODO: enum values: ["WRITE_DISPOSITION_UNSPECIFIED", "WRITE_TRUNCATE", "WRITE_APPEND"]
     #[serde(default, rename = "writeDisposition")]
-    pub write_disposition: Option<String>,
+    pub write_disposition: ::core::option::Option<String>,
 }
 
 /// A BigQuery Table Reference.
@@ -1783,13 +1924,13 @@ pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest {
 pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataRequestBigQueryDestination {
     /// Required. The name of the BigQuery dataset that the snapshot result should be exported to. If this dataset does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// A project ID or number. If specified, then export will attempt to write data to this project instead of the resource project. Otherwise, the resource project will be used.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// The BigQuery table name to which the insights data should be written. If this table does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
 }
 
 /// Metadata used for export issue model.
@@ -1797,13 +1938,15 @@ pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataRequestBigQueryDe
 pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original export request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1ExportIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ExportIssueModelRequest>,
+    >,
 }
 
 /// Request to export an issue model.
@@ -1811,11 +1954,12 @@ pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelRequest {
     /// Google Cloud Storage URI to export the issue model to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination:
-        Option<GoogleCloudContactcenterinsightsV1ExportIssueModelRequestGcsDestination>,
+    pub gcs_destination: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ExportIssueModelRequestGcsDestination>,
+    >,
     /// Required. The issue model to export.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Google Cloud Storage Object URI to save the issue model to.
@@ -1823,7 +1967,7 @@ pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelRequestGcsDestination {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
 }
 
 /// Agent Assist frequently-asked-question answer data.
@@ -1831,22 +1975,22 @@ pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelRequestGcsDestinati
 pub struct GoogleCloudContactcenterinsightsV1FaqAnswerData {
     /// The piece of text from the source knowledge base document.
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     /// The system''s confidence score that this answer is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f32>,
+    pub confidence_score: ::core::option::Option<f32>,
     /// Map that contains metadata about the FAQ answer and the document that it originates from.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The corresponding FAQ question.
     #[serde(default)]
-    pub question: Option<String>,
+    pub question: ::core::option::Option<String>,
     /// The knowledge document that this answer was extracted from. Format: projects/{project}/knowledgeBases/{knowledge_base}/documents/{document}.
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// Represents a conversation, resource, and label provided by the user. Can take the form of a string label or a QaAnswer label. QaAnswer labels are used for Quality AI example conversations. String labels are used for Topic Modeling. AgentAssistSummary labels are used for Agent Assist Summarization.
@@ -1854,22 +1998,24 @@ pub struct GoogleCloudContactcenterinsightsV1FaqAnswerData {
 pub struct GoogleCloudContactcenterinsightsV1FeedbackLabel {
     /// Output only. Create time of the label.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// String label used for Topic Modeling.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Name of the resource to be labeled. Supported resources are: * projects/{project}/locations/{location}/qaScorecards/{scorecard}/revisions/{revision}/qaQuestions/{question} * projects/{project}/locations/{location}/issueModels/{issue_model} * projects/{project}/locations/{location}/generators/{generator_id}
     #[serde(default, rename = "labeledResource")]
-    pub labeled_resource: Option<String>,
+    pub labeled_resource: ::core::option::Option<String>,
     /// Immutable. Resource name of the FeedbackLabel. Format: projects/{project}/locations/{location}/conversations/{conversation}/feedbackLabels/{feedback_label}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// QaAnswer label used for Quality AI example conversations.
     #[serde(default, rename = "qaAnswerLabel")]
-    pub qa_answer_label: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    pub qa_answer_label: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    >,
     /// Output only. Update time of the label.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A Cloud Storage source of conversation data.
@@ -1877,10 +2023,10 @@ pub struct GoogleCloudContactcenterinsightsV1FeedbackLabel {
 pub struct GoogleCloudContactcenterinsightsV1GcsSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
     /// Immutable. Cloud Storage URI that points to a file that contains the conversation transcript.
     #[serde(default, rename = "transcriptUri")]
-    pub transcript_uri: Option<String>,
+    pub transcript_uri: ::core::option::Option<String>,
 }
 
 /// The response from a GenerateConversationSignedAudio request.
@@ -1888,7 +2034,9 @@ pub struct GoogleCloudContactcenterinsightsV1GcsSource {
 pub struct GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse {
     /// The signed uris for the audio.
     #[serde(default, rename = "signedAudioUris")]
-    pub signed_audio_uris: Option<GoogleCloudContactcenterinsightsV1SignedAudioUris>,
+    pub signed_audio_uris: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1SignedAudioUris>,
+    >,
 }
 
 /// The conversation transcript for the chart.
@@ -1896,18 +2044,22 @@ pub struct GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResp
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscript {
     /// The conversation id of the chart.
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// Output only. The create time of the conversation.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Ordered list of messages, including user inputs and system responses.
     #[serde(default)]
-    pub messages: Option<
-        Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessage>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessage,
+            >,
+        >,
     >,
     /// Output only. The update time of the conversation.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The message in the conversation.
@@ -1915,16 +2067,16 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessage {
     /// Output only. For user messages, this is the time at which the system received the message. For system messages, this is the time at which the system generated the message.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The message id of the message.
     #[serde(default, rename = "messageId")]
-    pub message_id: Option<String>,
+    pub message_id: ::core::option::Option<String>,
     /// A wrapper for system messages per turn.
     #[serde(default, rename = "systemMessageWrapper")]
-    pub system_message_wrapper: Option<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessages>,
+    pub system_message_wrapper: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessages>>,
     /// A message from the user that is interacting with the system.
     #[serde(default, rename = "userMessage")]
-    pub user_message: Option<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageUserMessage>,
+    pub user_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageUserMessage>>,
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
@@ -1932,19 +2084,19 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessage {
     /// Chart spec from LLM
     #[serde(default, rename = "chartSpec")]
-    pub chart_spec: Option<serde_json::Value>,
+    pub chart_spec: ::core::option::Option<serde_json::Value>,
     /// Raw SQL from LLM, before templatization
     #[serde(default, rename = "generatedSqlQuery")]
-    pub generated_sql_query: Option<String>,
+    pub generated_sql_query: ::core::option::Option<String>,
     /// A direct natural language response to the user message.
     #[serde(default, rename = "textMessage")]
-    pub text_message: Option<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessageTextOutput>,
+    pub text_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessageTextOutput>>,
     /// Optional. User provided chart spec
     #[serde(default, rename = "userProvidedChartSpec")]
-    pub user_provided_chart_spec: Option<serde_json::Value>,
+    pub user_provided_chart_spec: ::core::option::Option<serde_json::Value>,
     /// Optional. User provided SQL query
     #[serde(default, rename = "userProvidedSqlQuery")]
-    pub user_provided_sql_query: Option<String>,
+    pub user_provided_sql_query: ::core::option::Option<String>,
 }
 
 /// A text output message from the system.
@@ -1953,10 +2105,10 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 {
     /// The parts of the message.
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of the text message. // TODO: enum values: ["TYPE_UNSPECIFIED", "THOUGHT", "FINAL_RESPONSE", "PROGRESS"]
     #[serde(default, rename = "textType")]
-    pub text_type: Option<String>,
+    pub text_type: ::core::option::Option<String>,
 }
 
 /// A wrapper for system messages per turn.
@@ -1964,7 +2116,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessages {
     /// A message from the system in response to the user.
     #[serde(default, rename = "systemMessages")]
-    pub system_messages: Option<Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessage>>,
+    pub system_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessage>>>,
 }
 
 /// The user message.
@@ -1973,7 +2125,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 {
     /// A message from the user that is interacting with the system.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Request that use natural language query to generate the chart.
@@ -1981,23 +2133,29 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsights {
     /// The chart checkpoint used to generate the chart.
     #[serde(default, rename = "chartCheckpoint")]
-    pub chart_checkpoint:
-        Option<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint>,
+    pub chart_checkpoint: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint>,
+    >,
     /// Output only. The chart conversations used to generate the chart.
     #[serde(default, rename = "chartConversations")]
-    pub chart_conversations:
-        Option<Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation>>,
+    pub chart_conversations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation,
+            >,
+        >,
+    >,
     /// Chart spec for the chart.
     #[serde(default, rename = "chartSpec")]
-    pub chart_spec: Option<serde_json::Value>,
+    pub chart_spec: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub request: Option<serde_json::Value>,
+    pub request: ::core::option::Option<serde_json::Value>,
     /// Optional. For charts with comparison, this key will determine the metric that will be compared between the current and another dataset.
     #[serde(default, rename = "sqlComparisonKey")]
-    pub sql_comparison_key: Option<String>,
+    pub sql_comparison_key: ::core::option::Option<String>,
     /// SQL query used to generate the chart.
     #[serde(default, rename = "sqlQuery")]
-    pub sql_query: Option<String>,
+    pub sql_query: ::core::option::Option<String>,
 }
 
 /// The current chart checkpoint state.
@@ -2005,10 +2163,10 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsights {
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint {
     /// The revision id of the chart.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// The session id of the chart.
     #[serde(default, rename = "sessionId")]
-    pub session_id: Option<String>,
+    pub session_id: ::core::option::Option<String>,
 }
 
 /// The conversation used to generate the chart.
@@ -2016,17 +2174,22 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint {
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation {
     /// The conversation id of the chart.
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// The create time of the conversation.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Ordered list of messages, including user inputs and system responses.
     #[serde(default)]
-    pub messages:
-        Option<Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage>>,
+    pub messages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage,
+            >,
+        >,
+    >,
     /// The update time of the conversation.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The message in the conversation.
@@ -2034,20 +2197,16 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage {
     /// For user messages, this is the time at which the system received the message. For system messages, this is the time at which the system generated the message.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The message id of the message.
     #[serde(default, rename = "messageId")]
-    pub message_id: Option<String>,
+    pub message_id: ::core::option::Option<String>,
     /// A message from the system in response to the user.
     #[serde(default, rename = "systemMessage")]
-    pub system_message: Option<
-        GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage,
-    >,
+    pub system_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage>>,
     /// A message from the user that is interacting with the system.
     #[serde(default, rename = "userMessage")]
-    pub user_message: Option<
-        GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage,
-    >,
+    pub user_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage>>,
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
@@ -2055,13 +2214,13 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage {
     /// Chart spec from LLM
     #[serde(default, rename = "chartSpec")]
-    pub chart_spec: Option<serde_json::Value>,
+    pub chart_spec: ::core::option::Option<serde_json::Value>,
     /// Raw SQL from LLM, before templatization
     #[serde(default, rename = "generatedSqlQuery")]
-    pub generated_sql_query: Option<String>,
+    pub generated_sql_query: ::core::option::Option<String>,
     /// A direct natural language response to the user message.
     #[serde(default, rename = "textOutput")]
-    pub text_output: Option<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput>,
+    pub text_output: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput>>,
 }
 
 /// A text output message from the system.
@@ -2070,10 +2229,10 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 {
     /// The parts of the message.
     #[serde(default)]
-    pub texts: Option<Vec<String>>,
+    pub texts: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of the text message. // TODO: enum values: ["TYPE_UNSPECIFIED", "THOUGHT", "FINAL_RESPONSE", "PROGRESS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The user message.
@@ -2081,7 +2240,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage {
     /// A message from the user that is interacting with the system.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// The metadata for generative insights.
@@ -2089,7 +2248,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsMetadata {
     /// The error message when the generative insights request fails.
     #[serde(default, rename = "errorMessages")]
-    pub error_messages: Option<Vec<GoogleRpcStatus>>,
+    pub error_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// The request for generative insights.
@@ -2097,31 +2256,31 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsRequest {
     /// The full name of the chart resource this request corresponds to. Format: projects/{project}/locations/{location}/dashboards/{dashboard}/charts/{chart}
     #[serde(default)]
-    pub chart: Option<String>,
+    pub chart: ::core::option::Option<String>,
     /// Optional. Filter for the data that can be specified in addition to the natural language query. This filter is specifically used for charts where comparisons are possible. For example, "compare to last month" or "compare to previous quarter".
     #[serde(default, rename = "comparisonFilter")]
-    pub comparison_filter: Option<String>,
+    pub comparison_filter: ::core::option::Option<String>,
     /// Filter for the data that can be specified in addition to the natural language query. Users are encouraged to use this field to populate time-windows.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The natural language query specified by the user. If this field is specified, sql_query will be ignored.
     #[serde(default, rename = "naturalLanguageQuery")]
-    pub natural_language_query: Option<String>,
+    pub natural_language_query: ::core::option::Option<String>,
     /// Optional. The revision id that maps to the state of the chart state revision. When specified, the backend will reload the chart with the sql and visual spec from that revision.
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// Optional. The session id of the conversation. If the session id is not specified, backend will generate a random session id. If the session id is specified, will associate user-provided user_query with the provided session id.
     #[serde(default, rename = "sessionId")]
-    pub session_id: Option<String>,
+    pub session_id: ::core::option::Option<String>,
     /// Optional. For charts with comparison, this key will determine the metric that will be compared between the current and another dataset.
     #[serde(default, rename = "sqlComparisonKey")]
-    pub sql_comparison_key: Option<String>,
+    pub sql_comparison_key: ::core::option::Option<String>,
     /// Optional. The SQL query specified by the user. This query must be in BigQuery SQL dialect. The filter field will also be ignored, as it is assumed that any filtering is already included in the SQL query.
     #[serde(default, rename = "sqlQuery")]
-    pub sql_query: Option<String>,
+    pub sql_query: ::core::option::Option<String>,
     /// Optional. The user provided chart spec for the chart. This will be used to override the visual spec generated by the LLM.
     #[serde(default, rename = "userProvidedChartSpec")]
-    pub user_provided_chart_spec: Option<serde_json::Value>,
+    pub user_provided_chart_spec: ::core::option::Option<serde_json::Value>,
 }
 
 /// The response for generative insights.
@@ -2129,12 +2288,20 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsRequest {
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponse {
     /// The full list of generative responses. Each response is ordered by time.
     #[serde(default, rename = "generativeResponses")]
-    pub generative_responses:
-        Option<Vec<GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativeResponse>>,
+    pub generative_responses: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativeResponse,
+            >,
+        >,
+    >,
     /// The transcript of the generative insights conversation.
     #[serde(default)]
-    pub transcript:
-        Option<GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscript>,
+    pub transcript: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscript,
+        >,
+    >,
 }
 
 /// Wrapper for storing the generative response for a chart.
@@ -2142,18 +2309,16 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponse {
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativeResponse {
     /// The chart spec for the data. This will be specified in the vega-lite or vega format.
     #[serde(default, rename = "chartSpec")]
-    pub chart_spec: Option<serde_json::Value>,
+    pub chart_spec: ::core::option::Option<serde_json::Value>,
     /// The generated SQL query from the LLM. Will be populated during the chart building phase. The generated SQL will be cached in the corresponding chart resource.
     #[serde(default, rename = "generatedSqlQuery")]
-    pub generated_sql_query: Option<String>,
+    pub generated_sql_query: ::core::option::Option<String>,
     /// The text output from the LLM. Will be populated during the chart building phase. For a reloaded chart, this will NOT be populated. May contain THOUGHT or a FINAL response or some in-progress response.
     #[serde(default, rename = "textMessage")]
-    pub text_message: Option<
-        GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativeResponseTextOutput,
-    >,
+    pub text_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativeResponseTextOutput>>,
     /// The text output from the LLM. Will be populated during the chart building phase. For a reloaded chart, this will NOT be populated. May contain THOUGHT or a FINAL response or some in-progress response.
     #[serde(default, rename = "textOutput")]
-    pub text_output: Option<String>,
+    pub text_output: ::core::option::Option<String>,
 }
 
 /// Wrapper for text output.
@@ -2162,10 +2327,10 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativ
 {
     /// The text output from the LLM.
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of text output. // TODO: enum values: ["TYPE_UNSPECIFIED", "THOUGHT", "FINAL_RESPONSE", "PROGRESS"]
     #[serde(default, rename = "textType")]
-    pub text_type: Option<String>,
+    pub text_type: ::core::option::Option<String>,
 }
 
 /// Metadata used for import issue model.
@@ -2173,13 +2338,15 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativ
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original import request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1ImportIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ImportIssueModelRequest>,
+    >,
 }
 
 /// Request to import an issue model.
@@ -2187,13 +2354,15 @@ pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelRequest {
     /// Optional. If set to true, will create an issue model from the imported file with randomly generated IDs for the issue model and corresponding issues. Otherwise, replaces an existing model with the same ID as the file.
     #[serde(default, rename = "createNewModel")]
-    pub create_new_model: Option<bool>,
+    pub create_new_model: ::core::option::Option<bool>,
     /// Google Cloud Storage source message.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudContactcenterinsightsV1ImportIssueModelRequestGcsSource>,
+    pub gcs_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ImportIssueModelRequestGcsSource>,
+    >,
     /// Required. The parent resource of the issue model.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Google Cloud Storage Object URI to get the issue model file from.
@@ -2201,7 +2370,7 @@ pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelRequestGcsSource {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
 }
 
 /// Response from import issue model
@@ -2209,7 +2378,8 @@ pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelRequestGcsSource {
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelResponse {
     /// The issue model that was imported.
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<GoogleCloudContactcenterinsightsV1IssueModel>,
+    pub issue_model:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueModel>>,
 }
 
 /// The metadata for an IngestConversations operation.
@@ -2217,24 +2387,28 @@ pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelResponse {
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Statistics for IngestConversations operation.
     #[serde(default, rename = "ingestConversationsStats")]
-    pub ingest_conversations_stats: Option<
-        GoogleCloudContactcenterinsightsV1IngestConversationsMetadataIngestConversationsStats,
+    pub ingest_conversations_stats: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1IngestConversationsMetadataIngestConversationsStats,
+        >,
     >,
     /// Output only. Partial errors during ingest operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for ingest.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1IngestConversationsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1IngestConversationsRequest>,
+    >,
     /// Output only. Stores the conversation resources produced by ingest sampling operations.
     #[serde(default, rename = "sampledConversations")]
-    pub sampled_conversations: Option<Vec<String>>,
+    pub sampled_conversations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Statistics for IngestConversations operation.
@@ -2242,16 +2416,16 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadataIngestConversationsStats {
     /// Output only. The number of objects skipped because another conversation with the same transcript uri had already been ingested.
     #[serde(default, rename = "duplicatesSkippedCount")]
-    pub duplicates_skipped_count: Option<i32>,
+    pub duplicates_skipped_count: ::core::option::Option<i32>,
     /// Output only. The number of objects which were unable to be ingested due to errors. The errors are populated in the partial_errors field.
     #[serde(default, rename = "failedIngestCount")]
-    pub failed_ingest_count: Option<i32>,
+    pub failed_ingest_count: ::core::option::Option<i32>,
     /// Output only. The number of objects processed during the ingest operation.
     #[serde(default, rename = "processedObjectCount")]
-    pub processed_object_count: Option<i32>,
+    pub processed_object_count: ::core::option::Option<i32>,
     /// Output only. The number of new conversations added during this ingest operation.
     #[serde(default, rename = "successfulIngestCount")]
-    pub successful_ingest_count: Option<i32>,
+    pub successful_ingest_count: ::core::option::Option<i32>,
 }
 
 /// The request to ingest conversations.
@@ -2259,27 +2433,38 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadataIngestCo
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequest {
     /// Configuration that applies to all conversations.
     #[serde(default, rename = "conversationConfig")]
-    pub conversation_config:
-        Option<GoogleCloudContactcenterinsightsV1IngestConversationsRequestConversationConfig>,
+    pub conversation_config: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1IngestConversationsRequestConversationConfig,
+        >,
+    >,
     /// A cloud storage bucket source. Note that any previously ingested objects from the source will be skipped to avoid duplication.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudContactcenterinsightsV1IngestConversationsRequestGcsSource>,
+    pub gcs_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1IngestConversationsRequestGcsSource>,
+    >,
     /// Required. The parent resource for new conversations.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. DLP settings for transcript redaction. Optional, will default to the config specified in Settings.
     #[serde(default, rename = "redactionConfig")]
-    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    pub redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    >,
     /// Optional. If set, this fields indicates the number of objects to ingest from the Cloud Storage bucket. If empty, the entire bucket will be ingested. Unless they are first deleted, conversations produced through sampling won''t be ingested by subsequent ingest requests.
     #[serde(default, rename = "sampleSize")]
-    pub sample_size: Option<i32>,
+    pub sample_size: ::core::option::Option<i32>,
     /// Optional. Default Speech-to-Text configuration. Optional, will default to the config specified in Settings.
     #[serde(default, rename = "speechConfig")]
-    pub speech_config: Option<GoogleCloudContactcenterinsightsV1SpeechConfig>,
+    pub speech_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SpeechConfig>>,
     /// Configuration for when source contains conversation transcripts.
     #[serde(default, rename = "transcriptObjectConfig")]
-    pub transcript_object_config:
-        Option<GoogleCloudContactcenterinsightsV1IngestConversationsRequestTranscriptObjectConfig>,
+    pub transcript_object_config: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1IngestConversationsRequestTranscriptObjectConfig,
+        >,
+    >,
 }
 
 /// Configuration that applies to all conversations.
@@ -2287,13 +2472,13 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequest {
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestConversationConfig {
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "agentChannel")]
-    pub agent_channel: Option<i32>,
+    pub agent_channel: ::core::option::Option<i32>,
     /// Optional. An opaque, user-specified string representing a human agent who handled all conversations in the import. Note that this will be overridden if per-conversation metadata is provided through the metadata_bucket_uri.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "customerChannel")]
-    pub customer_channel: Option<i32>,
+    pub customer_channel: ::core::option::Option<i32>,
 }
 
 /// Configuration for Cloud Storage bucket sources.
@@ -2301,22 +2486,22 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestConversat
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestGcsSource {
     /// Optional. The Cloud Storage path to the conversation audio file. Note that: [1] Audio files will be transcribed if not already. [2] Audio files and transcript files must be in separate buckets / folders. [3] A source file and its corresponding audio file must share the same name to be properly ingested, E.g. gs://bucket/transcript/conversation1.json and gs://bucket/audio/conversation1.mp3.
     #[serde(default, rename = "audioBucketUri")]
-    pub audio_bucket_uri: Option<String>,
+    pub audio_bucket_uri: ::core::option::Option<String>,
     /// Optional. Specifies the type of the objects in bucket_uri. Avoid passing this. This is inferred from the transcript_bucket_uri, audio_bucket_uri. // TODO: enum values: ["BUCKET_OBJECT_TYPE_UNSPECIFIED", "TRANSCRIPT", "AUDIO"]
     #[serde(default, rename = "bucketObjectType")]
-    pub bucket_object_type: Option<String>,
+    pub bucket_object_type: ::core::option::Option<String>,
     /// Optional. The Cloud Storage bucket containing source objects. Avoid passing this. Pass this through one of transcript_bucket_uri or audio_bucket_uri.
     #[serde(default, rename = "bucketUri")]
-    pub bucket_uri: Option<String>,
+    pub bucket_uri: ::core::option::Option<String>,
     /// Optional. Custom keys to extract as conversation labels from metadata files in metadata_bucket_uri. Keys not included in this field will be ignored. Note that there is a limit of 100 labels per conversation.
     #[serde(default, rename = "customMetadataKeys")]
-    pub custom_metadata_keys: Option<Vec<String>>,
+    pub custom_metadata_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The Cloud Storage path to the conversation metadata. Note that: [1] Metadata files are expected to be in JSON format. [2] Metadata and source files (transcripts or audio) must be in separate buckets / folders. [3] A source file and its corresponding metadata file must share the same name to be properly ingested, E.g. gs://bucket/audio/conversation1.mp3 and gs://bucket/metadata/conversation1.json.
     #[serde(default, rename = "metadataBucketUri")]
-    pub metadata_bucket_uri: Option<String>,
+    pub metadata_bucket_uri: ::core::option::Option<String>,
     /// Optional. The Cloud Storage path to the conversation transcripts. Note that: [1] Transcript files are expected to be in JSON format. [2] Transcript, audio, metadata files must be in separate buckets / folders. [3] A source file and its corresponding metadata file must share the same name to be properly ingested, E.g. gs://bucket/audio/conversation1.mp3 and gs://bucket/metadata/conversation1.json.
     #[serde(default, rename = "transcriptBucketUri")]
-    pub transcript_bucket_uri: Option<String>,
+    pub transcript_bucket_uri: ::core::option::Option<String>,
 }
 
 /// Configuration for processing transcript objects.
@@ -2324,7 +2509,7 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestGcsSource
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestTranscriptObjectConfig {
     /// Required. The medium transcript objects represent. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
 }
 
 /// Metadata for initializing a location-level encryption specification.
@@ -2332,16 +2517,18 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestTranscrip
 pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Partial errors during initializing operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for initialization.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest>,
+    >,
 }
 
 /// The request to initialize a location-level encryption specification.
@@ -2349,7 +2536,8 @@ pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecMetadata {
 pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest {
     /// Required. The encryption spec used for CMEK encryption. It is required that the kms key is in the same region as the endpoint. The same key will be used for all provisioned resources, if encryption is available. If the kms_key_name field is left empty, no encryption will be enforced.
     #[serde(default, rename = "encryptionSpec")]
-    pub encryption_spec: Option<GoogleCloudContactcenterinsightsV1EncryptionSpec>,
+    pub encryption_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1EncryptionSpec>>,
 }
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
@@ -2357,10 +2545,10 @@ pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest {
 pub struct GoogleCloudContactcenterinsightsV1Intent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The unique identifier of the intent.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
@@ -2368,7 +2556,7 @@ pub struct GoogleCloudContactcenterinsightsV1Intent {
 pub struct GoogleCloudContactcenterinsightsV1IntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
-    pub intent_unique_id: Option<String>,
+    pub intent_unique_id: ::core::option::Option<String>,
 }
 
 /// The issue resource.
@@ -2376,22 +2564,22 @@ pub struct GoogleCloudContactcenterinsightsV1IntentMatchData {
 pub struct GoogleCloudContactcenterinsightsV1Issue {
     /// Output only. The time at which this issue was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Representative description of the issue.
     #[serde(default, rename = "displayDescription")]
-    pub display_description: Option<String>,
+    pub display_description: ::core::option::Option<String>,
     /// The representative name for the issue.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. The resource name of the issue. Format: projects/{project}/locations/{location}/issueModels/{issue_model}/issues/{issue}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Resource names of the sample representative utterances that match to this issue.
     #[serde(default, rename = "sampleUtterances")]
-    pub sample_utterances: Option<Vec<String>>,
+    pub sample_utterances: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The most recent time that this issue was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Information about the issue.
@@ -2399,13 +2587,13 @@ pub struct GoogleCloudContactcenterinsightsV1Issue {
 pub struct GoogleCloudContactcenterinsightsV1IssueAssignment {
     /// Immutable. Display name of the assigned issue. This field is set at time of analysis and immutable since then.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Resource name of the assigned issue.
     #[serde(default)]
-    pub issue: Option<String>,
+    pub issue: ::core::option::Option<String>,
     /// Score indicating the likelihood of the issue assignment. currently bounded on [0,1].
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
 }
 
 /// The data for an issue match annotation.
@@ -2413,7 +2601,9 @@ pub struct GoogleCloudContactcenterinsightsV1IssueAssignment {
 pub struct GoogleCloudContactcenterinsightsV1IssueMatchData {
     /// Information about the issue''s assignment.
     #[serde(default, rename = "issueAssignment")]
-    pub issue_assignment: Option<GoogleCloudContactcenterinsightsV1IssueAssignment>,
+    pub issue_assignment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueAssignment>,
+    >,
 }
 
 /// The issue model resource.
@@ -2421,34 +2611,38 @@ pub struct GoogleCloudContactcenterinsightsV1IssueMatchData {
 pub struct GoogleCloudContactcenterinsightsV1IssueModel {
     /// Output only. The time at which this issue model was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The representative name for the issue model.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Configs for the input data that used to create the issue model.
     #[serde(default, rename = "inputDataConfig")]
-    pub input_data_config: Option<GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig>,
+    pub input_data_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig>,
+    >,
     /// Output only. Number of issues in this issue model.
     #[serde(default, rename = "issueCount")]
-    pub issue_count: Option<String>,
+    pub issue_count: ::core::option::Option<String>,
     /// Language of the model.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Type of the model. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "TYPE_V1", "TYPE_V2"]
     #[serde(default, rename = "modelType")]
-    pub model_type: Option<String>,
+    pub model_type: ::core::option::Option<String>,
     /// Immutable. The resource name of the issue model. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. State of the model. // TODO: enum values: ["STATE_UNSPECIFIED", "UNDEPLOYED", "DEPLOYING", "DEPLOYED", "UNDEPLOYING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Immutable. The issue model''s label statistics on its training data.
     #[serde(default, rename = "trainingStats")]
-    pub training_stats: Option<GoogleCloudContactcenterinsightsV1IssueModelLabelStats>,
+    pub training_stats: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueModelLabelStats>,
+    >,
     /// Output only. The most recent time at which the issue model was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Configs for the input data used to create the issue model.
@@ -2456,13 +2650,13 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModel {
 pub struct GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig {
     /// A filter to reduce the conversations used for training the model to a specific subset. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Medium of conversations used in training data. This field is being deprecated. To specify the medium to be used in training a new issue model, set the medium field on filter. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
     /// Output only. Number of conversations used in training. Output only.
     #[serde(default, rename = "trainingConversationsCount")]
-    pub training_conversations_count: Option<String>,
+    pub training_conversations_count: ::core::option::Option<String>,
 }
 
 /// Aggregated statistics about an issue model.
@@ -2470,13 +2664,13 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig {
 pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStats {
     /// Number of conversations the issue model has analyzed at this point in time.
     #[serde(default, rename = "analyzedConversationsCount")]
-    pub analyzed_conversations_count: Option<String>,
+    pub analyzed_conversations_count: ::core::option::Option<String>,
     /// Statistics on each issue. Key is the issue''s resource name.
     #[serde(default, rename = "issueStats")]
-    pub issue_stats: Option<serde_json::Value>,
+    pub issue_stats: ::core::option::Option<serde_json::Value>,
     /// Number of analyzed conversations for which no issue was applicable at this point in time.
     #[serde(default, rename = "unclassifiedConversationsCount")]
-    pub unclassified_conversations_count: Option<String>,
+    pub unclassified_conversations_count: ::core::option::Option<String>,
 }
 
 /// Aggregated statistics about an issue.
@@ -2484,13 +2678,13 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStats {
 pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStatsIssueStats {
     /// Display name of the issue.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Issue resource. Format: projects/{project}/locations/{location}/issueModels/{issue_model}/issues/{issue}
     #[serde(default)]
-    pub issue: Option<String>,
+    pub issue: ::core::option::Option<String>,
     /// Number of conversations attached to the issue at this point in time.
     #[serde(default, rename = "labeledConversationsCount")]
-    pub labeled_conversations_count: Option<String>,
+    pub labeled_conversations_count: ::core::option::Option<String>,
 }
 
 /// Issue Modeling result on a conversation.
@@ -2498,10 +2692,12 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStatsIssueStats {
 pub struct GoogleCloudContactcenterinsightsV1IssueModelResult {
     /// Issue model that generates the result. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<String>,
+    pub issue_model: ::core::option::Option<String>,
     /// All the matched issues.
     #[serde(default)]
-    pub issues: Option<Vec<GoogleCloudContactcenterinsightsV1IssueAssignment>>,
+    pub issues: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueAssignment>>,
+    >,
 }
 
 /// The response for listing all feedback labels.
@@ -2509,10 +2705,12 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModelResult {
 pub struct GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1FeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1FeedbackLabel>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response to list analyses.
@@ -2520,10 +2718,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListAnalysesResponse {
     /// The analyses that match the request.
     #[serde(default)]
-    pub analyses: Option<Vec<GoogleCloudContactcenterinsightsV1Analysis>>,
+    pub analyses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Analysis>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response of listing views.
@@ -2531,10 +2731,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListAnalysesResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse {
     /// The analysis_rule that match the request.
     #[serde(default, rename = "analysisRules")]
-    pub analysis_rules: Option<Vec<GoogleCloudContactcenterinsightsV1AnalysisRule>>,
+    pub analysis_rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnalysisRule>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response of listing assessment rules.
@@ -2542,10 +2744,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse {
     /// The assessment rules that match the request.
     #[serde(default, rename = "assessmentRules")]
-    pub assessment_rules: Option<Vec<GoogleCloudContactcenterinsightsV1AssessmentRule>>,
+    pub assessment_rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1AssessmentRule>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response of listing assessments.
@@ -2553,10 +2757,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListAssessmentsResponse {
     /// The assessments that match the request.
     #[serde(default)]
-    pub assessments: Option<Vec<GoogleCloudContactcenterinsightsV1Assessment>>,
+    pub assessments: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Assessment>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response from a ListAuthorizedViewSet request.
@@ -2564,10 +2770,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListAssessmentsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListAuthorizedViewSetsResponse {
     /// The AuthorizedViewSets under the parent.
     #[serde(default, rename = "authorizedViewSets")]
-    pub authorized_view_sets: Option<Vec<GoogleCloudContactcenterinsightsV1AuthorizedViewSet>>,
+    pub authorized_view_sets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1AuthorizedViewSet>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response from a ListAuthorizedViews request.
@@ -2575,10 +2783,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListAuthorizedViewSetsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListAuthorizedViewsResponse {
     /// The AuthorizedViews under the parent.
     #[serde(default, rename = "authorizedViews")]
-    pub authorized_views: Option<Vec<GoogleCloudContactcenterinsightsV1AuthorizedView>>,
+    pub authorized_views: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1AuthorizedView>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for listing auto labeling rules.
@@ -2586,10 +2796,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListAuthorizedViewsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse {
     /// The auto labeling rules.
     #[serde(default, rename = "autoLabelingRules")]
-    pub auto_labeling_rules: Option<Vec<GoogleCloudContactcenterinsightsV1AutoLabelingRule>>,
+    pub auto_labeling_rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1AutoLabelingRule>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response of listing charts.
@@ -2597,10 +2809,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListChartsResponse {
     /// The charts under the parent.
     #[serde(default)]
-    pub charts: Option<Vec<GoogleCloudContactcenterinsightsV1Chart>>,
+    pub charts: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Chart>>,
+    >,
     /// The value returned by the last ListChartsResponse. This value indicates that this is a continuation of a prior ListCharts call and that the system should return the next page of data.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response of listing conversations.
@@ -2608,10 +2822,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListChartsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListConversationsResponse {
     /// The conversations that match the request.
     #[serde(default)]
-    pub conversations: Option<Vec<GoogleCloudContactcenterinsightsV1Conversation>>,
+    pub conversations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Conversation>>,
+    >,
     /// A token which can be sent as page_token to retrieve the next page. If this field is set, it means there is another page available. If it is not set, it means no other pages are available.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response of listing dashboards.
@@ -2619,10 +2835,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListConversationsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListDashboardsResponse {
     /// The dashboards under the parent.
     #[serde(default)]
-    pub dashboards: Option<Vec<GoogleCloudContactcenterinsightsV1Dashboard>>,
+    pub dashboards: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Dashboard>>,
+    >,
     /// The value returned by the last ListDashboardsResponse. This value indicates that this is a continuation of a prior ListDashboards call and that the system should return the next page of data.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response to list datasets.
@@ -2630,10 +2848,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListDashboardsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListDatasetsResponse {
     /// The datasets that match the request.
     #[serde(default)]
-    pub datasets: Option<Vec<GoogleCloudContactcenterinsightsV1Dataset>>,
+    pub datasets: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Dataset>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for listing feedback labels.
@@ -2641,10 +2861,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListDatasetsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1FeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1FeedbackLabel>>,
+    >,
     /// The next page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response of listing issue models.
@@ -2652,7 +2874,9 @@ pub struct GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListIssueModelsResponse {
     /// The issue models that match the request.
     #[serde(default, rename = "issueModels")]
-    pub issue_models: Option<Vec<GoogleCloudContactcenterinsightsV1IssueModel>>,
+    pub issue_models: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1IssueModel>>,
+    >,
 }
 
 /// The response of listing issues.
@@ -2660,7 +2884,9 @@ pub struct GoogleCloudContactcenterinsightsV1ListIssueModelsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListIssuesResponse {
     /// The issues that match the request.
     #[serde(default)]
-    pub issues: Option<Vec<GoogleCloudContactcenterinsightsV1Issue>>,
+    pub issues: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Issue>>,
+    >,
 }
 
 /// The response of listing notes.
@@ -2668,10 +2894,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListIssuesResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListNotesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The notes that match the request.
     #[serde(default)]
-    pub notes: Option<Vec<GoogleCloudContactcenterinsightsV1Note>>,
+    pub notes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Note>>,
+    >,
 }
 
 /// The response of listing phrase matchers.
@@ -2679,10 +2907,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListNotesResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The phrase matchers that match the request.
     #[serde(default, rename = "phraseMatchers")]
-    pub phrase_matchers: Option<Vec<GoogleCloudContactcenterinsightsV1PhraseMatcher>>,
+    pub phrase_matchers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1PhraseMatcher>>,
+    >,
 }
 
 /// The response from a ListQaQuestionTags request.
@@ -2690,10 +2920,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionTagsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The parent resource of the questions.
     #[serde(default, rename = "qaQuestionTags")]
-    pub qa_question_tags: Option<Vec<GoogleCloudContactcenterinsightsV1QaQuestionTag>>,
+    pub qa_question_tags: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaQuestionTag>>,
+    >,
 }
 
 /// The response from a ListQaQuestions request.
@@ -2701,10 +2933,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionTagsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The QaQuestions under the parent.
     #[serde(default, rename = "qaQuestions")]
-    pub qa_questions: Option<Vec<GoogleCloudContactcenterinsightsV1QaQuestion>>,
+    pub qa_questions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaQuestion>>,
+    >,
 }
 
 /// The response from a ListQaScorecardRevisions request.
@@ -2712,10 +2946,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The QaScorecards under the parent.
     #[serde(default, rename = "qaScorecardRevisions")]
-    pub qa_scorecard_revisions: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardRevision>>,
+    pub qa_scorecard_revisions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaScorecardRevision>>,
+    >,
 }
 
 /// The response from a ListQaScorecards request.
@@ -2723,10 +2959,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The QaScorecards under the parent.
     #[serde(default, rename = "qaScorecards")]
-    pub qa_scorecards: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecard>>,
+    pub qa_scorecards: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaScorecard>>,
+    >,
 }
 
 /// The response of listing views.
@@ -2734,10 +2972,12 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardsResponse {
 pub struct GoogleCloudContactcenterinsightsV1ListViewsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The views that match the request.
     #[serde(default)]
-    pub views: Option<Vec<GoogleCloudContactcenterinsightsV1View>>,
+    pub views: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1View>>,
+    >,
 }
 
 /// The conversation assessment note resource.
@@ -2745,28 +2985,33 @@ pub struct GoogleCloudContactcenterinsightsV1ListViewsResponse {
 pub struct GoogleCloudContactcenterinsightsV1Note {
     /// The note is associated to the entire parent assessment.
     #[serde(default, rename = "assessmentNote")]
-    pub assessment_note: Option<serde_json::Value>,
+    pub assessment_note: ::core::option::Option<serde_json::Value>,
     /// The note content.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The note is associated with a conversation turn.
     #[serde(default, rename = "conversationTurnNote")]
-    pub conversation_turn_note: Option<GoogleCloudContactcenterinsightsV1NoteConversationTurnNote>,
+    pub conversation_turn_note: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1NoteConversationTurnNote>,
+    >,
     /// Output only. The time at which the note was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The resource name of the note. Format: projects/{project}/locations/{location}/conversations/{conversation}/assessments/{assessment}/notes/{note}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The user that created the note.
     #[serde(default, rename = "noteCreator")]
-    pub note_creator: Option<GoogleCloudContactcenterinsightsV1UserInfo>,
+    pub note_creator:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1UserInfo>>,
     /// The note is associated with a QA question in one of the conversation''s scorecard results.
     #[serde(default, rename = "qaQuestionNote")]
-    pub qa_question_note: Option<GoogleCloudContactcenterinsightsV1NoteQaQuestionNote>,
+    pub qa_question_note: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1NoteQaQuestionNote>,
+    >,
     /// Output only. The time at which the note was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A note about a conversation turn.
@@ -2774,7 +3019,7 @@ pub struct GoogleCloudContactcenterinsightsV1Note {
 pub struct GoogleCloudContactcenterinsightsV1NoteConversationTurnNote {
     /// The conversation turn index that the note is associated with.
     #[serde(default, rename = "turnIndex")]
-    pub turn_index: Option<i32>,
+    pub turn_index: ::core::option::Option<i32>,
 }
 
 /// A note about a QA question.
@@ -2782,7 +3027,7 @@ pub struct GoogleCloudContactcenterinsightsV1NoteConversationTurnNote {
 pub struct GoogleCloudContactcenterinsightsV1NoteQaQuestionNote {
     /// The question resource that the note is associated with.
     #[serde(default, rename = "qaQuestion")]
-    pub qa_question: Option<String>,
+    pub qa_question: ::core::option::Option<String>,
 }
 
 /// The data for a matched phrase matcher. Represents information identifying a phrase matcher for a given match.
@@ -2790,10 +3035,10 @@ pub struct GoogleCloudContactcenterinsightsV1NoteQaQuestionNote {
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatchData {
     /// The human-readable name of the phrase matcher.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The unique identifier (the resource name) of the phrase matcher.
     #[serde(default, rename = "phraseMatcher")]
-    pub phrase_matcher: Option<String>,
+    pub phrase_matcher: ::core::option::Option<String>,
 }
 
 /// The data for a phrase match rule.
@@ -2801,13 +3046,15 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchData {
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRule {
     /// Provides additional information about the rule that specifies how to apply the rule.
     #[serde(default)]
-    pub config: Option<GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig>,
+    pub config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig>,
+    >,
     /// Specifies whether the phrase must be missing from the transcript segment or present in the transcript segment.
     #[serde(default)]
-    pub negated: Option<bool>,
+    pub negated: ::core::option::Option<bool>,
     /// Required. The phrase to be matched.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
 }
 
 /// Configuration information of a phrase match rule.
@@ -2815,10 +3062,12 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRule {
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig {
     /// The configuration for the exact match rule.
     #[serde(default, rename = "exactMatchConfig")]
-    pub exact_match_config: Option<GoogleCloudContactcenterinsightsV1ExactMatchConfig>,
+    pub exact_match_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ExactMatchConfig>,
+    >,
     /// The configuration for the regex match rule.
     #[serde(default, rename = "regexMatchConfig")]
-    pub regex_match_config: Option<serde_json::Value>,
+    pub regex_match_config: ::core::option::Option<serde_json::Value>,
 }
 
 /// A message representing a rule in the phrase matcher.
@@ -2826,10 +3075,12 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig {
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup {
     /// A list of phrase match rules that are included in this group.
     #[serde(default, rename = "phraseMatchRules")]
-    pub phrase_match_rules: Option<Vec<GoogleCloudContactcenterinsightsV1PhraseMatchRule>>,
+    pub phrase_match_rules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1PhraseMatchRule>>,
+    >,
     /// Required. The type of this phrase match rule group. // TODO: enum values: ["PHRASE_MATCH_RULE_GROUP_TYPE_UNSPECIFIED", "ALL_OF", "ANY_OF"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The phrase matcher resource.
@@ -2837,38 +3088,39 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup {
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatcher {
     /// Output only. The most recent time at which the activation status was updated.
     #[serde(default, rename = "activationUpdateTime")]
-    pub activation_update_time: Option<String>,
+    pub activation_update_time: ::core::option::Option<String>,
     /// Applies the phrase matcher only when it is active.
     #[serde(default)]
-    pub active: Option<bool>,
+    pub active: ::core::option::Option<bool>,
     /// The human-readable name of the phrase matcher.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the phrase matcher. Format: projects/{project}/locations/{location}/phraseMatchers/{phrase_matcher}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A list of phase match rule groups that are included in this matcher.
     #[serde(default, rename = "phraseMatchRuleGroups")]
-    pub phrase_match_rule_groups:
-        Option<Vec<GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup>>,
+    pub phrase_match_rule_groups: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup>>,
+    >,
     /// Output only. The timestamp of when the revision was created. It is also the create time when a new matcher is added.
     #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: Option<String>,
+    pub revision_create_time: ::core::option::Option<String>,
     /// Output only. Immutable. The revision ID of the phrase matcher. A new revision is committed whenever the matcher is changed, except when it is activated or deactivated. A server generated random ID will be used. Example: locations/global/phraseMatchers/my-first-matcher@1234567
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// The role whose utterances the phrase matcher should be matched against. If the role is ROLE_UNSPECIFIED it will be matched against any utterances in the transcript. // TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER", "ANY_AGENT"]
     #[serde(default, rename = "roleMatch")]
-    pub role_match: Option<String>,
+    pub role_match: ::core::option::Option<String>,
     /// Required. The type of this phrase matcher. // TODO: enum values: ["PHRASE_MATCHER_TYPE_UNSPECIFIED", "ALL_OF", "ANY_OF"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. The most recent time at which the phrase matcher was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The customized version tag to use for the phrase matcher. If not specified, it will default to revision_id.
     #[serde(default, rename = "versionTag")]
-    pub version_tag: Option<String>,
+    pub version_tag: ::core::option::Option<String>,
 }
 
 /// An answer to a QaQuestion.
@@ -2876,22 +3128,26 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatcher {
 pub struct GoogleCloudContactcenterinsightsV1QaAnswer {
     /// Lists all answer sources containing one or more answer values of a specific source type, e.g., all system-generated answer sources, or all manual edit answer sources.
     #[serde(default, rename = "answerSources")]
-    pub answer_sources: Option<Vec<GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource>>,
+    pub answer_sources: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource>>,
+    >,
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    pub answer_value: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    >,
     /// The conversation the answer applies to.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The QaQuestion answered by this answer.
     #[serde(default, rename = "qaQuestion")]
-    pub qa_question: Option<String>,
+    pub qa_question: ::core::option::Option<String>,
     /// Question text. E.g., "Did the agent greet the customer?"
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
     /// User-defined list of arbitrary tags. Matches the value from QaScorecard.ScorecardQuestion.tags. Used for grouping/organization and for weighting the score of each answer.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A question may have multiple answers from varying sources, one of which becomes the "main" answer above. AnswerSource represents each individual answer.
@@ -2899,10 +3155,12 @@ pub struct GoogleCloudContactcenterinsightsV1QaAnswer {
 pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource {
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    pub answer_value: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue>,
+    >,
     /// What created the answer. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "SYSTEM_GENERATED", "MANUAL_EDIT"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// Message for holding the value of a QaAnswer. QaQuestion.AnswerChoice defines the possible answer values for a question.
@@ -2910,31 +3168,31 @@ pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource {
 pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// A short string used as an identifier. Matches the value used in QaQuestion.AnswerChoice.key.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// A value of "Not Applicable (N/A)". Should only ever be true.
     #[serde(default, rename = "naValue")]
-    pub na_value: Option<bool>,
+    pub na_value: ::core::option::Option<bool>,
     /// Output only. Normalized score of the questions. Calculated as score / potential_score.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// Numerical value.
     #[serde(default, rename = "numValue")]
-    pub num_value: Option<f64>,
+    pub num_value: ::core::option::Option<f64>,
     /// Output only. The maximum potential score of the question.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Output only. Numerical score of the answer.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// Output only. A value of "Skip". If provided, this field may only be set to true. If a question receives this answer, it will be excluded from any score calculations. This would mean that the question was not evaluated.
     #[serde(default, rename = "skipValue")]
-    pub skip_value: Option<bool>,
+    pub skip_value: ::core::option::Option<bool>,
     /// String value.
     #[serde(default, rename = "strValue")]
-    pub str_value: Option<String>,
+    pub str_value: ::core::option::Option<String>,
 }
 
 /// A single question to be scored by the Insights QA feature.
@@ -2942,48 +3200,58 @@ pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
 pub struct GoogleCloudContactcenterinsightsV1QaQuestion {
     /// Short, descriptive string, used in the UI where it''s not practical to display the full question body. E.g., "Greeting".
     #[serde(default)]
-    pub abbreviation: Option<String>,
+    pub abbreviation: ::core::option::Option<String>,
     /// A list of valid answers to the question, which the LLM must choose from.
     #[serde(default, rename = "answerChoices")]
-    pub answer_choices: Option<Vec<GoogleCloudContactcenterinsightsV1QaQuestionAnswerChoice>>,
+    pub answer_choices: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaQuestionAnswerChoice>,
+        >,
+    >,
     /// Instructions describing how to determine the answer.
     #[serde(default, rename = "answerInstructions")]
-    pub answer_instructions: Option<String>,
+    pub answer_instructions: ::core::option::Option<String>,
     /// Output only. The time at which this question was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Metrics of the underlying tuned LLM over a holdout/test set while fine tuning the underlying LLM for the given question. This field will only be populated if and only if the question is part of a scorecard revision that has been tuned.
     #[serde(default)]
-    pub metrics: Option<GoogleCloudContactcenterinsightsV1QaQuestionMetrics>,
+    pub metrics: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaQuestionMetrics>,
+    >,
     /// Identifier. The resource name of the question. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard}/revisions/{revision}/qaQuestions/{qa_question}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Defines the order of the question within its parent scorecard revision.
     #[serde(default)]
-    pub order: Option<i32>,
+    pub order: ::core::option::Option<i32>,
     /// The configuration of the predefined question. This field will only be set if the Question Type is predefined.
     #[serde(default, rename = "predefinedQuestionConfig")]
-    pub predefined_question_config:
-        Option<GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig>,
+    pub predefined_question_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig>,
+    >,
     /// Options for configuring the data used to generate the QA question.
     #[serde(default, rename = "qaQuestionDataOptions")]
-    pub qa_question_data_options:
-        Option<GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions>,
+    pub qa_question_data_options: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions>,
+    >,
     /// Question text. E.g., "Did the agent greet the customer?"
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
     /// The type of question. // TODO: enum values: ["QA_QUESTION_TYPE_UNSPECIFIED", "CUSTOMIZABLE", "PREDEFINED"]
     #[serde(default, rename = "questionType")]
-    pub question_type: Option<String>,
+    pub question_type: ::core::option::Option<String>,
     /// Questions are tagged for categorization and scoring. Tags can either be: - Default Tags: These are predefined categories. They are identified by their string value (e.g., "BUSINESS", "COMPLIANCE", and "CUSTOMER"). - Custom Tags: These are user-defined categories. They are identified by their full resource name (e.g., projects/{project}/locations/{location}/qaQuestionTags/{qa_question_tag}). Both default and custom tags are used to group questions and to influence the scoring of each question.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Metadata about the tuning operation for the question.This field will only be populated if and only if the question is part of a scorecard revision that has been tuned.
     #[serde(default, rename = "tuningMetadata")]
-    pub tuning_metadata: Option<GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata>,
+    pub tuning_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata>,
+    >,
     /// Output only. The most recent time at which the question was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Message representing a possible answer to the question.
@@ -2991,22 +3259,22 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestion {
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionAnswerChoice {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// A short string used as an identifier.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// A value of "Not Applicable (N/A)". If provided, this field may only be set to true. If a question receives this answer, it will be excluded from any score calculations.
     #[serde(default, rename = "naValue")]
-    pub na_value: Option<bool>,
+    pub na_value: ::core::option::Option<bool>,
     /// Numerical value.
     #[serde(default, rename = "numValue")]
-    pub num_value: Option<f64>,
+    pub num_value: ::core::option::Option<f64>,
     /// Numerical score of the answer, used for generating the overall score of a QaScorecardResult. If the answer uses na_value, this field is unused.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// String value.
     #[serde(default, rename = "strValue")]
-    pub str_value: Option<String>,
+    pub str_value: ::core::option::Option<String>,
 }
 
 /// A wrapper representing metrics calculated against a test-set on a LLM that was fine tuned for this question.
@@ -3014,7 +3282,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionAnswerChoice {
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionMetrics {
     /// Output only. Accuracy of the model. Measures the percentage of correct answers the model gave on the test set.
     #[serde(default)]
-    pub accuracy: Option<f64>,
+    pub accuracy: ::core::option::Option<f64>,
 }
 
 /// Configuration for a predefined question. This field will only be set if the Question Type is predefined.
@@ -3022,7 +3290,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionMetrics {
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig {
     /// The type of the predefined question. // TODO: enum values: ["PREDEFINED_QUESTION_TYPE_UNSPECIFIED", "CONVERSATION_OUTCOME", "CONVERSATION_OUTCOME_ESCALATION_INITIATOR_ROLE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Options for configuring the data used to generate the QA question.
@@ -3030,8 +3298,9 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig 
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions {
     /// Options for configuring the conversation data used to generate the QA question.
     #[serde(default, rename = "conversationDataOptions")]
-    pub conversation_data_options:
-        Option<GoogleCloudContactcenterinsightsV1ConversationDataOptions>,
+    pub conversation_data_options: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationDataOptions>,
+    >,
 }
 
 /// A tag is a resource which aims to categorize a set of questions across multiple scorecards, e.g., "Customer Satisfaction","Billing", etc.
@@ -3039,19 +3308,19 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions {
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionTag {
     /// Output only. The time at which the question tag was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. A user-specified display name for the tag.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. Resource name for the QaQuestionTag Format projects/{project}/locations/{location}/qaQuestionTags/{qa_question_tag} In the above format, the last segment, i.e., qa_question_tag, is a server-generated ID corresponding to the tag resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The list of Scorecard Question IDs that the tag applies to. Each QaQuestionId is represented as a full resource name containing the Question ID. Lastly, Since a tag may not necessarily be referenced by any Scorecard Questions, we treat this field as optional.
     #[serde(default, rename = "qaQuestionIds")]
-    pub qa_question_ids: Option<Vec<String>>,
+    pub qa_question_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The most recent time at which the question tag was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Metadata about the tuning operation for the question. Will only be set if a scorecard containing this question has been tuned.
@@ -3059,13 +3328,13 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionTag {
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata {
     /// A list of any applicable data validation warnings about the question''s feedback labels.
     #[serde(default, rename = "datasetValidationWarnings")]
-    pub dataset_validation_warnings: Option<Vec<String>>,
+    pub dataset_validation_warnings: ::core::option::Option<::std::vec::Vec<String>>,
     /// Total number of valid labels provided for the question at the time of tuining.
     #[serde(default, rename = "totalValidLabelCount")]
-    pub total_valid_label_count: Option<String>,
+    pub total_valid_label_count: ::core::option::Option<String>,
     /// Error status of the tuning operation for the question. Will only be set if the tuning operation failed.
     #[serde(default, rename = "tuningError")]
-    pub tuning_error: Option<String>,
+    pub tuning_error: ::core::option::Option<String>,
 }
 
 /// A QaScorecard represents a collection of questions to be scored during analysis.
@@ -3073,25 +3342,25 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata {
 pub struct GoogleCloudContactcenterinsightsV1QaScorecard {
     /// Output only. The time at which this scorecard was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// A text description explaining the intent of the scorecard.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The user-specified display name of the scorecard.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Whether the scorecard is the default one for the project. A default scorecard cannot be deleted and will always appear first in scorecard selector.
     #[serde(default, rename = "isDefault")]
-    pub is_default: Option<bool>,
+    pub is_default: ::core::option::Option<bool>,
     /// Identifier. The scorecard name. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The source of the scorecard. // TODO: enum values: ["QA_SCORECARD_SOURCE_UNSPECIFIED", "QA_SCORECARD_SOURCE_CUSTOMER_DEFINED", "QA_SCORECARD_SOURCE_DISCOVERY_ENGINE"]
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Output only. The most recent time at which the scorecard was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The results of scoring a single conversation against a QaScorecard. Contains a collection of QaAnswers and aggregate score.
@@ -3099,37 +3368,47 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecard {
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardResult {
     /// ID of the agent that handled the conversation.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// The conversation scored by this result.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// Output only. The timestamp that the revision was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The name of the scorecard result. Format: projects/{project}/locations/{location}/qaScorecardResults/{qa_scorecard_result}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normalized score, which is the score divided by the potential score. Any manual edits are included if they exist.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The maximum potential overall score of the scorecard. Any questions answered using na_value are excluded from this calculation.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Set of QaAnswers represented in the result.
     #[serde(default, rename = "qaAnswers")]
-    pub qa_answers: Option<Vec<GoogleCloudContactcenterinsightsV1QaAnswer>>,
+    pub qa_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaAnswer>>,
+    >,
     /// The QaScorecardRevision scored by this result.
     #[serde(default, rename = "qaScorecardRevision")]
-    pub qa_scorecard_revision: Option<String>,
+    pub qa_scorecard_revision: ::core::option::Option<String>,
     /// Collection of tags and their scores.
     #[serde(default, rename = "qaTagResults")]
-    pub qa_tag_results: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult>>,
+    pub qa_tag_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult>,
+        >,
+    >,
     /// The overall numerical score of the result, incorporating any manual edits if they exist.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// List of all individual score sets.
     #[serde(default, rename = "scoreSources")]
-    pub score_sources: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource>>,
+    pub score_sources: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource>,
+        >,
+    >,
 }
 
 /// Tags and their corresponding results.
@@ -3137,16 +3416,16 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardResult {
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult {
     /// The normalized score the tag applies to.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The potential score the tag applies to.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// The score the tag applies to.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// The tag the score applies to.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// A scorecard result may have multiple sets of scores from varying sources, one of which becomes the "main" answer above. A ScoreSource represents each individual set of scores.
@@ -3154,19 +3433,23 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult {
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource {
     /// The normalized score, which is the score divided by the potential score.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The maximum potential overall score of the scorecard. Any questions answered using na_value are excluded from this calculation.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Collection of tags and their scores.
     #[serde(default, rename = "qaTagResults")]
-    pub qa_tag_results: Option<Vec<GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult>>,
+    pub qa_tag_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult>,
+        >,
+    >,
     /// The overall numerical score of the result.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// What created the score. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "SYSTEM_GENERATED_ONLY", "INCLUDES_MANUAL_EDITS"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// A revision of a QaScorecard. Modifying published scorecard fields would invalidate existing scorecard results — the questions may have changed, or the score weighting will make existing scores impossible to understand. So changes must create a new revision, rather than modifying the existing resource.
@@ -3174,19 +3457,20 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource {
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardRevision {
     /// Output only. Alternative IDs for this revision of the scorecard, e.g., latest.
     #[serde(default, rename = "alternateIds")]
-    pub alternate_ids: Option<Vec<String>>,
+    pub alternate_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The timestamp that the revision was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The name of the scorecard revision. Format: projects/{project}/locations/{location}/qaScorecards/{qa_scorecard}/revisions/{revision}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The snapshot of the scorecard at the time of this revision''s creation.
     #[serde(default)]
-    pub snapshot: Option<GoogleCloudContactcenterinsightsV1QaScorecard>,
+    pub snapshot:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaScorecard>>,
     /// Output only. State of the scorecard revision, indicating whether it''s ready to be used in analysis. // TODO: enum values: ["STATE_UNSPECIFIED", "EDITABLE", "TRAINING", "TRAINING_FAILED", "READY", "DELETING", "TRAINING_CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// A time window for querying conversations.
@@ -3194,10 +3478,10 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardRevision {
 pub struct GoogleCloudContactcenterinsightsV1QueryInterval {
     /// Required. The end time of the time window.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Required. The start time of the time window.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The metadata from querying metrics.
@@ -3205,7 +3489,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryInterval {
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsMetadata {
     /// Whether the result rows were truncated because the result row size is too large to materialize.
     #[serde(default, rename = "resultIsTruncated")]
-    pub result_is_truncated: Option<bool>,
+    pub result_is_truncated: ::core::option::Option<bool>,
 }
 
 /// The request for querying metrics.
@@ -3213,16 +3497,18 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsRequest {
     /// The dimensions that determine the grouping key for the query. Defaults to no dimension if this field is unspecified. If a dimension is specified, its key must also be specified. Each dimension''s key must be unique. If a time granularity is also specified, metric values in the dimension will be bucketed by this granularity. Up to one dimension is supported for now.
     #[serde(default)]
-    pub dimensions: Option<Vec<GoogleCloudContactcenterinsightsV1Dimension>>,
+    pub dimensions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Dimension>>,
+    >,
     /// Required. Filter to select a subset of conversations to compute the metrics. Must specify a window of the conversation create time to compute the metrics. The returned metrics will be from the range [DATE(starting create time), DATE(ending create time)).
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Measures to return. Defaults to all measures if this field is unspecified. A valid mask should traverse from the measure field from the response. For example, a path from a measure mask to get the conversation count is "conversation_measure.count".
     #[serde(default, rename = "measureMask")]
-    pub measure_mask: Option<String>,
+    pub measure_mask: ::core::option::Option<String>,
     /// The time granularity of each data point in the time series. Defaults to NONE if this field is unspecified. // TODO: enum values: ["TIME_GRANULARITY_UNSPECIFIED", "NONE", "DAILY", "HOURLY", "PER_MINUTE", "PER_5_MINUTES", "MONTHLY"]
     #[serde(default, rename = "timeGranularity")]
-    pub time_granularity: Option<String>,
+    pub time_granularity: ::core::option::Option<String>,
 }
 
 /// The response for querying metrics.
@@ -3230,16 +3516,22 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsRequest {
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponse {
     /// Required. The location of the data. "projects/{project}/locations/{location}"
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The macro average slice contains aggregated averages across all selected dimensions. i.e. if group_by agent and scorecard_id is specified, this field will contain the average across all agents and all scorecards. This field is only populated if the request specifies a Dimension.
     #[serde(default, rename = "macroAverageSlice")]
-    pub macro_average_slice: Option<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSlice>,
+    pub macro_average_slice: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSlice>,
+    >,
     /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request.
     #[serde(default)]
-    pub slices: Option<Vec<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSlice>>,
+    pub slices: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSlice>,
+        >,
+    >,
     /// The metrics last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request. For example, if the request specifies a single ISSUE dimension and it has a cardinality of 2 (i.e. the data used to compute the metrics has 2 issues in total), the response will have 2 slices: * Slice 1 -&gt; dimensions=[Issue 1] * Slice 2 -&gt; dimensions=[Issue 2]
@@ -3247,13 +3539,19 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponse {
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSlice {
     /// A unique combination of dimensions that this slice represents.
     #[serde(default)]
-    pub dimensions: Option<Vec<GoogleCloudContactcenterinsightsV1Dimension>>,
+    pub dimensions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Dimension>>,
+    >,
     /// A time series of metric values. This is only populated if the request specifies a time granularity other than NONE.
     #[serde(default, rename = "timeSeries")]
-    pub time_series: Option<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceTimeSeries>,
+    pub time_series: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceTimeSeries>,
+    >,
     /// The total metric value. The interval of this data point is [starting create time, ending create time) from the request.
     #[serde(default)]
-    pub total: Option<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPoint>,
+    pub total: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPoint>,
+    >,
 }
 
 /// A data point contains the metric values mapped to an interval.
@@ -3261,13 +3559,13 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSlice {
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPoint {
     /// The measure related to conversations.
     #[serde(default, rename = "conversationMeasure")]
-    pub conversation_measure: Option<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointConversationMeasure>,
+    pub conversation_measure: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointConversationMeasure>>,
     /// The measure related to dialogflow interactions.
     #[serde(default, rename = "dialogflowInteractionMeasure")]
-    pub dialogflow_interaction_measure: Option<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointDialogflowInteractionMeasure>,
+    pub dialogflow_interaction_measure: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointDialogflowInteractionMeasure>>,
     /// The interval that this data point represents. * If this is the total data point, the interval is [starting create time, ending create time) from the request. * If this a data point from the time series, the interval is [time, time + time granularity from the request).
     #[serde(default)]
-    pub interval: Option<GoogleTypeInterval>,
+    pub interval: ::core::option::Option<::std::boxed::Box<GoogleTypeInterval>>,
 }
 
 /// The measure related to conversations.
@@ -3275,169 +3573,169 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPoint 
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointConversationMeasure {
     /// The number of conversations that were assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorAssignedConversationsCount")]
-    pub aa_supervisor_assigned_conversations_count: Option<i32>,
+    pub aa_supervisor_assigned_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that were dropped, i.e. escalated but not assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorDroppedConversationsCount")]
-    pub aa_supervisor_dropped_conversations_count: Option<i32>,
+    pub aa_supervisor_dropped_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that were escalated to an AA human supervisor for intervention.
     #[serde(default, rename = "aaSupervisorEscalatedConversationsCount")]
-    pub aa_supervisor_escalated_conversations_count: Option<i32>,
+    pub aa_supervisor_escalated_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations scanned by the AA human supervisor.
     #[serde(default, rename = "aaSupervisorMonitoredConversationsCount")]
-    pub aa_supervisor_monitored_conversations_count: Option<i32>,
+    pub aa_supervisor_monitored_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations transferred to a human agent.
     #[serde(default, rename = "aaSupervisorTransferredToHumanAgentConvCount")]
-    pub aa_supervisor_transferred_to_human_agent_conv_count: Option<i32>,
+    pub aa_supervisor_transferred_to_human_agent_conv_count: ::core::option::Option<i32>,
     /// Count of agent messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionAgentMessageTriggerCount")]
-    pub ai_coach_suggestion_agent_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_agent_message_trigger_count: ::core::option::Option<i32>,
     /// Count of Ai Coach Suggestion that has been used by agents.
     #[serde(default, rename = "aiCoachSuggestionAgentUsageCount")]
-    pub ai_coach_suggestion_agent_usage_count: Option<i32>,
+    pub ai_coach_suggestion_agent_usage_count: ::core::option::Option<i32>,
     /// Proportion of Ai Coach Suggestion that has been used by agents.
     #[serde(default, rename = "aiCoachSuggestionAgentUsageRatio")]
-    pub ai_coach_suggestion_agent_usage_ratio: Option<f64>,
+    pub ai_coach_suggestion_agent_usage_ratio: ::core::option::Option<f64>,
     /// Count of customer messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionCustomerMessageTriggerCount")]
-    pub ai_coach_suggestion_customer_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_customer_message_trigger_count: ::core::option::Option<i32>,
     /// Proportion of customer messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionCustomerMessageTriggerRatio")]
-    pub ai_coach_suggestion_customer_message_trigger_ratio: Option<f64>,
+    pub ai_coach_suggestion_customer_message_trigger_ratio: ::core::option::Option<f64>,
     /// Count of end_of_utterance trigger event messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionMessageTriggerCount")]
-    pub ai_coach_suggestion_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_message_trigger_count: ::core::option::Option<i32>,
     /// Proportion of end_of_utterance trigger event messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionMessageTriggerRatio")]
-    pub ai_coach_suggestion_message_trigger_ratio: Option<f64>,
+    pub ai_coach_suggestion_message_trigger_ratio: ::core::option::Option<f64>,
     /// The average agent''s sentiment score.
     #[serde(default, rename = "averageAgentSentimentScore")]
-    pub average_agent_sentiment_score: Option<f32>,
+    pub average_agent_sentiment_score: ::core::option::Option<f32>,
     /// The average client''s sentiment score.
     #[serde(default, rename = "averageClientSentimentScore")]
-    pub average_client_sentiment_score: Option<f32>,
+    pub average_client_sentiment_score: ::core::option::Option<f32>,
     /// The average customer satisfaction rating.
     #[serde(default, rename = "averageCustomerSatisfactionRating")]
-    pub average_customer_satisfaction_rating: Option<f64>,
+    pub average_customer_satisfaction_rating: ::core::option::Option<f64>,
     /// The average duration.
     #[serde(default, rename = "averageDuration")]
-    pub average_duration: Option<String>,
+    pub average_duration: ::core::option::Option<String>,
     /// The average normalized QA score for a scorecard. When computing the average across a set of conversations, if a conversation has been evaluated with multiple revisions of a scorecard, only the latest revision results will be used. Will exclude 0''s in average calculation. Will be only populated if the request specifies a dimension of QA_SCORECARD_ID.
     #[serde(default, rename = "averageQaNormalizedScore")]
-    pub average_qa_normalized_score: Option<f64>,
+    pub average_qa_normalized_score: ::core::option::Option<f64>,
     /// Average QA normalized score averaged for questions averaged across all revisions of the parent scorecard. Will be only populated if the request specifies a dimension of QA_QUESTION_ID.
     #[serde(default, rename = "averageQaQuestionNormalizedScore")]
-    pub average_qa_question_normalized_score: Option<f64>,
+    pub average_qa_question_normalized_score: ::core::option::Option<f64>,
     /// The average silence percentage.
     #[serde(default, rename = "averageSilencePercentage")]
-    pub average_silence_percentage: Option<f32>,
+    pub average_silence_percentage: ::core::option::Option<f32>,
     /// Average edit distance of the summarization suggestions. Edit distance (also called as levenshtein distance) is calculated by summing up number of insertions, deletions and substitutions required to transform the summization feedback to the original summary suggestion.
     #[serde(default, rename = "averageSummarizationSuggestionEditDistance")]
-    pub average_summarization_suggestion_edit_distance: Option<f64>,
+    pub average_summarization_suggestion_edit_distance: ::core::option::Option<f64>,
     /// Normalized Average edit distance of the summarization suggestions. Edit distance (also called as levenshtein distance) is calculated by summing up number of insertions, deletions and substitutions required to transform the summization feedback to the original summary suggestion. Normalized edit distance is the average of (edit distance / summary length).
     #[serde(default, rename = "averageSummarizationSuggestionNormalizedEditDistance")]
-    pub average_summarization_suggestion_normalized_edit_distance: Option<f64>,
+    pub average_summarization_suggestion_normalized_edit_distance: ::core::option::Option<f64>,
     /// The average turn count.
     #[serde(default, rename = "averageTurnCount")]
-    pub average_turn_count: Option<f32>,
+    pub average_turn_count: ::core::option::Option<f32>,
     /// The exponential moving average of the sentiment score of client turns in the conversation.
     #[serde(default, rename = "avgConversationClientTurnSentimentEma")]
-    pub avg_conversation_client_turn_sentiment_ema: Option<f64>,
+    pub avg_conversation_client_turn_sentiment_ema: ::core::option::Option<f64>,
     /// The number of conversations that were contained.
     #[serde(default, rename = "containedConversationCount")]
-    pub contained_conversation_count: Option<i32>,
+    pub contained_conversation_count: ::core::option::Option<i32>,
     /// The percentage of conversations that were contained.
     #[serde(default, rename = "containedConversationRatio")]
-    pub contained_conversation_ratio: Option<f64>,
+    pub contained_conversation_ratio: ::core::option::Option<f64>,
     /// Count of conversations that has Ai Coach Suggestions.
     #[serde(default, rename = "conversationAiCoachSuggestionCount")]
-    pub conversation_ai_coach_suggestion_count: Option<i32>,
+    pub conversation_ai_coach_suggestion_count: ::core::option::Option<i32>,
     /// Proportion of conversations that has Ai Coach Suggestions.
     #[serde(default, rename = "conversationAiCoachSuggestionRatio")]
-    pub conversation_ai_coach_suggestion_ratio: Option<f64>,
+    pub conversation_ai_coach_suggestion_ratio: ::core::option::Option<f64>,
     /// The conversation count.
     #[serde(default, rename = "conversationCount")]
-    pub conversation_count: Option<i32>,
+    pub conversation_count: ::core::option::Option<i32>,
     /// Proportion of conversations that had a suggested summary.
     #[serde(default, rename = "conversationSuggestedSummaryRatio")]
-    pub conversation_suggested_summary_ratio: Option<f64>,
+    pub conversation_suggested_summary_ratio: ::core::option::Option<f64>,
     /// The agent message count.
     #[serde(default, rename = "conversationTotalAgentMessageCount")]
-    pub conversation_total_agent_message_count: Option<i32>,
+    pub conversation_total_agent_message_count: ::core::option::Option<i32>,
     /// The customer message count.
     #[serde(default, rename = "conversationTotalCustomerMessageCount")]
-    pub conversation_total_customer_message_count: Option<i32>,
+    pub conversation_total_customer_message_count: ::core::option::Option<i32>,
     /// The average latency of conversational agents'' audio in audio out latency per interaction. This is computed as the average of the all the interactions'' audio in audio out latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageAudioInAudioOutLatency")]
-    pub conversational_agents_average_audio_in_audio_out_latency: Option<f64>,
+    pub conversational_agents_average_audio_in_audio_out_latency: ::core::option::Option<f64>,
     /// The average latency of conversational agents'' latency per interaction. This is computed as the average of the all the iteractions'' end to end latencies in a conversation and averaged across conversations. The e2e latency is the time between the end of the user utterance and the start of the agent utterance on the interaction level.
     #[serde(default, rename = "conversationalAgentsAverageEndToEndLatency")]
-    pub conversational_agents_average_end_to_end_latency: Option<f64>,
+    pub conversational_agents_average_end_to_end_latency: ::core::option::Option<f64>,
     /// The average latency of conversational agents'' LLM call latency per interaction. This is computed as the average of the all the interactions LLM call latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageLlmCallLatency")]
-    pub conversational_agents_average_llm_call_latency: Option<f64>,
+    pub conversational_agents_average_llm_call_latency: ::core::option::Option<f64>,
     /// The macro average latency of conversational agents'' TTS latency per interaction. This is computed as the average of the all the interactions'' TTS latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageTtsLatency")]
-    pub conversational_agents_average_tts_latency: Option<f64>,
+    pub conversational_agents_average_tts_latency: ::core::option::Option<f64>,
     /// Average latency of dialogflow webhook calls.
     #[serde(default, rename = "dialogflowAverageWebhookLatency")]
-    pub dialogflow_average_webhook_latency: Option<f64>,
+    pub dialogflow_average_webhook_latency: ::core::option::Option<f64>,
     /// count of conversations that was handed off from virtual agent to human agent.
     #[serde(default, rename = "dialogflowConversationsEscalationCount")]
-    pub dialogflow_conversations_escalation_count: Option<f64>,
+    pub dialogflow_conversations_escalation_count: ::core::option::Option<f64>,
     /// Proportion of conversations that was handed off from virtual agent to human agent.
     #[serde(default, rename = "dialogflowConversationsEscalationRatio")]
-    pub dialogflow_conversations_escalation_ratio: Option<f64>,
+    pub dialogflow_conversations_escalation_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow interactions that has empty input.
     #[serde(default, rename = "dialogflowInteractionsNoInputRatio")]
-    pub dialogflow_interactions_no_input_ratio: Option<f64>,
+    pub dialogflow_interactions_no_input_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow interactions that has no intent match for the input.
     #[serde(default, rename = "dialogflowInteractionsNoMatchRatio")]
-    pub dialogflow_interactions_no_match_ratio: Option<f64>,
+    pub dialogflow_interactions_no_match_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow webhook calls that failed.
     #[serde(default, rename = "dialogflowWebhookFailureRatio")]
-    pub dialogflow_webhook_failure_ratio: Option<f64>,
+    pub dialogflow_webhook_failure_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow webhook calls that timed out.
     #[serde(default, rename = "dialogflowWebhookTimeoutRatio")]
-    pub dialogflow_webhook_timeout_ratio: Option<f64>,
+    pub dialogflow_webhook_timeout_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had negative feedback.
     #[serde(default, rename = "knowledgeAssistNegativeFeedbackRatio")]
-    pub knowledge_assist_negative_feedback_ratio: Option<f64>,
+    pub knowledge_assist_negative_feedback_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had positive feedback.
     #[serde(default, rename = "knowledgeAssistPositiveFeedbackRatio")]
-    pub knowledge_assist_positive_feedback_ratio: Option<f64>,
+    pub knowledge_assist_positive_feedback_ratio: ::core::option::Option<f64>,
     /// Count of knowledge assist results (Proactive Generative Knowledge Assist) shown to the user.
     #[serde(default, rename = "knowledgeAssistResultCount")]
-    pub knowledge_assist_result_count: Option<i32>,
+    pub knowledge_assist_result_count: ::core::option::Option<i32>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had a URL clicked.
     #[serde(default, rename = "knowledgeAssistUriClickRatio")]
-    pub knowledge_assist_uri_click_ratio: Option<f64>,
+    pub knowledge_assist_uri_click_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries made by the agent compared to the total number of knowledge search queries made.
     #[serde(default, rename = "knowledgeSearchAgentQuerySourceRatio")]
-    pub knowledge_search_agent_query_source_ratio: Option<f64>,
+    pub knowledge_search_agent_query_source_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had negative feedback.
     #[serde(default, rename = "knowledgeSearchNegativeFeedbackRatio")]
-    pub knowledge_search_negative_feedback_ratio: Option<f64>,
+    pub knowledge_search_negative_feedback_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had positive feedback.
     #[serde(default, rename = "knowledgeSearchPositiveFeedbackRatio")]
-    pub knowledge_search_positive_feedback_ratio: Option<f64>,
+    pub knowledge_search_positive_feedback_ratio: ::core::option::Option<f64>,
     /// Count of knowledge search results (Generative Knowledge Assist) shown to the user.
     #[serde(default, rename = "knowledgeSearchResultCount")]
-    pub knowledge_search_result_count: Option<i32>,
+    pub knowledge_search_result_count: ::core::option::Option<i32>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries suggested compared to the total number of knowledge search queries made.
     #[serde(default, rename = "knowledgeSearchSuggestedQuerySourceRatio")]
-    pub knowledge_search_suggested_query_source_ratio: Option<f64>,
+    pub knowledge_search_suggested_query_source_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had a URL clicked.
     #[serde(default, rename = "knowledgeSearchUriClickRatio")]
-    pub knowledge_search_uri_click_ratio: Option<f64>,
+    pub knowledge_search_uri_click_ratio: ::core::option::Option<f64>,
     /// Average QA normalized score for all the tags.
     #[serde(default, rename = "qaTagScores")]
-    pub qa_tag_scores: Option<Vec<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointConversationMeasureQaTagScore>>,
+    pub qa_tag_scores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointConversationMeasureQaTagScore>>>,
     /// Proportion of summarization suggestions that were manually edited.
     #[serde(default, rename = "summarizationSuggestionEditRatio")]
-    pub summarization_suggestion_edit_ratio: Option<f64>,
+    pub summarization_suggestion_edit_ratio: ::core::option::Option<f64>,
     /// Count of summarization suggestions results.
     #[serde(default, rename = "summarizationSuggestionResultCount")]
-    pub summarization_suggestion_result_count: Option<i32>,
+    pub summarization_suggestion_result_count: ::core::option::Option<i32>,
 }
 
 /// Average QA normalized score for the tag.
@@ -3446,10 +3744,10 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointC
 {
     /// Average tag normalized score per tag.
     #[serde(default, rename = "averageTagNormalizedScore")]
-    pub average_tag_normalized_score: Option<f64>,
+    pub average_tag_normalized_score: ::core::option::Option<f64>,
     /// Tag name.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// The measure related to dialogflow interactions.
@@ -3458,28 +3756,38 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointD
 {
     /// The percentile result for audio in audio out latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileAudioInAudioOutLatency")]
-    pub percentile_audio_in_audio_out_latency: Option<
-        GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+    pub percentile_audio_in_audio_out_latency: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+        >,
     >,
     /// The percentile result for end to end chat latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileEndToEndLatency")]
-    pub percentile_end_to_end_latency: Option<
-        GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+    pub percentile_end_to_end_latency: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+        >,
     >,
     /// The percentile result for LLM latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileLlmCallLatency")]
-    pub percentile_llm_call_latency: Option<
-        GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+    pub percentile_llm_call_latency: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+        >,
     >,
     /// The percentile result for tool use latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileToolUseLatency")]
-    pub percentile_tool_use_latency: Option<
-        GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+    pub percentile_tool_use_latency: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+        >,
     >,
     /// The percentile result for TTS latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileTtsLatency")]
-    pub percentile_tts_latency: Option<
-        GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+    pub percentile_tts_latency: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult,
+        >,
     >,
 }
 
@@ -3488,13 +3796,13 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointD
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult {
     /// The 50th percentile value.
     #[serde(default)]
-    pub p50: Option<f64>,
+    pub p50: ::core::option::Option<f64>,
     /// The 90th percentile value.
     #[serde(default)]
-    pub p90: Option<f64>,
+    pub p90: ::core::option::Option<f64>,
     /// The 99th percentile value.
     #[serde(default)]
-    pub p99: Option<f64>,
+    pub p99: ::core::option::Option<f64>,
 }
 
 /// A time series of metric values.
@@ -3502,8 +3810,11 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointP
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceTimeSeries {
     /// The data points that make up the time series .
     #[serde(default, rename = "dataPoints")]
-    pub data_points:
-        Option<Vec<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPoint>>,
+    pub data_points: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPoint>,
+        >,
+    >,
 }
 
 /// The request for summarizing performance according to different metrics for conversations over a specified time window.
@@ -3511,17 +3822,22 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceTimeSeries
 pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest {
     /// Conversations are from a single agent.
     #[serde(default, rename = "agentPerformanceSource")]
-    pub agent_performance_source:
-        Option<GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequestAgentSource>,
+    pub agent_performance_source: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequestAgentSource,
+        >,
+    >,
     /// The time window of the conversations to compare the performance to.
     #[serde(default, rename = "comparisonQueryInterval")]
-    pub comparison_query_interval: Option<GoogleCloudContactcenterinsightsV1QueryInterval>,
+    pub comparison_query_interval:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryInterval>>,
     /// Optional. Filter to select a subset of conversations to compute the performance overview. Supports the same filters as the filter field in QueryMetricsRequest. The source and query interval/comparison query interval should not be included here.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The time window of the conversations to derive performance stats from.
     #[serde(default, rename = "queryInterval")]
-    pub query_interval: Option<GoogleCloudContactcenterinsightsV1QueryInterval>,
+    pub query_interval:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QueryInterval>>,
 }
 
 /// The entity whose performance is being queried is a single agent.
@@ -3529,7 +3845,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest {
 pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequestAgentSource {
     /// Required. Agent id to query performance overview for.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
 }
 
 /// The response for querying performance overview.
@@ -3537,7 +3853,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequestAgen
 pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewResponse {
     /// The summary text of the performance.
     #[serde(default, rename = "summaryText")]
-    pub summary_text: Option<String>,
+    pub summary_text: ::core::option::Option<String>,
 }
 
 /// DLP resources used for redaction while ingesting conversations. DLP settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint or the Dialogflow / Agent Assist runtime integrations. When using Dialogflow / Agent Assist runtime integrations, redaction should be performed in Dialogflow / Agent Assist.
@@ -3545,10 +3861,10 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewResponse {
 pub struct GoogleCloudContactcenterinsightsV1RedactionConfig {
     /// The fully-qualified DLP deidentify template resource name. Format: projects/{project}/deidentifyTemplates/{template}
     #[serde(default, rename = "deidentifyTemplate")]
-    pub deidentify_template: Option<String>,
+    pub deidentify_template: ::core::option::Option<String>,
     /// The fully-qualified DLP inspect template resource name. Format: projects/{project}/locations/{location}/inspectTemplates/{template}
     #[serde(default, rename = "inspectTemplate")]
-    pub inspect_template: Option<String>,
+    pub inspect_template: ::core::option::Option<String>,
 }
 
 /// The redirect action to be taken when the chart is clicked.
@@ -3556,7 +3872,7 @@ pub struct GoogleCloudContactcenterinsightsV1RedactionConfig {
 pub struct GoogleCloudContactcenterinsightsV1RedirectAction {
     /// The relative path to redirect to.
     #[serde(default, rename = "relativePath")]
-    pub relative_path: Option<String>,
+    pub relative_path: ::core::option::Option<String>,
 }
 
 /// An annotation that was generated during the customer and agent interaction.
@@ -3564,42 +3880,59 @@ pub struct GoogleCloudContactcenterinsightsV1RedirectAction {
 pub struct GoogleCloudContactcenterinsightsV1RuntimeAnnotation {
     /// The unique identifier of the annotation. Format: projects/{project}/locations/{location}/conversationDatasets/{dataset}/conversationDataItems/{data_item}/conversationAnnotations/{annotation}
     #[serde(default, rename = "annotationId")]
-    pub annotation_id: Option<String>,
+    pub annotation_id: ::core::option::Option<String>,
     /// The feedback that the customer has about the answer in data.
     #[serde(default, rename = "answerFeedback")]
-    pub answer_feedback: Option<GoogleCloudContactcenterinsightsV1AnswerFeedback>,
+    pub answer_feedback:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnswerFeedback>>,
     /// Agent Assist Article Suggestion data.
     #[serde(default, rename = "articleSuggestion")]
-    pub article_suggestion: Option<GoogleCloudContactcenterinsightsV1ArticleSuggestionData>,
+    pub article_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ArticleSuggestionData>,
+    >,
     /// Conversation summarization suggestion data.
     #[serde(default, rename = "conversationSummarizationSuggestion")]
-    pub conversation_summarization_suggestion:
-        Option<GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestionData>,
+    pub conversation_summarization_suggestion: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestionData,
+        >,
+    >,
     /// The time at which this annotation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Dialogflow interaction data.
     #[serde(default, rename = "dialogflowInteraction")]
-    pub dialogflow_interaction: Option<GoogleCloudContactcenterinsightsV1DialogflowInteractionData>,
+    pub dialogflow_interaction: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1DialogflowInteractionData>,
+    >,
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "endBoundary")]
-    pub end_boundary: Option<GoogleCloudContactcenterinsightsV1AnnotationBoundary>,
+    pub end_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotationBoundary>,
+    >,
     /// Agent Assist FAQ answer data.
     #[serde(default, rename = "faqAnswer")]
-    pub faq_answer: Option<GoogleCloudContactcenterinsightsV1FaqAnswerData>,
+    pub faq_answer:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1FaqAnswerData>>,
     /// Agent Assist Smart Compose suggestion data.
     #[serde(default, rename = "smartComposeSuggestion")]
-    pub smart_compose_suggestion:
-        Option<GoogleCloudContactcenterinsightsV1SmartComposeSuggestionData>,
+    pub smart_compose_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1SmartComposeSuggestionData>,
+    >,
     /// Agent Assist Smart Reply data.
     #[serde(default, rename = "smartReply")]
-    pub smart_reply: Option<GoogleCloudContactcenterinsightsV1SmartReplyData>,
+    pub smart_reply:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SmartReplyData>>,
     /// The boundary in the conversation where the annotation starts, inclusive.
     #[serde(default, rename = "startBoundary")]
-    pub start_boundary: Option<GoogleCloudContactcenterinsightsV1AnnotationBoundary>,
+    pub start_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotationBoundary>,
+    >,
     /// Explicit input used for generating the answer
     #[serde(default, rename = "userInput")]
-    pub user_input: Option<GoogleCloudContactcenterinsightsV1RuntimeAnnotationUserInput>,
+    pub user_input: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1RuntimeAnnotationUserInput>,
+    >,
 }
 
 /// Explicit input used for generating the answer
@@ -3607,13 +3940,13 @@ pub struct GoogleCloudContactcenterinsightsV1RuntimeAnnotation {
 pub struct GoogleCloudContactcenterinsightsV1RuntimeAnnotationUserInput {
     /// The resource name of associated generator. Format: projects//locations//generators/
     #[serde(default, rename = "generatorName")]
-    pub generator_name: Option<String>,
+    pub generator_name: ::core::option::Option<String>,
     /// Query text. Article Search uses this to store the input query used to generate the search results.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Query source for the answer. // TODO: enum values: ["QUERY_SOURCE_UNSPECIFIED", "AGENT_QUERY", "SUGGESTED_QUERY"]
     #[serde(default, rename = "querySource")]
-    pub query_source: Option<String>,
+    pub query_source: ::core::option::Option<String>,
 }
 
 /// The metadata for an SampleConversations operation.
@@ -3621,20 +3954,24 @@ pub struct GoogleCloudContactcenterinsightsV1RuntimeAnnotationUserInput {
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Partial errors during sample conversations operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for sample conversations to dataset.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1SampleConversationsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1SampleConversationsRequest>,
+    >,
     /// Output only. Statistics for SampleConversations operation.
     #[serde(default, rename = "sampleConversationsStats")]
-    pub sample_conversations_stats: Option<
-        GoogleCloudContactcenterinsightsV1SampleConversationsMetadataSampleConversationsStats,
+    pub sample_conversations_stats: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1SampleConversationsMetadataSampleConversationsStats,
+        >,
     >,
 }
 
@@ -3643,10 +3980,10 @@ pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadataSampleConversationsStats {
     /// Output only. The number of objects which were unable to be sampled due to errors. The errors are populated in the partial_errors field.
     #[serde(default, rename = "failedSampleCount")]
-    pub failed_sample_count: Option<i32>,
+    pub failed_sample_count: ::core::option::Option<i32>,
     /// Output only. The number of new conversations added during this sample operation.
     #[serde(default, rename = "successfulSampleCount")]
-    pub successful_sample_count: Option<i32>,
+    pub successful_sample_count: ::core::option::Option<i32>,
 }
 
 /// The request to sample conversations to a dataset.
@@ -3654,13 +3991,15 @@ pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadataSampleCo
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsRequest {
     /// The dataset resource to copy the sampled conversations to.
     #[serde(default, rename = "destinationDataset")]
-    pub destination_dataset: Option<GoogleCloudContactcenterinsightsV1Dataset>,
+    pub destination_dataset:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Dataset>>,
     /// Required. The parent resource of the dataset.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. The sample rule used for sampling conversations.
     #[serde(default, rename = "sampleRule")]
-    pub sample_rule: Option<GoogleCloudContactcenterinsightsV1SampleRule>,
+    pub sample_rule:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SampleRule>>,
 }
 
 /// Message for sampling conversations.
@@ -3668,16 +4007,16 @@ pub struct GoogleCloudContactcenterinsightsV1SampleConversationsRequest {
 pub struct GoogleCloudContactcenterinsightsV1SampleRule {
     /// To specify the filter for the conversions that should apply this sample rule. An empty filter means this sample rule applies to all conversations.
     #[serde(default, rename = "conversationFilter")]
-    pub conversation_filter: Option<String>,
+    pub conversation_filter: ::core::option::Option<String>,
     /// Optional. Group by dimension to sample the conversation. If no dimension is provided, the sampling will be applied to the project level. Current supported dimensions is ''quality_metadata.agent_info.agent_id''.
     #[serde(default)]
-    pub dimension: Option<String>,
+    pub dimension: ::core::option::Option<String>,
     /// Percentage of conversations that we should sample based on the dimension between [0, 100].
     #[serde(default, rename = "samplePercentage")]
-    pub sample_percentage: Option<f64>,
+    pub sample_percentage: ::core::option::Option<f64>,
     /// Number of the conversations that we should sample based on the dimension.
     #[serde(default, rename = "sampleRow")]
-    pub sample_row: Option<String>,
+    pub sample_row: ::core::option::Option<String>,
 }
 
 /// Message for schedule info.
@@ -3685,16 +4024,16 @@ pub struct GoogleCloudContactcenterinsightsV1SampleRule {
 pub struct GoogleCloudContactcenterinsightsV1ScheduleInfo {
     /// End time of the schedule. If not specified, will keep scheduling new pipelines for execution util the schedule is no longer active or deleted.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The groc expression. Format: every number [synchronized] Time units can be: minutes, hours Synchronized is optional and indicates that the schedule should be synchronized to the start of the interval: every 5 minutes synchronized means 00:00, 00:05 ... Otherwise the start time is random within the interval. Example: every 5 minutes could be 00:02, 00:07, 00:12, ...
     #[serde(default)]
-    pub schedule: Option<String>,
+    pub schedule: ::core::option::Option<String>,
     /// Start time of the schedule. If not specified, will start as soon as the schedule is created.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The timezone to use for the groc expression. If not specified, defaults to UTC.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
 }
 
 /// The response from a ListAuthorizedViews request.
@@ -3702,10 +4041,12 @@ pub struct GoogleCloudContactcenterinsightsV1ScheduleInfo {
 pub struct GoogleCloudContactcenterinsightsV1SearchAuthorizedViewsResponse {
     /// The AuthorizedViews under the parent.
     #[serde(default, rename = "authorizedViews")]
-    pub authorized_views: Option<Vec<GoogleCloudContactcenterinsightsV1AuthorizedView>>,
+    pub authorized_views: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1AuthorizedView>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The data for a sentiment annotation.
@@ -3713,10 +4054,10 @@ pub struct GoogleCloudContactcenterinsightsV1SearchAuthorizedViewsResponse {
 pub struct GoogleCloudContactcenterinsightsV1SentimentData {
     /// A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     /// The sentiment score between -1.0 (negative) and 1.0 (positive).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// The CCAI Insights project wide settings. Use these settings to configure the behavior of Insights. View these settings with [getsettings](https://cloud.google.com/contact-center/insights/docs/reference/rest/v1/projects.locations/getSettings) and change the settings with [updateSettings](https://cloud.google.com/contact-center/insights/docs/reference/rest/v1/projects.locations/updateSettings).
@@ -3724,37 +4065,42 @@ pub struct GoogleCloudContactcenterinsightsV1SentimentData {
 pub struct GoogleCloudContactcenterinsightsV1Settings {
     /// Default analysis settings.
     #[serde(default, rename = "analysisConfig")]
-    pub analysis_config: Option<GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig>,
+    pub analysis_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig>,
+    >,
     /// The default TTL for newly-created conversations. If a conversation has a specified expiration, that value will be used instead. Changing this value will not change the expiration of existing conversations. Conversations with no expire time persist until they are deleted.
     #[serde(default, rename = "conversationTtl")]
-    pub conversation_ttl: Option<String>,
+    pub conversation_ttl: ::core::option::Option<String>,
     /// Output only. The time at which the settings was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// A language code to be applied to each transcript segment unless the segment already specifies a language code. Language code defaults to "en-US" if it is neither specified on the segment nor here.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Immutable. The resource name of the settings resource. Format: projects/{project}/locations/{location}/settings
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A map that maps a notification trigger to a Pub/Sub topic. Each time a specified trigger occurs, Insights will notify the corresponding Pub/Sub topic. Keys are notification triggers. Supported keys are: * "all-triggers": Notify each time any of the supported triggers occurs. * "create-analysis": Notify each time an analysis is created. * "create-conversation": Notify each time a conversation is created. * "export-insights-data": Notify each time an export is complete. * "ingest-conversations": Notify each time an IngestConversations LRO is complete. * "update-conversation": Notify each time a conversation is updated via UpdateConversation. * "upload-conversation": Notify when an UploadConversation LRO is complete. * "update-or-analyze-conversation": Notify when an analysis for a conversation is completed or when the conversation is updated. The message will contain the conversation with transcript, analysis and other metadata. Values are Pub/Sub topics. The format of each Pub/Sub topic is: projects/{project}/topics/{topic}
     #[serde(default, rename = "pubsubNotificationSettings")]
-    pub pubsub_notification_settings: Option<serde_json::Value>,
+    pub pubsub_notification_settings: ::core::option::Option<serde_json::Value>,
     /// Default DLP redaction resources to be applied while ingesting conversations. This applies to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversations coming from CCAI Platform.
     #[serde(default, rename = "redactionConfig")]
-    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    pub redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    >,
     /// Optional. The path to a Cloud Storage bucket containing conversation screen recordings. If provided, Insights will search in the bucket for a screen recording file matching the conversation data source object name prefix. If matches are found, these file URIs will be stored in the conversation screen recordings field.
     #[serde(default, rename = "screenRecordingBucketUri")]
-    pub screen_recording_bucket_uri: Option<String>,
+    pub screen_recording_bucket_uri: ::core::option::Option<String>,
     /// Optional. Default Speech-to-Text resources to use while ingesting audio files. Optional, CCAI Insights will create a default if not provided. This applies to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversations coming from CCAI Platform.
     #[serde(default, rename = "speechConfig")]
-    pub speech_config: Option<GoogleCloudContactcenterinsightsV1SpeechConfig>,
+    pub speech_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SpeechConfig>>,
     /// Optional. The time zone applied to the project. This is a string representation of the time zone, for example, "America/New_York". This field follows the IANA TZ database format. See https://www.iana.org/time-zones for a list of valid values. If no value is set the user time zone will be used.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<String>,
+    pub time_zone: ::core::option::Option<String>,
     /// Output only. The time at which the settings were last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Default configuration when creating Analyses in Insights.
@@ -3762,13 +4108,15 @@ pub struct GoogleCloudContactcenterinsightsV1Settings {
 pub struct GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig {
     /// To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AnnotatorSelector>,
+    >,
     /// Percentage of conversations created using Dialogflow runtime integration to analyze automatically, between [0, 100].
     #[serde(default, rename = "runtimeIntegrationAnalysisPercentage")]
-    pub runtime_integration_analysis_percentage: Option<f64>,
+    pub runtime_integration_analysis_percentage: ::core::option::Option<f64>,
     /// Percentage of conversations created using the UploadConversation endpoint to analyze automatically, between [0, 100].
     #[serde(default, rename = "uploadConversationAnalysisPercentage")]
-    pub upload_conversation_analysis_percentage: Option<f64>,
+    pub upload_conversation_analysis_percentage: ::core::option::Option<f64>,
 }
 
 /// Signed audio URIs for a conversation.
@@ -3776,14 +4124,19 @@ pub struct GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig {
 pub struct GoogleCloudContactcenterinsightsV1SignedAudioUris {
     /// The signed URI for the audio from the Dialogflow conversation source.
     #[serde(default, rename = "signedDialogflowAudioUri")]
-    pub signed_dialogflow_audio_uri: Option<String>,
+    pub signed_dialogflow_audio_uri: ::core::option::Option<String>,
     /// The signed URI for the audio from the Cloud Storage conversation source.
     #[serde(default, rename = "signedGcsAudioUri")]
-    pub signed_gcs_audio_uri: Option<String>,
+    pub signed_gcs_audio_uri: ::core::option::Option<String>,
     /// The signed URI for the audio corresponding to each turn in the conversation.
     #[serde(default, rename = "signedTurnLevelAudios")]
-    pub signed_turn_level_audios:
-        Option<Vec<GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudio>>,
+    pub signed_turn_level_audios: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudio,
+            >,
+        >,
+    >,
 }
 
 /// Agent Assist Smart Compose suggestion data.
@@ -3791,16 +4144,16 @@ pub struct GoogleCloudContactcenterinsightsV1SignedAudioUris {
 pub struct GoogleCloudContactcenterinsightsV1SmartComposeSuggestionData {
     /// The system''s confidence score that this suggestion is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f64>,
+    pub confidence_score: ::core::option::Option<f64>,
     /// Map that contains metadata about the Smart Compose suggestion and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The content of the suggestion.
     #[serde(default)]
-    pub suggestion: Option<String>,
+    pub suggestion: ::core::option::Option<String>,
 }
 
 /// Agent Assist Smart Reply data.
@@ -3808,16 +4161,16 @@ pub struct GoogleCloudContactcenterinsightsV1SmartComposeSuggestionData {
 pub struct GoogleCloudContactcenterinsightsV1SmartReplyData {
     /// The system''s confidence score that this reply is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f64>,
+    pub confidence_score: ::core::option::Option<f64>,
     /// Map that contains metadata about the Smart Reply and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The content of the reply.
     #[serde(default)]
-    pub reply: Option<String>,
+    pub reply: ::core::option::Option<String>,
 }
 
 /// Speech-to-Text configuration. Speech-to-Text settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint.
@@ -3825,10 +4178,10 @@ pub struct GoogleCloudContactcenterinsightsV1SmartReplyData {
 pub struct GoogleCloudContactcenterinsightsV1SpeechConfig {
     /// Whether to disable word time offsets. If true, the enable_word_time_offsets field in the recognition config will be set to false.
     #[serde(default, rename = "disableWordTimeOffsets")]
-    pub disable_word_time_offsets: Option<bool>,
+    pub disable_word_time_offsets: ::core::option::Option<bool>,
     /// The fully-qualified Speech Recognizer resource name. Format: projects/{project_id}/locations/{location}/recognizer/{recognizer}
     #[serde(default, rename = "speechRecognizer")]
-    pub speech_recognizer: Option<String>,
+    pub speech_recognizer: ::core::option::Option<String>,
 }
 
 /// The request message for testing auto labeling rules.
@@ -3836,10 +4189,13 @@ pub struct GoogleCloudContactcenterinsightsV1SpeechConfig {
 pub struct GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleRequest {
     /// Required. The auto labeling rule to test.
     #[serde(default, rename = "autoLabelingRule")]
-    pub auto_labeling_rule: Option<GoogleCloudContactcenterinsightsV1AutoLabelingRule>,
+    pub auto_labeling_rule: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1AutoLabelingRule>,
+    >,
     /// Required. Conversation data to test rules against.
     #[serde(default)]
-    pub conversation: Option<GoogleCloudContactcenterinsightsV1Conversation>,
+    pub conversation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Conversation>>,
 }
 
 /// The response message for testing auto labeling rules.
@@ -3847,7 +4203,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleRequest {
 pub struct GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleResponse {
     /// The result of the test auto labeling rule.
     #[serde(default, rename = "labelResult")]
-    pub label_result: Option<String>,
+    pub label_result: ::core::option::Option<String>,
 }
 
 /// Metadata for testing correlation config.
@@ -3855,13 +4211,13 @@ pub struct GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleResponse {
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The dataset used for sampling conversations.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// The statistics for the operation.
     #[serde(default)]
-    pub stats: Option<GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullConversationCorrelationStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullConversationCorrelationStats>>,
 }
 
 /// Statistics for TestCorrelationConfig operation.
@@ -3869,19 +4225,19 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadata {
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullConversationCorrelationStats {
     /// A list of errors that occurred during correlation, one for each conversation that failed.
     #[serde(default, rename = "conversationCorrelationErrors")]
-    pub conversation_correlation_errors: Option<Vec<GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError>>,
+    pub conversation_correlation_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError>>>,
     /// The number of conversations correlated.
     #[serde(default, rename = "correlatedConversationsCount")]
-    pub correlated_conversations_count: Option<i32>,
+    pub correlated_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that failed correlation.
     #[serde(default, rename = "failedConversationsCount")]
-    pub failed_conversations_count: Option<i32>,
+    pub failed_conversations_count: ::core::option::Option<i32>,
     /// Partial errors during test correlation config operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The number of conversations sampled.
     #[serde(default, rename = "sampledConversationsCount")]
-    pub sampled_conversations_count: Option<i32>,
+    pub sampled_conversations_count: ::core::option::Option<i32>,
 }
 
 /// An error that occurred during correlation for a specific conversation.
@@ -3890,10 +4246,10 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullCo
 {
     /// The conversation resource name that had an error during correlation.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The error status.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// The request to test correlation config.
@@ -3901,17 +4257,22 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullCo
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequest {
     /// Optional. A list of conversations to test against.
     #[serde(default)]
-    pub conversations:
-        Option<GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequestConversations>,
+    pub conversations: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequestConversations,
+        >,
+    >,
     /// Required. The correlation config to test.
     #[serde(default, rename = "correlationConfig")]
-    pub correlation_config: Option<GoogleCloudContactcenterinsightsV1CorrelationConfig>,
+    pub correlation_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1CorrelationConfig>,
+    >,
     /// Optional. Filter to select conversations to test correlation against. Conversations matching this filter will be sampled based on start time. The most recent max_sample_count conversations will be selected. If no conversations match the filter, the request will fail with an INVALID_ARGUMENT error.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Optional. The maximum number of conversations to sample when using the filter. If not set, defaults to 1000. Values greater than 1000 are coerced to 1000. This field is ignored if conversations is provided.
     #[serde(default, rename = "maxSampleCount")]
-    pub max_sample_count: Option<i32>,
+    pub max_sample_count: ::core::option::Option<i32>,
 }
 
 /// Wrapper for a list of conversations.
@@ -3919,7 +4280,9 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequest {
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequestConversations {
     /// Optional. The conversations.
     #[serde(default)]
-    pub conversations: Option<Vec<GoogleCloudContactcenterinsightsV1Conversation>>,
+    pub conversations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Conversation>>,
+    >,
 }
 
 /// The response of testing correlation config.
@@ -3927,12 +4290,10 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequestConvers
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponse {
     /// Results for the DETAILED_SYNC execution mode.
     #[serde(default, rename = "detailedResults")]
-    pub detailed_results: Option<
-        GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponseDetailedCorrelationResults,
-    >,
+    pub detailed_results: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponseDetailedCorrelationResults>>,
     /// Partial errors during test correlation config operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Wrapper for detailed, step-by-step results.
@@ -3941,12 +4302,18 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponseDetail
 {
     /// A list of constraint evaluation results for each pair of conversations.
     #[serde(default, rename = "constraintResults")]
-    pub constraint_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1ConstraintEvaluationResult>>,
+    pub constraint_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConstraintEvaluationResult>,
+        >,
+    >,
     /// A list of join key correlation results for each conversation tested.
     #[serde(default, rename = "joinKeyResults")]
-    pub join_key_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1ConversationCorrelationResult>>,
+    pub join_key_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1ConversationCorrelationResult>,
+        >,
+    >,
 }
 
 /// Request for TuneQaScorecardRevision endpoint.
@@ -3954,10 +4321,10 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponseDetail
 pub struct GoogleCloudContactcenterinsightsV1TuneQaScorecardRevisionRequest {
     /// Required. Filter for selecting the feedback labels that needs to be used for training. This filter can be used to limit the feedback labels used for tuning to a feedback labels created or updated for a specific time-window etc.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Optional. Run in validate only mode, no fine tuning will actually run. Data quality validations like training data distributions will run. Even when set to false, the data quality validations will still run but once the validations complete we will proceed with the fine tune, if applicable.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Metadata for undeploying an issue model.
@@ -3965,13 +4332,15 @@ pub struct GoogleCloudContactcenterinsightsV1TuneQaScorecardRevisionRequest {
 pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for undeployment.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest>,
+    >,
 }
 
 /// The request to undeploy an issue model.
@@ -3979,7 +4348,7 @@ pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest {
     /// Required. The issue model to undeploy.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The metadata for updating a QaQuestionTag Resource.
@@ -3987,13 +4356,15 @@ pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagRequest>,
+    >,
 }
 
 /// The request for updating a QaQuestionTag.
@@ -4001,10 +4372,11 @@ pub struct GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagMetadata {
 pub struct GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagRequest {
     /// Required. The QaQuestionTag to update.
     #[serde(default, rename = "qaQuestionTag")]
-    pub qa_question_tag: Option<GoogleCloudContactcenterinsightsV1QaQuestionTag>,
+    pub qa_question_tag:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1QaQuestionTag>>,
     /// Optional. The list of fields to be updated. All possible fields can be updated by passing *, or a subset of the following updateable fields can be provided: * qa_question_tag_name - the name of the tag * qa_question_ids - the list of questions the tag applies to
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// The metadata for an UploadConversation operation.
@@ -4012,19 +4384,23 @@ pub struct GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagRequest {
 pub struct GoogleCloudContactcenterinsightsV1UploadConversationMetadata {
     /// Output only. The operation name for a successfully created analysis operation, if any.
     #[serde(default, rename = "analysisOperation")]
-    pub analysis_operation: Option<String>,
+    pub analysis_operation: ::core::option::Option<String>,
     /// Output only. The redaction config applied to the uploaded conversation.
     #[serde(default, rename = "appliedRedactionConfig")]
-    pub applied_redaction_config: Option<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    pub applied_redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    >,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1UploadConversationRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1UploadConversationRequest>,
+    >,
 }
 
 /// Request to upload a conversation.
@@ -4032,19 +4408,23 @@ pub struct GoogleCloudContactcenterinsightsV1UploadConversationMetadata {
 pub struct GoogleCloudContactcenterinsightsV1UploadConversationRequest {
     /// Required. The conversation resource to create.
     #[serde(default)]
-    pub conversation: Option<GoogleCloudContactcenterinsightsV1Conversation>,
+    pub conversation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Conversation>>,
     /// Optional. A unique ID for the new conversation. This ID will become the final component of the conversation''s resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression ^[a-z0-9-]{4,64}$. Valid characters are a-z-
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// Required. The parent resource of the conversation.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. DLP settings for transcript redaction. Will default to the config specified in Settings.
     #[serde(default, rename = "redactionConfig")]
-    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    pub redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1RedactionConfig>,
+    >,
     /// Optional. Speech-to-Text configuration. Will default to the config specified in Settings.
     #[serde(default, rename = "speechConfig")]
-    pub speech_config: Option<GoogleCloudContactcenterinsightsV1SpeechConfig>,
+    pub speech_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1SpeechConfig>>,
 }
 
 /// Information about a user.
@@ -4052,7 +4432,7 @@ pub struct GoogleCloudContactcenterinsightsV1UploadConversationRequest {
 pub struct GoogleCloudContactcenterinsightsV1UserInfo {
     /// The user''s username.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// The View resource.
@@ -4060,19 +4440,19 @@ pub struct GoogleCloudContactcenterinsightsV1UserInfo {
 pub struct GoogleCloudContactcenterinsightsV1View {
     /// Output only. The time at which this view was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The human-readable display name of the view.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. The resource name of the view. Format: projects/{project}/locations/{location}/views/{view}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The most recent time at which the view was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// A filter to reduce conversation results to a specific subset. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Represents a dashboard element, could be a nested Container or Chart.
@@ -4080,16 +4460,17 @@ pub struct GoogleCloudContactcenterinsightsV1View {
 pub struct GoogleCloudContactcenterinsightsV1Widget {
     /// A chart widget.
     #[serde(default)]
-    pub chart: Option<GoogleCloudContactcenterinsightsV1Chart>,
+    pub chart: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Chart>>,
     /// A reference to a chart widget. Format: projects/{project}/locations/{location}/dashboards/{dashboard}/charts/{chart}
     #[serde(default, rename = "chartReference")]
-    pub chart_reference: Option<String>,
+    pub chart_reference: ::core::option::Option<String>,
     /// A container widget.
     #[serde(default)]
-    pub container: Option<GoogleCloudContactcenterinsightsV1Container>,
+    pub container:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1Container>>,
     /// Filter applied to all charts in the container. Should support scope later.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
 }
 
 /// The analysis resource.
@@ -4097,19 +4478,23 @@ pub struct GoogleCloudContactcenterinsightsV1Widget {
 pub struct GoogleCloudContactcenterinsightsV1alpha1Analysis {
     /// Output only. The result of the analysis, which is populated when the analysis finishes.
     #[serde(default, rename = "analysisResult")]
-    pub analysis_result: Option<GoogleCloudContactcenterinsightsV1alpha1AnalysisResult>,
+    pub analysis_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnalysisResult>,
+    >,
     /// To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector>,
+    >,
     /// Output only. The time at which the analysis was created, which occurs when the long-running operation completes.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Immutable. The resource name of the analysis. Format: projects/{project}/locations/{location}/conversations/{conversation}/analyses/{analysis}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The time at which the analysis was requested.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// The result of an analysis.
@@ -4117,11 +4502,14 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Analysis {
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnalysisResult {
     /// Call-specific metadata created by the analysis.
     #[serde(default, rename = "callAnalysisMetadata")]
-    pub call_analysis_metadata:
-        Option<GoogleCloudContactcenterinsightsV1alpha1AnalysisResultCallAnalysisMetadata>,
+    pub call_analysis_metadata: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1AnalysisResultCallAnalysisMetadata,
+        >,
+    >,
     /// The time at which the analysis ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
 }
 
 /// Call-specific metadata created during analysis.
@@ -4129,29 +4517,42 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnalysisResult {
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnalysisResultCallAnalysisMetadata {
     /// A list of call annotations that apply to this call.
     #[serde(default)]
-    pub annotations: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1CallAnnotation>>,
+    pub annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1CallAnnotation>>,
+    >,
     /// All the entities in the call.
     #[serde(default)]
-    pub entities: Option<serde_json::Value>,
+    pub entities: ::core::option::Option<serde_json::Value>,
     /// All the matched intents in the call.
     #[serde(default)]
-    pub intents: Option<serde_json::Value>,
+    pub intents: ::core::option::Option<serde_json::Value>,
     /// Overall conversation-level issue modeling result.
     #[serde(default, rename = "issueModelResult")]
-    pub issue_model_result: Option<GoogleCloudContactcenterinsightsV1alpha1IssueModelResult>,
+    pub issue_model_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IssueModelResult>,
+    >,
     /// All the matched phrase matchers in the call.
     #[serde(default, rename = "phraseMatchers")]
-    pub phrase_matchers: Option<serde_json::Value>,
+    pub phrase_matchers: ::core::option::Option<serde_json::Value>,
     /// Results of scoring QaScorecards.
     #[serde(default, rename = "qaScorecardResults")]
-    pub qa_scorecard_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QaScorecardResult>>,
+    pub qa_scorecard_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaScorecardResult>,
+        >,
+    >,
     /// Overall conversation-level sentiment for each channel of the call.
     #[serde(default)]
-    pub sentiments: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSentiment>>,
+    pub sentiments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSentiment>,
+        >,
+    >,
     /// Overall conversation-level silence during the call.
     #[serde(default)]
-    pub silence: Option<GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSilence>,
+    pub silence: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSilence>,
+    >,
 }
 
 /// A point in a conversation that marks the start or the end of an annotation.
@@ -4159,10 +4560,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnalysisResultCallAnalysisMet
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary {
     /// The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.
     #[serde(default, rename = "transcriptIndex")]
-    pub transcript_index: Option<i32>,
+    pub transcript_index: ::core::option::Option<i32>,
     /// The word index of this boundary with respect to the first word in the transcript piece. This index starts at zero.
     #[serde(default, rename = "wordIndex")]
-    pub word_index: Option<i32>,
+    pub word_index: ::core::option::Option<i32>,
 }
 
 /// Selector of all available annotators and phrase matchers to run.
@@ -4170,47 +4571,52 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary {
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector {
     /// The issue model to run. If not provided, the most recently deployed topic model will be used. The provided issue model will only be used for inference if the issue model is deployed and if run_issue_model_annotator is set to true. If more than one issue model is provided, only the first provided issue model will be used for inference.
     #[serde(default, rename = "issueModels")]
-    pub issue_models: Option<Vec<String>>,
+    pub issue_models: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of phrase matchers to run. If not provided, all active phrase matchers will be used. If inactive phrase matchers are provided, they will not be used. Phrase matchers will be run only if run_phrase_matcher_annotator is set to true. Format: projects/{project}/locations/{location}/phraseMatchers/{phrase_matcher}
     #[serde(default, rename = "phraseMatchers")]
-    pub phrase_matchers: Option<Vec<String>>,
+    pub phrase_matchers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Configuration for the QA annotator.
     #[serde(default, rename = "qaConfig")]
-    pub qa_config: Option<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfig>,
+    pub qa_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfig>,
+    >,
     /// Optional. Whether to run the auto-labeling annotator. If true, the auto-labeling annotator will be run. This is a non-billable operation designed for fixing or backfilling custom labels.
     #[serde(default, rename = "runAutoLabelingAnnotator")]
-    pub run_auto_labeling_annotator: Option<bool>,
+    pub run_auto_labeling_annotator: ::core::option::Option<bool>,
     /// Whether to run the entity annotator.
     #[serde(default, rename = "runEntityAnnotator")]
-    pub run_entity_annotator: Option<bool>,
+    pub run_entity_annotator: ::core::option::Option<bool>,
     /// Whether to run the intent annotator.
     #[serde(default, rename = "runIntentAnnotator")]
-    pub run_intent_annotator: Option<bool>,
+    pub run_intent_annotator: ::core::option::Option<bool>,
     /// Whether to run the interruption annotator.
     #[serde(default, rename = "runInterruptionAnnotator")]
-    pub run_interruption_annotator: Option<bool>,
+    pub run_interruption_annotator: ::core::option::Option<bool>,
     /// Whether to run the issue model annotator. A model should have already been deployed for this to take effect.
     #[serde(default, rename = "runIssueModelAnnotator")]
-    pub run_issue_model_annotator: Option<bool>,
+    pub run_issue_model_annotator: ::core::option::Option<bool>,
     /// Whether to run the active phrase matcher annotator(s).
     #[serde(default, rename = "runPhraseMatcherAnnotator")]
-    pub run_phrase_matcher_annotator: Option<bool>,
+    pub run_phrase_matcher_annotator: ::core::option::Option<bool>,
     /// Whether to run the QA annotator.
     #[serde(default, rename = "runQaAnnotator")]
-    pub run_qa_annotator: Option<bool>,
+    pub run_qa_annotator: ::core::option::Option<bool>,
     /// Whether to run the sentiment annotator.
     #[serde(default, rename = "runSentimentAnnotator")]
-    pub run_sentiment_annotator: Option<bool>,
+    pub run_sentiment_annotator: ::core::option::Option<bool>,
     /// Whether to run the silence annotator.
     #[serde(default, rename = "runSilenceAnnotator")]
-    pub run_silence_annotator: Option<bool>,
+    pub run_silence_annotator: ::core::option::Option<bool>,
     /// Whether to run the summarization annotator.
     #[serde(default, rename = "runSummarizationAnnotator")]
-    pub run_summarization_annotator: Option<bool>,
+    pub run_summarization_annotator: ::core::option::Option<bool>,
     /// Configuration for the summarization annotator.
     #[serde(default, rename = "summarizationConfig")]
-    pub summarization_config:
-        Option<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorSummarizationConfig>,
+    pub summarization_config: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorSummarizationConfig,
+        >,
+    >,
 }
 
 /// Configuration for the QA feature.
@@ -4218,8 +4624,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector {
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfig {
     /// A manual list of scorecards to score.
     #[serde(default, rename = "scorecardList")]
-    pub scorecard_list:
-        Option<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfigScorecardList>,
+    pub scorecard_list: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfigScorecardList,
+        >,
+    >,
 }
 
 /// Container for a list of scorecards.
@@ -4227,7 +4636,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfig {
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfigScorecardList {
     /// List of QaScorecardRevisions.
     #[serde(default, rename = "qaScorecardRevisions")]
-    pub qa_scorecard_revisions: Option<Vec<String>>,
+    pub qa_scorecard_revisions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration for summarization.
@@ -4235,13 +4644,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfigScor
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorSummarizationConfig {
     /// Resource name of the Dialogflow conversation profile. Format: projects/{project}/locations/{location}/conversationProfiles/{conversation_profile}
     #[serde(default, rename = "conversationProfile")]
-    pub conversation_profile: Option<String>,
+    pub conversation_profile: ::core::option::Option<String>,
     /// The resource name of the existing created generator. Format: projects//locations//generators/
     #[serde(default)]
-    pub generator: Option<String>,
+    pub generator: ::core::option::Option<String>,
     /// Default summarization model to be used. // TODO: enum values: ["SUMMARIZATION_MODEL_UNSPECIFIED", "BASELINE_MODEL", "BASELINE_MODEL_V2_0"]
     #[serde(default, rename = "summarizationModel")]
-    pub summarization_model: Option<String>,
+    pub summarization_model: ::core::option::Option<String>,
 }
 
 /// The feedback that the customer has about a certain answer in the conversation.
@@ -4249,13 +4658,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorSummarizatio
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnswerFeedback {
     /// Indicates whether an answer or item was clicked by the human agent.
     #[serde(default)]
-    pub clicked: Option<bool>,
+    pub clicked: ::core::option::Option<bool>,
     /// The correctness level of an answer. // TODO: enum values: ["CORRECTNESS_LEVEL_UNSPECIFIED", "NOT_CORRECT", "PARTIALLY_CORRECT", "FULLY_CORRECT"]
     #[serde(default, rename = "correctnessLevel")]
-    pub correctness_level: Option<String>,
+    pub correctness_level: ::core::option::Option<String>,
     /// Indicates whether an answer or item was displayed to the human agent in the agent desktop UI.
     #[serde(default)]
-    pub displayed: Option<bool>,
+    pub displayed: ::core::option::Option<bool>,
 }
 
 /// Agent Assist Article Suggestion data.
@@ -4263,22 +4672,22 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnswerFeedback {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData {
     /// The system''s confidence score that this article is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f32>,
+    pub confidence_score: ::core::option::Option<f32>,
     /// Map that contains metadata about the Article Suggestion and the document that it originates from.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The knowledge document that this answer was extracted from. Format: projects/{project}/knowledgeBases/{knowledge_base}/documents/{document}
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Article title.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Article URI.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The metadata for a bulk analyze conversations operation.
@@ -4286,28 +4695,30 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsMetadata {
     /// The number of requested analyses that have completed successfully so far.
     #[serde(default, rename = "completedAnalysesCount")]
-    pub completed_analyses_count: Option<i32>,
+    pub completed_analyses_count: ::core::option::Option<i32>,
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The number of requested analyses that have failed so far.
     #[serde(default, rename = "failedAnalysesCount")]
-    pub failed_analyses_count: Option<i32>,
+    pub failed_analyses_count: ::core::option::Option<i32>,
     /// Output only. Partial errors during bulk analyze operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. If true, the labeling rules will be re-evaluated for the conversations.
     #[serde(default)]
-    pub relabel: Option<bool>,
+    pub relabel: ::core::option::Option<bool>,
     /// The original request for bulk analyze.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsRequest>,
+    >,
     /// Total number of analyses requested. Computed by the number of conversations returned by filter multiplied by analysis_percentage in the request.
     #[serde(default, rename = "totalRequestedAnalysesCount")]
-    pub total_requested_analyses_count: Option<i32>,
+    pub total_requested_analyses_count: ::core::option::Option<i32>,
 }
 
 /// The request to analyze conversations in bulk.
@@ -4315,19 +4726,21 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsMetad
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsRequest {
     /// Required. Percentage of selected conversation to analyze, between [0, 100].
     #[serde(default, rename = "analysisPercentage")]
-    pub analysis_percentage: Option<f32>,
+    pub analysis_percentage: ::core::option::Option<f32>,
     /// To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector>,
+    >,
     /// Required. Filter used to select the subset of conversations to analyze.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The parent resource to create analyses in.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. If true, the labeling rules will be re-evaluated for the conversations.
     #[serde(default)]
-    pub relabel: Option<bool>,
+    pub relabel: ::core::option::Option<bool>,
 }
 
 /// The response for a bulk analyze conversations operation.
@@ -4335,10 +4748,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsReque
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsResponse {
     /// Count of failed analyses.
     #[serde(default, rename = "failedAnalysisCount")]
-    pub failed_analysis_count: Option<i32>,
+    pub failed_analysis_count: ::core::option::Option<i32>,
     /// Count of successful analyses.
     #[serde(default, rename = "successfulAnalysisCount")]
-    pub successful_analysis_count: Option<i32>,
+    pub successful_analysis_count: ::core::option::Option<i32>,
 }
 
 /// The metadata for a bulk delete conversations operation.
@@ -4346,16 +4759,18 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsRespo
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Partial errors during bulk delete conversations operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The original request for bulk delete.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsRequest>,
+    >,
 }
 
 /// The request to delete conversations in bulk.
@@ -4363,16 +4778,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsMetada
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsRequest {
     /// Filter used to select the subset of conversations to delete.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// If set to true, all of this conversation''s analyses will also be deleted. Otherwise, the request will only succeed if the conversation has no analyses.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Maximum number of conversations to delete.
     #[serde(default, rename = "maxDeleteCount")]
-    pub max_delete_count: Option<i32>,
+    pub max_delete_count: ::core::option::Option<i32>,
     /// Required. The parent resource to delete conversations from. Format: projects/{project}/locations/{location}
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
@@ -4380,10 +4795,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsReques
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsMetadata {
     /// Partial errors during deletion operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for delete.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsRequest>,
+    >,
 }
 
 /// Request for the BulkDeleteFeedbackLabels endpoint.
@@ -4391,10 +4808,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsMetad
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsRequest {
     /// Optional. A filter to reduce results to a specific subset. Supports disjunctions (OR) and conjunctions (AND). Supported fields: * issue_model_id * qa_question_id * qa_scorecard_id * min_create_time * max_create_time * min_update_time * max_update_time * feedback_label_type: QUALITY_AI, TOPIC_MODELING
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The parent resource for new feedback labels.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// A piece of metadata that applies to a window of a call.
@@ -4402,38 +4819,51 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsReque
 pub struct GoogleCloudContactcenterinsightsV1alpha1CallAnnotation {
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "annotationEndBoundary")]
-    pub annotation_end_boundary: Option<GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary>,
+    pub annotation_end_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary>,
+    >,
     /// The boundary in the conversation where the annotation starts, inclusive.
     #[serde(default, rename = "annotationStartBoundary")]
-    pub annotation_start_boundary:
-        Option<GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary>,
+    pub annotation_start_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary>,
+    >,
     /// The channel of the audio where the annotation occurs. For single-channel audio, this field is not populated.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// Data specifying an entity mention.
     #[serde(default, rename = "entityMentionData")]
-    pub entity_mention_data: Option<GoogleCloudContactcenterinsightsV1alpha1EntityMentionData>,
+    pub entity_mention_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1EntityMentionData>,
+    >,
     /// Data specifying a hold.
     #[serde(default, rename = "holdData")]
-    pub hold_data: Option<serde_json::Value>,
+    pub hold_data: ::core::option::Option<serde_json::Value>,
     /// Data specifying an intent match.
     #[serde(default, rename = "intentMatchData")]
-    pub intent_match_data: Option<GoogleCloudContactcenterinsightsV1alpha1IntentMatchData>,
+    pub intent_match_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IntentMatchData>,
+    >,
     /// Data specifying an interruption.
     #[serde(default, rename = "interruptionData")]
-    pub interruption_data: Option<serde_json::Value>,
+    pub interruption_data: ::core::option::Option<serde_json::Value>,
     /// Data specifying an issue match.
     #[serde(default, rename = "issueMatchData")]
-    pub issue_match_data: Option<GoogleCloudContactcenterinsightsV1alpha1IssueMatchData>,
+    pub issue_match_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IssueMatchData>,
+    >,
     /// Data specifying a phrase match.
     #[serde(default, rename = "phraseMatchData")]
-    pub phrase_match_data: Option<GoogleCloudContactcenterinsightsV1alpha1PhraseMatchData>,
+    pub phrase_match_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1PhraseMatchData>,
+    >,
     /// Data specifying sentiment.
     #[serde(default, rename = "sentimentData")]
-    pub sentiment_data: Option<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    pub sentiment_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    >,
     /// Data specifying silence.
     #[serde(default, rename = "silenceData")]
-    pub silence_data: Option<serde_json::Value>,
+    pub silence_data: ::core::option::Option<serde_json::Value>,
 }
 
 /// The result of testing a constraint expression on a pair of conversations.
@@ -4441,15 +4871,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CallAnnotation {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResult {
     /// The first conversation resource name.
     #[serde(default, rename = "conversationA")]
-    pub conversation_a: Option<String>,
+    pub conversation_a: ::core::option::Option<String>,
     /// The second conversation resource name.
     #[serde(default, rename = "conversationB")]
-    pub conversation_b: Option<String>,
+    pub conversation_b: ::core::option::Option<String>,
     /// The results for each applicable constraint rule.
     #[serde(default, rename = "ruleConstraintResults")]
-    pub rule_constraint_results: Option<
-        Vec<GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResultRuleConstraintResult>,
-    >,
+    pub rule_constraint_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResultRuleConstraintResult>>>,
 }
 
 /// The result of a single constraint rule on the pair of conversations.
@@ -4457,13 +4885,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResult {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResultRuleConstraintResult {
     /// Whether the constraint expression evaluated to true for (A, B) or (B, A).
     #[serde(default, rename = "constraintMet")]
-    pub constraint_met: Option<bool>,
+    pub constraint_met: ::core::option::Option<bool>,
     /// The error status if the constraint expression failed to evaluate.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// The rule ID.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
 }
 
 /// The conversation resource.
@@ -4471,76 +4899,92 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResultRul
 pub struct GoogleCloudContactcenterinsightsV1alpha1Conversation {
     /// An opaque, user-specified string representing the human agent who handled the conversation.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Call-specific metadata.
     #[serde(default, rename = "callMetadata")]
-    pub call_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1ConversationCallMetadata>,
+    pub call_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationCallMetadata>,
+    >,
     /// Output only. Info for correlating across conversations.
     #[serde(default, rename = "correlationInfo")]
-    pub correlation_info:
-        Option<GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationInfo>,
+    pub correlation_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationInfo>,
+    >,
     /// Output only. The time at which the conversation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The source of the audio and transcription for the conversation.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<GoogleCloudContactcenterinsightsV1alpha1ConversationDataSource>,
+    pub data_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationDataSource>,
+    >,
     /// Output only. All the matched Dialogflow intents in the call. The key corresponds to a Dialogflow intent, format: projects/{project}/agent/{agent}/intents/{intent}
     #[serde(default, rename = "dialogflowIntents")]
-    pub dialogflow_intents: Option<serde_json::Value>,
+    pub dialogflow_intents: ::core::option::Option<serde_json::Value>,
     /// Output only. The duration of the conversation.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// The time at which this conversation should expire. After this time, the conversation data and any associated analyses will be deleted.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// A map for the user to specify any custom fields. A maximum of 100 labels per conversation is allowed, with a maximum of 256 characters per entry.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// A user-specified language code for the conversation.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Output only. The conversation''s latest analysis, if one exists.
     #[serde(default, rename = "latestAnalysis")]
-    pub latest_analysis: Option<GoogleCloudContactcenterinsightsV1alpha1Analysis>,
+    pub latest_analysis:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1Analysis>>,
     /// Output only. Latest summary of the conversation.
     #[serde(default, rename = "latestSummary")]
-    pub latest_summary:
-        Option<GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData>,
+    pub latest_summary: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData,
+        >,
+    >,
     /// Immutable. The conversation medium. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
     /// Input only. JSON metadata encoded as a string. This field is primarily used by Insights integrations with various telephony systems and must be in one of Insight''s supported formats.
     #[serde(default, rename = "metadataJson")]
-    pub metadata_json: Option<String>,
+    pub metadata_json: ::core::option::Option<String>,
     /// Immutable. The resource name of the conversation. Format: projects/{project}/locations/{location}/conversations/{conversation}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Obfuscated user ID which the customer sent to us.
     #[serde(default, rename = "obfuscatedUserId")]
-    pub obfuscated_user_id: Option<String>,
+    pub obfuscated_user_id: ::core::option::Option<String>,
     /// Conversation metadata related to quality management.
     #[serde(default, rename = "qualityMetadata")]
-    pub quality_metadata:
-        Option<GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadata>,
+    pub quality_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadata>,
+    >,
     /// Output only. The annotations that were generated during the customer and agent interaction.
     #[serde(default, rename = "runtimeAnnotations")]
-    pub runtime_annotations: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation>>,
+    pub runtime_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation>,
+        >,
+    >,
     /// The time at which the conversation started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. The conversation transcript.
     #[serde(default)]
-    pub transcript: Option<GoogleCloudContactcenterinsightsV1alpha1ConversationTranscript>,
+    pub transcript: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationTranscript>,
+    >,
     /// Input only. The TTL for this resource. If specified, then this TTL will be used to calculate the expire time.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Output only. The number of turns in the conversation.
     #[serde(default, rename = "turnCount")]
-    pub turn_count: Option<i32>,
+    pub turn_count: ::core::option::Option<i32>,
     /// Output only. The most recent time at which the conversation was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Call-specific metadata.
@@ -4548,10 +4992,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Conversation {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCallMetadata {
     /// The audio channel that contains the agent.
     #[serde(default, rename = "agentChannel")]
-    pub agent_channel: Option<i32>,
+    pub agent_channel: ::core::option::Option<i32>,
     /// The audio channel that contains the customer.
     #[serde(default, rename = "customerChannel")]
-    pub customer_channel: Option<i32>,
+    pub customer_channel: ::core::option::Option<i32>,
 }
 
 /// Info for correlating across conversations.
@@ -4559,13 +5003,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCallMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationInfo {
     /// Output only. The correlation types of this conversation. A single conversation can have multiple correlation types. For example a conversation that only has a single segment is both a SEGMENT and a FULL_CONVERSATION.
     #[serde(default, rename = "correlationTypes")]
-    pub correlation_types: Option<Vec<String>>,
+    pub correlation_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The full conversation correlation id this conversation is a segment of.
     #[serde(default, rename = "fullConversationCorrelationId")]
-    pub full_conversation_correlation_id: Option<String>,
+    pub full_conversation_correlation_id: ::core::option::Option<String>,
     /// Output only. The full conversation correlation id this conversation is a merged conversation of.
     #[serde(default, rename = "mergedFullConversationCorrelationId")]
-    pub merged_full_conversation_correlation_id: Option<String>,
+    pub merged_full_conversation_correlation_id: ::core::option::Option<String>,
 }
 
 /// The result of testing correlation config on a single conversation.
@@ -4573,10 +5017,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationInfo {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResult {
     /// The conversation resource name.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The results for each correlation rule.
     #[serde(default, rename = "ruleResults")]
-    pub rule_results: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResultRuleCorrelationResult>>,
+    pub rule_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResultRuleCorrelationResult>>>,
 }
 
 /// The result of a single correlation rule.
@@ -4585,13 +5029,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResult
 {
     /// The correlation ID generated by the join key expression.
     #[serde(default, rename = "correlationId")]
-    pub correlation_id: Option<String>,
+    pub correlation_id: ::core::option::Option<String>,
     /// The error status if the join key expression failed to evaluate.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// The rule ID.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
 }
 
 /// The conversation source, which is a combination of transcript and audio.
@@ -4599,17 +5043,26 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResult
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationDataSource {
     /// The source when the conversation comes from Dialogflow.
     #[serde(default, rename = "dialogflowSource")]
-    pub dialogflow_source: Option<GoogleCloudContactcenterinsightsV1alpha1DialogflowSource>,
+    pub dialogflow_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DialogflowSource>,
+    >,
     /// A Cloud Storage location specification for the audio and transcript.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudContactcenterinsightsV1alpha1GcsSource>,
+    pub gcs_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GcsSource>,
+    >,
     /// Cloud Storage URI that points to a file that contains the conversation metadata.
     #[serde(default, rename = "metadataUri")]
-    pub metadata_uri: Option<String>,
+    pub metadata_uri: ::core::option::Option<String>,
     /// Cloud Storage URIs that points to files that contain the conversation audio for each turn. Assume the order of the URIs is the same as the order of the transcript turns.
     #[serde(default, rename = "turnLevelAudios")]
-    pub turn_level_audios:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1ConversationDataSourceTurnLevelAudio>>,
+    pub turn_level_audios: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1alpha1ConversationDataSourceTurnLevelAudio,
+            >,
+        >,
+    >,
 }
 
 /// A wrapper for holding the audio for any given turn.
@@ -4617,10 +5070,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationDataSource {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationDataSourceTurnLevelAudio {
     /// The duration of the audio.
     #[serde(default, rename = "audioDuration")]
-    pub audio_duration: Option<String>,
+    pub audio_duration: ::core::option::Option<String>,
     /// The Cloud Storage URI of the audio for any given turn.
     #[serde(default, rename = "audioGcsUri")]
-    pub audio_gcs_uri: Option<String>,
+    pub audio_gcs_uri: ::core::option::Option<String>,
 }
 
 /// One channel of conversation-level sentiment data.
@@ -4628,10 +5081,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationDataSourceTurnLev
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSentiment {
     /// The channel of the audio that the data applies to.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// Data specifying sentiment.
     #[serde(default, rename = "sentimentData")]
-    pub sentiment_data: Option<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    pub sentiment_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    >,
 }
 
 /// Conversation-level silence data.
@@ -4639,10 +5094,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSentiment {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSilence {
     /// Amount of time calculated to be in silence.
     #[serde(default, rename = "silenceDuration")]
-    pub silence_duration: Option<String>,
+    pub silence_duration: ::core::option::Option<String>,
     /// Percentage of the total conversation spent in silence.
     #[serde(default, rename = "silencePercentage")]
-    pub silence_percentage: Option<f32>,
+    pub silence_percentage: ::core::option::Option<f32>,
 }
 
 /// The call participant speaking for a given utterance.
@@ -4650,19 +5105,19 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSilence {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationParticipant {
     /// Deprecated. Use dialogflow_participant_name instead. The name of the Dialogflow participant. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipant")]
-    pub dialogflow_participant: Option<String>,
+    pub dialogflow_participant: ::core::option::Option<String>,
     /// The name of the participant provided by Dialogflow. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipantName")]
-    pub dialogflow_participant_name: Option<String>,
+    pub dialogflow_participant_name: ::core::option::Option<String>,
     /// Obfuscated user ID from Dialogflow.
     #[serde(default, rename = "obfuscatedExternalUserId")]
-    pub obfuscated_external_user_id: Option<String>,
+    pub obfuscated_external_user_id: ::core::option::Option<String>,
     /// The role of the participant. // TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER", "ANY_AGENT"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// A user-specified ID representing the participant.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Conversation metadata related to quality management.
@@ -4670,20 +5125,27 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationParticipant {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadata {
     /// Information about agents involved in the call.
     #[serde(default, rename = "agentInfo")]
-    pub agent_info:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadataAgentInfo>>,
+    pub agent_info: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadataAgentInfo,
+            >,
+        >,
+    >,
     /// An arbitrary integer value indicating the customer''s satisfaction rating.
     #[serde(default, rename = "customerSatisfactionRating")]
-    pub customer_satisfaction_rating: Option<i32>,
+    pub customer_satisfaction_rating: ::core::option::Option<i32>,
     /// Input only. The feedback labels associated with the conversation.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel>>,
+    >,
     /// An arbitrary string value specifying the menu path the customer took.
     #[serde(default, rename = "menuPath")]
-    pub menu_path: Option<String>,
+    pub menu_path: ::core::option::Option<String>,
     /// The amount of time the customer waited to connect with an agent.
     #[serde(default, rename = "waitDuration")]
-    pub wait_duration: Option<String>,
+    pub wait_duration: ::core::option::Option<String>,
 }
 
 /// Information about an agent involved in the conversation.
@@ -4691,40 +5153,40 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadataAgentInfo {
     /// A user-specified string representing the agent.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// The agent type, e.g. HUMAN_AGENT. // TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER", "ANY_AGENT"]
     #[serde(default, rename = "agentType")]
-    pub agent_type: Option<String>,
+    pub agent_type: ::core::option::Option<String>,
     /// The agent''s deployment display name. Only applicable to automated agents.
     #[serde(default, rename = "deploymentDisplayName")]
-    pub deployment_display_name: Option<String>,
+    pub deployment_display_name: ::core::option::Option<String>,
     /// The agent''s deployment ID. Only applicable to automated agents.
     #[serde(default, rename = "deploymentId")]
-    pub deployment_id: Option<String>,
+    pub deployment_id: ::core::option::Option<String>,
     /// The agent''s name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// A user-provided string indicating the outcome of the agent''s segment of the call.
     #[serde(default, rename = "dispositionCode")]
-    pub disposition_code: Option<String>,
+    pub disposition_code: ::core::option::Option<String>,
     /// The entry subagent''s display name.
     #[serde(default, rename = "entrySubagentDisplayName")]
-    pub entry_subagent_display_name: Option<String>,
+    pub entry_subagent_display_name: ::core::option::Option<String>,
     /// The agent''s location.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// A user-specified string representing the agent''s team. Deprecated in favor of the teams field.
     #[serde(default)]
-    pub team: Option<String>,
+    pub team: ::core::option::Option<String>,
     /// User-specified strings representing the agent''s teams.
     #[serde(default)]
-    pub teams: Option<Vec<String>>,
+    pub teams: ::core::option::Option<::std::vec::Vec<String>>,
     /// The agent''s version display name. Only applicable to automated agents.
     #[serde(default, rename = "versionDisplayName")]
-    pub version_display_name: Option<String>,
+    pub version_display_name: ::core::option::Option<String>,
     /// The agent''s version ID. Only applicable to automated agents.
     #[serde(default, rename = "versionId")]
-    pub version_id: Option<String>,
+    pub version_id: ::core::option::Option<String>,
 }
 
 /// Conversation summarization suggestion data.
@@ -4732,25 +5194,25 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadataAg
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData {
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     /// The confidence score of the summarization.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the model that generates this summary. Format: projects/{project}/locations/{location}/conversationModels/{conversation_model}
     #[serde(default, rename = "conversationModel")]
-    pub conversation_model: Option<String>,
+    pub conversation_model: ::core::option::Option<String>,
     /// Agent Assist generator ID.
     #[serde(default, rename = "generatorId")]
-    pub generator_id: Option<String>,
+    pub generator_id: ::core::option::Option<String>,
     /// A map that contains metadata about the summarization and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The summarization content that is concatenated into one string.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// The summarization content that is divided into sections. The key is the section''s name and the value is the section''s content. There is no specific format for the key or value.
     #[serde(default, rename = "textSections")]
-    pub text_sections: Option<serde_json::Value>,
+    pub text_sections: ::core::option::Option<serde_json::Value>,
 }
 
 /// A message representing the transcript of a conversation.
@@ -4758,8 +5220,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSugg
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscript {
     /// A list of sequential transcript segments that comprise the conversation.
     #[serde(default, rename = "transcriptSegments")]
-    pub transcript_segments: Option<
-        Vec<GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegment>,
+    pub transcript_segments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegment,
+            >,
+        >,
     >,
 }
 
@@ -4768,34 +5234,34 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscript {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegment {
     /// For conversations derived from multi-channel audio, this is the channel number corresponding to the audio from that channel. For audioChannelCount = N, its output values can range from ''1'' to ''N''. A channel tag of 0 indicates that the audio is mono.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this segment. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// CCAI metadata relating to the current transcript segment.
     #[serde(default, rename = "dialogflowSegmentMetadata")]
-    pub dialogflow_segment_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata>,
+    pub dialogflow_segment_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata>>,
     /// The language code of this segment as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag. Example: "en-US".
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// The time that the message occurred, if provided.
     #[serde(default, rename = "messageTime")]
-    pub message_time: Option<String>,
+    pub message_time: ::core::option::Option<String>,
     /// The participant of this segment.
     #[serde(default, rename = "segmentParticipant")]
-    pub segment_participant: Option<GoogleCloudContactcenterinsightsV1alpha1ConversationParticipant>,
+    pub segment_participant: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationParticipant>>,
     /// The sentiment for this transcript segment.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    pub sentiment: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SentimentData>>,
     /// The text of this segment.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Turn level audio for this transcript segment.
     #[serde(default, rename = "turnLevelAudio")]
-    pub turn_level_audio: Option<GoogleCloudContactcenterinsightsV1alpha1ConversationDataSourceTurnLevelAudio>,
+    pub turn_level_audio: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationDataSourceTurnLevelAudio>>,
     /// A list of the word-specific information for each word in the segment.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegmentWordInfo>>,
+    pub words: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegmentWordInfo>>>,
 }
 
 /// Metadata from Dialogflow relating to the current transcript segment.
@@ -4804,7 +5270,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscr
 {
     /// Whether the transcript segment was covered under the configured smart reply allowlist in Agent Assist.
     #[serde(default, rename = "smartReplyAllowlistCovered")]
-    pub smart_reply_allowlist_covered: Option<bool>,
+    pub smart_reply_allowlist_covered: ::core::option::Option<bool>,
 }
 
 /// Word-level info for words in a transcript.
@@ -4812,16 +5278,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscr
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegmentWordInfo {
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this word. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time offset of the end of this word relative to the beginning of the total conversation.
     #[serde(default, rename = "endOffset")]
-    pub end_offset: Option<String>,
+    pub end_offset: ::core::option::Option<String>,
     /// Time offset of the start of this word relative to the beginning of the total conversation.
     #[serde(default, rename = "startOffset")]
-    pub start_offset: Option<String>,
+    pub start_offset: ::core::option::Option<String>,
     /// The word itself. Includes punctuation marks that surround the word.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// Metadata for a create analysis operation.
@@ -4829,16 +5295,18 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscr
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateAnalysisOperationMetadata {
     /// Output only. The annotator selector used for the analysis (if any).
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector>,
+    >,
     /// Output only. The Conversation that this Analysis Operation belongs to.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
 }
 
 /// Metadata for creating an issue.
@@ -4846,13 +5314,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateAnalysisOperationMetada
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for creation.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1CreateIssueRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1CreateIssueRequest>,
+    >,
 }
 
 /// Metadata for creating an issue model.
@@ -4860,13 +5330,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for creation.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelRequest>,
+    >,
 }
 
 /// The request to create an issue model.
@@ -4874,10 +5346,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelRequest {
     /// Required. The issue model to create.
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<GoogleCloudContactcenterinsightsV1alpha1IssueModel>,
+    pub issue_model: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IssueModel>,
+    >,
     /// Required. The parent resource of the issue model.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// The request to create an issue.
@@ -4885,10 +5359,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueRequest {
     /// Required. The values for the new issue.
     #[serde(default)]
-    pub issue: Option<GoogleCloudContactcenterinsightsV1alpha1Issue>,
+    pub issue:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1Issue>>,
     /// Required. The parent resource of the issue.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Dataset resource represents a collection of conversations that may be bounded (Static Dataset, e.g. golden dataset for training), or unbounded (Dynamic Dataset, e.g. live traffic, or agent training traffic)
@@ -4896,25 +5371,25 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1Dataset {
     /// Output only. Dataset create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Dataset description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Display name for the dataaset
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. Identifier. Resource name of the dataset. Format: projects/{project}/locations/{location}/datasets/{dataset}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Option TTL for the dataset.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Dataset usage type. // TODO: enum values: ["TYPE_UNSPECIFIED", "EVAL", "LIVE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Dataset update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Metadata for deleting an issue model.
@@ -4922,13 +5397,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Dataset {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for deletion.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelRequest>,
+    >,
 }
 
 /// The request to delete an issue model.
@@ -4936,7 +5413,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelRequest {
     /// Required. The name of the issue model to delete.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The metadata for deleting a QaQuestionTag Resource.
@@ -4944,13 +5421,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagRequest>,
+    >,
 }
 
 /// The request for deleting a QaQuestionTag.
@@ -4958,7 +5437,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagRequest {
     /// Required. The name of the QaQuestionTag to delete.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metadata for deploying an issue model.
@@ -4966,13 +5445,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for deployment.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelRequest>,
+    >,
 }
 
 /// The request to deploy an issue model.
@@ -4980,7 +5461,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelRequest {
     /// Required. The issue model to deploy.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
@@ -4988,7 +5469,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowIntent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Dialogflow interaction data.
@@ -4996,10 +5477,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowIntent {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowInteractionData {
     /// The confidence of the match ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The Dialogflow intent resource path. Format: projects/{project}/agent/{agent}/intents/{intent}
     #[serde(default, rename = "dialogflowIntentId")]
-    pub dialogflow_intent_id: Option<String>,
+    pub dialogflow_intent_id: ::core::option::Option<String>,
 }
 
 /// A Dialogflow source of conversation data.
@@ -5007,10 +5488,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowInteractionData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
     /// Output only. The name of the Dialogflow conversation that this conversation resource is derived from. Format: projects/{project}/locations/{location}/conversations/{conversation}
     #[serde(default, rename = "dialogflowConversation")]
-    pub dialogflow_conversation: Option<String>,
+    pub dialogflow_conversation: ::core::option::Option<String>,
 }
 
 /// A dimension determines the grouping key for the query. In SQL terms, these would be part of both the "SELECT" and "GROUP BY" clauses.
@@ -5018,40 +5499,40 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowSource {
 pub struct GoogleCloudContactcenterinsightsV1alpha1Dimension {
     /// Output only. Metadata about the agent dimension.
     #[serde(default, rename = "agentDimensionMetadata")]
-    pub agent_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionAgentDimensionMetadata>,
+    pub agent_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionAgentDimensionMetadata>>,
     /// Output only. Metadata about the client sentiment category dimension.
     #[serde(default, rename = "clientSentimentCategoryDimensionMetadata")]
-    pub client_sentiment_category_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionClientSentimentCategoryDimensionMetadata>,
+    pub client_sentiment_category_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionClientSentimentCategoryDimensionMetadata>>,
     /// Output only. Metadata about the conversation profile dimension.
     #[serde(default, rename = "conversationProfileDimensionMetadata")]
-    pub conversation_profile_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionConversationProfileDimensionMetadata>,
+    pub conversation_profile_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionConversationProfileDimensionMetadata>>,
     /// Output only. Metadata about the Conversational Agents playbook dimension.
     #[serde(default, rename = "conversationalAgentsPlaybookDimensionMetadata")]
-    pub conversational_agents_playbook_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgentsPlaybookDimensionMetadata>,
+    pub conversational_agents_playbook_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgentsPlaybookDimensionMetadata>>,
     /// Output only. Metadata about the Conversational Agents tool dimension.
     #[serde(default, rename = "conversationalAgentsToolDimensionMetadata")]
-    pub conversational_agents_tool_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgentsToolDimensionMetadata>,
+    pub conversational_agents_tool_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgentsToolDimensionMetadata>>,
     /// The key of the dimension. // TODO: enum values: ["DIMENSION_KEY_UNSPECIFIED", "ISSUE", "ISSUE_NAME", "AGENT", "AGENT_TEAM", "QA_QUESTION_ID", "QA_QUESTION_ANSWER_VALUE", "QA_SCORECARD_ID", "CONVERSATION_PROFILE_ID", "MEDIUM", "CONVERSATIONAL_AGENTS_PLAYBOOK_ID", "CONVERSATIONAL_AGENTS_PLAYBOOK_NAME", "CONVERSATIONAL_AGENTS_TOOL_ID", "CONVERSATIONAL_AGENTS_TOOL_NAME", "CLIENT_SENTIMENT_CATEGORY", "AGENT_VERSION_ID", "AGENT_DEPLOYMENT_ID", "AGENT_ASSIST_SUPERVISOR_ID", "LABEL_KEY", "LABEL_VALUE", "LABEL_KEY_AND_VALUE", "LAST_TRANSFER_SUB_AGENT_NAME"]
     #[serde(default, rename = "dimensionKey")]
-    pub dimension_key: Option<String>,
+    pub dimension_key: ::core::option::Option<String>,
     /// Output only. Metadata about the issue dimension.
     #[serde(default, rename = "issueDimensionMetadata")]
-    pub issue_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionIssueDimensionMetadata>,
+    pub issue_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionIssueDimensionMetadata>>,
     /// Output only. Metadata about conversation labels.
     #[serde(default, rename = "labelDimensionMetadata")]
-    pub label_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionLabelDimensionMetadata>,
+    pub label_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionLabelDimensionMetadata>>,
     /// Output only. Metadata about the conversation medium dimension.
     #[serde(default, rename = "mediumDimensionMetadata")]
-    pub medium_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionMediumDimensionMetadata>,
+    pub medium_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionMediumDimensionMetadata>>,
     /// Output only. Metadata about the QA question-answer dimension.
     #[serde(default, rename = "qaQuestionAnswerDimensionMetadata")]
-    pub qa_question_answer_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionAnswerDimensionMetadata>,
+    pub qa_question_answer_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionAnswerDimensionMetadata>>,
     /// Output only. Metadata about the QA question dimension.
     #[serde(default, rename = "qaQuestionDimensionMetadata")]
-    pub qa_question_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionDimensionMetadata>,
+    pub qa_question_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionDimensionMetadata>>,
     /// Output only. Metadata about the QA scorecard dimension.
     #[serde(default, rename = "qaScorecardDimensionMetadata")]
-    pub qa_scorecard_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1alpha1DimensionQaScorecardDimensionMetadata>,
+    pub qa_scorecard_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DimensionQaScorecardDimensionMetadata>>,
 }
 
 /// Metadata about the agent dimension.
@@ -5059,25 +5540,25 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Dimension {
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionAgentDimensionMetadata {
     /// Optional. The agent''s deployment display name. Only applicable to automated agents. This will be populated for AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentDisplayName")]
-    pub agent_deployment_display_name: Option<String>,
+    pub agent_deployment_display_name: ::core::option::Option<String>,
     /// Optional. The agent''s deployment ID. Only applicable to automated agents. This will be populated for AGENT and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentId")]
-    pub agent_deployment_id: Option<String>,
+    pub agent_deployment_id: ::core::option::Option<String>,
     /// Optional. The agent''s name This will be populated for AGENT, AGENT_TEAM, AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDisplayName")]
-    pub agent_display_name: Option<String>,
+    pub agent_display_name: ::core::option::Option<String>,
     /// Optional. A user-specified string representing the agent. This will be populated for AGENT, AGENT_TEAM, AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Optional. A user-specified string representing the agent''s team.
     #[serde(default, rename = "agentTeam")]
-    pub agent_team: Option<String>,
+    pub agent_team: ::core::option::Option<String>,
     /// Optional. The agent''s version display name. Only applicable to automated agents. This will be populated for AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentVersionDisplayName")]
-    pub agent_version_display_name: Option<String>,
+    pub agent_version_display_name: ::core::option::Option<String>,
     /// Optional. The agent''s version ID. Only applicable to automated agents. This will be populated for AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentVersionId")]
-    pub agent_version_id: Option<String>,
+    pub agent_version_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the client sentiment category dimension.
@@ -5086,7 +5567,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionClientSentimentCateg
 {
     /// Optional. The client sentiment category.
     #[serde(default, rename = "sentimentCategory")]
-    pub sentiment_category: Option<String>,
+    pub sentiment_category: ::core::option::Option<String>,
 }
 
 /// Metadata about the conversation profile dimension.
@@ -5094,7 +5575,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionClientSentimentCateg
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationProfileDimensionMetadata {
     /// Optional. The conversation profile ID.
     #[serde(default, rename = "conversationProfileId")]
-    pub conversation_profile_id: Option<String>,
+    pub conversation_profile_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the Conversational Agents playbook dimension.
@@ -5103,10 +5584,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgents
 {
     /// Optional. The dialogflow playbook display name.
     #[serde(default, rename = "playbookDisplayName")]
-    pub playbook_display_name: Option<String>,
+    pub playbook_display_name: ::core::option::Option<String>,
     /// Optional. The dialogflow playbook ID.
     #[serde(default, rename = "playbookId")]
-    pub playbook_id: Option<String>,
+    pub playbook_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the Conversational Agents tool dimension.
@@ -5115,10 +5596,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgents
 {
     /// Optional. The dialogflow tool display name.
     #[serde(default, rename = "toolDisplayName")]
-    pub tool_display_name: Option<String>,
+    pub tool_display_name: ::core::option::Option<String>,
     /// Optional. The dialogflow tool ID.
     #[serde(default, rename = "toolId")]
-    pub tool_id: Option<String>,
+    pub tool_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the issue dimension.
@@ -5126,13 +5607,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgents
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionIssueDimensionMetadata {
     /// The issue display name.
     #[serde(default, rename = "issueDisplayName")]
-    pub issue_display_name: Option<String>,
+    pub issue_display_name: ::core::option::Option<String>,
     /// The issue ID.
     #[serde(default, rename = "issueId")]
-    pub issue_id: Option<String>,
+    pub issue_id: ::core::option::Option<String>,
     /// The parent issue model ID.
     #[serde(default, rename = "issueModelId")]
-    pub issue_model_id: Option<String>,
+    pub issue_model_id: ::core::option::Option<String>,
 }
 
 /// Metadata about conversation labels.
@@ -5140,10 +5621,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionIssueDimensionMetada
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionLabelDimensionMetadata {
     /// Optional. The label key.
     #[serde(default, rename = "labelKey")]
-    pub label_key: Option<String>,
+    pub label_key: ::core::option::Option<String>,
     /// Optional. The label value.
     #[serde(default, rename = "labelValue")]
-    pub label_value: Option<String>,
+    pub label_value: ::core::option::Option<String>,
 }
 
 /// Metadata about the conversation medium dimension.
@@ -5151,7 +5632,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionLabelDimensionMetada
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionMediumDimensionMetadata {
     /// Optional. The conversation medium. Currently supports : PHONE_CALL, CHAT.
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA question-answer dimension. This is useful for showing the answer distribution for questions for a given scorecard.
@@ -5159,16 +5640,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionMediumDimensionMetad
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionAnswerDimensionMetadata {
     /// Optional. The full body of the question.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<String>,
+    pub answer_value: ::core::option::Option<String>,
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
-    pub qa_question_id: Option<String>,
+    pub qa_question_id: ::core::option::Option<String>,
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
     /// Optional. The full body of the question.
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA question dimension.
@@ -5176,13 +5657,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionAnswerDime
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionDimensionMetadata {
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
-    pub qa_question_id: Option<String>,
+    pub qa_question_id: ::core::option::Option<String>,
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
     /// Optional. The full body of the question.
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA scorecard dimension.
@@ -5190,7 +5671,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionDimensionM
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaScorecardDimensionMetadata {
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
 }
 
 /// A customer-managed encryption key specification that can be applied to all created resources (e.g. Conversation).
@@ -5198,10 +5679,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaScorecardDimension
 pub struct GoogleCloudContactcenterinsightsV1alpha1EncryptionSpec {
     /// Required. The name of customer-managed encryption key that is used to secure a resource and its sub-resources. If empty, the resource is secured by our default encryption key. Only the key in the same location as this resource is allowed to be used for encryption. Format: projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Immutable. The resource name of the encryption key specification resource. Format: projects/{project}/locations/{location}/encryptionSpec
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The data for an entity annotation. Represents a phrase in the conversation that is a known entity, such as a person, an organization, or location.
@@ -5209,19 +5690,21 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1EncryptionSpec {
 pub struct GoogleCloudContactcenterinsightsV1alpha1Entity {
     /// The representative name for the entity.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Metadata associated with the entity. For most entity types, the metadata is a Wikipedia URL (wikipedia_url) and Knowledge Graph MID (mid), if they are available. For the metadata associated with other entity types, see the Type table below.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The salience score associated with the entity in the [0, 1.0] range. The salience score for an entity provides information about the importance or centrality of that entity to the entire document text. Scores closer to 0 are less salient, while scores closer to 1.0 are highly salient.
     #[serde(default)]
-    pub salience: Option<f32>,
+    pub salience: ::core::option::Option<f32>,
     /// The aggregate sentiment expressed for this entity in the conversation.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    pub sentiment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    >,
     /// The entity type. // TODO: enum values: ["TYPE_UNSPECIFIED", "PERSON", "LOCATION", "ORGANIZATION", "EVENT", "WORK_OF_ART", "CONSUMER_GOOD", "OTHER", "PHONE_NUMBER", "ADDRESS", "DATE", "NUMBER", "PRICE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The data for an entity mention annotation. This represents a mention of an Entity in the conversation.
@@ -5229,13 +5712,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Entity {
 pub struct GoogleCloudContactcenterinsightsV1alpha1EntityMentionData {
     /// The key of this entity in conversation entities. Can be used to retrieve the exact Entity this mention is attached to.
     #[serde(default, rename = "entityUniqueId")]
-    pub entity_unique_id: Option<String>,
+    pub entity_unique_id: ::core::option::Option<String>,
     /// Sentiment expressed for this mention of the entity.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    pub sentiment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
+    >,
     /// The type of the entity mention. // TODO: enum values: ["MENTION_TYPE_UNSPECIFIED", "PROPER", "COMMON"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Metadata for an export insights operation.
@@ -5243,22 +5728,24 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1EntityMentionData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataMetadata {
     /// The number of conversations that were exported successfully.
     #[serde(default, rename = "completedExportCount")]
-    pub completed_export_count: Option<i32>,
+    pub completed_export_count: ::core::option::Option<i32>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The number of conversations that failed to be exported.
     #[serde(default, rename = "failedExportCount")]
-    pub failed_export_count: Option<i32>,
+    pub failed_export_count: ::core::option::Option<i32>,
     /// Partial errors during export operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The original request for export.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequest>,
+    >,
 }
 
 /// The request to export insights.
@@ -5266,24 +5753,26 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequest {
     /// Specified if sink is a BigQuery table.
     #[serde(default, rename = "bigQueryDestination")]
-    pub big_query_destination: Option<
-        GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequestBigQueryDestination,
+    pub big_query_destination: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequestBigQueryDestination,
+        >,
     >,
     /// Optional. Version of the export schema. // TODO: enum values: ["EXPORT_SCHEMA_VERSION_UNSPECIFIED", "EXPORT_V1", "EXPORT_V2", "EXPORT_V3", "EXPORT_V4", "EXPORT_V5", "EXPORT_V6", "EXPORT_V7", "EXPORT_V8", "EXPORT_V9", "EXPORT_V10", "EXPORT_V11", "EXPORT_V12", "EXPORT_V13", "EXPORT_V14", "EXPORT_V15", "EXPORT_V16", "EXPORT_V17", "EXPORT_VERSION_LATEST_AVAILABLE"]
     #[serde(default, rename = "exportSchemaVersion")]
-    pub export_schema_version: Option<String>,
+    pub export_schema_version: ::core::option::Option<String>,
     /// A filter to reduce results to a specific subset. Useful for exporting conversations with specific properties.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// A fully qualified KMS key name for BigQuery tables protected by CMEK. Format: projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}/cryptoKeyVersions/{version}
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Required. The parent resource to export data from.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Options for what to do if the destination table already exists. // TODO: enum values: ["WRITE_DISPOSITION_UNSPECIFIED", "WRITE_TRUNCATE", "WRITE_APPEND"]
     #[serde(default, rename = "writeDisposition")]
-    pub write_disposition: Option<String>,
+    pub write_disposition: ::core::option::Option<String>,
 }
 
 /// A BigQuery Table Reference.
@@ -5291,13 +5780,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequestBigQueryDestination {
     /// Required. The name of the BigQuery dataset that the snapshot result should be exported to. If this dataset does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// A project ID or number. If specified, then export will attempt to write data to this project instead of the resource project. Otherwise, the resource project will be used.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// The BigQuery table name to which the insights data should be written. If this table does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
 }
 
 /// Metadata used for export issue model.
@@ -5305,13 +5794,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequestBigQ
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original export request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequest>,
+    >,
 }
 
 /// Request to export an issue model.
@@ -5319,11 +5810,14 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequest {
     /// Google Cloud Storage URI to export the issue model to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination:
-        Option<GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequestGcsDestination>,
+    pub gcs_destination: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequestGcsDestination,
+        >,
+    >,
     /// Required. The issue model to export.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Google Cloud Storage Object URI to save the issue model to.
@@ -5331,7 +5825,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequestGcsDestination {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
 }
 
 /// Agent Assist frequently-asked-question answer data.
@@ -5339,22 +5833,22 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequestGcsDes
 pub struct GoogleCloudContactcenterinsightsV1alpha1FaqAnswerData {
     /// The piece of text from the source knowledge base document.
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     /// The system''s confidence score that this answer is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f32>,
+    pub confidence_score: ::core::option::Option<f32>,
     /// Map that contains metadata about the FAQ answer and the document that it originates from.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The corresponding FAQ question.
     #[serde(default)]
-    pub question: Option<String>,
+    pub question: ::core::option::Option<String>,
     /// The knowledge document that this answer was extracted from. Format: projects/{project}/knowledgeBases/{knowledge_base}/documents/{document}.
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// Represents a conversation, resource, and label provided by the user. Can take the form of a string label or a QaAnswer label. QaAnswer labels are used for Quality AI example conversations. String labels are used for Topic Modeling. AgentAssistSummary labels are used for Agent Assist Summarization.
@@ -5362,22 +5856,24 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1FaqAnswerData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel {
     /// Output only. Create time of the label.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// String label used for Topic Modeling.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Name of the resource to be labeled. Supported resources are: * projects/{project}/locations/{location}/qaScorecards/{scorecard}/revisions/{revision}/qaQuestions/{question} * projects/{project}/locations/{location}/issueModels/{issue_model} * projects/{project}/locations/{location}/generators/{generator_id}
     #[serde(default, rename = "labeledResource")]
-    pub labeled_resource: Option<String>,
+    pub labeled_resource: ::core::option::Option<String>,
     /// Immutable. Resource name of the FeedbackLabel. Format: projects/{project}/locations/{location}/conversations/{conversation}/feedbackLabels/{feedback_label}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// QaAnswer label used for Quality AI example conversations.
     #[serde(default, rename = "qaAnswerLabel")]
-    pub qa_answer_label: Option<GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue>,
+    pub qa_answer_label: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue>,
+    >,
     /// Output only. Update time of the label.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A Cloud Storage source of conversation data.
@@ -5385,10 +5881,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel {
 pub struct GoogleCloudContactcenterinsightsV1alpha1GcsSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
     /// Immutable. Cloud Storage URI that points to a file that contains the conversation transcript.
     #[serde(default, rename = "transcriptUri")]
-    pub transcript_uri: Option<String>,
+    pub transcript_uri: ::core::option::Option<String>,
 }
 
 /// The conversation transcript for the chart.
@@ -5396,18 +5892,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GcsSource {
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscript {
     /// The conversation id of the chart.
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// Output only. The create time of the conversation.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Ordered list of messages, including user inputs and system responses.
     #[serde(default)]
-    pub messages: Option<
-        Vec<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessage>,
-    >,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessage>>>,
     /// Output only. The update time of the conversation.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The message in the conversation.
@@ -5415,16 +5909,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessage {
     /// Output only. For user messages, this is the time at which the system received the message. For system messages, this is the time at which the system generated the message.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The message id of the message.
     #[serde(default, rename = "messageId")]
-    pub message_id: Option<String>,
+    pub message_id: ::core::option::Option<String>,
     /// A wrapper for system messages per turn.
     #[serde(default, rename = "systemMessageWrapper")]
-    pub system_message_wrapper: Option<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessages>,
+    pub system_message_wrapper: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessages>>,
     /// A message from the user that is interacting with the system.
     #[serde(default, rename = "userMessage")]
-    pub user_message: Option<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageUserMessage>,
+    pub user_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageUserMessage>>,
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
@@ -5432,19 +5926,19 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessage {
     /// Chart spec from LLM
     #[serde(default, rename = "chartSpec")]
-    pub chart_spec: Option<serde_json::Value>,
+    pub chart_spec: ::core::option::Option<serde_json::Value>,
     /// Raw SQL from LLM, before templatization
     #[serde(default, rename = "generatedSqlQuery")]
-    pub generated_sql_query: Option<String>,
+    pub generated_sql_query: ::core::option::Option<String>,
     /// A direct natural language response to the user message.
     #[serde(default, rename = "textMessage")]
-    pub text_message: Option<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessageTextOutput>,
+    pub text_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessageTextOutput>>,
     /// Optional. User provided chart spec
     #[serde(default, rename = "userProvidedChartSpec")]
-    pub user_provided_chart_spec: Option<serde_json::Value>,
+    pub user_provided_chart_spec: ::core::option::Option<serde_json::Value>,
     /// Optional. User provided SQL query
     #[serde(default, rename = "userProvidedSqlQuery")]
-    pub user_provided_sql_query: Option<String>,
+    pub user_provided_sql_query: ::core::option::Option<String>,
 }
 
 /// A text output message from the system.
@@ -5453,10 +5947,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 {
     /// The parts of the message.
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of the text message. // TODO: enum values: ["TYPE_UNSPECIFIED", "THOUGHT", "FINAL_RESPONSE", "PROGRESS"]
     #[serde(default, rename = "textType")]
-    pub text_type: Option<String>,
+    pub text_type: ::core::option::Option<String>,
 }
 
 /// A wrapper for system messages per turn.
@@ -5464,7 +5958,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessages {
     /// A message from the system in response to the user.
     #[serde(default, rename = "systemMessages")]
-    pub system_messages: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessage>>,
+    pub system_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessage>>>,
 }
 
 /// The user message.
@@ -5473,7 +5967,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 {
     /// A message from the user that is interacting with the system.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// The metadata for generative insights.
@@ -5481,7 +5975,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsMetadata {
     /// The error message when the generative insights request fails.
     #[serde(default, rename = "errorMessages")]
-    pub error_messages: Option<Vec<GoogleRpcStatus>>,
+    pub error_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// The response for generative insights.
@@ -5489,13 +5983,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponse {
     /// The full list of generative responses. Each response is ordered by time.
     #[serde(default, rename = "generativeResponses")]
-    pub generative_responses: Option<
-        Vec<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGenerativeResponse>,
-    >,
+    pub generative_responses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGenerativeResponse>>>,
     /// The transcript of the generative insights conversation.
     #[serde(default)]
-    pub transcript:
-        Option<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscript>,
+    pub transcript: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscript>>,
 }
 
 /// Wrapper for storing the generative response for a chart.
@@ -5503,16 +5994,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponse {
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGenerativeResponse {
     /// The chart spec for the data. This will be specified in the vega-lite or vega format.
     #[serde(default, rename = "chartSpec")]
-    pub chart_spec: Option<serde_json::Value>,
+    pub chart_spec: ::core::option::Option<serde_json::Value>,
     /// The generated SQL query from the LLM. Will be populated during the chart building phase. The generated SQL will be cached in the corresponding chart resource.
     #[serde(default, rename = "generatedSqlQuery")]
-    pub generated_sql_query: Option<String>,
+    pub generated_sql_query: ::core::option::Option<String>,
     /// The text output from the LLM. Will be populated during the chart building phase. For a reloaded chart, this will NOT be populated. May contain THOUGHT or a FINAL response or some in-progress response.
     #[serde(default, rename = "textMessage")]
-    pub text_message: Option<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGenerativeResponseTextOutput>,
+    pub text_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGenerativeResponseTextOutput>>,
     /// The text output from the LLM. Will be populated during the chart building phase. For a reloaded chart, this will NOT be populated. May contain THOUGHT or a FINAL response or some in-progress response.
     #[serde(default, rename = "textOutput")]
-    pub text_output: Option<String>,
+    pub text_output: ::core::option::Option<String>,
 }
 
 /// Wrapper for text output.
@@ -5521,10 +6012,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGen
 {
     /// The text output from the LLM.
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of text output. // TODO: enum values: ["TYPE_UNSPECIFIED", "THOUGHT", "FINAL_RESPONSE", "PROGRESS"]
     #[serde(default, rename = "textType")]
-    pub text_type: Option<String>,
+    pub text_type: ::core::option::Option<String>,
 }
 
 /// Metadata used for import issue model.
@@ -5532,13 +6023,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGen
 pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original import request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequest>,
+    >,
 }
 
 /// Request to import an issue model.
@@ -5546,14 +6039,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequest {
     /// Optional. If set to true, will create an issue model from the imported file with randomly generated IDs for the issue model and corresponding issues. Otherwise, replaces an existing model with the same ID as the file.
     #[serde(default, rename = "createNewModel")]
-    pub create_new_model: Option<bool>,
+    pub create_new_model: ::core::option::Option<bool>,
     /// Google Cloud Storage source message.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source:
-        Option<GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequestGcsSource>,
+    pub gcs_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequestGcsSource>,
+    >,
     /// Required. The parent resource of the issue model.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Google Cloud Storage Object URI to get the issue model file from.
@@ -5561,7 +6055,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequestGcsSource {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
 }
 
 /// Response from import issue model
@@ -5569,7 +6063,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequestGcsSou
 pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelResponse {
     /// The issue model that was imported.
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<GoogleCloudContactcenterinsightsV1alpha1IssueModel>,
+    pub issue_model: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IssueModel>,
+    >,
 }
 
 /// The metadata for an IngestConversations operation.
@@ -5577,24 +6073,22 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelResponse {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Statistics for IngestConversations operation.
     #[serde(default, rename = "ingestConversationsStats")]
-    pub ingest_conversations_stats: Option<
-        GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadataIngestConversationsStats,
-    >,
+    pub ingest_conversations_stats: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadataIngestConversationsStats>>,
     /// Output only. Partial errors during ingest operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for ingest.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequest>,
+    pub request: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequest>>,
     /// Output only. Stores the conversation resources produced by ingest sampling operations.
     #[serde(default, rename = "sampledConversations")]
-    pub sampled_conversations: Option<Vec<String>>,
+    pub sampled_conversations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Statistics for IngestConversations operation.
@@ -5603,16 +6097,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadataIn
 {
     /// Output only. The number of objects skipped because another conversation with the same transcript uri had already been ingested.
     #[serde(default, rename = "duplicatesSkippedCount")]
-    pub duplicates_skipped_count: Option<i32>,
+    pub duplicates_skipped_count: ::core::option::Option<i32>,
     /// Output only. The number of objects which were unable to be ingested due to errors. The errors are populated in the partial_errors field.
     #[serde(default, rename = "failedIngestCount")]
-    pub failed_ingest_count: Option<i32>,
+    pub failed_ingest_count: ::core::option::Option<i32>,
     /// Output only. The number of objects processed during the ingest operation.
     #[serde(default, rename = "processedObjectCount")]
-    pub processed_object_count: Option<i32>,
+    pub processed_object_count: ::core::option::Option<i32>,
     /// Output only. The number of new conversations added during this ingest operation.
     #[serde(default, rename = "successfulIngestCount")]
-    pub successful_ingest_count: Option<i32>,
+    pub successful_ingest_count: ::core::option::Option<i32>,
 }
 
 /// The request to ingest conversations.
@@ -5620,30 +6114,25 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadataIn
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequest {
     /// Configuration that applies to all conversations.
     #[serde(default, rename = "conversationConfig")]
-    pub conversation_config: Option<
-        GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestConversationConfig,
-    >,
+    pub conversation_config: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestConversationConfig>>,
     /// A cloud storage bucket source. Note that any previously ingested objects from the source will be skipped to avoid duplication.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source:
-        Option<GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestGcsSource>>,
     /// Required. The parent resource for new conversations.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. DLP settings for transcript redaction. Optional, will default to the config specified in Settings.
     #[serde(default, rename = "redactionConfig")]
-    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1alpha1RedactionConfig>,
+    pub redaction_config: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1RedactionConfig>>,
     /// Optional. If set, this fields indicates the number of objects to ingest from the Cloud Storage bucket. If empty, the entire bucket will be ingested. Unless they are first deleted, conversations produced through sampling won''t be ingested by subsequent ingest requests.
     #[serde(default, rename = "sampleSize")]
-    pub sample_size: Option<i32>,
+    pub sample_size: ::core::option::Option<i32>,
     /// Optional. Default Speech-to-Text configuration. Optional, will default to the config specified in Settings.
     #[serde(default, rename = "speechConfig")]
-    pub speech_config: Option<GoogleCloudContactcenterinsightsV1alpha1SpeechConfig>,
+    pub speech_config: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SpeechConfig>>,
     /// Configuration for when source contains conversation transcripts.
     #[serde(default, rename = "transcriptObjectConfig")]
-    pub transcript_object_config: Option<
-        GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestTranscriptObjectConfig,
-    >,
+    pub transcript_object_config: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestTranscriptObjectConfig>>,
 }
 
 /// Configuration that applies to all conversations.
@@ -5651,13 +6140,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestConversationConfig {
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "agentChannel")]
-    pub agent_channel: Option<i32>,
+    pub agent_channel: ::core::option::Option<i32>,
     /// Optional. An opaque, user-specified string representing a human agent who handled all conversations in the import. Note that this will be overridden if per-conversation metadata is provided through the metadata_bucket_uri.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "customerChannel")]
-    pub customer_channel: Option<i32>,
+    pub customer_channel: ::core::option::Option<i32>,
 }
 
 /// Configuration for Cloud Storage bucket sources.
@@ -5665,22 +6154,22 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestCon
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestGcsSource {
     /// Optional. The Cloud Storage path to the conversation audio file. Note that: [1] Audio files will be transcribed if not already. [2] Audio files and transcript files must be in separate buckets / folders. [3] A source file and its corresponding audio file must share the same name to be properly ingested, E.g. gs://bucket/transcript/conversation1.json and gs://bucket/audio/conversation1.mp3.
     #[serde(default, rename = "audioBucketUri")]
-    pub audio_bucket_uri: Option<String>,
+    pub audio_bucket_uri: ::core::option::Option<String>,
     /// Optional. Specifies the type of the objects in bucket_uri. Avoid passing this. This is inferred from the transcript_bucket_uri, audio_bucket_uri. // TODO: enum values: ["BUCKET_OBJECT_TYPE_UNSPECIFIED", "TRANSCRIPT", "AUDIO"]
     #[serde(default, rename = "bucketObjectType")]
-    pub bucket_object_type: Option<String>,
+    pub bucket_object_type: ::core::option::Option<String>,
     /// Optional. The Cloud Storage bucket containing source objects. Avoid passing this. Pass this through one of transcript_bucket_uri or audio_bucket_uri.
     #[serde(default, rename = "bucketUri")]
-    pub bucket_uri: Option<String>,
+    pub bucket_uri: ::core::option::Option<String>,
     /// Optional. Custom keys to extract as conversation labels from metadata files in metadata_bucket_uri. Keys not included in this field will be ignored. Note that there is a limit of 100 labels per conversation.
     #[serde(default, rename = "customMetadataKeys")]
-    pub custom_metadata_keys: Option<Vec<String>>,
+    pub custom_metadata_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The Cloud Storage path to the conversation metadata. Note that: [1] Metadata files are expected to be in JSON format. [2] Metadata and source files (transcripts or audio) must be in separate buckets / folders. [3] A source file and its corresponding metadata file must share the same name to be properly ingested, E.g. gs://bucket/audio/conversation1.mp3 and gs://bucket/metadata/conversation1.json.
     #[serde(default, rename = "metadataBucketUri")]
-    pub metadata_bucket_uri: Option<String>,
+    pub metadata_bucket_uri: ::core::option::Option<String>,
     /// Optional. The Cloud Storage path to the conversation transcripts. Note that: [1] Transcript files are expected to be in JSON format. [2] Transcript, audio, metadata files must be in separate buckets / folders. [3] A source file and its corresponding metadata file must share the same name to be properly ingested, E.g. gs://bucket/audio/conversation1.mp3 and gs://bucket/metadata/conversation1.json.
     #[serde(default, rename = "transcriptBucketUri")]
-    pub transcript_bucket_uri: Option<String>,
+    pub transcript_bucket_uri: ::core::option::Option<String>,
 }
 
 /// Configuration for processing transcript objects.
@@ -5689,7 +6178,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestTra
 {
     /// Required. The medium transcript objects represent. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
 }
 
 /// Metadata for initializing a location-level encryption specification.
@@ -5697,16 +6186,18 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestTra
 pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Partial errors during initializing operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for initialization.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecRequest>,
+    >,
 }
 
 /// The request to initialize a location-level encryption specification.
@@ -5714,7 +6205,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecMetad
 pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecRequest {
     /// Required. The encryption spec used for CMEK encryption. It is required that the kms key is in the same region as the endpoint. The same key will be used for all provisioned resources, if encryption is available. If the kms_key_name field is left empty, no encryption will be enforced.
     #[serde(default, rename = "encryptionSpec")]
-    pub encryption_spec: Option<GoogleCloudContactcenterinsightsV1alpha1EncryptionSpec>,
+    pub encryption_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1EncryptionSpec>,
+    >,
 }
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
@@ -5722,10 +6215,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecReque
 pub struct GoogleCloudContactcenterinsightsV1alpha1Intent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The unique identifier of the intent.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
@@ -5733,7 +6226,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Intent {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
-    pub intent_unique_id: Option<String>,
+    pub intent_unique_id: ::core::option::Option<String>,
 }
 
 /// The issue resource.
@@ -5741,22 +6234,22 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IntentMatchData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1Issue {
     /// Output only. The time at which this issue was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Representative description of the issue.
     #[serde(default, rename = "displayDescription")]
-    pub display_description: Option<String>,
+    pub display_description: ::core::option::Option<String>,
     /// The representative name for the issue.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. The resource name of the issue. Format: projects/{project}/locations/{location}/issueModels/{issue_model}/issues/{issue}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Resource names of the sample representative utterances that match to this issue.
     #[serde(default, rename = "sampleUtterances")]
-    pub sample_utterances: Option<Vec<String>>,
+    pub sample_utterances: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The most recent time that this issue was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Information about the issue.
@@ -5764,13 +6257,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Issue {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueAssignment {
     /// Immutable. Display name of the assigned issue. This field is set at time of analysis and immutable since then.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Resource name of the assigned issue.
     #[serde(default)]
-    pub issue: Option<String>,
+    pub issue: ::core::option::Option<String>,
     /// Score indicating the likelihood of the issue assignment. currently bounded on [0,1].
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
 }
 
 /// The data for an issue match annotation.
@@ -5778,7 +6271,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueAssignment {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueMatchData {
     /// Information about the issue''s assignment.
     #[serde(default, rename = "issueAssignment")]
-    pub issue_assignment: Option<GoogleCloudContactcenterinsightsV1alpha1IssueAssignment>,
+    pub issue_assignment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IssueAssignment>,
+    >,
 }
 
 /// The issue model resource.
@@ -5786,35 +6281,38 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueMatchData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModel {
     /// Output only. The time at which this issue model was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The representative name for the issue model.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Configs for the input data that used to create the issue model.
     #[serde(default, rename = "inputDataConfig")]
-    pub input_data_config:
-        Option<GoogleCloudContactcenterinsightsV1alpha1IssueModelInputDataConfig>,
+    pub input_data_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IssueModelInputDataConfig>,
+    >,
     /// Output only. Number of issues in this issue model.
     #[serde(default, rename = "issueCount")]
-    pub issue_count: Option<String>,
+    pub issue_count: ::core::option::Option<String>,
     /// Language of the model.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Type of the model. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "TYPE_V1", "TYPE_V2"]
     #[serde(default, rename = "modelType")]
-    pub model_type: Option<String>,
+    pub model_type: ::core::option::Option<String>,
     /// Immutable. The resource name of the issue model. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. State of the model. // TODO: enum values: ["STATE_UNSPECIFIED", "UNDEPLOYED", "DEPLOYING", "DEPLOYED", "UNDEPLOYING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Immutable. The issue model''s label statistics on its training data.
     #[serde(default, rename = "trainingStats")]
-    pub training_stats: Option<GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStats>,
+    pub training_stats: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStats>,
+    >,
     /// Output only. The most recent time at which the issue model was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Configs for the input data used to create the issue model.
@@ -5822,13 +6320,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModel {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelInputDataConfig {
     /// A filter to reduce the conversations used for training the model to a specific subset. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Medium of conversations used in training data. This field is being deprecated. To specify the medium to be used in training a new issue model, set the medium field on filter. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
     /// Output only. Number of conversations used in training. Output only.
     #[serde(default, rename = "trainingConversationsCount")]
-    pub training_conversations_count: Option<String>,
+    pub training_conversations_count: ::core::option::Option<String>,
 }
 
 /// Aggregated statistics about an issue model.
@@ -5836,13 +6334,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelInputDataConfig {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStats {
     /// Number of conversations the issue model has analyzed at this point in time.
     #[serde(default, rename = "analyzedConversationsCount")]
-    pub analyzed_conversations_count: Option<String>,
+    pub analyzed_conversations_count: ::core::option::Option<String>,
     /// Statistics on each issue. Key is the issue''s resource name.
     #[serde(default, rename = "issueStats")]
-    pub issue_stats: Option<serde_json::Value>,
+    pub issue_stats: ::core::option::Option<serde_json::Value>,
     /// Number of analyzed conversations for which no issue was applicable at this point in time.
     #[serde(default, rename = "unclassifiedConversationsCount")]
-    pub unclassified_conversations_count: Option<String>,
+    pub unclassified_conversations_count: ::core::option::Option<String>,
 }
 
 /// Aggregated statistics about an issue.
@@ -5850,13 +6348,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStats {
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStatsIssueStats {
     /// Display name of the issue.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Issue resource. Format: projects/{project}/locations/{location}/issueModels/{issue_model}/issues/{issue}
     #[serde(default)]
-    pub issue: Option<String>,
+    pub issue: ::core::option::Option<String>,
     /// Number of conversations attached to the issue at this point in time.
     #[serde(default, rename = "labeledConversationsCount")]
-    pub labeled_conversations_count: Option<String>,
+    pub labeled_conversations_count: ::core::option::Option<String>,
 }
 
 /// Issue Modeling result on a conversation.
@@ -5864,10 +6362,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStatsIssueStat
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelResult {
     /// Issue model that generates the result. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<String>,
+    pub issue_model: ::core::option::Option<String>,
     /// All the matched issues.
     #[serde(default)]
-    pub issues: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1IssueAssignment>>,
+    pub issues: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1IssueAssignment>>,
+    >,
 }
 
 /// The response for listing all feedback labels.
@@ -5875,10 +6375,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelResult {
 pub struct GoogleCloudContactcenterinsightsV1alpha1ListAllFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for listing feedback labels.
@@ -5886,10 +6388,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ListAllFeedbackLabelsResponse
 pub struct GoogleCloudContactcenterinsightsV1alpha1ListFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel>>,
+    >,
     /// The next page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The data for a matched phrase matcher. Represents information identifying a phrase matcher for a given match.
@@ -5897,10 +6401,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ListFeedbackLabelsResponse {
 pub struct GoogleCloudContactcenterinsightsV1alpha1PhraseMatchData {
     /// The human-readable name of the phrase matcher.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The unique identifier (the resource name) of the phrase matcher.
     #[serde(default, rename = "phraseMatcher")]
-    pub phrase_matcher: Option<String>,
+    pub phrase_matcher: ::core::option::Option<String>,
 }
 
 /// An answer to a QaQuestion.
@@ -5908,22 +6412,28 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1PhraseMatchData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswer {
     /// Lists all answer sources containing one or more answer values of a specific source type, e.g., all system-generated answer sources, or all manual edit answer sources.
     #[serde(default, rename = "answerSources")]
-    pub answer_sources: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerSource>>,
+    pub answer_sources: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerSource>,
+        >,
+    >,
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue>,
+    pub answer_value: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue>,
+    >,
     /// The conversation the answer applies to.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The QaQuestion answered by this answer.
     #[serde(default, rename = "qaQuestion")]
-    pub qa_question: Option<String>,
+    pub qa_question: ::core::option::Option<String>,
     /// Question text. E.g., "Did the agent greet the customer?"
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
     /// User-defined list of arbitrary tags. Matches the value from QaScorecard.ScorecardQuestion.tags. Used for grouping/organization and for weighting the score of each answer.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A question may have multiple answers from varying sources, one of which becomes the "main" answer above. AnswerSource represents each individual answer.
@@ -5931,10 +6441,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswer {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerSource {
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue>,
+    pub answer_value: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue>,
+    >,
     /// What created the answer. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "SYSTEM_GENERATED", "MANUAL_EDIT"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// Message for holding the value of a QaAnswer. QaQuestion.AnswerChoice defines the possible answer values for a question.
@@ -5942,31 +6454,31 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerSource {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// A short string used as an identifier. Matches the value used in QaQuestion.AnswerChoice.key.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// A value of "Not Applicable (N/A)". Should only ever be true.
     #[serde(default, rename = "naValue")]
-    pub na_value: Option<bool>,
+    pub na_value: ::core::option::Option<bool>,
     /// Output only. Normalized score of the questions. Calculated as score / potential_score.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// Numerical value.
     #[serde(default, rename = "numValue")]
-    pub num_value: Option<f64>,
+    pub num_value: ::core::option::Option<f64>,
     /// Output only. The maximum potential score of the question.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Output only. Numerical score of the answer.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// Output only. A value of "Skip". If provided, this field may only be set to true. If a question receives this answer, it will be excluded from any score calculations. This would mean that the question was not evaluated.
     #[serde(default, rename = "skipValue")]
-    pub skip_value: Option<bool>,
+    pub skip_value: ::core::option::Option<bool>,
     /// String value.
     #[serde(default, rename = "strValue")]
-    pub str_value: Option<String>,
+    pub str_value: ::core::option::Option<String>,
 }
 
 /// A tag is a resource which aims to categorize a set of questions across multiple scorecards, e.g., "Customer Satisfaction","Billing", etc.
@@ -5974,19 +6486,19 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaQuestionTag {
     /// Output only. The time at which the question tag was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. A user-specified display name for the tag.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. Resource name for the QaQuestionTag Format projects/{project}/locations/{location}/qaQuestionTags/{qa_question_tag} In the above format, the last segment, i.e., qa_question_tag, is a server-generated ID corresponding to the tag resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The list of Scorecard Question IDs that the tag applies to. Each QaQuestionId is represented as a full resource name containing the Question ID. Lastly, Since a tag may not necessarily be referenced by any Scorecard Questions, we treat this field as optional.
     #[serde(default, rename = "qaQuestionIds")]
-    pub qa_question_ids: Option<Vec<String>>,
+    pub qa_question_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The most recent time at which the question tag was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The results of scoring a single conversation against a QaScorecard. Contains a collection of QaAnswers and aggregate score.
@@ -5994,39 +6506,47 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaQuestionTag {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResult {
     /// ID of the agent that handled the conversation.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// The conversation scored by this result.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// Output only. The timestamp that the revision was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The name of the scorecard result. Format: projects/{project}/locations/{location}/qaScorecardResults/{qa_scorecard_result}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normalized score, which is the score divided by the potential score. Any manual edits are included if they exist.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The maximum potential overall score of the scorecard. Any questions answered using na_value are excluded from this calculation.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Set of QaAnswers represented in the result.
     #[serde(default, rename = "qaAnswers")]
-    pub qa_answers: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QaAnswer>>,
+    pub qa_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaAnswer>>,
+    >,
     /// The QaScorecardRevision scored by this result.
     #[serde(default, rename = "qaScorecardRevision")]
-    pub qa_scorecard_revision: Option<String>,
+    pub qa_scorecard_revision: ::core::option::Option<String>,
     /// Collection of tags and their scores.
     #[serde(default, rename = "qaTagResults")]
-    pub qa_tag_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultQaTagResult>>,
+    pub qa_tag_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultQaTagResult>,
+        >,
+    >,
     /// The overall numerical score of the result, incorporating any manual edits if they exist.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// List of all individual score sets.
     #[serde(default, rename = "scoreSources")]
-    pub score_sources:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultScoreSource>>,
+    pub score_sources: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultScoreSource>,
+        >,
+    >,
 }
 
 /// Tags and their corresponding results.
@@ -6034,16 +6554,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResult {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultQaTagResult {
     /// The normalized score the tag applies to.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The potential score the tag applies to.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// The score the tag applies to.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// The tag the score applies to.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// A scorecard result may have multiple sets of scores from varying sources, one of which becomes the "main" answer above. A ScoreSource represents each individual set of scores.
@@ -6051,20 +6571,23 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultQaTagResult 
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultScoreSource {
     /// The normalized score, which is the score divided by the potential score.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The maximum potential overall score of the scorecard. Any questions answered using na_value are excluded from this calculation.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Collection of tags and their scores.
     #[serde(default, rename = "qaTagResults")]
-    pub qa_tag_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultQaTagResult>>,
+    pub qa_tag_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultQaTagResult>,
+        >,
+    >,
     /// The overall numerical score of the result.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// What created the score. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "SYSTEM_GENERATED_ONLY", "INCLUDES_MANUAL_EDITS"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// The metadata from querying metrics.
@@ -6072,7 +6595,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultScoreSource 
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsMetadata {
     /// Whether the result rows were truncated because the result row size is too large to materialize.
     #[serde(default, rename = "resultIsTruncated")]
-    pub result_is_truncated: Option<bool>,
+    pub result_is_truncated: ::core::option::Option<bool>,
 }
 
 /// The response for querying metrics.
@@ -6080,17 +6603,22 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponse {
     /// Required. The location of the data. "projects/{project}/locations/{location}"
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The macro average slice contains aggregated averages across all selected dimensions. i.e. if group_by agent and scorecard_id is specified, this field will contain the average across all agents and all scorecards. This field is only populated if the request specifies a Dimension.
     #[serde(default, rename = "macroAverageSlice")]
-    pub macro_average_slice:
-        Option<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSlice>,
+    pub macro_average_slice: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSlice>,
+    >,
     /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request.
     #[serde(default)]
-    pub slices: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSlice>>,
+    pub slices: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSlice>,
+        >,
+    >,
     /// The metrics last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request. For example, if the request specifies a single ISSUE dimension and it has a cardinality of 2 (i.e. the data used to compute the metrics has 2 issues in total), the response will have 2 slices: * Slice 1 -&gt; dimensions=[Issue 1] * Slice 2 -&gt; dimensions=[Issue 2]
@@ -6098,14 +6626,23 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponse {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSlice {
     /// A unique combination of dimensions that this slice represents.
     #[serde(default)]
-    pub dimensions: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1Dimension>>,
+    pub dimensions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1Dimension>>,
+    >,
     /// A time series of metric values. This is only populated if the request specifies a time granularity other than NONE.
     #[serde(default, rename = "timeSeries")]
-    pub time_series:
-        Option<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceTimeSeries>,
+    pub time_series: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceTimeSeries,
+        >,
+    >,
     /// The total metric value. The interval of this data point is [starting create time, ending create time) from the request.
     #[serde(default)]
-    pub total: Option<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPoint>,
+    pub total: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPoint,
+        >,
+    >,
 }
 
 /// A data point contains the metric values mapped to an interval.
@@ -6113,13 +6650,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSlice {
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPoint {
     /// The measure related to conversations.
     #[serde(default, rename = "conversationMeasure")]
-    pub conversation_measure: Option<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointConversationMeasure>,
+    pub conversation_measure: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointConversationMeasure>>,
     /// The measure related to dialogflow interactions.
     #[serde(default, rename = "dialogflowInteractionMeasure")]
-    pub dialogflow_interaction_measure: Option<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointDialogflowInteractionMeasure>,
+    pub dialogflow_interaction_measure: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointDialogflowInteractionMeasure>>,
     /// The interval that this data point represents. * If this is the total data point, the interval is [starting create time, ending create time) from the request. * If this a data point from the time series, the interval is [time, time + time granularity from the request).
     #[serde(default)]
-    pub interval: Option<GoogleTypeInterval>,
+    pub interval: ::core::option::Option<::std::boxed::Box<GoogleTypeInterval>>,
 }
 
 /// The measure related to conversations.
@@ -6127,169 +6664,169 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointConversationMeasure {
     /// The number of conversations that were assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorAssignedConversationsCount")]
-    pub aa_supervisor_assigned_conversations_count: Option<i32>,
+    pub aa_supervisor_assigned_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that were dropped, i.e. escalated but not assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorDroppedConversationsCount")]
-    pub aa_supervisor_dropped_conversations_count: Option<i32>,
+    pub aa_supervisor_dropped_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that were escalated to an AA human supervisor for intervention.
     #[serde(default, rename = "aaSupervisorEscalatedConversationsCount")]
-    pub aa_supervisor_escalated_conversations_count: Option<i32>,
+    pub aa_supervisor_escalated_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations scanned by the AA human supervisor.
     #[serde(default, rename = "aaSupervisorMonitoredConversationsCount")]
-    pub aa_supervisor_monitored_conversations_count: Option<i32>,
+    pub aa_supervisor_monitored_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations transferred to a human agent.
     #[serde(default, rename = "aaSupervisorTransferredToHumanAgentConvCount")]
-    pub aa_supervisor_transferred_to_human_agent_conv_count: Option<i32>,
+    pub aa_supervisor_transferred_to_human_agent_conv_count: ::core::option::Option<i32>,
     /// Count of agent messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionAgentMessageTriggerCount")]
-    pub ai_coach_suggestion_agent_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_agent_message_trigger_count: ::core::option::Option<i32>,
     /// Count of Ai Coach Suggestion that has been used by agents.
     #[serde(default, rename = "aiCoachSuggestionAgentUsageCount")]
-    pub ai_coach_suggestion_agent_usage_count: Option<i32>,
+    pub ai_coach_suggestion_agent_usage_count: ::core::option::Option<i32>,
     /// Proportion of Ai Coach Suggestion that has been used by agents.
     #[serde(default, rename = "aiCoachSuggestionAgentUsageRatio")]
-    pub ai_coach_suggestion_agent_usage_ratio: Option<f64>,
+    pub ai_coach_suggestion_agent_usage_ratio: ::core::option::Option<f64>,
     /// Count of customer messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionCustomerMessageTriggerCount")]
-    pub ai_coach_suggestion_customer_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_customer_message_trigger_count: ::core::option::Option<i32>,
     /// Proportion of customer messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionCustomerMessageTriggerRatio")]
-    pub ai_coach_suggestion_customer_message_trigger_ratio: Option<f64>,
+    pub ai_coach_suggestion_customer_message_trigger_ratio: ::core::option::Option<f64>,
     /// Count of end_of_utterance trigger event messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionMessageTriggerCount")]
-    pub ai_coach_suggestion_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_message_trigger_count: ::core::option::Option<i32>,
     /// Proportion of end_of_utterance trigger event messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionMessageTriggerRatio")]
-    pub ai_coach_suggestion_message_trigger_ratio: Option<f64>,
+    pub ai_coach_suggestion_message_trigger_ratio: ::core::option::Option<f64>,
     /// The average agent''s sentiment score.
     #[serde(default, rename = "averageAgentSentimentScore")]
-    pub average_agent_sentiment_score: Option<f32>,
+    pub average_agent_sentiment_score: ::core::option::Option<f32>,
     /// The average client''s sentiment score.
     #[serde(default, rename = "averageClientSentimentScore")]
-    pub average_client_sentiment_score: Option<f32>,
+    pub average_client_sentiment_score: ::core::option::Option<f32>,
     /// The average customer satisfaction rating.
     #[serde(default, rename = "averageCustomerSatisfactionRating")]
-    pub average_customer_satisfaction_rating: Option<f64>,
+    pub average_customer_satisfaction_rating: ::core::option::Option<f64>,
     /// The average duration.
     #[serde(default, rename = "averageDuration")]
-    pub average_duration: Option<String>,
+    pub average_duration: ::core::option::Option<String>,
     /// The average normalized QA score for a scorecard. When computing the average across a set of conversations, if a conversation has been evaluated with multiple revisions of a scorecard, only the latest revision results will be used. Will exclude 0''s in average calculation. Will be only populated if the request specifies a dimension of QA_SCORECARD_ID.
     #[serde(default, rename = "averageQaNormalizedScore")]
-    pub average_qa_normalized_score: Option<f64>,
+    pub average_qa_normalized_score: ::core::option::Option<f64>,
     /// Average QA normalized score averaged for questions averaged across all revisions of the parent scorecard. Will be only populated if the request specifies a dimension of QA_QUESTION_ID.
     #[serde(default, rename = "averageQaQuestionNormalizedScore")]
-    pub average_qa_question_normalized_score: Option<f64>,
+    pub average_qa_question_normalized_score: ::core::option::Option<f64>,
     /// The average silence percentage.
     #[serde(default, rename = "averageSilencePercentage")]
-    pub average_silence_percentage: Option<f32>,
+    pub average_silence_percentage: ::core::option::Option<f32>,
     /// Average edit distance of the summarization suggestions. Edit distance (also called as levenshtein distance) is calculated by summing up number of insertions, deletions and substitutions required to transform the summization feedback to the original summary suggestion.
     #[serde(default, rename = "averageSummarizationSuggestionEditDistance")]
-    pub average_summarization_suggestion_edit_distance: Option<f64>,
+    pub average_summarization_suggestion_edit_distance: ::core::option::Option<f64>,
     /// Normalized Average edit distance of the summarization suggestions. Edit distance (also called as levenshtein distance) is calculated by summing up number of insertions, deletions and substitutions required to transform the summization feedback to the original summary suggestion. Normalized edit distance is the average of (edit distance / summary length).
     #[serde(default, rename = "averageSummarizationSuggestionNormalizedEditDistance")]
-    pub average_summarization_suggestion_normalized_edit_distance: Option<f64>,
+    pub average_summarization_suggestion_normalized_edit_distance: ::core::option::Option<f64>,
     /// The average turn count.
     #[serde(default, rename = "averageTurnCount")]
-    pub average_turn_count: Option<f32>,
+    pub average_turn_count: ::core::option::Option<f32>,
     /// The exponential moving average of the sentiment score of client turns in the conversation.
     #[serde(default, rename = "avgConversationClientTurnSentimentEma")]
-    pub avg_conversation_client_turn_sentiment_ema: Option<f64>,
+    pub avg_conversation_client_turn_sentiment_ema: ::core::option::Option<f64>,
     /// The number of conversations that were contained.
     #[serde(default, rename = "containedConversationCount")]
-    pub contained_conversation_count: Option<i32>,
+    pub contained_conversation_count: ::core::option::Option<i32>,
     /// The percentage of conversations that were contained.
     #[serde(default, rename = "containedConversationRatio")]
-    pub contained_conversation_ratio: Option<f64>,
+    pub contained_conversation_ratio: ::core::option::Option<f64>,
     /// Count of conversations that has Ai Coach Suggestions.
     #[serde(default, rename = "conversationAiCoachSuggestionCount")]
-    pub conversation_ai_coach_suggestion_count: Option<i32>,
+    pub conversation_ai_coach_suggestion_count: ::core::option::Option<i32>,
     /// Proportion of conversations that has Ai Coach Suggestions.
     #[serde(default, rename = "conversationAiCoachSuggestionRatio")]
-    pub conversation_ai_coach_suggestion_ratio: Option<f64>,
+    pub conversation_ai_coach_suggestion_ratio: ::core::option::Option<f64>,
     /// The conversation count.
     #[serde(default, rename = "conversationCount")]
-    pub conversation_count: Option<i32>,
+    pub conversation_count: ::core::option::Option<i32>,
     /// Proportion of conversations that had a suggested summary.
     #[serde(default, rename = "conversationSuggestedSummaryRatio")]
-    pub conversation_suggested_summary_ratio: Option<f64>,
+    pub conversation_suggested_summary_ratio: ::core::option::Option<f64>,
     /// The agent message count.
     #[serde(default, rename = "conversationTotalAgentMessageCount")]
-    pub conversation_total_agent_message_count: Option<i32>,
+    pub conversation_total_agent_message_count: ::core::option::Option<i32>,
     /// The customer message count.
     #[serde(default, rename = "conversationTotalCustomerMessageCount")]
-    pub conversation_total_customer_message_count: Option<i32>,
+    pub conversation_total_customer_message_count: ::core::option::Option<i32>,
     /// The average latency of conversational agents'' audio in audio out latency per interaction. This is computed as the average of the all the interactions'' audio in audio out latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageAudioInAudioOutLatency")]
-    pub conversational_agents_average_audio_in_audio_out_latency: Option<f64>,
+    pub conversational_agents_average_audio_in_audio_out_latency: ::core::option::Option<f64>,
     /// The average latency of conversational agents'' latency per interaction. This is computed as the average of the all the iteractions'' end to end latencies in a conversation and averaged across conversations. The e2e latency is the time between the end of the user utterance and the start of the agent utterance on the interaction level.
     #[serde(default, rename = "conversationalAgentsAverageEndToEndLatency")]
-    pub conversational_agents_average_end_to_end_latency: Option<f64>,
+    pub conversational_agents_average_end_to_end_latency: ::core::option::Option<f64>,
     /// The average latency of conversational agents'' LLM call latency per interaction. This is computed as the average of the all the interactions LLM call latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageLlmCallLatency")]
-    pub conversational_agents_average_llm_call_latency: Option<f64>,
+    pub conversational_agents_average_llm_call_latency: ::core::option::Option<f64>,
     /// The macro average latency of conversational agents'' TTS latency per interaction. This is computed as the average of the all the interactions'' TTS latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageTtsLatency")]
-    pub conversational_agents_average_tts_latency: Option<f64>,
+    pub conversational_agents_average_tts_latency: ::core::option::Option<f64>,
     /// Average latency of dialogflow webhook calls.
     #[serde(default, rename = "dialogflowAverageWebhookLatency")]
-    pub dialogflow_average_webhook_latency: Option<f64>,
+    pub dialogflow_average_webhook_latency: ::core::option::Option<f64>,
     /// count of conversations that was handed off from virtual agent to human agent.
     #[serde(default, rename = "dialogflowConversationsEscalationCount")]
-    pub dialogflow_conversations_escalation_count: Option<f64>,
+    pub dialogflow_conversations_escalation_count: ::core::option::Option<f64>,
     /// Proportion of conversations that was handed off from virtual agent to human agent.
     #[serde(default, rename = "dialogflowConversationsEscalationRatio")]
-    pub dialogflow_conversations_escalation_ratio: Option<f64>,
+    pub dialogflow_conversations_escalation_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow interactions that has empty input.
     #[serde(default, rename = "dialogflowInteractionsNoInputRatio")]
-    pub dialogflow_interactions_no_input_ratio: Option<f64>,
+    pub dialogflow_interactions_no_input_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow interactions that has no intent match for the input.
     #[serde(default, rename = "dialogflowInteractionsNoMatchRatio")]
-    pub dialogflow_interactions_no_match_ratio: Option<f64>,
+    pub dialogflow_interactions_no_match_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow webhook calls that failed.
     #[serde(default, rename = "dialogflowWebhookFailureRatio")]
-    pub dialogflow_webhook_failure_ratio: Option<f64>,
+    pub dialogflow_webhook_failure_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow webhook calls that timed out.
     #[serde(default, rename = "dialogflowWebhookTimeoutRatio")]
-    pub dialogflow_webhook_timeout_ratio: Option<f64>,
+    pub dialogflow_webhook_timeout_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had negative feedback.
     #[serde(default, rename = "knowledgeAssistNegativeFeedbackRatio")]
-    pub knowledge_assist_negative_feedback_ratio: Option<f64>,
+    pub knowledge_assist_negative_feedback_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had positive feedback.
     #[serde(default, rename = "knowledgeAssistPositiveFeedbackRatio")]
-    pub knowledge_assist_positive_feedback_ratio: Option<f64>,
+    pub knowledge_assist_positive_feedback_ratio: ::core::option::Option<f64>,
     /// Count of knowledge assist results (Proactive Generative Knowledge Assist) shown to the user.
     #[serde(default, rename = "knowledgeAssistResultCount")]
-    pub knowledge_assist_result_count: Option<i32>,
+    pub knowledge_assist_result_count: ::core::option::Option<i32>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had a URL clicked.
     #[serde(default, rename = "knowledgeAssistUriClickRatio")]
-    pub knowledge_assist_uri_click_ratio: Option<f64>,
+    pub knowledge_assist_uri_click_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries made by the agent compared to the total number of knowledge search queries made.
     #[serde(default, rename = "knowledgeSearchAgentQuerySourceRatio")]
-    pub knowledge_search_agent_query_source_ratio: Option<f64>,
+    pub knowledge_search_agent_query_source_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had negative feedback.
     #[serde(default, rename = "knowledgeSearchNegativeFeedbackRatio")]
-    pub knowledge_search_negative_feedback_ratio: Option<f64>,
+    pub knowledge_search_negative_feedback_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had positive feedback.
     #[serde(default, rename = "knowledgeSearchPositiveFeedbackRatio")]
-    pub knowledge_search_positive_feedback_ratio: Option<f64>,
+    pub knowledge_search_positive_feedback_ratio: ::core::option::Option<f64>,
     /// Count of knowledge search results (Generative Knowledge Assist) shown to the user.
     #[serde(default, rename = "knowledgeSearchResultCount")]
-    pub knowledge_search_result_count: Option<i32>,
+    pub knowledge_search_result_count: ::core::option::Option<i32>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries suggested compared to the total number of knowledge search queries made.
     #[serde(default, rename = "knowledgeSearchSuggestedQuerySourceRatio")]
-    pub knowledge_search_suggested_query_source_ratio: Option<f64>,
+    pub knowledge_search_suggested_query_source_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had a URL clicked.
     #[serde(default, rename = "knowledgeSearchUriClickRatio")]
-    pub knowledge_search_uri_click_ratio: Option<f64>,
+    pub knowledge_search_uri_click_ratio: ::core::option::Option<f64>,
     /// Average QA normalized score for all the tags.
     #[serde(default, rename = "qaTagScores")]
-    pub qa_tag_scores: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointConversationMeasureQaTagScore>>,
+    pub qa_tag_scores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointConversationMeasureQaTagScore>>>,
     /// Proportion of summarization suggestions that were manually edited.
     #[serde(default, rename = "summarizationSuggestionEditRatio")]
-    pub summarization_suggestion_edit_ratio: Option<f64>,
+    pub summarization_suggestion_edit_ratio: ::core::option::Option<f64>,
     /// Count of summarization suggestions results.
     #[serde(default, rename = "summarizationSuggestionResultCount")]
-    pub summarization_suggestion_result_count: Option<i32>,
+    pub summarization_suggestion_result_count: ::core::option::Option<i32>,
 }
 
 /// Average QA normalized score for the tag.
@@ -6298,41 +6835,30 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 {
     /// Average tag normalized score per tag.
     #[serde(default, rename = "averageTagNormalizedScore")]
-    pub average_tag_normalized_score: Option<f64>,
+    pub average_tag_normalized_score: ::core::option::Option<f64>,
     /// Tag name.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// The measure related to dialogflow interactions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointDialogflowInteractionMeasure
-{
+pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointDialogflowInteractionMeasure {
     /// The percentile result for audio in audio out latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileAudioInAudioOutLatency")]
-    pub percentile_audio_in_audio_out_latency: Option<
-        GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_audio_in_audio_out_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult>>,
     /// The percentile result for end to end chat latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileEndToEndLatency")]
-    pub percentile_end_to_end_latency: Option<
-        GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_end_to_end_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult>>,
     /// The percentile result for LLM latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileLlmCallLatency")]
-    pub percentile_llm_call_latency: Option<
-        GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_llm_call_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult>>,
     /// The percentile result for tool use latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileToolUseLatency")]
-    pub percentile_tool_use_latency: Option<
-        GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_tool_use_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult>>,
     /// The percentile result for TTS latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileTtsLatency")]
-    pub percentile_tts_latency: Option<
-        GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_tts_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult>>,
 }
 
 /// The percentile result. Currently supported percentiles are 50th, 90th, and 99th.
@@ -6341,13 +6867,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 {
     /// The 50th percentile value.
     #[serde(default)]
-    pub p50: Option<f64>,
+    pub p50: ::core::option::Option<f64>,
     /// The 90th percentile value.
     #[serde(default)]
-    pub p90: Option<f64>,
+    pub p90: ::core::option::Option<f64>,
     /// The 99th percentile value.
     #[serde(default)]
-    pub p99: Option<f64>,
+    pub p99: ::core::option::Option<f64>,
 }
 
 /// A time series of metric values.
@@ -6355,8 +6881,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceTimeSeries {
     /// The data points that make up the time series .
     #[serde(default, rename = "dataPoints")]
-    pub data_points:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPoint>>,
+    pub data_points: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPoint,
+            >,
+        >,
+    >,
 }
 
 /// The response for querying performance overview.
@@ -6364,7 +6895,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceTime
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewResponse {
     /// The summary text of the performance.
     #[serde(default, rename = "summaryText")]
-    pub summary_text: Option<String>,
+    pub summary_text: ::core::option::Option<String>,
 }
 
 /// DLP resources used for redaction while ingesting conversations. DLP settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint or the Dialogflow / Agent Assist runtime integrations. When using Dialogflow / Agent Assist runtime integrations, redaction should be performed in Dialogflow / Agent Assist.
@@ -6372,10 +6903,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewRespo
 pub struct GoogleCloudContactcenterinsightsV1alpha1RedactionConfig {
     /// The fully-qualified DLP deidentify template resource name. Format: projects/{project}/deidentifyTemplates/{template}
     #[serde(default, rename = "deidentifyTemplate")]
-    pub deidentify_template: Option<String>,
+    pub deidentify_template: ::core::option::Option<String>,
     /// The fully-qualified DLP inspect template resource name. Format: projects/{project}/locations/{location}/inspectTemplates/{template}
     #[serde(default, rename = "inspectTemplate")]
-    pub inspect_template: Option<String>,
+    pub inspect_template: ::core::option::Option<String>,
 }
 
 /// An annotation that was generated during the customer and agent interaction.
@@ -6383,43 +6914,62 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1RedactionConfig {
 pub struct GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation {
     /// The unique identifier of the annotation. Format: projects/{project}/locations/{location}/conversationDatasets/{dataset}/conversationDataItems/{data_item}/conversationAnnotations/{annotation}
     #[serde(default, rename = "annotationId")]
-    pub annotation_id: Option<String>,
+    pub annotation_id: ::core::option::Option<String>,
     /// The feedback that the customer has about the answer in data.
     #[serde(default, rename = "answerFeedback")]
-    pub answer_feedback: Option<GoogleCloudContactcenterinsightsV1alpha1AnswerFeedback>,
+    pub answer_feedback: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnswerFeedback>,
+    >,
     /// Agent Assist Article Suggestion data.
     #[serde(default, rename = "articleSuggestion")]
-    pub article_suggestion: Option<GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData>,
+    pub article_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData>,
+    >,
     /// Conversation summarization suggestion data.
     #[serde(default, rename = "conversationSummarizationSuggestion")]
-    pub conversation_summarization_suggestion:
-        Option<GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData>,
+    pub conversation_summarization_suggestion: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData,
+        >,
+    >,
     /// The time at which this annotation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Dialogflow interaction data.
     #[serde(default, rename = "dialogflowInteraction")]
-    pub dialogflow_interaction:
-        Option<GoogleCloudContactcenterinsightsV1alpha1DialogflowInteractionData>,
+    pub dialogflow_interaction: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1DialogflowInteractionData>,
+    >,
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "endBoundary")]
-    pub end_boundary: Option<GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary>,
+    pub end_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary>,
+    >,
     /// Agent Assist FAQ answer data.
     #[serde(default, rename = "faqAnswer")]
-    pub faq_answer: Option<GoogleCloudContactcenterinsightsV1alpha1FaqAnswerData>,
+    pub faq_answer: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1FaqAnswerData>,
+    >,
     /// Agent Assist Smart Compose suggestion data.
     #[serde(default, rename = "smartComposeSuggestion")]
-    pub smart_compose_suggestion:
-        Option<GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData>,
+    pub smart_compose_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData>,
+    >,
     /// Agent Assist Smart Reply data.
     #[serde(default, rename = "smartReply")]
-    pub smart_reply: Option<GoogleCloudContactcenterinsightsV1alpha1SmartReplyData>,
+    pub smart_reply: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SmartReplyData>,
+    >,
     /// The boundary in the conversation where the annotation starts, inclusive.
     #[serde(default, rename = "startBoundary")]
-    pub start_boundary: Option<GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary>,
+    pub start_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary>,
+    >,
     /// Explicit input used for generating the answer
     #[serde(default, rename = "userInput")]
-    pub user_input: Option<GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotationUserInput>,
+    pub user_input: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotationUserInput>,
+    >,
 }
 
 /// Explicit input used for generating the answer
@@ -6427,13 +6977,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation {
 pub struct GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotationUserInput {
     /// The resource name of associated generator. Format: projects//locations//generators/
     #[serde(default, rename = "generatorName")]
-    pub generator_name: Option<String>,
+    pub generator_name: ::core::option::Option<String>,
     /// Query text. Article Search uses this to store the input query used to generate the search results.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Query source for the answer. // TODO: enum values: ["QUERY_SOURCE_UNSPECIFIED", "AGENT_QUERY", "SUGGESTED_QUERY"]
     #[serde(default, rename = "querySource")]
-    pub query_source: Option<String>,
+    pub query_source: ::core::option::Option<String>,
 }
 
 /// The metadata for an SampleConversations operation.
@@ -6441,21 +6991,19 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotationUserInput {
 pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Partial errors during sample conversations operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for sample conversations to dataset.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1SampleConversationsRequest>,
+    pub request: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SampleConversationsRequest>>,
     /// Output only. Statistics for SampleConversations operation.
     #[serde(default, rename = "sampleConversationsStats")]
-    pub sample_conversations_stats: Option<
-        GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadataSampleConversationsStats,
-    >,
+    pub sample_conversations_stats: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadataSampleConversationsStats>>,
 }
 
 /// Statistics for SampleConversations operation.
@@ -6464,10 +7012,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadataSa
 {
     /// Output only. The number of objects which were unable to be sampled due to errors. The errors are populated in the partial_errors field.
     #[serde(default, rename = "failedSampleCount")]
-    pub failed_sample_count: Option<i32>,
+    pub failed_sample_count: ::core::option::Option<i32>,
     /// Output only. The number of new conversations added during this sample operation.
     #[serde(default, rename = "successfulSampleCount")]
-    pub successful_sample_count: Option<i32>,
+    pub successful_sample_count: ::core::option::Option<i32>,
 }
 
 /// The request to sample conversations to a dataset.
@@ -6475,13 +7023,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadataSa
 pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsRequest {
     /// The dataset resource to copy the sampled conversations to.
     #[serde(default, rename = "destinationDataset")]
-    pub destination_dataset: Option<GoogleCloudContactcenterinsightsV1alpha1Dataset>,
+    pub destination_dataset:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1Dataset>>,
     /// Required. The parent resource of the dataset.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. The sample rule used for sampling conversations.
     #[serde(default, rename = "sampleRule")]
-    pub sample_rule: Option<GoogleCloudContactcenterinsightsV1alpha1SampleRule>,
+    pub sample_rule: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SampleRule>,
+    >,
 }
 
 /// Message for sampling conversations.
@@ -6489,16 +7040,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1SampleRule {
     /// To specify the filter for the conversions that should apply this sample rule. An empty filter means this sample rule applies to all conversations.
     #[serde(default, rename = "conversationFilter")]
-    pub conversation_filter: Option<String>,
+    pub conversation_filter: ::core::option::Option<String>,
     /// Optional. Group by dimension to sample the conversation. If no dimension is provided, the sampling will be applied to the project level. Current supported dimensions is ''quality_metadata.agent_info.agent_id''.
     #[serde(default)]
-    pub dimension: Option<String>,
+    pub dimension: ::core::option::Option<String>,
     /// Percentage of conversations that we should sample based on the dimension between [0, 100].
     #[serde(default, rename = "samplePercentage")]
-    pub sample_percentage: Option<f64>,
+    pub sample_percentage: ::core::option::Option<f64>,
     /// Number of the conversations that we should sample based on the dimension.
     #[serde(default, rename = "sampleRow")]
-    pub sample_row: Option<String>,
+    pub sample_row: ::core::option::Option<String>,
 }
 
 /// The data for a sentiment annotation.
@@ -6506,10 +7057,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleRule {
 pub struct GoogleCloudContactcenterinsightsV1alpha1SentimentData {
     /// A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     /// The sentiment score between -1.0 (negative) and 1.0 (positive).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Agent Assist Smart Compose suggestion data.
@@ -6517,16 +7068,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SentimentData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData {
     /// The system''s confidence score that this suggestion is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f64>,
+    pub confidence_score: ::core::option::Option<f64>,
     /// Map that contains metadata about the Smart Compose suggestion and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The content of the suggestion.
     #[serde(default)]
-    pub suggestion: Option<String>,
+    pub suggestion: ::core::option::Option<String>,
 }
 
 /// Agent Assist Smart Reply data.
@@ -6534,16 +7085,16 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1SmartReplyData {
     /// The system''s confidence score that this reply is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f64>,
+    pub confidence_score: ::core::option::Option<f64>,
     /// Map that contains metadata about the Smart Reply and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The content of the reply.
     #[serde(default)]
-    pub reply: Option<String>,
+    pub reply: ::core::option::Option<String>,
 }
 
 /// Speech-to-Text configuration. Speech-to-Text settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint.
@@ -6551,10 +7102,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SmartReplyData {
 pub struct GoogleCloudContactcenterinsightsV1alpha1SpeechConfig {
     /// Whether to disable word time offsets. If true, the enable_word_time_offsets field in the recognition config will be set to false.
     #[serde(default, rename = "disableWordTimeOffsets")]
-    pub disable_word_time_offsets: Option<bool>,
+    pub disable_word_time_offsets: ::core::option::Option<bool>,
     /// The fully-qualified Speech Recognizer resource name. Format: projects/{project_id}/locations/{location}/recognizer/{recognizer}
     #[serde(default, rename = "speechRecognizer")]
-    pub speech_recognizer: Option<String>,
+    pub speech_recognizer: ::core::option::Option<String>,
 }
 
 /// Metadata for testing correlation config.
@@ -6562,13 +7113,13 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SpeechConfig {
 pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The dataset used for sampling conversations.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// The statistics for the operation.
     #[serde(default)]
-    pub stats: Option<GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadataFullConversationCorrelationStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadataFullConversationCorrelationStats>>,
 }
 
 /// Statistics for TestCorrelationConfig operation.
@@ -6576,19 +7127,19 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadata
 pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadataFullConversationCorrelationStats {
     /// A list of errors that occurred during correlation, one for each conversation that failed.
     #[serde(default, rename = "conversationCorrelationErrors")]
-    pub conversation_correlation_errors: Option<Vec<GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError>>,
+    pub conversation_correlation_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError>>>,
     /// The number of conversations correlated.
     #[serde(default, rename = "correlatedConversationsCount")]
-    pub correlated_conversations_count: Option<i32>,
+    pub correlated_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that failed correlation.
     #[serde(default, rename = "failedConversationsCount")]
-    pub failed_conversations_count: Option<i32>,
+    pub failed_conversations_count: ::core::option::Option<i32>,
     /// Partial errors during test correlation config operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The number of conversations sampled.
     #[serde(default, rename = "sampledConversationsCount")]
-    pub sampled_conversations_count: Option<i32>,
+    pub sampled_conversations_count: ::core::option::Option<i32>,
 }
 
 /// An error that occurred during correlation for a specific conversation.
@@ -6597,10 +7148,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadata
 {
     /// The conversation resource name that had an error during correlation.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The error status.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// The response of testing correlation config.
@@ -6608,10 +7159,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadata
 pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponse {
     /// Results for the DETAILED_SYNC execution mode.
     #[serde(default, rename = "detailedResults")]
-    pub detailed_results: Option<GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponseDetailedCorrelationResults>,
+    pub detailed_results: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponseDetailedCorrelationResults>>,
     /// Partial errors during test correlation config operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Wrapper for detailed, step-by-step results.
@@ -6620,12 +7171,20 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponse
 {
     /// A list of constraint evaluation results for each pair of conversations.
     #[serde(default, rename = "constraintResults")]
-    pub constraint_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResult>>,
+    pub constraint_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResult>,
+        >,
+    >,
     /// A list of join key correlation results for each conversation tested.
     #[serde(default, rename = "joinKeyResults")]
-    pub join_key_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResult>>,
+    pub join_key_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResult,
+            >,
+        >,
+    >,
 }
 
 /// Metadata for undeploying an issue model.
@@ -6633,13 +7192,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponse
 pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for undeployment.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelRequest>,
+    >,
 }
 
 /// The request to undeploy an issue model.
@@ -6647,7 +7208,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelRequest {
     /// Required. The issue model to undeploy.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The metadata for updating a QaQuestionTag Resource.
@@ -6655,13 +7216,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagRequest>,
+    >,
 }
 
 /// The request for updating a QaQuestionTag.
@@ -6669,10 +7232,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagRequest {
     /// Required. The QaQuestionTag to update.
     #[serde(default, rename = "qaQuestionTag")]
-    pub qa_question_tag: Option<GoogleCloudContactcenterinsightsV1alpha1QaQuestionTag>,
+    pub qa_question_tag: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1QaQuestionTag>,
+    >,
     /// Optional. The list of fields to be updated. All possible fields can be updated by passing *, or a subset of the following updateable fields can be provided: * qa_question_tag_name - the name of the tag * qa_question_ids - the list of questions the tag applies to
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// The metadata for an UploadConversation operation.
@@ -6680,19 +7245,23 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagRequest {
 pub struct GoogleCloudContactcenterinsightsV1alpha1UploadConversationMetadata {
     /// Output only. The operation name for a successfully created analysis operation, if any.
     #[serde(default, rename = "analysisOperation")]
-    pub analysis_operation: Option<String>,
+    pub analysis_operation: ::core::option::Option<String>,
     /// Output only. The redaction config applied to the uploaded conversation.
     #[serde(default, rename = "appliedRedactionConfig")]
-    pub applied_redaction_config: Option<GoogleCloudContactcenterinsightsV1alpha1RedactionConfig>,
+    pub applied_redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1RedactionConfig>,
+    >,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1alpha1UploadConversationRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1UploadConversationRequest>,
+    >,
 }
 
 /// Request to upload a conversation.
@@ -6700,19 +7269,25 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UploadConversationMetadata {
 pub struct GoogleCloudContactcenterinsightsV1alpha1UploadConversationRequest {
     /// Required. The conversation resource to create.
     #[serde(default)]
-    pub conversation: Option<GoogleCloudContactcenterinsightsV1alpha1Conversation>,
+    pub conversation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1Conversation>,
+    >,
     /// Optional. A unique ID for the new conversation. This ID will become the final component of the conversation''s resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression ^[a-z0-9-]{4,64}$. Valid characters are a-z-
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// Required. The parent resource of the conversation.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. DLP settings for transcript redaction. Will default to the config specified in Settings.
     #[serde(default, rename = "redactionConfig")]
-    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1alpha1RedactionConfig>,
+    pub redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1RedactionConfig>,
+    >,
     /// Optional. Speech-to-Text configuration. Will default to the config specified in Settings.
     #[serde(default, rename = "speechConfig")]
-    pub speech_config: Option<GoogleCloudContactcenterinsightsV1alpha1SpeechConfig>,
+    pub speech_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1alpha1SpeechConfig>,
+    >,
 }
 
 /// The analysis resource.
@@ -6720,19 +7295,23 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UploadConversationRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainAnalysis {
     /// Output only. The result of the analysis, which is populated when the analysis finishes.
     #[serde(default, rename = "analysisResult")]
-    pub analysis_result: Option<GoogleCloudContactcenterinsightsV1mainAnalysisResult>,
+    pub analysis_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnalysisResult>,
+    >,
     /// To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1mainAnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnnotatorSelector>,
+    >,
     /// Output only. The time at which the analysis was created, which occurs when the long-running operation completes.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Immutable. The resource name of the analysis. Format: projects/{project}/locations/{location}/conversations/{conversation}/analyses/{analysis}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The time at which the analysis was requested.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
 }
 
 /// The result of an analysis.
@@ -6740,11 +7319,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnalysis {
 pub struct GoogleCloudContactcenterinsightsV1mainAnalysisResult {
     /// Call-specific metadata created by the analysis.
     #[serde(default, rename = "callAnalysisMetadata")]
-    pub call_analysis_metadata:
-        Option<GoogleCloudContactcenterinsightsV1mainAnalysisResultCallAnalysisMetadata>,
+    pub call_analysis_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnalysisResultCallAnalysisMetadata>,
+    >,
     /// The time at which the analysis ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
 }
 
 /// Call-specific metadata created during analysis.
@@ -6752,28 +7332,40 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnalysisResult {
 pub struct GoogleCloudContactcenterinsightsV1mainAnalysisResultCallAnalysisMetadata {
     /// A list of call annotations that apply to this call.
     #[serde(default)]
-    pub annotations: Option<Vec<GoogleCloudContactcenterinsightsV1mainCallAnnotation>>,
+    pub annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainCallAnnotation>>,
+    >,
     /// All the entities in the call.
     #[serde(default)]
-    pub entities: Option<serde_json::Value>,
+    pub entities: ::core::option::Option<serde_json::Value>,
     /// All the matched intents in the call.
     #[serde(default)]
-    pub intents: Option<serde_json::Value>,
+    pub intents: ::core::option::Option<serde_json::Value>,
     /// Overall conversation-level issue modeling result.
     #[serde(default, rename = "issueModelResult")]
-    pub issue_model_result: Option<GoogleCloudContactcenterinsightsV1mainIssueModelResult>,
+    pub issue_model_result: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssueModelResult>,
+    >,
     /// All the matched phrase matchers in the call.
     #[serde(default, rename = "phraseMatchers")]
-    pub phrase_matchers: Option<serde_json::Value>,
+    pub phrase_matchers: ::core::option::Option<serde_json::Value>,
     /// Results of scoring QaScorecards.
     #[serde(default, rename = "qaScorecardResults")]
-    pub qa_scorecard_results: Option<Vec<GoogleCloudContactcenterinsightsV1mainQaScorecardResult>>,
+    pub qa_scorecard_results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaScorecardResult>>,
+    >,
     /// Overall conversation-level sentiment for each channel of the call.
     #[serde(default)]
-    pub sentiments: Option<Vec<GoogleCloudContactcenterinsightsV1mainConversationLevelSentiment>>,
+    pub sentiments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationLevelSentiment>,
+        >,
+    >,
     /// Overall conversation-level silence during the call.
     #[serde(default)]
-    pub silence: Option<GoogleCloudContactcenterinsightsV1mainConversationLevelSilence>,
+    pub silence: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationLevelSilence>,
+    >,
 }
 
 /// A point in a conversation that marks the start or the end of an annotation.
@@ -6781,10 +7373,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnalysisResultCallAnalysisMetad
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotationBoundary {
     /// The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.
     #[serde(default, rename = "transcriptIndex")]
-    pub transcript_index: Option<i32>,
+    pub transcript_index: ::core::option::Option<i32>,
     /// The word index of this boundary with respect to the first word in the transcript piece. This index starts at zero.
     #[serde(default, rename = "wordIndex")]
-    pub word_index: Option<i32>,
+    pub word_index: ::core::option::Option<i32>,
 }
 
 /// Selector of all available annotators and phrase matchers to run.
@@ -6792,47 +7384,52 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotationBoundary {
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelector {
     /// The issue model to run. If not provided, the most recently deployed topic model will be used. The provided issue model will only be used for inference if the issue model is deployed and if run_issue_model_annotator is set to true. If more than one issue model is provided, only the first provided issue model will be used for inference.
     #[serde(default, rename = "issueModels")]
-    pub issue_models: Option<Vec<String>>,
+    pub issue_models: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of phrase matchers to run. If not provided, all active phrase matchers will be used. If inactive phrase matchers are provided, they will not be used. Phrase matchers will be run only if run_phrase_matcher_annotator is set to true. Format: projects/{project}/locations/{location}/phraseMatchers/{phrase_matcher}
     #[serde(default, rename = "phraseMatchers")]
-    pub phrase_matchers: Option<Vec<String>>,
+    pub phrase_matchers: ::core::option::Option<::std::vec::Vec<String>>,
     /// Configuration for the QA annotator.
     #[serde(default, rename = "qaConfig")]
-    pub qa_config: Option<GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfig>,
+    pub qa_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfig>,
+    >,
     /// Optional. Whether to run the auto-labeling annotator. If true, the auto-labeling annotator will be run. This is a non-billable operation designed for fixing or backfilling custom labels.
     #[serde(default, rename = "runAutoLabelingAnnotator")]
-    pub run_auto_labeling_annotator: Option<bool>,
+    pub run_auto_labeling_annotator: ::core::option::Option<bool>,
     /// Whether to run the entity annotator.
     #[serde(default, rename = "runEntityAnnotator")]
-    pub run_entity_annotator: Option<bool>,
+    pub run_entity_annotator: ::core::option::Option<bool>,
     /// Whether to run the intent annotator.
     #[serde(default, rename = "runIntentAnnotator")]
-    pub run_intent_annotator: Option<bool>,
+    pub run_intent_annotator: ::core::option::Option<bool>,
     /// Whether to run the interruption annotator.
     #[serde(default, rename = "runInterruptionAnnotator")]
-    pub run_interruption_annotator: Option<bool>,
+    pub run_interruption_annotator: ::core::option::Option<bool>,
     /// Whether to run the issue model annotator. A model should have already been deployed for this to take effect.
     #[serde(default, rename = "runIssueModelAnnotator")]
-    pub run_issue_model_annotator: Option<bool>,
+    pub run_issue_model_annotator: ::core::option::Option<bool>,
     /// Whether to run the active phrase matcher annotator(s).
     #[serde(default, rename = "runPhraseMatcherAnnotator")]
-    pub run_phrase_matcher_annotator: Option<bool>,
+    pub run_phrase_matcher_annotator: ::core::option::Option<bool>,
     /// Whether to run the QA annotator.
     #[serde(default, rename = "runQaAnnotator")]
-    pub run_qa_annotator: Option<bool>,
+    pub run_qa_annotator: ::core::option::Option<bool>,
     /// Whether to run the sentiment annotator.
     #[serde(default, rename = "runSentimentAnnotator")]
-    pub run_sentiment_annotator: Option<bool>,
+    pub run_sentiment_annotator: ::core::option::Option<bool>,
     /// Whether to run the silence annotator.
     #[serde(default, rename = "runSilenceAnnotator")]
-    pub run_silence_annotator: Option<bool>,
+    pub run_silence_annotator: ::core::option::Option<bool>,
     /// Whether to run the summarization annotator.
     #[serde(default, rename = "runSummarizationAnnotator")]
-    pub run_summarization_annotator: Option<bool>,
+    pub run_summarization_annotator: ::core::option::Option<bool>,
     /// Configuration for the summarization annotator.
     #[serde(default, rename = "summarizationConfig")]
-    pub summarization_config:
-        Option<GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorSummarizationConfig>,
+    pub summarization_config: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorSummarizationConfig,
+        >,
+    >,
 }
 
 /// Configuration for the QA feature.
@@ -6840,8 +7437,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelector {
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfig {
     /// A manual list of scorecards to score.
     #[serde(default, rename = "scorecardList")]
-    pub scorecard_list:
-        Option<GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfigScorecardList>,
+    pub scorecard_list: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfigScorecardList,
+        >,
+    >,
 }
 
 /// Container for a list of scorecards.
@@ -6849,7 +7449,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfig {
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfigScorecardList {
     /// List of QaScorecardRevisions.
     #[serde(default, rename = "qaScorecardRevisions")]
-    pub qa_scorecard_revisions: Option<Vec<String>>,
+    pub qa_scorecard_revisions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Configuration for summarization.
@@ -6857,13 +7457,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfigScorec
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorSummarizationConfig {
     /// Resource name of the Dialogflow conversation profile. Format: projects/{project}/locations/{location}/conversationProfiles/{conversation_profile}
     #[serde(default, rename = "conversationProfile")]
-    pub conversation_profile: Option<String>,
+    pub conversation_profile: ::core::option::Option<String>,
     /// The resource name of the existing created generator. Format: projects//locations//generators/
     #[serde(default)]
-    pub generator: Option<String>,
+    pub generator: ::core::option::Option<String>,
     /// Default summarization model to be used. // TODO: enum values: ["SUMMARIZATION_MODEL_UNSPECIFIED", "BASELINE_MODEL", "BASELINE_MODEL_V2_0"]
     #[serde(default, rename = "summarizationModel")]
-    pub summarization_model: Option<String>,
+    pub summarization_model: ::core::option::Option<String>,
 }
 
 /// The feedback that the customer has about a certain answer in the conversation.
@@ -6871,13 +7471,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorSummarizationC
 pub struct GoogleCloudContactcenterinsightsV1mainAnswerFeedback {
     /// Indicates whether an answer or item was clicked by the human agent.
     #[serde(default)]
-    pub clicked: Option<bool>,
+    pub clicked: ::core::option::Option<bool>,
     /// The correctness level of an answer. // TODO: enum values: ["CORRECTNESS_LEVEL_UNSPECIFIED", "NOT_CORRECT", "PARTIALLY_CORRECT", "FULLY_CORRECT"]
     #[serde(default, rename = "correctnessLevel")]
-    pub correctness_level: Option<String>,
+    pub correctness_level: ::core::option::Option<String>,
     /// Indicates whether an answer or item was displayed to the human agent in the agent desktop UI.
     #[serde(default)]
-    pub displayed: Option<bool>,
+    pub displayed: ::core::option::Option<bool>,
 }
 
 /// Agent Assist Article Suggestion data.
@@ -6885,22 +7485,22 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnswerFeedback {
 pub struct GoogleCloudContactcenterinsightsV1mainArticleSuggestionData {
     /// The system''s confidence score that this article is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f32>,
+    pub confidence_score: ::core::option::Option<f32>,
     /// Map that contains metadata about the Article Suggestion and the document that it originates from.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The knowledge document that this answer was extracted from. Format: projects/{project}/knowledgeBases/{knowledge_base}/documents/{document}
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
     /// Article title.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Article URI.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The metadata for a bulk analyze conversations operation.
@@ -6908,28 +7508,30 @@ pub struct GoogleCloudContactcenterinsightsV1mainArticleSuggestionData {
 pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsMetadata {
     /// The number of requested analyses that have completed successfully so far.
     #[serde(default, rename = "completedAnalysesCount")]
-    pub completed_analyses_count: Option<i32>,
+    pub completed_analyses_count: ::core::option::Option<i32>,
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The number of requested analyses that have failed so far.
     #[serde(default, rename = "failedAnalysesCount")]
-    pub failed_analyses_count: Option<i32>,
+    pub failed_analyses_count: ::core::option::Option<i32>,
     /// Output only. Partial errors during bulk analyze operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. If true, the labeling rules will be re-evaluated for the conversations.
     #[serde(default)]
-    pub relabel: Option<bool>,
+    pub relabel: ::core::option::Option<bool>,
     /// The original request for bulk analyze.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsRequest>,
+    >,
     /// Total number of analyses requested. Computed by the number of conversations returned by filter multiplied by analysis_percentage in the request.
     #[serde(default, rename = "totalRequestedAnalysesCount")]
-    pub total_requested_analyses_count: Option<i32>,
+    pub total_requested_analyses_count: ::core::option::Option<i32>,
 }
 
 /// The request to analyze conversations in bulk.
@@ -6937,19 +7539,21 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsMetadat
 pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsRequest {
     /// Required. Percentage of selected conversation to analyze, between [0, 100].
     #[serde(default, rename = "analysisPercentage")]
-    pub analysis_percentage: Option<f32>,
+    pub analysis_percentage: ::core::option::Option<f32>,
     /// To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1mainAnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnnotatorSelector>,
+    >,
     /// Required. Filter used to select the subset of conversations to analyze.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The parent resource to create analyses in.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. If true, the labeling rules will be re-evaluated for the conversations.
     #[serde(default)]
-    pub relabel: Option<bool>,
+    pub relabel: ::core::option::Option<bool>,
 }
 
 /// The response for a bulk analyze conversations operation.
@@ -6957,10 +7561,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsRequest
 pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsResponse {
     /// Count of failed analyses.
     #[serde(default, rename = "failedAnalysisCount")]
-    pub failed_analysis_count: Option<i32>,
+    pub failed_analysis_count: ::core::option::Option<i32>,
     /// Count of successful analyses.
     #[serde(default, rename = "successfulAnalysisCount")]
-    pub successful_analysis_count: Option<i32>,
+    pub successful_analysis_count: ::core::option::Option<i32>,
 }
 
 /// The metadata for a bulk delete conversations operation.
@@ -6968,16 +7572,18 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsRespons
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Partial errors during bulk delete conversations operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The original request for bulk delete.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsRequest>,
+    >,
 }
 
 /// The request to delete conversations in bulk.
@@ -6985,16 +7591,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsMetadata
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsRequest {
     /// Filter used to select the subset of conversations to delete.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// If set to true, all of this conversation''s analyses will also be deleted. Otherwise, the request will only succeed if the conversation has no analyses.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Maximum number of conversations to delete.
     #[serde(default, rename = "maxDeleteCount")]
-    pub max_delete_count: Option<i32>,
+    pub max_delete_count: ::core::option::Option<i32>,
     /// Required. The parent resource to delete conversations from. Format: projects/{project}/locations/{location}
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
@@ -7002,10 +7608,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsRequest 
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsMetadata {
     /// Partial errors during deletion operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for delete.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsRequest>,
+    >,
 }
 
 /// Request for the BulkDeleteFeedbackLabels endpoint.
@@ -7013,10 +7621,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsMetadat
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsRequest {
     /// Optional. A filter to reduce results to a specific subset. Supports disjunctions (OR) and conjunctions (AND). Supported fields: * issue_model_id * qa_question_id * qa_scorecard_id * min_create_time * max_create_time * min_update_time * max_update_time * feedback_label_type: QUALITY_AI, TOPIC_MODELING
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Required. The parent resource for new feedback labels.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Metadata for the BulkDownloadFeedbackLabel endpoint.
@@ -7024,21 +7632,25 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsRequest
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Statistics for BulkDownloadFeedbackLabels operation.
     #[serde(default, rename = "downloadStats")]
-    pub download_stats: Option<
-        GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetadataDownloadStats,
+    pub download_stats: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetadataDownloadStats,
+        >,
     >,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Partial errors during ingest operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for download.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequest>,
+    >,
 }
 
 /// Statistics for BulkDownloadFeedbackLabels operation.
@@ -7046,16 +7658,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetad
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetadataDownloadStats {
     /// Output only. Full name of the files written to Cloud storage.
     #[serde(default, rename = "fileNames")]
-    pub file_names: Option<Vec<String>>,
+    pub file_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The number of objects processed during the download operation.
     #[serde(default, rename = "processedObjectCount")]
-    pub processed_object_count: Option<i32>,
+    pub processed_object_count: ::core::option::Option<i32>,
     /// The number of new feedback labels downloaded during this operation. Different from "processed" because some labels might not be downloaded because an error.
     #[serde(default, rename = "successfulDownloadCount")]
-    pub successful_download_count: Option<i32>,
+    pub successful_download_count: ::core::option::Option<i32>,
     /// Total number of files written to the provided Cloud Storage bucket.
     #[serde(default, rename = "totalFilesWritten")]
-    pub total_files_written: Option<i32>,
+    pub total_files_written: ::core::option::Option<i32>,
 }
 
 /// Request for the BulkDownloadFeedbackLabel endpoint.
@@ -7063,32 +7675,28 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetad
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequest {
     /// Optional. Filter parent conversations to download feedback labels for. When specified, the feedback labels will be downloaded for the conversations that match the filter. If template_qa_scorecard_id is set, all the conversations that match the filter will be paired with the questions under the scorecard for labeling.
     #[serde(default, rename = "conversationFilter")]
-    pub conversation_filter: Option<String>,
+    pub conversation_filter: ::core::option::Option<String>,
     /// Optional. The type of feedback labels that will be downloaded. // TODO: enum values: ["FEEDBACK_LABEL_TYPE_UNSPECIFIED", "QUALITY_AI", "TOPIC_MODELING", "AGENT_ASSIST_SUMMARY"]
     #[serde(default, rename = "feedbackLabelType")]
-    pub feedback_label_type: Option<String>,
+    pub feedback_label_type: ::core::option::Option<String>,
     /// Optional. A filter to reduce results to a specific subset. Supports disjunctions (OR) and conjunctions (AND). Supported fields: * issue_model_id * qa_question_id * qa_scorecard_id * min_create_time * max_create_time * min_update_time * max_update_time * feedback_label_type: QUALITY_AI, TOPIC_MODELING
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// A cloud storage bucket destination.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<
-        GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequestGcsDestination,
-    >,
+    pub gcs_destination: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequestGcsDestination>>,
     /// Optional. Limits the maximum number of feedback labels that will be downloaded. The first N feedback labels will be downloaded.
     #[serde(default, rename = "maxDownloadCount")]
-    pub max_download_count: Option<i32>,
+    pub max_download_count: ::core::option::Option<i32>,
     /// Required. The parent resource for new feedback labels.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// A sheets document destination.
     #[serde(default, rename = "sheetsDestination")]
-    pub sheets_destination: Option<
-        GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequestSheetsDestination,
-    >,
+    pub sheets_destination: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequestSheetsDestination>>,
     /// Optional. If set, a template for labeling conversations and scorecard questions will be created from the conversation_filter and the questions under the scorecard(s). The feedback label filter will be ignored.
     #[serde(default, rename = "templateQaScorecardId")]
-    pub template_qa_scorecard_id: Option<Vec<String>>,
+    pub template_qa_scorecard_id: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Google Cloud Storage Object details to write the feedback labels to.
@@ -7096,19 +7704,19 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsReque
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequestGcsDestination {
     /// Optional. Add whitespace to the JSON file. Makes easier to read, but increases file size. Only applicable for JSON format.
     #[serde(default, rename = "addWhitespace")]
-    pub add_whitespace: Option<bool>,
+    pub add_whitespace: ::core::option::Option<bool>,
     /// Optional. Always print fields with no presence. This is useful for printing fields that are not set, like implicit 0 value or empty lists/maps. Only applicable for JSON format.
     #[serde(default, rename = "alwaysPrintEmptyFields")]
-    pub always_print_empty_fields: Option<bool>,
+    pub always_print_empty_fields: ::core::option::Option<bool>,
     /// Required. File format in which the labels will be exported. // TODO: enum values: ["FORMAT_UNSPECIFIED", "CSV", "JSON"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Required. The Google Cloud Storage URI to write the feedback labels to. The file name will be used as a prefix for the files written to the bucket if the output needs to be split across multiple files, otherwise it will be used as is. The file extension will be appended to the file name based on the format selected. E.g. gs://bucket_name/object_uri_prefix
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
     /// Optional. The number of records per file. Applicable for either format.
     #[serde(default, rename = "recordsPerFileCount")]
-    pub records_per_file_count: Option<String>,
+    pub records_per_file_count: ::core::option::Option<String>,
 }
 
 /// Google Sheets document details to write the feedback labels to.
@@ -7117,10 +7725,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsReque
 {
     /// Optional. The title of the new sheet to write the feedback labels to.
     #[serde(default, rename = "sheetTitle")]
-    pub sheet_title: Option<String>,
+    pub sheet_title: ::core::option::Option<String>,
     /// Required. The Google Sheets document to write the feedback labels to. Retrieved from Google Sheets URI. E.g. https://docs.google.com/spreadsheets/d/1234567890 The spreadsheet must be shared with the Insights P4SA. The spreadsheet ID written to will be returned as file_names in the BulkDownloadFeedbackLabelsMetadata.
     #[serde(default, rename = "spreadsheetUri")]
-    pub spreadsheet_uri: Option<String>,
+    pub spreadsheet_uri: ::core::option::Option<String>,
 }
 
 /// A piece of metadata that applies to a window of a call.
@@ -7128,37 +7736,51 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsReque
 pub struct GoogleCloudContactcenterinsightsV1mainCallAnnotation {
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "annotationEndBoundary")]
-    pub annotation_end_boundary: Option<GoogleCloudContactcenterinsightsV1mainAnnotationBoundary>,
+    pub annotation_end_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnnotationBoundary>,
+    >,
     /// The boundary in the conversation where the annotation starts, inclusive.
     #[serde(default, rename = "annotationStartBoundary")]
-    pub annotation_start_boundary: Option<GoogleCloudContactcenterinsightsV1mainAnnotationBoundary>,
+    pub annotation_start_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnnotationBoundary>,
+    >,
     /// The channel of the audio where the annotation occurs. For single-channel audio, this field is not populated.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// Data specifying an entity mention.
     #[serde(default, rename = "entityMentionData")]
-    pub entity_mention_data: Option<GoogleCloudContactcenterinsightsV1mainEntityMentionData>,
+    pub entity_mention_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainEntityMentionData>,
+    >,
     /// Data specifying a hold.
     #[serde(default, rename = "holdData")]
-    pub hold_data: Option<serde_json::Value>,
+    pub hold_data: ::core::option::Option<serde_json::Value>,
     /// Data specifying an intent match.
     #[serde(default, rename = "intentMatchData")]
-    pub intent_match_data: Option<GoogleCloudContactcenterinsightsV1mainIntentMatchData>,
+    pub intent_match_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIntentMatchData>,
+    >,
     /// Data specifying an interruption.
     #[serde(default, rename = "interruptionData")]
-    pub interruption_data: Option<serde_json::Value>,
+    pub interruption_data: ::core::option::Option<serde_json::Value>,
     /// Data specifying an issue match.
     #[serde(default, rename = "issueMatchData")]
-    pub issue_match_data: Option<GoogleCloudContactcenterinsightsV1mainIssueMatchData>,
+    pub issue_match_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssueMatchData>,
+    >,
     /// Data specifying a phrase match.
     #[serde(default, rename = "phraseMatchData")]
-    pub phrase_match_data: Option<GoogleCloudContactcenterinsightsV1mainPhraseMatchData>,
+    pub phrase_match_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainPhraseMatchData>,
+    >,
     /// Data specifying sentiment.
     #[serde(default, rename = "sentimentData")]
-    pub sentiment_data: Option<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    pub sentiment_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    >,
     /// Data specifying silence.
     #[serde(default, rename = "silenceData")]
-    pub silence_data: Option<serde_json::Value>,
+    pub silence_data: ::core::option::Option<serde_json::Value>,
 }
 
 /// The result of testing a constraint expression on a pair of conversations.
@@ -7166,15 +7788,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainCallAnnotation {
 pub struct GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResult {
     /// The first conversation resource name.
     #[serde(default, rename = "conversationA")]
-    pub conversation_a: Option<String>,
+    pub conversation_a: ::core::option::Option<String>,
     /// The second conversation resource name.
     #[serde(default, rename = "conversationB")]
-    pub conversation_b: Option<String>,
+    pub conversation_b: ::core::option::Option<String>,
     /// The results for each applicable constraint rule.
     #[serde(default, rename = "ruleConstraintResults")]
-    pub rule_constraint_results: Option<
-        Vec<GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResultRuleConstraintResult>,
-    >,
+    pub rule_constraint_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResultRuleConstraintResult>>>,
 }
 
 /// The result of a single constraint rule on the pair of conversations.
@@ -7182,13 +7802,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResult {
 pub struct GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResultRuleConstraintResult {
     /// Whether the constraint expression evaluated to true for (A, B) or (B, A).
     #[serde(default, rename = "constraintMet")]
-    pub constraint_met: Option<bool>,
+    pub constraint_met: ::core::option::Option<bool>,
     /// The error status if the constraint expression failed to evaluate.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// The rule ID.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
 }
 
 /// The conversation resource.
@@ -7196,74 +7816,90 @@ pub struct GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResultRuleC
 pub struct GoogleCloudContactcenterinsightsV1mainConversation {
     /// An opaque, user-specified string representing the human agent who handled the conversation.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Call-specific metadata.
     #[serde(default, rename = "callMetadata")]
-    pub call_metadata: Option<GoogleCloudContactcenterinsightsV1mainConversationCallMetadata>,
+    pub call_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationCallMetadata>,
+    >,
     /// Output only. Info for correlating across conversations.
     #[serde(default, rename = "correlationInfo")]
-    pub correlation_info: Option<GoogleCloudContactcenterinsightsV1mainConversationCorrelationInfo>,
+    pub correlation_info: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationCorrelationInfo>,
+    >,
     /// Output only. The time at which the conversation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The source of the audio and transcription for the conversation.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<GoogleCloudContactcenterinsightsV1mainConversationDataSource>,
+    pub data_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationDataSource>,
+    >,
     /// Output only. All the matched Dialogflow intents in the call. The key corresponds to a Dialogflow intent, format: projects/{project}/agent/{agent}/intents/{intent}
     #[serde(default, rename = "dialogflowIntents")]
-    pub dialogflow_intents: Option<serde_json::Value>,
+    pub dialogflow_intents: ::core::option::Option<serde_json::Value>,
     /// Output only. The duration of the conversation.
     #[serde(default)]
-    pub duration: Option<String>,
+    pub duration: ::core::option::Option<String>,
     /// The time at which this conversation should expire. After this time, the conversation data and any associated analyses will be deleted.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// A map for the user to specify any custom fields. A maximum of 100 labels per conversation is allowed, with a maximum of 256 characters per entry.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// A user-specified language code for the conversation.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Output only. The conversation''s latest analysis, if one exists.
     #[serde(default, rename = "latestAnalysis")]
-    pub latest_analysis: Option<GoogleCloudContactcenterinsightsV1mainAnalysis>,
+    pub latest_analysis:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnalysis>>,
     /// Output only. Latest summary of the conversation.
     #[serde(default, rename = "latestSummary")]
-    pub latest_summary:
-        Option<GoogleCloudContactcenterinsightsV1mainConversationSummarizationSuggestionData>,
+    pub latest_summary: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainConversationSummarizationSuggestionData,
+        >,
+    >,
     /// Immutable. The conversation medium. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
     /// Input only. JSON metadata encoded as a string. This field is primarily used by Insights integrations with various telephony systems and must be in one of Insight''s supported formats.
     #[serde(default, rename = "metadataJson")]
-    pub metadata_json: Option<String>,
+    pub metadata_json: ::core::option::Option<String>,
     /// Immutable. The resource name of the conversation. Format: projects/{project}/locations/{location}/conversations/{conversation}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Obfuscated user ID which the customer sent to us.
     #[serde(default, rename = "obfuscatedUserId")]
-    pub obfuscated_user_id: Option<String>,
+    pub obfuscated_user_id: ::core::option::Option<String>,
     /// Conversation metadata related to quality management.
     #[serde(default, rename = "qualityMetadata")]
-    pub quality_metadata: Option<GoogleCloudContactcenterinsightsV1mainConversationQualityMetadata>,
+    pub quality_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationQualityMetadata>,
+    >,
     /// Output only. The annotations that were generated during the customer and agent interaction.
     #[serde(default, rename = "runtimeAnnotations")]
-    pub runtime_annotations: Option<Vec<GoogleCloudContactcenterinsightsV1mainRuntimeAnnotation>>,
+    pub runtime_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainRuntimeAnnotation>>,
+    >,
     /// The time at which the conversation started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. The conversation transcript.
     #[serde(default)]
-    pub transcript: Option<GoogleCloudContactcenterinsightsV1mainConversationTranscript>,
+    pub transcript: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationTranscript>,
+    >,
     /// Input only. The TTL for this resource. If specified, then this TTL will be used to calculate the expire time.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Output only. The number of turns in the conversation.
     #[serde(default, rename = "turnCount")]
-    pub turn_count: Option<i32>,
+    pub turn_count: ::core::option::Option<i32>,
     /// Output only. The most recent time at which the conversation was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Call-specific metadata.
@@ -7271,10 +7907,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversation {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationCallMetadata {
     /// The audio channel that contains the agent.
     #[serde(default, rename = "agentChannel")]
-    pub agent_channel: Option<i32>,
+    pub agent_channel: ::core::option::Option<i32>,
     /// The audio channel that contains the customer.
     #[serde(default, rename = "customerChannel")]
-    pub customer_channel: Option<i32>,
+    pub customer_channel: ::core::option::Option<i32>,
 }
 
 /// Info for correlating across conversations.
@@ -7282,13 +7918,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationCallMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationInfo {
     /// Output only. The correlation types of this conversation. A single conversation can have multiple correlation types. For example a conversation that only has a single segment is both a SEGMENT and a FULL_CONVERSATION.
     #[serde(default, rename = "correlationTypes")]
-    pub correlation_types: Option<Vec<String>>,
+    pub correlation_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The full conversation correlation id this conversation is a segment of.
     #[serde(default, rename = "fullConversationCorrelationId")]
-    pub full_conversation_correlation_id: Option<String>,
+    pub full_conversation_correlation_id: ::core::option::Option<String>,
     /// Output only. The full conversation correlation id this conversation is a merged conversation of.
     #[serde(default, rename = "mergedFullConversationCorrelationId")]
-    pub merged_full_conversation_correlation_id: Option<String>,
+    pub merged_full_conversation_correlation_id: ::core::option::Option<String>,
 }
 
 /// The result of testing correlation config on a single conversation.
@@ -7296,10 +7932,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationInfo {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationResult {
     /// The conversation resource name.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The results for each correlation rule.
     #[serde(default, rename = "ruleResults")]
-    pub rule_results: Option<Vec<GoogleCloudContactcenterinsightsV1mainConversationCorrelationResultRuleCorrelationResult>>,
+    pub rule_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationCorrelationResultRuleCorrelationResult>>>,
 }
 
 /// The result of a single correlation rule.
@@ -7308,13 +7944,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationResultRu
 {
     /// The correlation ID generated by the join key expression.
     #[serde(default, rename = "correlationId")]
-    pub correlation_id: Option<String>,
+    pub correlation_id: ::core::option::Option<String>,
     /// The error status if the join key expression failed to evaluate.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// The rule ID.
     #[serde(default, rename = "ruleId")]
-    pub rule_id: Option<String>,
+    pub rule_id: ::core::option::Option<String>,
 }
 
 /// The conversation source, which is a combination of transcript and audio.
@@ -7322,17 +7958,25 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationResultRu
 pub struct GoogleCloudContactcenterinsightsV1mainConversationDataSource {
     /// The source when the conversation comes from Dialogflow.
     #[serde(default, rename = "dialogflowSource")]
-    pub dialogflow_source: Option<GoogleCloudContactcenterinsightsV1mainDialogflowSource>,
+    pub dialogflow_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDialogflowSource>,
+    >,
     /// A Cloud Storage location specification for the audio and transcript.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudContactcenterinsightsV1mainGcsSource>,
+    pub gcs_source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainGcsSource>>,
     /// Cloud Storage URI that points to a file that contains the conversation metadata.
     #[serde(default, rename = "metadataUri")]
-    pub metadata_uri: Option<String>,
+    pub metadata_uri: ::core::option::Option<String>,
     /// Cloud Storage URIs that points to files that contain the conversation audio for each turn. Assume the order of the URIs is the same as the order of the transcript turns.
     #[serde(default, rename = "turnLevelAudios")]
-    pub turn_level_audios:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainConversationDataSourceTurnLevelAudio>>,
+    pub turn_level_audios: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1mainConversationDataSourceTurnLevelAudio,
+            >,
+        >,
+    >,
 }
 
 /// A wrapper for holding the audio for any given turn.
@@ -7340,10 +7984,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationDataSource {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationDataSourceTurnLevelAudio {
     /// The duration of the audio.
     #[serde(default, rename = "audioDuration")]
-    pub audio_duration: Option<String>,
+    pub audio_duration: ::core::option::Option<String>,
     /// The Cloud Storage URI of the audio for any given turn.
     #[serde(default, rename = "audioGcsUri")]
-    pub audio_gcs_uri: Option<String>,
+    pub audio_gcs_uri: ::core::option::Option<String>,
 }
 
 /// One channel of conversation-level sentiment data.
@@ -7351,10 +7995,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationDataSourceTurnLevel
 pub struct GoogleCloudContactcenterinsightsV1mainConversationLevelSentiment {
     /// The channel of the audio that the data applies to.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// Data specifying sentiment.
     #[serde(default, rename = "sentimentData")]
-    pub sentiment_data: Option<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    pub sentiment_data: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    >,
 }
 
 /// Conversation-level silence data.
@@ -7362,10 +8008,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationLevelSentiment {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationLevelSilence {
     /// Amount of time calculated to be in silence.
     #[serde(default, rename = "silenceDuration")]
-    pub silence_duration: Option<String>,
+    pub silence_duration: ::core::option::Option<String>,
     /// Percentage of the total conversation spent in silence.
     #[serde(default, rename = "silencePercentage")]
-    pub silence_percentage: Option<f32>,
+    pub silence_percentage: ::core::option::Option<f32>,
 }
 
 /// The call participant speaking for a given utterance.
@@ -7373,19 +8019,19 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationLevelSilence {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationParticipant {
     /// Deprecated. Use dialogflow_participant_name instead. The name of the Dialogflow participant. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipant")]
-    pub dialogflow_participant: Option<String>,
+    pub dialogflow_participant: ::core::option::Option<String>,
     /// The name of the participant provided by Dialogflow. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipantName")]
-    pub dialogflow_participant_name: Option<String>,
+    pub dialogflow_participant_name: ::core::option::Option<String>,
     /// Obfuscated user ID from Dialogflow.
     #[serde(default, rename = "obfuscatedExternalUserId")]
-    pub obfuscated_external_user_id: Option<String>,
+    pub obfuscated_external_user_id: ::core::option::Option<String>,
     /// The role of the participant. // TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER", "ANY_AGENT"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// A user-specified ID representing the participant.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Conversation metadata related to quality management.
@@ -7393,20 +8039,27 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationParticipant {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationQualityMetadata {
     /// Information about agents involved in the call.
     #[serde(default, rename = "agentInfo")]
-    pub agent_info:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainConversationQualityMetadataAgentInfo>>,
+    pub agent_info: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1mainConversationQualityMetadataAgentInfo,
+            >,
+        >,
+    >,
     /// An arbitrary integer value indicating the customer''s satisfaction rating.
     #[serde(default, rename = "customerSatisfactionRating")]
-    pub customer_satisfaction_rating: Option<i32>,
+    pub customer_satisfaction_rating: ::core::option::Option<i32>,
     /// Input only. The feedback labels associated with the conversation.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1mainFeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainFeedbackLabel>>,
+    >,
     /// An arbitrary string value specifying the menu path the customer took.
     #[serde(default, rename = "menuPath")]
-    pub menu_path: Option<String>,
+    pub menu_path: ::core::option::Option<String>,
     /// The amount of time the customer waited to connect with an agent.
     #[serde(default, rename = "waitDuration")]
-    pub wait_duration: Option<String>,
+    pub wait_duration: ::core::option::Option<String>,
 }
 
 /// Information about an agent involved in the conversation.
@@ -7414,40 +8067,40 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationQualityMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationQualityMetadataAgentInfo {
     /// A user-specified string representing the agent.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// The agent type, e.g. HUMAN_AGENT. // TODO: enum values: ["ROLE_UNSPECIFIED", "HUMAN_AGENT", "AUTOMATED_AGENT", "END_USER", "ANY_AGENT"]
     #[serde(default, rename = "agentType")]
-    pub agent_type: Option<String>,
+    pub agent_type: ::core::option::Option<String>,
     /// The agent''s deployment display name. Only applicable to automated agents.
     #[serde(default, rename = "deploymentDisplayName")]
-    pub deployment_display_name: Option<String>,
+    pub deployment_display_name: ::core::option::Option<String>,
     /// The agent''s deployment ID. Only applicable to automated agents.
     #[serde(default, rename = "deploymentId")]
-    pub deployment_id: Option<String>,
+    pub deployment_id: ::core::option::Option<String>,
     /// The agent''s name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// A user-provided string indicating the outcome of the agent''s segment of the call.
     #[serde(default, rename = "dispositionCode")]
-    pub disposition_code: Option<String>,
+    pub disposition_code: ::core::option::Option<String>,
     /// The entry subagent''s display name.
     #[serde(default, rename = "entrySubagentDisplayName")]
-    pub entry_subagent_display_name: Option<String>,
+    pub entry_subagent_display_name: ::core::option::Option<String>,
     /// The agent''s location.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// A user-specified string representing the agent''s team. Deprecated in favor of the teams field.
     #[serde(default)]
-    pub team: Option<String>,
+    pub team: ::core::option::Option<String>,
     /// User-specified strings representing the agent''s teams.
     #[serde(default)]
-    pub teams: Option<Vec<String>>,
+    pub teams: ::core::option::Option<::std::vec::Vec<String>>,
     /// The agent''s version display name. Only applicable to automated agents.
     #[serde(default, rename = "versionDisplayName")]
-    pub version_display_name: Option<String>,
+    pub version_display_name: ::core::option::Option<String>,
     /// The agent''s version ID. Only applicable to automated agents.
     #[serde(default, rename = "versionId")]
-    pub version_id: Option<String>,
+    pub version_id: ::core::option::Option<String>,
 }
 
 /// Conversation summarization suggestion data.
@@ -7455,25 +8108,25 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationQualityMetadataAgen
 pub struct GoogleCloudContactcenterinsightsV1mainConversationSummarizationSuggestionData {
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "answerRecord")]
-    pub answer_record: Option<String>,
+    pub answer_record: ::core::option::Option<String>,
     /// The confidence score of the summarization.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The name of the model that generates this summary. Format: projects/{project}/locations/{location}/conversationModels/{conversation_model}
     #[serde(default, rename = "conversationModel")]
-    pub conversation_model: Option<String>,
+    pub conversation_model: ::core::option::Option<String>,
     /// Agent Assist generator ID.
     #[serde(default, rename = "generatorId")]
-    pub generator_id: Option<String>,
+    pub generator_id: ::core::option::Option<String>,
     /// A map that contains metadata about the summarization and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The summarization content that is concatenated into one string.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// The summarization content that is divided into sections. The key is the section''s name and the value is the section''s content. There is no specific format for the key or value.
     #[serde(default, rename = "textSections")]
-    pub text_sections: Option<serde_json::Value>,
+    pub text_sections: ::core::option::Option<serde_json::Value>,
 }
 
 /// A message representing the transcript of a conversation.
@@ -7481,8 +8134,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationSummarizationSugges
 pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscript {
     /// A list of sequential transcript segments that comprise the conversation.
     #[serde(default, rename = "transcriptSegments")]
-    pub transcript_segments:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegment>>,
+    pub transcript_segments: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegment,
+            >,
+        >,
+    >,
 }
 
 /// A segment of a full transcript.
@@ -7490,34 +8148,34 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscript {
 pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegment {
     /// For conversations derived from multi-channel audio, this is the channel number corresponding to the audio from that channel. For audioChannelCount = N, its output values can range from ''1'' to ''N''. A channel tag of 0 indicates that the audio is mono.
     #[serde(default, rename = "channelTag")]
-    pub channel_tag: Option<i32>,
+    pub channel_tag: ::core::option::Option<i32>,
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this segment. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// CCAI metadata relating to the current transcript segment.
     #[serde(default, rename = "dialogflowSegmentMetadata")]
-    pub dialogflow_segment_metadata: Option<GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata>,
+    pub dialogflow_segment_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata>>,
     /// The language code of this segment as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag. Example: "en-US".
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// The time that the message occurred, if provided.
     #[serde(default, rename = "messageTime")]
-    pub message_time: Option<String>,
+    pub message_time: ::core::option::Option<String>,
     /// The participant of this segment.
     #[serde(default, rename = "segmentParticipant")]
-    pub segment_participant: Option<GoogleCloudContactcenterinsightsV1mainConversationParticipant>,
+    pub segment_participant: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationParticipant>>,
     /// The sentiment for this transcript segment.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    pub sentiment: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSentimentData>>,
     /// The text of this segment.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
     /// Turn level audio for this transcript segment.
     #[serde(default, rename = "turnLevelAudio")]
-    pub turn_level_audio: Option<GoogleCloudContactcenterinsightsV1mainConversationDataSourceTurnLevelAudio>,
+    pub turn_level_audio: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationDataSourceTurnLevelAudio>>,
     /// A list of the word-specific information for each word in the segment.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegmentWordInfo>>,
+    pub words: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegmentWordInfo>>>,
 }
 
 /// Metadata from Dialogflow relating to the current transcript segment.
@@ -7526,7 +8184,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscrip
 {
     /// Whether the transcript segment was covered under the configured smart reply allowlist in Agent Assist.
     #[serde(default, rename = "smartReplyAllowlistCovered")]
-    pub smart_reply_allowlist_covered: Option<bool>,
+    pub smart_reply_allowlist_covered: ::core::option::Option<bool>,
 }
 
 /// Word-level info for words in a transcript.
@@ -7534,16 +8192,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscrip
 pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegmentWordInfo {
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this word. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Time offset of the end of this word relative to the beginning of the total conversation.
     #[serde(default, rename = "endOffset")]
-    pub end_offset: Option<String>,
+    pub end_offset: ::core::option::Option<String>,
     /// Time offset of the start of this word relative to the beginning of the total conversation.
     #[serde(default, rename = "startOffset")]
-    pub start_offset: Option<String>,
+    pub start_offset: ::core::option::Option<String>,
     /// The word itself. Includes punctuation marks that surround the word.
     #[serde(default)]
-    pub word: Option<String>,
+    pub word: ::core::option::Option<String>,
 }
 
 /// Metadata for a create analysis operation.
@@ -7551,16 +8209,18 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscrip
 pub struct GoogleCloudContactcenterinsightsV1mainCreateAnalysisOperationMetadata {
     /// Output only. The annotator selector used for the analysis (if any).
     #[serde(default, rename = "annotatorSelector")]
-    pub annotator_selector: Option<GoogleCloudContactcenterinsightsV1mainAnnotatorSelector>,
+    pub annotator_selector: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnnotatorSelector>,
+    >,
     /// Output only. The Conversation that this Analysis Operation belongs to.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
 }
 
 /// Metadata for creating an issue.
@@ -7568,13 +8228,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateAnalysisOperationMetadata
 pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for creation.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainCreateIssueRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainCreateIssueRequest>,
+    >,
 }
 
 /// Metadata for creating an issue model.
@@ -7582,13 +8244,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for creation.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainCreateIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainCreateIssueModelRequest>,
+    >,
 }
 
 /// The request to create an issue model.
@@ -7596,10 +8260,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueModelRequest {
     /// Required. The issue model to create.
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<GoogleCloudContactcenterinsightsV1mainIssueModel>,
+    pub issue_model:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssueModel>>,
     /// Required. The parent resource of the issue model.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// The request to create an issue.
@@ -7607,10 +8272,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueRequest {
     /// Required. The values for the new issue.
     #[serde(default)]
-    pub issue: Option<GoogleCloudContactcenterinsightsV1mainIssue>,
+    pub issue:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssue>>,
     /// Required. The parent resource of the issue.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Dataset resource represents a collection of conversations that may be bounded (Static Dataset, e.g. golden dataset for training), or unbounded (Dynamic Dataset, e.g. live traffic, or agent training traffic)
@@ -7618,25 +8284,25 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainDataset {
     /// Output only. Dataset create time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Dataset description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Display name for the dataaset
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. Identifier. Resource name of the dataset. Format: projects/{project}/locations/{location}/datasets/{dataset}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Option TTL for the dataset.
     #[serde(default)]
-    pub ttl: Option<String>,
+    pub ttl: ::core::option::Option<String>,
     /// Dataset usage type. // TODO: enum values: ["TYPE_UNSPECIFIED", "EVAL", "LIVE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Dataset update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Metadata for deleting an issue model.
@@ -7644,13 +8310,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainDataset {
 pub struct GoogleCloudContactcenterinsightsV1mainDeleteIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for deletion.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainDeleteIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDeleteIssueModelRequest>,
+    >,
 }
 
 /// The request to delete an issue model.
@@ -7658,7 +8326,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeleteIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainDeleteIssueModelRequest {
     /// Required. The name of the issue model to delete.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The metadata for deleting a QaQuestionTag Resource.
@@ -7666,13 +8334,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeleteIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagRequest>,
+    >,
 }
 
 /// The request for deleting a QaQuestionTag.
@@ -7680,7 +8350,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagRequest {
     /// Required. The name of the QaQuestionTag to delete.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metadata for deploying an issue model.
@@ -7688,13 +8358,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for deployment.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainDeployIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDeployIssueModelRequest>,
+    >,
 }
 
 /// The request to deploy an issue model.
@@ -7702,7 +8374,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelRequest {
     /// Required. The issue model to deploy.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
@@ -7710,7 +8382,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainDialogflowIntent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
 }
 
 /// Dialogflow interaction data.
@@ -7718,10 +8390,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainDialogflowIntent {
 pub struct GoogleCloudContactcenterinsightsV1mainDialogflowInteractionData {
     /// The confidence of the match ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The Dialogflow intent resource path. Format: projects/{project}/agent/{agent}/intents/{intent}
     #[serde(default, rename = "dialogflowIntentId")]
-    pub dialogflow_intent_id: Option<String>,
+    pub dialogflow_intent_id: ::core::option::Option<String>,
 }
 
 /// A Dialogflow source of conversation data.
@@ -7729,10 +8401,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainDialogflowInteractionData {
 pub struct GoogleCloudContactcenterinsightsV1mainDialogflowSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
     /// Output only. The name of the Dialogflow conversation that this conversation resource is derived from. Format: projects/{project}/locations/{location}/conversations/{conversation}
     #[serde(default, rename = "dialogflowConversation")]
-    pub dialogflow_conversation: Option<String>,
+    pub dialogflow_conversation: ::core::option::Option<String>,
 }
 
 /// A dimension determines the grouping key for the query. In SQL terms, these would be part of both the "SELECT" and "GROUP BY" clauses.
@@ -7740,40 +8412,40 @@ pub struct GoogleCloudContactcenterinsightsV1mainDialogflowSource {
 pub struct GoogleCloudContactcenterinsightsV1mainDimension {
     /// Output only. Metadata about the agent dimension.
     #[serde(default, rename = "agentDimensionMetadata")]
-    pub agent_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionAgentDimensionMetadata>,
+    pub agent_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionAgentDimensionMetadata>>,
     /// Output only. Metadata about the client sentiment category dimension.
     #[serde(default, rename = "clientSentimentCategoryDimensionMetadata")]
-    pub client_sentiment_category_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionClientSentimentCategoryDimensionMetadata>,
+    pub client_sentiment_category_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionClientSentimentCategoryDimensionMetadata>>,
     /// Output only. Metadata about the conversation profile dimension.
     #[serde(default, rename = "conversationProfileDimensionMetadata")]
-    pub conversation_profile_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionConversationProfileDimensionMetadata>,
+    pub conversation_profile_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionConversationProfileDimensionMetadata>>,
     /// Output only. Metadata about the Conversational Agents playbook dimension.
     #[serde(default, rename = "conversationalAgentsPlaybookDimensionMetadata")]
-    pub conversational_agents_playbook_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsPlaybookDimensionMetadata>,
+    pub conversational_agents_playbook_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsPlaybookDimensionMetadata>>,
     /// Output only. Metadata about the Conversational Agents tool dimension.
     #[serde(default, rename = "conversationalAgentsToolDimensionMetadata")]
-    pub conversational_agents_tool_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsToolDimensionMetadata>,
+    pub conversational_agents_tool_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsToolDimensionMetadata>>,
     /// The key of the dimension. // TODO: enum values: ["DIMENSION_KEY_UNSPECIFIED", "ISSUE", "ISSUE_NAME", "AGENT", "AGENT_TEAM", "QA_QUESTION_ID", "QA_QUESTION_ANSWER_VALUE", "QA_SCORECARD_ID", "CONVERSATION_PROFILE_ID", "MEDIUM", "CONVERSATIONAL_AGENTS_PLAYBOOK_ID", "CONVERSATIONAL_AGENTS_PLAYBOOK_NAME", "CONVERSATIONAL_AGENTS_TOOL_ID", "CONVERSATIONAL_AGENTS_TOOL_NAME", "CLIENT_SENTIMENT_CATEGORY", "AGENT_VERSION_ID", "AGENT_DEPLOYMENT_ID", "AGENT_ASSIST_SUPERVISOR_ID", "LABEL_KEY", "LABEL_VALUE", "LABEL_KEY_AND_VALUE", "LAST_TRANSFER_SUB_AGENT_NAME"]
     #[serde(default, rename = "dimensionKey")]
-    pub dimension_key: Option<String>,
+    pub dimension_key: ::core::option::Option<String>,
     /// Output only. Metadata about the issue dimension.
     #[serde(default, rename = "issueDimensionMetadata")]
-    pub issue_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionIssueDimensionMetadata>,
+    pub issue_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionIssueDimensionMetadata>>,
     /// Output only. Metadata about conversation labels.
     #[serde(default, rename = "labelDimensionMetadata")]
-    pub label_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionLabelDimensionMetadata>,
+    pub label_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionLabelDimensionMetadata>>,
     /// Output only. Metadata about the conversation medium dimension.
     #[serde(default, rename = "mediumDimensionMetadata")]
-    pub medium_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionMediumDimensionMetadata>,
+    pub medium_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionMediumDimensionMetadata>>,
     /// Output only. Metadata about the QA question-answer dimension.
     #[serde(default, rename = "qaQuestionAnswerDimensionMetadata")]
-    pub qa_question_answer_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionAnswerDimensionMetadata>,
+    pub qa_question_answer_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionAnswerDimensionMetadata>>,
     /// Output only. Metadata about the QA question dimension.
     #[serde(default, rename = "qaQuestionDimensionMetadata")]
-    pub qa_question_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionDimensionMetadata>,
+    pub qa_question_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionDimensionMetadata>>,
     /// Output only. Metadata about the QA scorecard dimension.
     #[serde(default, rename = "qaScorecardDimensionMetadata")]
-    pub qa_scorecard_dimension_metadata: Option<GoogleCloudContactcenterinsightsV1mainDimensionQaScorecardDimensionMetadata>,
+    pub qa_scorecard_dimension_metadata: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimensionQaScorecardDimensionMetadata>>,
 }
 
 /// Metadata about the agent dimension.
@@ -7781,25 +8453,25 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimension {
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionAgentDimensionMetadata {
     /// Optional. The agent''s deployment display name. Only applicable to automated agents. This will be populated for AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentDisplayName")]
-    pub agent_deployment_display_name: Option<String>,
+    pub agent_deployment_display_name: ::core::option::Option<String>,
     /// Optional. The agent''s deployment ID. Only applicable to automated agents. This will be populated for AGENT and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentId")]
-    pub agent_deployment_id: Option<String>,
+    pub agent_deployment_id: ::core::option::Option<String>,
     /// Optional. The agent''s name This will be populated for AGENT, AGENT_TEAM, AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDisplayName")]
-    pub agent_display_name: Option<String>,
+    pub agent_display_name: ::core::option::Option<String>,
     /// Optional. A user-specified string representing the agent. This will be populated for AGENT, AGENT_TEAM, AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Optional. A user-specified string representing the agent''s team.
     #[serde(default, rename = "agentTeam")]
-    pub agent_team: Option<String>,
+    pub agent_team: ::core::option::Option<String>,
     /// Optional. The agent''s version display name. Only applicable to automated agents. This will be populated for AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentVersionDisplayName")]
-    pub agent_version_display_name: Option<String>,
+    pub agent_version_display_name: ::core::option::Option<String>,
     /// Optional. The agent''s version ID. Only applicable to automated agents. This will be populated for AGENT_VERSION_ID, and AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentVersionId")]
-    pub agent_version_id: Option<String>,
+    pub agent_version_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the client sentiment category dimension.
@@ -7807,7 +8479,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionAgentDimensionMetadata
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionClientSentimentCategoryDimensionMetadata {
     /// Optional. The client sentiment category.
     #[serde(default, rename = "sentimentCategory")]
-    pub sentiment_category: Option<String>,
+    pub sentiment_category: ::core::option::Option<String>,
 }
 
 /// Metadata about the conversation profile dimension.
@@ -7815,7 +8487,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionClientSentimentCategor
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationProfileDimensionMetadata {
     /// Optional. The conversation profile ID.
     #[serde(default, rename = "conversationProfileId")]
-    pub conversation_profile_id: Option<String>,
+    pub conversation_profile_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the Conversational Agents playbook dimension.
@@ -7824,10 +8496,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsPl
 {
     /// Optional. The dialogflow playbook display name.
     #[serde(default, rename = "playbookDisplayName")]
-    pub playbook_display_name: Option<String>,
+    pub playbook_display_name: ::core::option::Option<String>,
     /// Optional. The dialogflow playbook ID.
     #[serde(default, rename = "playbookId")]
-    pub playbook_id: Option<String>,
+    pub playbook_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the Conversational Agents tool dimension.
@@ -7836,10 +8508,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsTo
 {
     /// Optional. The dialogflow tool display name.
     #[serde(default, rename = "toolDisplayName")]
-    pub tool_display_name: Option<String>,
+    pub tool_display_name: ::core::option::Option<String>,
     /// Optional. The dialogflow tool ID.
     #[serde(default, rename = "toolId")]
-    pub tool_id: Option<String>,
+    pub tool_id: ::core::option::Option<String>,
 }
 
 /// Metadata about the issue dimension.
@@ -7847,13 +8519,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsTo
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionIssueDimensionMetadata {
     /// The issue display name.
     #[serde(default, rename = "issueDisplayName")]
-    pub issue_display_name: Option<String>,
+    pub issue_display_name: ::core::option::Option<String>,
     /// The issue ID.
     #[serde(default, rename = "issueId")]
-    pub issue_id: Option<String>,
+    pub issue_id: ::core::option::Option<String>,
     /// The parent issue model ID.
     #[serde(default, rename = "issueModelId")]
-    pub issue_model_id: Option<String>,
+    pub issue_model_id: ::core::option::Option<String>,
 }
 
 /// Metadata about conversation labels.
@@ -7861,10 +8533,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionIssueDimensionMetadata
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionLabelDimensionMetadata {
     /// Optional. The label key.
     #[serde(default, rename = "labelKey")]
-    pub label_key: Option<String>,
+    pub label_key: ::core::option::Option<String>,
     /// Optional. The label value.
     #[serde(default, rename = "labelValue")]
-    pub label_value: Option<String>,
+    pub label_value: ::core::option::Option<String>,
 }
 
 /// Metadata about the conversation medium dimension.
@@ -7872,7 +8544,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionLabelDimensionMetadata
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionMediumDimensionMetadata {
     /// Optional. The conversation medium. Currently supports : PHONE_CALL, CHAT.
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA question-answer dimension. This is useful for showing the answer distribution for questions for a given scorecard.
@@ -7880,16 +8552,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionMediumDimensionMetadat
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionAnswerDimensionMetadata {
     /// Optional. The full body of the question.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<String>,
+    pub answer_value: ::core::option::Option<String>,
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
-    pub qa_question_id: Option<String>,
+    pub qa_question_id: ::core::option::Option<String>,
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
     /// Optional. The full body of the question.
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA question dimension.
@@ -7897,13 +8569,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionAnswerDimens
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionDimensionMetadata {
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
-    pub qa_question_id: Option<String>,
+    pub qa_question_id: ::core::option::Option<String>,
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
     /// Optional. The full body of the question.
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
 }
 
 /// Metadata about the QA scorecard dimension.
@@ -7911,7 +8583,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionDimensionMet
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaScorecardDimensionMetadata {
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
-    pub qa_scorecard_id: Option<String>,
+    pub qa_scorecard_id: ::core::option::Option<String>,
 }
 
 /// A customer-managed encryption key specification that can be applied to all created resources (e.g. Conversation).
@@ -7919,10 +8591,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaScorecardDimensionMe
 pub struct GoogleCloudContactcenterinsightsV1mainEncryptionSpec {
     /// Required. The name of customer-managed encryption key that is used to secure a resource and its sub-resources. If empty, the resource is secured by our default encryption key. Only the key in the same location as this resource is allowed to be used for encryption. Format: projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Immutable. The resource name of the encryption key specification resource. Format: projects/{project}/locations/{location}/encryptionSpec
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The data for an entity annotation. Represents a phrase in the conversation that is a known entity, such as a person, an organization, or location.
@@ -7930,19 +8602,21 @@ pub struct GoogleCloudContactcenterinsightsV1mainEncryptionSpec {
 pub struct GoogleCloudContactcenterinsightsV1mainEntity {
     /// The representative name for the entity.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Metadata associated with the entity. For most entity types, the metadata is a Wikipedia URL (wikipedia_url) and Knowledge Graph MID (mid), if they are available. For the metadata associated with other entity types, see the Type table below.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The salience score associated with the entity in the [0, 1.0] range. The salience score for an entity provides information about the importance or centrality of that entity to the entire document text. Scores closer to 0 are less salient, while scores closer to 1.0 are highly salient.
     #[serde(default)]
-    pub salience: Option<f32>,
+    pub salience: ::core::option::Option<f32>,
     /// The aggregate sentiment expressed for this entity in the conversation.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    pub sentiment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    >,
     /// The entity type. // TODO: enum values: ["TYPE_UNSPECIFIED", "PERSON", "LOCATION", "ORGANIZATION", "EVENT", "WORK_OF_ART", "CONSUMER_GOOD", "OTHER", "PHONE_NUMBER", "ADDRESS", "DATE", "NUMBER", "PRICE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The data for an entity mention annotation. This represents a mention of an Entity in the conversation.
@@ -7950,13 +8624,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainEntity {
 pub struct GoogleCloudContactcenterinsightsV1mainEntityMentionData {
     /// The key of this entity in conversation entities. Can be used to retrieve the exact Entity this mention is attached to.
     #[serde(default, rename = "entityUniqueId")]
-    pub entity_unique_id: Option<String>,
+    pub entity_unique_id: ::core::option::Option<String>,
     /// Sentiment expressed for this mention of the entity.
     #[serde(default)]
-    pub sentiment: Option<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    pub sentiment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSentimentData>,
+    >,
     /// The type of the entity mention. // TODO: enum values: ["MENTION_TYPE_UNSPECIFIED", "PROPER", "COMMON"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Metadata for an export insights operation.
@@ -7964,22 +8640,24 @@ pub struct GoogleCloudContactcenterinsightsV1mainEntityMentionData {
 pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataMetadata {
     /// The number of conversations that were exported successfully.
     #[serde(default, rename = "completedExportCount")]
-    pub completed_export_count: Option<i32>,
+    pub completed_export_count: ::core::option::Option<i32>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The number of conversations that failed to be exported.
     #[serde(default, rename = "failedExportCount")]
-    pub failed_export_count: Option<i32>,
+    pub failed_export_count: ::core::option::Option<i32>,
     /// Partial errors during export operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The original request for export.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequest>,
+    >,
 }
 
 /// The request to export insights.
@@ -7987,23 +8665,26 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequest {
     /// Specified if sink is a BigQuery table.
     #[serde(default, rename = "bigQueryDestination")]
-    pub big_query_destination:
-        Option<GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequestBigQueryDestination>,
+    pub big_query_destination: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequestBigQueryDestination,
+        >,
+    >,
     /// Optional. Version of the export schema. // TODO: enum values: ["EXPORT_SCHEMA_VERSION_UNSPECIFIED", "EXPORT_V1", "EXPORT_V2", "EXPORT_V3", "EXPORT_V4", "EXPORT_V5", "EXPORT_V6", "EXPORT_V7", "EXPORT_V8", "EXPORT_V9", "EXPORT_V10", "EXPORT_V11", "EXPORT_V12", "EXPORT_V13", "EXPORT_V14", "EXPORT_V15", "EXPORT_V16", "EXPORT_V17", "EXPORT_VERSION_LATEST_AVAILABLE"]
     #[serde(default, rename = "exportSchemaVersion")]
-    pub export_schema_version: Option<String>,
+    pub export_schema_version: ::core::option::Option<String>,
     /// A filter to reduce results to a specific subset. Useful for exporting conversations with specific properties.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// A fully qualified KMS key name for BigQuery tables protected by CMEK. Format: projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}/cryptoKeyVersions/{version}
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Required. The parent resource to export data from.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Options for what to do if the destination table already exists. // TODO: enum values: ["WRITE_DISPOSITION_UNSPECIFIED", "WRITE_TRUNCATE", "WRITE_APPEND"]
     #[serde(default, rename = "writeDisposition")]
-    pub write_disposition: Option<String>,
+    pub write_disposition: ::core::option::Option<String>,
 }
 
 /// A BigQuery Table Reference.
@@ -8011,13 +8692,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequestBigQueryDestination {
     /// Required. The name of the BigQuery dataset that the snapshot result should be exported to. If this dataset does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// A project ID or number. If specified, then export will attempt to write data to this project instead of the resource project. Otherwise, the resource project will be used.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// The BigQuery table name to which the insights data should be written. If this table does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
 }
 
 /// Metadata used for export issue model.
@@ -8025,13 +8706,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequestBigQue
 pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original export request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainExportIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainExportIssueModelRequest>,
+    >,
 }
 
 /// Request to export an issue model.
@@ -8039,11 +8722,14 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelRequest {
     /// Google Cloud Storage URI to export the issue model to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination:
-        Option<GoogleCloudContactcenterinsightsV1mainExportIssueModelRequestGcsDestination>,
+    pub gcs_destination: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainExportIssueModelRequestGcsDestination,
+        >,
+    >,
     /// Required. The issue model to export.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Google Cloud Storage Object URI to save the issue model to.
@@ -8051,7 +8737,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelRequestGcsDestination {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
 }
 
 /// Agent Assist frequently-asked-question answer data.
@@ -8059,22 +8745,22 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelRequestGcsDesti
 pub struct GoogleCloudContactcenterinsightsV1mainFaqAnswerData {
     /// The piece of text from the source knowledge base document.
     #[serde(default)]
-    pub answer: Option<String>,
+    pub answer: ::core::option::Option<String>,
     /// The system''s confidence score that this answer is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f32>,
+    pub confidence_score: ::core::option::Option<f32>,
     /// Map that contains metadata about the FAQ answer and the document that it originates from.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The corresponding FAQ question.
     #[serde(default)]
-    pub question: Option<String>,
+    pub question: ::core::option::Option<String>,
     /// The knowledge document that this answer was extracted from. Format: projects/{project}/knowledgeBases/{knowledge_base}/documents/{document}.
     #[serde(default)]
-    pub source: Option<String>,
+    pub source: ::core::option::Option<String>,
 }
 
 /// Represents a conversation, resource, and label provided by the user. Can take the form of a string label or a QaAnswer label. QaAnswer labels are used for Quality AI example conversations. String labels are used for Topic Modeling. AgentAssistSummary labels are used for Agent Assist Summarization.
@@ -8082,22 +8768,24 @@ pub struct GoogleCloudContactcenterinsightsV1mainFaqAnswerData {
 pub struct GoogleCloudContactcenterinsightsV1mainFeedbackLabel {
     /// Output only. Create time of the label.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// String label used for Topic Modeling.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// Name of the resource to be labeled. Supported resources are: * projects/{project}/locations/{location}/qaScorecards/{scorecard}/revisions/{revision}/qaQuestions/{question} * projects/{project}/locations/{location}/issueModels/{issue_model} * projects/{project}/locations/{location}/generators/{generator_id}
     #[serde(default, rename = "labeledResource")]
-    pub labeled_resource: Option<String>,
+    pub labeled_resource: ::core::option::Option<String>,
     /// Immutable. Resource name of the FeedbackLabel. Format: projects/{project}/locations/{location}/conversations/{conversation}/feedbackLabels/{feedback_label}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// QaAnswer label used for Quality AI example conversations.
     #[serde(default, rename = "qaAnswerLabel")]
-    pub qa_answer_label: Option<GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue>,
+    pub qa_answer_label: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue>,
+    >,
     /// Output only. Update time of the label.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A Cloud Storage source of conversation data.
@@ -8105,10 +8793,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainFeedbackLabel {
 pub struct GoogleCloudContactcenterinsightsV1mainGcsSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
-    pub audio_uri: Option<String>,
+    pub audio_uri: ::core::option::Option<String>,
     /// Immutable. Cloud Storage URI that points to a file that contains the conversation transcript.
     #[serde(default, rename = "transcriptUri")]
-    pub transcript_uri: Option<String>,
+    pub transcript_uri: ::core::option::Option<String>,
 }
 
 /// The conversation transcript for the chart.
@@ -8116,18 +8804,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainGcsSource {
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscript {
     /// The conversation id of the chart.
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// Output only. The create time of the conversation.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Ordered list of messages, including user inputs and system responses.
     #[serde(default)]
-    pub messages: Option<
-        Vec<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessage>,
-    >,
+    pub messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessage>>>,
     /// Output only. The update time of the conversation.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The message in the conversation.
@@ -8135,16 +8821,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessage {
     /// Output only. For user messages, this is the time at which the system received the message. For system messages, this is the time at which the system generated the message.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The message id of the message.
     #[serde(default, rename = "messageId")]
-    pub message_id: Option<String>,
+    pub message_id: ::core::option::Option<String>,
     /// A wrapper for system messages per turn.
     #[serde(default, rename = "systemMessageWrapper")]
-    pub system_message_wrapper: Option<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessages>,
+    pub system_message_wrapper: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessages>>,
     /// A message from the user that is interacting with the system.
     #[serde(default, rename = "userMessage")]
-    pub user_message: Option<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageUserMessage>,
+    pub user_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageUserMessage>>,
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
@@ -8152,19 +8838,19 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessage {
     /// Chart spec from LLM
     #[serde(default, rename = "chartSpec")]
-    pub chart_spec: Option<serde_json::Value>,
+    pub chart_spec: ::core::option::Option<serde_json::Value>,
     /// Raw SQL from LLM, before templatization
     #[serde(default, rename = "generatedSqlQuery")]
-    pub generated_sql_query: Option<String>,
+    pub generated_sql_query: ::core::option::Option<String>,
     /// A direct natural language response to the user message.
     #[serde(default, rename = "textMessage")]
-    pub text_message: Option<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessageTextOutput>,
+    pub text_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessageTextOutput>>,
     /// Optional. User provided chart spec
     #[serde(default, rename = "userProvidedChartSpec")]
-    pub user_provided_chart_spec: Option<serde_json::Value>,
+    pub user_provided_chart_spec: ::core::option::Option<serde_json::Value>,
     /// Optional. User provided SQL query
     #[serde(default, rename = "userProvidedSqlQuery")]
-    pub user_provided_sql_query: Option<String>,
+    pub user_provided_sql_query: ::core::option::Option<String>,
 }
 
 /// A text output message from the system.
@@ -8173,10 +8859,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 {
     /// The parts of the message.
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of the text message. // TODO: enum values: ["TYPE_UNSPECIFIED", "THOUGHT", "FINAL_RESPONSE", "PROGRESS"]
     #[serde(default, rename = "textType")]
-    pub text_type: Option<String>,
+    pub text_type: ::core::option::Option<String>,
 }
 
 /// A wrapper for system messages per turn.
@@ -8184,7 +8870,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessages {
     /// A message from the system in response to the user.
     #[serde(default, rename = "systemMessages")]
-    pub system_messages: Option<Vec<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessage>>,
+    pub system_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessage>>>,
 }
 
 /// The user message.
@@ -8193,7 +8879,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 {
     /// A message from the user that is interacting with the system.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// The metadata for generative insights.
@@ -8201,7 +8887,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsMetadata {
     /// The error message when the generative insights request fails.
     #[serde(default, rename = "errorMessages")]
-    pub error_messages: Option<Vec<GoogleRpcStatus>>,
+    pub error_messages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// The response for generative insights.
@@ -8209,13 +8895,20 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponse {
     /// The full list of generative responses. Each response is ordered by time.
     #[serde(default, rename = "generativeResponses")]
-    pub generative_responses: Option<
-        Vec<GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGenerativeResponse>,
+    pub generative_responses: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGenerativeResponse,
+            >,
+        >,
     >,
     /// The transcript of the generative insights conversation.
     #[serde(default)]
-    pub transcript:
-        Option<GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscript>,
+    pub transcript: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscript,
+        >,
+    >,
 }
 
 /// Wrapper for storing the generative response for a chart.
@@ -8223,16 +8916,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponse {
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGenerativeResponse {
     /// The chart spec for the data. This will be specified in the vega-lite or vega format.
     #[serde(default, rename = "chartSpec")]
-    pub chart_spec: Option<serde_json::Value>,
+    pub chart_spec: ::core::option::Option<serde_json::Value>,
     /// The generated SQL query from the LLM. Will be populated during the chart building phase. The generated SQL will be cached in the corresponding chart resource.
     #[serde(default, rename = "generatedSqlQuery")]
-    pub generated_sql_query: Option<String>,
+    pub generated_sql_query: ::core::option::Option<String>,
     /// The text output from the LLM. Will be populated during the chart building phase. For a reloaded chart, this will NOT be populated. May contain THOUGHT or a FINAL response or some in-progress response.
     #[serde(default, rename = "textMessage")]
-    pub text_message: Option<GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGenerativeResponseTextOutput>,
+    pub text_message: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGenerativeResponseTextOutput>>,
     /// The text output from the LLM. Will be populated during the chart building phase. For a reloaded chart, this will NOT be populated. May contain THOUGHT or a FINAL response or some in-progress response.
     #[serde(default, rename = "textOutput")]
-    pub text_output: Option<String>,
+    pub text_output: ::core::option::Option<String>,
 }
 
 /// Wrapper for text output.
@@ -8241,10 +8934,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGener
 {
     /// The text output from the LLM.
     #[serde(default)]
-    pub text: Option<Vec<String>>,
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
     /// The type of text output. // TODO: enum values: ["TYPE_UNSPECIFIED", "THOUGHT", "FINAL_RESPONSE", "PROGRESS"]
     #[serde(default, rename = "textType")]
-    pub text_type: Option<String>,
+    pub text_type: ::core::option::Option<String>,
 }
 
 /// Metadata used for import issue model.
@@ -8252,13 +8945,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGener
 pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original import request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainImportIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainImportIssueModelRequest>,
+    >,
 }
 
 /// Request to import an issue model.
@@ -8266,13 +8961,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelRequest {
     /// Optional. If set to true, will create an issue model from the imported file with randomly generated IDs for the issue model and corresponding issues. Otherwise, replaces an existing model with the same ID as the file.
     #[serde(default, rename = "createNewModel")]
-    pub create_new_model: Option<bool>,
+    pub create_new_model: ::core::option::Option<bool>,
     /// Google Cloud Storage source message.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudContactcenterinsightsV1mainImportIssueModelRequestGcsSource>,
+    pub gcs_source: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainImportIssueModelRequestGcsSource>,
+    >,
     /// Required. The parent resource of the issue model.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
 }
 
 /// Google Cloud Storage Object URI to get the issue model file from.
@@ -8280,7 +8977,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelRequestGcsSource {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
-    pub object_uri: Option<String>,
+    pub object_uri: ::core::option::Option<String>,
 }
 
 /// Response from import issue model
@@ -8288,7 +8985,8 @@ pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelRequestGcsSourc
 pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelResponse {
     /// The issue model that was imported.
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<GoogleCloudContactcenterinsightsV1mainIssueModel>,
+    pub issue_model:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssueModel>>,
 }
 
 /// The metadata for an IngestConversations operation.
@@ -8296,24 +8994,22 @@ pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelResponse {
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Statistics for IngestConversations operation.
     #[serde(default, rename = "ingestConversationsStats")]
-    pub ingest_conversations_stats: Option<
-        GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadataIngestConversationsStats,
-    >,
+    pub ingest_conversations_stats: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadataIngestConversationsStats>>,
     /// Output only. Partial errors during ingest operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for ingest.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainIngestConversationsRequest>,
+    pub request: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIngestConversationsRequest>>,
     /// Output only. Stores the conversation resources produced by ingest sampling operations.
     #[serde(default, rename = "sampledConversations")]
-    pub sampled_conversations: Option<Vec<String>>,
+    pub sampled_conversations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Statistics for IngestConversations operation.
@@ -8322,16 +9018,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadataInge
 {
     /// Output only. The number of objects skipped because another conversation with the same transcript uri had already been ingested.
     #[serde(default, rename = "duplicatesSkippedCount")]
-    pub duplicates_skipped_count: Option<i32>,
+    pub duplicates_skipped_count: ::core::option::Option<i32>,
     /// Output only. The number of objects which were unable to be ingested due to errors. The errors are populated in the partial_errors field.
     #[serde(default, rename = "failedIngestCount")]
-    pub failed_ingest_count: Option<i32>,
+    pub failed_ingest_count: ::core::option::Option<i32>,
     /// Output only. The number of objects processed during the ingest operation.
     #[serde(default, rename = "processedObjectCount")]
-    pub processed_object_count: Option<i32>,
+    pub processed_object_count: ::core::option::Option<i32>,
     /// Output only. The number of new conversations added during this ingest operation.
     #[serde(default, rename = "successfulIngestCount")]
-    pub successful_ingest_count: Option<i32>,
+    pub successful_ingest_count: ::core::option::Option<i32>,
 }
 
 /// The request to ingest conversations.
@@ -8339,28 +9035,40 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadataInge
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequest {
     /// Configuration that applies to all conversations.
     #[serde(default, rename = "conversationConfig")]
-    pub conversation_config:
-        Option<GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestConversationConfig>,
+    pub conversation_config: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestConversationConfig,
+        >,
+    >,
     /// A cloud storage bucket source. Note that any previously ingested objects from the source will be skipped to avoid duplication.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source:
-        Option<GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestGcsSource>,
+    pub gcs_source: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestGcsSource,
+        >,
+    >,
     /// Required. The parent resource for new conversations.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. DLP settings for transcript redaction. Optional, will default to the config specified in Settings.
     #[serde(default, rename = "redactionConfig")]
-    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1mainRedactionConfig>,
+    pub redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainRedactionConfig>,
+    >,
     /// Optional. If set, this fields indicates the number of objects to ingest from the Cloud Storage bucket. If empty, the entire bucket will be ingested. Unless they are first deleted, conversations produced through sampling won''t be ingested by subsequent ingest requests.
     #[serde(default, rename = "sampleSize")]
-    pub sample_size: Option<i32>,
+    pub sample_size: ::core::option::Option<i32>,
     /// Optional. Default Speech-to-Text configuration. Optional, will default to the config specified in Settings.
     #[serde(default, rename = "speechConfig")]
-    pub speech_config: Option<GoogleCloudContactcenterinsightsV1mainSpeechConfig>,
+    pub speech_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSpeechConfig>,
+    >,
     /// Configuration for when source contains conversation transcripts.
     #[serde(default, rename = "transcriptObjectConfig")]
-    pub transcript_object_config: Option<
-        GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestTranscriptObjectConfig,
+    pub transcript_object_config: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestTranscriptObjectConfig,
+        >,
     >,
 }
 
@@ -8369,13 +9077,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestConversationConfig {
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "agentChannel")]
-    pub agent_channel: Option<i32>,
+    pub agent_channel: ::core::option::Option<i32>,
     /// Optional. An opaque, user-specified string representing a human agent who handled all conversations in the import. Note that this will be overridden if per-conversation metadata is provided through the metadata_bucket_uri.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "customerChannel")]
-    pub customer_channel: Option<i32>,
+    pub customer_channel: ::core::option::Option<i32>,
 }
 
 /// Configuration for Cloud Storage bucket sources.
@@ -8383,22 +9091,22 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestConve
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestGcsSource {
     /// Optional. The Cloud Storage path to the conversation audio file. Note that: [1] Audio files will be transcribed if not already. [2] Audio files and transcript files must be in separate buckets / folders. [3] A source file and its corresponding audio file must share the same name to be properly ingested, E.g. gs://bucket/transcript/conversation1.json and gs://bucket/audio/conversation1.mp3.
     #[serde(default, rename = "audioBucketUri")]
-    pub audio_bucket_uri: Option<String>,
+    pub audio_bucket_uri: ::core::option::Option<String>,
     /// Optional. Specifies the type of the objects in bucket_uri. Avoid passing this. This is inferred from the transcript_bucket_uri, audio_bucket_uri. // TODO: enum values: ["BUCKET_OBJECT_TYPE_UNSPECIFIED", "TRANSCRIPT", "AUDIO"]
     #[serde(default, rename = "bucketObjectType")]
-    pub bucket_object_type: Option<String>,
+    pub bucket_object_type: ::core::option::Option<String>,
     /// Optional. The Cloud Storage bucket containing source objects. Avoid passing this. Pass this through one of transcript_bucket_uri or audio_bucket_uri.
     #[serde(default, rename = "bucketUri")]
-    pub bucket_uri: Option<String>,
+    pub bucket_uri: ::core::option::Option<String>,
     /// Optional. Custom keys to extract as conversation labels from metadata files in metadata_bucket_uri. Keys not included in this field will be ignored. Note that there is a limit of 100 labels per conversation.
     #[serde(default, rename = "customMetadataKeys")]
-    pub custom_metadata_keys: Option<Vec<String>>,
+    pub custom_metadata_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The Cloud Storage path to the conversation metadata. Note that: [1] Metadata files are expected to be in JSON format. [2] Metadata and source files (transcripts or audio) must be in separate buckets / folders. [3] A source file and its corresponding metadata file must share the same name to be properly ingested, E.g. gs://bucket/audio/conversation1.mp3 and gs://bucket/metadata/conversation1.json.
     #[serde(default, rename = "metadataBucketUri")]
-    pub metadata_bucket_uri: Option<String>,
+    pub metadata_bucket_uri: ::core::option::Option<String>,
     /// Optional. The Cloud Storage path to the conversation transcripts. Note that: [1] Transcript files are expected to be in JSON format. [2] Transcript, audio, metadata files must be in separate buckets / folders. [3] A source file and its corresponding metadata file must share the same name to be properly ingested, E.g. gs://bucket/audio/conversation1.mp3 and gs://bucket/metadata/conversation1.json.
     #[serde(default, rename = "transcriptBucketUri")]
-    pub transcript_bucket_uri: Option<String>,
+    pub transcript_bucket_uri: ::core::option::Option<String>,
 }
 
 /// Configuration for processing transcript objects.
@@ -8406,7 +9114,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestGcsSo
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestTranscriptObjectConfig {
     /// Required. The medium transcript objects represent. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
 }
 
 /// Metadata for initializing a location-level encryption specification.
@@ -8414,16 +9122,18 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestTrans
 pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Partial errors during initializing operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for initialization.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecRequest>,
+    >,
 }
 
 /// The request to initialize a location-level encryption specification.
@@ -8431,7 +9141,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecMetadat
 pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecRequest {
     /// Required. The encryption spec used for CMEK encryption. It is required that the kms key is in the same region as the endpoint. The same key will be used for all provisioned resources, if encryption is available. If the kms_key_name field is left empty, no encryption will be enforced.
     #[serde(default, rename = "encryptionSpec")]
-    pub encryption_spec: Option<GoogleCloudContactcenterinsightsV1mainEncryptionSpec>,
+    pub encryption_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainEncryptionSpec>,
+    >,
 }
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
@@ -8439,10 +9151,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecRequest
 pub struct GoogleCloudContactcenterinsightsV1mainIntent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The unique identifier of the intent.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
@@ -8450,7 +9162,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIntent {
 pub struct GoogleCloudContactcenterinsightsV1mainIntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
-    pub intent_unique_id: Option<String>,
+    pub intent_unique_id: ::core::option::Option<String>,
 }
 
 /// The issue resource.
@@ -8458,22 +9170,22 @@ pub struct GoogleCloudContactcenterinsightsV1mainIntentMatchData {
 pub struct GoogleCloudContactcenterinsightsV1mainIssue {
     /// Output only. The time at which this issue was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Representative description of the issue.
     #[serde(default, rename = "displayDescription")]
-    pub display_description: Option<String>,
+    pub display_description: ::core::option::Option<String>,
     /// The representative name for the issue.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. The resource name of the issue. Format: projects/{project}/locations/{location}/issueModels/{issue_model}/issues/{issue}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Resource names of the sample representative utterances that match to this issue.
     #[serde(default, rename = "sampleUtterances")]
-    pub sample_utterances: Option<Vec<String>>,
+    pub sample_utterances: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The most recent time that this issue was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Information about the issue.
@@ -8481,13 +9193,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssue {
 pub struct GoogleCloudContactcenterinsightsV1mainIssueAssignment {
     /// Immutable. Display name of the assigned issue. This field is set at time of analysis and immutable since then.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Resource name of the assigned issue.
     #[serde(default)]
-    pub issue: Option<String>,
+    pub issue: ::core::option::Option<String>,
     /// Score indicating the likelihood of the issue assignment. currently bounded on [0,1].
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
 }
 
 /// The data for an issue match annotation.
@@ -8495,7 +9207,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueAssignment {
 pub struct GoogleCloudContactcenterinsightsV1mainIssueMatchData {
     /// Information about the issue''s assignment.
     #[serde(default, rename = "issueAssignment")]
-    pub issue_assignment: Option<GoogleCloudContactcenterinsightsV1mainIssueAssignment>,
+    pub issue_assignment: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssueAssignment>,
+    >,
 }
 
 /// The issue model resource.
@@ -8503,34 +9217,38 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueMatchData {
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModel {
     /// Output only. The time at which this issue model was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The representative name for the issue model.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Configs for the input data that used to create the issue model.
     #[serde(default, rename = "inputDataConfig")]
-    pub input_data_config: Option<GoogleCloudContactcenterinsightsV1mainIssueModelInputDataConfig>,
+    pub input_data_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssueModelInputDataConfig>,
+    >,
     /// Output only. Number of issues in this issue model.
     #[serde(default, rename = "issueCount")]
-    pub issue_count: Option<String>,
+    pub issue_count: ::core::option::Option<String>,
     /// Language of the model.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Type of the model. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "TYPE_V1", "TYPE_V2"]
     #[serde(default, rename = "modelType")]
-    pub model_type: Option<String>,
+    pub model_type: ::core::option::Option<String>,
     /// Immutable. The resource name of the issue model. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. State of the model. // TODO: enum values: ["STATE_UNSPECIFIED", "UNDEPLOYED", "DEPLOYING", "DEPLOYED", "UNDEPLOYING", "DELETING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Immutable. The issue model''s label statistics on its training data.
     #[serde(default, rename = "trainingStats")]
-    pub training_stats: Option<GoogleCloudContactcenterinsightsV1mainIssueModelLabelStats>,
+    pub training_stats: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssueModelLabelStats>,
+    >,
     /// Output only. The most recent time at which the issue model was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Configs for the input data used to create the issue model.
@@ -8538,13 +9256,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModel {
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModelInputDataConfig {
     /// A filter to reduce the conversations used for training the model to a specific subset. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Medium of conversations used in training data. This field is being deprecated. To specify the medium to be used in training a new issue model, set the medium field on filter. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
     /// Output only. Number of conversations used in training. Output only.
     #[serde(default, rename = "trainingConversationsCount")]
-    pub training_conversations_count: Option<String>,
+    pub training_conversations_count: ::core::option::Option<String>,
 }
 
 /// Aggregated statistics about an issue model.
@@ -8552,13 +9270,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModelInputDataConfig {
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModelLabelStats {
     /// Number of conversations the issue model has analyzed at this point in time.
     #[serde(default, rename = "analyzedConversationsCount")]
-    pub analyzed_conversations_count: Option<String>,
+    pub analyzed_conversations_count: ::core::option::Option<String>,
     /// Statistics on each issue. Key is the issue''s resource name.
     #[serde(default, rename = "issueStats")]
-    pub issue_stats: Option<serde_json::Value>,
+    pub issue_stats: ::core::option::Option<serde_json::Value>,
     /// Number of analyzed conversations for which no issue was applicable at this point in time.
     #[serde(default, rename = "unclassifiedConversationsCount")]
-    pub unclassified_conversations_count: Option<String>,
+    pub unclassified_conversations_count: ::core::option::Option<String>,
 }
 
 /// Aggregated statistics about an issue.
@@ -8566,13 +9284,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModelLabelStats {
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModelLabelStatsIssueStats {
     /// Display name of the issue.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Issue resource. Format: projects/{project}/locations/{location}/issueModels/{issue_model}/issues/{issue}
     #[serde(default)]
-    pub issue: Option<String>,
+    pub issue: ::core::option::Option<String>,
     /// Number of conversations attached to the issue at this point in time.
     #[serde(default, rename = "labeledConversationsCount")]
-    pub labeled_conversations_count: Option<String>,
+    pub labeled_conversations_count: ::core::option::Option<String>,
 }
 
 /// Issue Modeling result on a conversation.
@@ -8580,10 +9298,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModelLabelStatsIssueStats 
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModelResult {
     /// Issue model that generates the result. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default, rename = "issueModel")]
-    pub issue_model: Option<String>,
+    pub issue_model: ::core::option::Option<String>,
     /// All the matched issues.
     #[serde(default)]
-    pub issues: Option<Vec<GoogleCloudContactcenterinsightsV1mainIssueAssignment>>,
+    pub issues: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainIssueAssignment>>,
+    >,
 }
 
 /// The response for listing all feedback labels.
@@ -8591,10 +9311,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModelResult {
 pub struct GoogleCloudContactcenterinsightsV1mainListAllFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1mainFeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainFeedbackLabel>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for listing feedback labels.
@@ -8602,10 +9324,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainListAllFeedbackLabelsResponse {
 pub struct GoogleCloudContactcenterinsightsV1mainListFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
-    pub feedback_labels: Option<Vec<GoogleCloudContactcenterinsightsV1mainFeedbackLabel>>,
+    pub feedback_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainFeedbackLabel>>,
+    >,
     /// The next page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The data for a matched phrase matcher. Represents information identifying a phrase matcher for a given match.
@@ -8613,10 +9337,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainListFeedbackLabelsResponse {
 pub struct GoogleCloudContactcenterinsightsV1mainPhraseMatchData {
     /// The human-readable name of the phrase matcher.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The unique identifier (the resource name) of the phrase matcher.
     #[serde(default, rename = "phraseMatcher")]
-    pub phrase_matcher: Option<String>,
+    pub phrase_matcher: ::core::option::Option<String>,
 }
 
 /// An answer to a QaQuestion.
@@ -8624,22 +9348,28 @@ pub struct GoogleCloudContactcenterinsightsV1mainPhraseMatchData {
 pub struct GoogleCloudContactcenterinsightsV1mainQaAnswer {
     /// Lists all answer sources containing one or more answer values of a specific source type, e.g., all system-generated answer sources, or all manual edit answer sources.
     #[serde(default, rename = "answerSources")]
-    pub answer_sources: Option<Vec<GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerSource>>,
+    pub answer_sources: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerSource>,
+        >,
+    >,
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue>,
+    pub answer_value: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue>,
+    >,
     /// The conversation the answer applies to.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The QaQuestion answered by this answer.
     #[serde(default, rename = "qaQuestion")]
-    pub qa_question: Option<String>,
+    pub qa_question: ::core::option::Option<String>,
     /// Question text. E.g., "Did the agent greet the customer?"
     #[serde(default, rename = "questionBody")]
-    pub question_body: Option<String>,
+    pub question_body: ::core::option::Option<String>,
     /// User-defined list of arbitrary tags. Matches the value from QaScorecard.ScorecardQuestion.tags. Used for grouping/organization and for weighting the score of each answer.
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A question may have multiple answers from varying sources, one of which becomes the "main" answer above. AnswerSource represents each individual answer.
@@ -8647,10 +9377,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaAnswer {
 pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerSource {
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
-    pub answer_value: Option<GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue>,
+    pub answer_value: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue>,
+    >,
     /// What created the answer. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "SYSTEM_GENERATED", "MANUAL_EDIT"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// Message for holding the value of a QaAnswer. QaQuestion.AnswerChoice defines the possible answer values for a question.
@@ -8658,31 +9390,31 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerSource {
 pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// A short string used as an identifier. Matches the value used in QaQuestion.AnswerChoice.key.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// A value of "Not Applicable (N/A)". Should only ever be true.
     #[serde(default, rename = "naValue")]
-    pub na_value: Option<bool>,
+    pub na_value: ::core::option::Option<bool>,
     /// Output only. Normalized score of the questions. Calculated as score / potential_score.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// Numerical value.
     #[serde(default, rename = "numValue")]
-    pub num_value: Option<f64>,
+    pub num_value: ::core::option::Option<f64>,
     /// Output only. The maximum potential score of the question.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Output only. Numerical score of the answer.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// Output only. A value of "Skip". If provided, this field may only be set to true. If a question receives this answer, it will be excluded from any score calculations. This would mean that the question was not evaluated.
     #[serde(default, rename = "skipValue")]
-    pub skip_value: Option<bool>,
+    pub skip_value: ::core::option::Option<bool>,
     /// String value.
     #[serde(default, rename = "strValue")]
-    pub str_value: Option<String>,
+    pub str_value: ::core::option::Option<String>,
 }
 
 /// A tag is a resource which aims to categorize a set of questions across multiple scorecards, e.g., "Customer Satisfaction","Billing", etc.
@@ -8690,19 +9422,19 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue {
 pub struct GoogleCloudContactcenterinsightsV1mainQaQuestionTag {
     /// Output only. The time at which the question tag was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. A user-specified display name for the tag.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. Resource name for the QaQuestionTag Format projects/{project}/locations/{location}/qaQuestionTags/{qa_question_tag} In the above format, the last segment, i.e., qa_question_tag, is a server-generated ID corresponding to the tag resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The list of Scorecard Question IDs that the tag applies to. Each QaQuestionId is represented as a full resource name containing the Question ID. Lastly, Since a tag may not necessarily be referenced by any Scorecard Questions, we treat this field as optional.
     #[serde(default, rename = "qaQuestionIds")]
-    pub qa_question_ids: Option<Vec<String>>,
+    pub qa_question_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The most recent time at which the question tag was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The results of scoring a single conversation against a QaScorecard. Contains a collection of QaAnswers and aggregate score.
@@ -8710,39 +9442,47 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaQuestionTag {
 pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResult {
     /// ID of the agent that handled the conversation.
     #[serde(default, rename = "agentId")]
-    pub agent_id: Option<String>,
+    pub agent_id: ::core::option::Option<String>,
     /// The conversation scored by this result.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// Output only. The timestamp that the revision was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The name of the scorecard result. Format: projects/{project}/locations/{location}/qaScorecardResults/{qa_scorecard_result}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normalized score, which is the score divided by the potential score. Any manual edits are included if they exist.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The maximum potential overall score of the scorecard. Any questions answered using na_value are excluded from this calculation.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Set of QaAnswers represented in the result.
     #[serde(default, rename = "qaAnswers")]
-    pub qa_answers: Option<Vec<GoogleCloudContactcenterinsightsV1mainQaAnswer>>,
+    pub qa_answers: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaAnswer>>,
+    >,
     /// The QaScorecardRevision scored by this result.
     #[serde(default, rename = "qaScorecardRevision")]
-    pub qa_scorecard_revision: Option<String>,
+    pub qa_scorecard_revision: ::core::option::Option<String>,
     /// Collection of tags and their scores.
     #[serde(default, rename = "qaTagResults")]
-    pub qa_tag_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainQaScorecardResultQaTagResult>>,
+    pub qa_tag_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaScorecardResultQaTagResult>,
+        >,
+    >,
     /// The overall numerical score of the result, incorporating any manual edits if they exist.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// List of all individual score sets.
     #[serde(default, rename = "scoreSources")]
-    pub score_sources:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainQaScorecardResultScoreSource>>,
+    pub score_sources: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaScorecardResultScoreSource>,
+        >,
+    >,
 }
 
 /// Tags and their corresponding results.
@@ -8750,16 +9490,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResult {
 pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResultQaTagResult {
     /// The normalized score the tag applies to.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The potential score the tag applies to.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// The score the tag applies to.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// The tag the score applies to.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// A scorecard result may have multiple sets of scores from varying sources, one of which becomes the "main" answer above. A ScoreSource represents each individual set of scores.
@@ -8767,20 +9507,23 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResultQaTagResult {
 pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResultScoreSource {
     /// The normalized score, which is the score divided by the potential score.
     #[serde(default, rename = "normalizedScore")]
-    pub normalized_score: Option<f64>,
+    pub normalized_score: ::core::option::Option<f64>,
     /// The maximum potential overall score of the scorecard. Any questions answered using na_value are excluded from this calculation.
     #[serde(default, rename = "potentialScore")]
-    pub potential_score: Option<f64>,
+    pub potential_score: ::core::option::Option<f64>,
     /// Collection of tags and their scores.
     #[serde(default, rename = "qaTagResults")]
-    pub qa_tag_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainQaScorecardResultQaTagResult>>,
+    pub qa_tag_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaScorecardResultQaTagResult>,
+        >,
+    >,
     /// The overall numerical score of the result.
     #[serde(default)]
-    pub score: Option<f64>,
+    pub score: ::core::option::Option<f64>,
     /// What created the score. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "SYSTEM_GENERATED_ONLY", "INCLUDES_MANUAL_EDITS"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// The metadata from querying metrics.
@@ -8788,7 +9531,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResultScoreSource {
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsMetadata {
     /// Whether the result rows were truncated because the result row size is too large to materialize.
     #[serde(default, rename = "resultIsTruncated")]
-    pub result_is_truncated: Option<bool>,
+    pub result_is_truncated: ::core::option::Option<bool>,
 }
 
 /// The response for querying metrics.
@@ -8796,17 +9539,22 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponse {
     /// Required. The location of the data. "projects/{project}/locations/{location}"
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// The macro average slice contains aggregated averages across all selected dimensions. i.e. if group_by agent and scorecard_id is specified, this field will contain the average across all agents and all scorecards. This field is only populated if the request specifies a Dimension.
     #[serde(default, rename = "macroAverageSlice")]
-    pub macro_average_slice:
-        Option<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSlice>,
+    pub macro_average_slice: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSlice>,
+    >,
     /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request.
     #[serde(default)]
-    pub slices: Option<Vec<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSlice>>,
+    pub slices: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSlice>,
+        >,
+    >,
     /// The metrics last update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request. For example, if the request specifies a single ISSUE dimension and it has a cardinality of 2 (i.e. the data used to compute the metrics has 2 issues in total), the response will have 2 slices: * Slice 1 -&gt; dimensions=[Issue 1] * Slice 2 -&gt; dimensions=[Issue 2]
@@ -8814,14 +9562,21 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponse {
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSlice {
     /// A unique combination of dimensions that this slice represents.
     #[serde(default)]
-    pub dimensions: Option<Vec<GoogleCloudContactcenterinsightsV1mainDimension>>,
+    pub dimensions: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDimension>>,
+    >,
     /// A time series of metric values. This is only populated if the request specifies a time granularity other than NONE.
     #[serde(default, rename = "timeSeries")]
-    pub time_series:
-        Option<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceTimeSeries>,
+    pub time_series: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceTimeSeries,
+        >,
+    >,
     /// The total metric value. The interval of this data point is [starting create time, ending create time) from the request.
     #[serde(default)]
-    pub total: Option<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPoint>,
+    pub total: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPoint>,
+    >,
 }
 
 /// A data point contains the metric values mapped to an interval.
@@ -8829,13 +9584,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSlice {
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPoint {
     /// The measure related to conversations.
     #[serde(default, rename = "conversationMeasure")]
-    pub conversation_measure: Option<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointConversationMeasure>,
+    pub conversation_measure: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointConversationMeasure>>,
     /// The measure related to dialogflow interactions.
     #[serde(default, rename = "dialogflowInteractionMeasure")]
-    pub dialogflow_interaction_measure: Option<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointDialogflowInteractionMeasure>,
+    pub dialogflow_interaction_measure: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointDialogflowInteractionMeasure>>,
     /// The interval that this data point represents. * If this is the total data point, the interval is [starting create time, ending create time) from the request. * If this a data point from the time series, the interval is [time, time + time granularity from the request).
     #[serde(default)]
-    pub interval: Option<GoogleTypeInterval>,
+    pub interval: ::core::option::Option<::std::boxed::Box<GoogleTypeInterval>>,
 }
 
 /// The measure related to conversations.
@@ -8843,169 +9598,169 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointConversationMeasure {
     /// The number of conversations that were assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorAssignedConversationsCount")]
-    pub aa_supervisor_assigned_conversations_count: Option<i32>,
+    pub aa_supervisor_assigned_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that were dropped, i.e. escalated but not assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorDroppedConversationsCount")]
-    pub aa_supervisor_dropped_conversations_count: Option<i32>,
+    pub aa_supervisor_dropped_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that were escalated to an AA human supervisor for intervention.
     #[serde(default, rename = "aaSupervisorEscalatedConversationsCount")]
-    pub aa_supervisor_escalated_conversations_count: Option<i32>,
+    pub aa_supervisor_escalated_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations scanned by the AA human supervisor.
     #[serde(default, rename = "aaSupervisorMonitoredConversationsCount")]
-    pub aa_supervisor_monitored_conversations_count: Option<i32>,
+    pub aa_supervisor_monitored_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations transferred to a human agent.
     #[serde(default, rename = "aaSupervisorTransferredToHumanAgentConvCount")]
-    pub aa_supervisor_transferred_to_human_agent_conv_count: Option<i32>,
+    pub aa_supervisor_transferred_to_human_agent_conv_count: ::core::option::Option<i32>,
     /// Count of agent messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionAgentMessageTriggerCount")]
-    pub ai_coach_suggestion_agent_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_agent_message_trigger_count: ::core::option::Option<i32>,
     /// Count of Ai Coach Suggestion that has been used by agents.
     #[serde(default, rename = "aiCoachSuggestionAgentUsageCount")]
-    pub ai_coach_suggestion_agent_usage_count: Option<i32>,
+    pub ai_coach_suggestion_agent_usage_count: ::core::option::Option<i32>,
     /// Proportion of Ai Coach Suggestion that has been used by agents.
     #[serde(default, rename = "aiCoachSuggestionAgentUsageRatio")]
-    pub ai_coach_suggestion_agent_usage_ratio: Option<f64>,
+    pub ai_coach_suggestion_agent_usage_ratio: ::core::option::Option<f64>,
     /// Count of customer messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionCustomerMessageTriggerCount")]
-    pub ai_coach_suggestion_customer_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_customer_message_trigger_count: ::core::option::Option<i32>,
     /// Proportion of customer messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionCustomerMessageTriggerRatio")]
-    pub ai_coach_suggestion_customer_message_trigger_ratio: Option<f64>,
+    pub ai_coach_suggestion_customer_message_trigger_ratio: ::core::option::Option<f64>,
     /// Count of end_of_utterance trigger event messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionMessageTriggerCount")]
-    pub ai_coach_suggestion_message_trigger_count: Option<i32>,
+    pub ai_coach_suggestion_message_trigger_count: ::core::option::Option<i32>,
     /// Proportion of end_of_utterance trigger event messages that triggered an Ai Coach Suggestion.
     #[serde(default, rename = "aiCoachSuggestionMessageTriggerRatio")]
-    pub ai_coach_suggestion_message_trigger_ratio: Option<f64>,
+    pub ai_coach_suggestion_message_trigger_ratio: ::core::option::Option<f64>,
     /// The average agent''s sentiment score.
     #[serde(default, rename = "averageAgentSentimentScore")]
-    pub average_agent_sentiment_score: Option<f32>,
+    pub average_agent_sentiment_score: ::core::option::Option<f32>,
     /// The average client''s sentiment score.
     #[serde(default, rename = "averageClientSentimentScore")]
-    pub average_client_sentiment_score: Option<f32>,
+    pub average_client_sentiment_score: ::core::option::Option<f32>,
     /// The average customer satisfaction rating.
     #[serde(default, rename = "averageCustomerSatisfactionRating")]
-    pub average_customer_satisfaction_rating: Option<f64>,
+    pub average_customer_satisfaction_rating: ::core::option::Option<f64>,
     /// The average duration.
     #[serde(default, rename = "averageDuration")]
-    pub average_duration: Option<String>,
+    pub average_duration: ::core::option::Option<String>,
     /// The average normalized QA score for a scorecard. When computing the average across a set of conversations, if a conversation has been evaluated with multiple revisions of a scorecard, only the latest revision results will be used. Will exclude 0''s in average calculation. Will be only populated if the request specifies a dimension of QA_SCORECARD_ID.
     #[serde(default, rename = "averageQaNormalizedScore")]
-    pub average_qa_normalized_score: Option<f64>,
+    pub average_qa_normalized_score: ::core::option::Option<f64>,
     /// Average QA normalized score averaged for questions averaged across all revisions of the parent scorecard. Will be only populated if the request specifies a dimension of QA_QUESTION_ID.
     #[serde(default, rename = "averageQaQuestionNormalizedScore")]
-    pub average_qa_question_normalized_score: Option<f64>,
+    pub average_qa_question_normalized_score: ::core::option::Option<f64>,
     /// The average silence percentage.
     #[serde(default, rename = "averageSilencePercentage")]
-    pub average_silence_percentage: Option<f32>,
+    pub average_silence_percentage: ::core::option::Option<f32>,
     /// Average edit distance of the summarization suggestions. Edit distance (also called as levenshtein distance) is calculated by summing up number of insertions, deletions and substitutions required to transform the summization feedback to the original summary suggestion.
     #[serde(default, rename = "averageSummarizationSuggestionEditDistance")]
-    pub average_summarization_suggestion_edit_distance: Option<f64>,
+    pub average_summarization_suggestion_edit_distance: ::core::option::Option<f64>,
     /// Normalized Average edit distance of the summarization suggestions. Edit distance (also called as levenshtein distance) is calculated by summing up number of insertions, deletions and substitutions required to transform the summization feedback to the original summary suggestion. Normalized edit distance is the average of (edit distance / summary length).
     #[serde(default, rename = "averageSummarizationSuggestionNormalizedEditDistance")]
-    pub average_summarization_suggestion_normalized_edit_distance: Option<f64>,
+    pub average_summarization_suggestion_normalized_edit_distance: ::core::option::Option<f64>,
     /// The average turn count.
     #[serde(default, rename = "averageTurnCount")]
-    pub average_turn_count: Option<f32>,
+    pub average_turn_count: ::core::option::Option<f32>,
     /// The exponential moving average of the sentiment score of client turns in the conversation.
     #[serde(default, rename = "avgConversationClientTurnSentimentEma")]
-    pub avg_conversation_client_turn_sentiment_ema: Option<f64>,
+    pub avg_conversation_client_turn_sentiment_ema: ::core::option::Option<f64>,
     /// The number of conversations that were contained.
     #[serde(default, rename = "containedConversationCount")]
-    pub contained_conversation_count: Option<i32>,
+    pub contained_conversation_count: ::core::option::Option<i32>,
     /// The percentage of conversations that were contained.
     #[serde(default, rename = "containedConversationRatio")]
-    pub contained_conversation_ratio: Option<f64>,
+    pub contained_conversation_ratio: ::core::option::Option<f64>,
     /// Count of conversations that has Ai Coach Suggestions.
     #[serde(default, rename = "conversationAiCoachSuggestionCount")]
-    pub conversation_ai_coach_suggestion_count: Option<i32>,
+    pub conversation_ai_coach_suggestion_count: ::core::option::Option<i32>,
     /// Proportion of conversations that has Ai Coach Suggestions.
     #[serde(default, rename = "conversationAiCoachSuggestionRatio")]
-    pub conversation_ai_coach_suggestion_ratio: Option<f64>,
+    pub conversation_ai_coach_suggestion_ratio: ::core::option::Option<f64>,
     /// The conversation count.
     #[serde(default, rename = "conversationCount")]
-    pub conversation_count: Option<i32>,
+    pub conversation_count: ::core::option::Option<i32>,
     /// Proportion of conversations that had a suggested summary.
     #[serde(default, rename = "conversationSuggestedSummaryRatio")]
-    pub conversation_suggested_summary_ratio: Option<f64>,
+    pub conversation_suggested_summary_ratio: ::core::option::Option<f64>,
     /// The agent message count.
     #[serde(default, rename = "conversationTotalAgentMessageCount")]
-    pub conversation_total_agent_message_count: Option<i32>,
+    pub conversation_total_agent_message_count: ::core::option::Option<i32>,
     /// The customer message count.
     #[serde(default, rename = "conversationTotalCustomerMessageCount")]
-    pub conversation_total_customer_message_count: Option<i32>,
+    pub conversation_total_customer_message_count: ::core::option::Option<i32>,
     /// The average latency of conversational agents'' audio in audio out latency per interaction. This is computed as the average of the all the interactions'' audio in audio out latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageAudioInAudioOutLatency")]
-    pub conversational_agents_average_audio_in_audio_out_latency: Option<f64>,
+    pub conversational_agents_average_audio_in_audio_out_latency: ::core::option::Option<f64>,
     /// The average latency of conversational agents'' latency per interaction. This is computed as the average of the all the iteractions'' end to end latencies in a conversation and averaged across conversations. The e2e latency is the time between the end of the user utterance and the start of the agent utterance on the interaction level.
     #[serde(default, rename = "conversationalAgentsAverageEndToEndLatency")]
-    pub conversational_agents_average_end_to_end_latency: Option<f64>,
+    pub conversational_agents_average_end_to_end_latency: ::core::option::Option<f64>,
     /// The average latency of conversational agents'' LLM call latency per interaction. This is computed as the average of the all the interactions LLM call latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageLlmCallLatency")]
-    pub conversational_agents_average_llm_call_latency: Option<f64>,
+    pub conversational_agents_average_llm_call_latency: ::core::option::Option<f64>,
     /// The macro average latency of conversational agents'' TTS latency per interaction. This is computed as the average of the all the interactions'' TTS latencies in a conversation and averaged across conversations.
     #[serde(default, rename = "conversationalAgentsAverageTtsLatency")]
-    pub conversational_agents_average_tts_latency: Option<f64>,
+    pub conversational_agents_average_tts_latency: ::core::option::Option<f64>,
     /// Average latency of dialogflow webhook calls.
     #[serde(default, rename = "dialogflowAverageWebhookLatency")]
-    pub dialogflow_average_webhook_latency: Option<f64>,
+    pub dialogflow_average_webhook_latency: ::core::option::Option<f64>,
     /// count of conversations that was handed off from virtual agent to human agent.
     #[serde(default, rename = "dialogflowConversationsEscalationCount")]
-    pub dialogflow_conversations_escalation_count: Option<f64>,
+    pub dialogflow_conversations_escalation_count: ::core::option::Option<f64>,
     /// Proportion of conversations that was handed off from virtual agent to human agent.
     #[serde(default, rename = "dialogflowConversationsEscalationRatio")]
-    pub dialogflow_conversations_escalation_ratio: Option<f64>,
+    pub dialogflow_conversations_escalation_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow interactions that has empty input.
     #[serde(default, rename = "dialogflowInteractionsNoInputRatio")]
-    pub dialogflow_interactions_no_input_ratio: Option<f64>,
+    pub dialogflow_interactions_no_input_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow interactions that has no intent match for the input.
     #[serde(default, rename = "dialogflowInteractionsNoMatchRatio")]
-    pub dialogflow_interactions_no_match_ratio: Option<f64>,
+    pub dialogflow_interactions_no_match_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow webhook calls that failed.
     #[serde(default, rename = "dialogflowWebhookFailureRatio")]
-    pub dialogflow_webhook_failure_ratio: Option<f64>,
+    pub dialogflow_webhook_failure_ratio: ::core::option::Option<f64>,
     /// Proportion of dialogflow webhook calls that timed out.
     #[serde(default, rename = "dialogflowWebhookTimeoutRatio")]
-    pub dialogflow_webhook_timeout_ratio: Option<f64>,
+    pub dialogflow_webhook_timeout_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had negative feedback.
     #[serde(default, rename = "knowledgeAssistNegativeFeedbackRatio")]
-    pub knowledge_assist_negative_feedback_ratio: Option<f64>,
+    pub knowledge_assist_negative_feedback_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had positive feedback.
     #[serde(default, rename = "knowledgeAssistPositiveFeedbackRatio")]
-    pub knowledge_assist_positive_feedback_ratio: Option<f64>,
+    pub knowledge_assist_positive_feedback_ratio: ::core::option::Option<f64>,
     /// Count of knowledge assist results (Proactive Generative Knowledge Assist) shown to the user.
     #[serde(default, rename = "knowledgeAssistResultCount")]
-    pub knowledge_assist_result_count: Option<i32>,
+    pub knowledge_assist_result_count: ::core::option::Option<i32>,
     /// Proportion of knowledge assist (Proactive Generative Knowledge Assist) queries that had a URL clicked.
     #[serde(default, rename = "knowledgeAssistUriClickRatio")]
-    pub knowledge_assist_uri_click_ratio: Option<f64>,
+    pub knowledge_assist_uri_click_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries made by the agent compared to the total number of knowledge search queries made.
     #[serde(default, rename = "knowledgeSearchAgentQuerySourceRatio")]
-    pub knowledge_search_agent_query_source_ratio: Option<f64>,
+    pub knowledge_search_agent_query_source_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had negative feedback.
     #[serde(default, rename = "knowledgeSearchNegativeFeedbackRatio")]
-    pub knowledge_search_negative_feedback_ratio: Option<f64>,
+    pub knowledge_search_negative_feedback_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had positive feedback.
     #[serde(default, rename = "knowledgeSearchPositiveFeedbackRatio")]
-    pub knowledge_search_positive_feedback_ratio: Option<f64>,
+    pub knowledge_search_positive_feedback_ratio: ::core::option::Option<f64>,
     /// Count of knowledge search results (Generative Knowledge Assist) shown to the user.
     #[serde(default, rename = "knowledgeSearchResultCount")]
-    pub knowledge_search_result_count: Option<i32>,
+    pub knowledge_search_result_count: ::core::option::Option<i32>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries suggested compared to the total number of knowledge search queries made.
     #[serde(default, rename = "knowledgeSearchSuggestedQuerySourceRatio")]
-    pub knowledge_search_suggested_query_source_ratio: Option<f64>,
+    pub knowledge_search_suggested_query_source_ratio: ::core::option::Option<f64>,
     /// Proportion of knowledge search (Generative Knowledge Assist) queries that had a URL clicked.
     #[serde(default, rename = "knowledgeSearchUriClickRatio")]
-    pub knowledge_search_uri_click_ratio: Option<f64>,
+    pub knowledge_search_uri_click_ratio: ::core::option::Option<f64>,
     /// Average QA normalized score for all the tags.
     #[serde(default, rename = "qaTagScores")]
-    pub qa_tag_scores: Option<Vec<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointConversationMeasureQaTagScore>>,
+    pub qa_tag_scores: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointConversationMeasureQaTagScore>>>,
     /// Proportion of summarization suggestions that were manually edited.
     #[serde(default, rename = "summarizationSuggestionEditRatio")]
-    pub summarization_suggestion_edit_ratio: Option<f64>,
+    pub summarization_suggestion_edit_ratio: ::core::option::Option<f64>,
     /// Count of summarization suggestions results.
     #[serde(default, rename = "summarizationSuggestionResultCount")]
-    pub summarization_suggestion_result_count: Option<i32>,
+    pub summarization_suggestion_result_count: ::core::option::Option<i32>,
 }
 
 /// Average QA normalized score for the tag.
@@ -9014,41 +9769,30 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 {
     /// Average tag normalized score per tag.
     #[serde(default, rename = "averageTagNormalizedScore")]
-    pub average_tag_normalized_score: Option<f64>,
+    pub average_tag_normalized_score: ::core::option::Option<f64>,
     /// Tag name.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// The measure related to dialogflow interactions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointDialogflowInteractionMeasure
-{
+pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointDialogflowInteractionMeasure {
     /// The percentile result for audio in audio out latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileAudioInAudioOutLatency")]
-    pub percentile_audio_in_audio_out_latency: Option<
-        GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_audio_in_audio_out_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult>>,
     /// The percentile result for end to end chat latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileEndToEndLatency")]
-    pub percentile_end_to_end_latency: Option<
-        GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_end_to_end_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult>>,
     /// The percentile result for LLM latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileLlmCallLatency")]
-    pub percentile_llm_call_latency: Option<
-        GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_llm_call_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult>>,
     /// The percentile result for tool use latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileToolUseLatency")]
-    pub percentile_tool_use_latency: Option<
-        GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_tool_use_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult>>,
     /// The percentile result for TTS latency in milliseconds per dialogflow interaction level.
     #[serde(default, rename = "percentileTtsLatency")]
-    pub percentile_tts_latency: Option<
-        GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult,
-    >,
+    pub percentile_tts_latency: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult>>,
 }
 
 /// The percentile result. Currently supported percentiles are 50th, 90th, and 99th.
@@ -9057,13 +9801,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 {
     /// The 50th percentile value.
     #[serde(default)]
-    pub p50: Option<f64>,
+    pub p50: ::core::option::Option<f64>,
     /// The 90th percentile value.
     #[serde(default)]
-    pub p90: Option<f64>,
+    pub p90: ::core::option::Option<f64>,
     /// The 99th percentile value.
     #[serde(default)]
-    pub p99: Option<f64>,
+    pub p99: ::core::option::Option<f64>,
 }
 
 /// A time series of metric values.
@@ -9071,8 +9815,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceTimeSeries {
     /// The data points that make up the time series .
     #[serde(default, rename = "dataPoints")]
-    pub data_points:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPoint>>,
+    pub data_points: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPoint,
+            >,
+        >,
+    >,
 }
 
 /// The response for querying performance overview.
@@ -9080,7 +9829,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceTimeSe
 pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewResponse {
     /// The summary text of the performance.
     #[serde(default, rename = "summaryText")]
-    pub summary_text: Option<String>,
+    pub summary_text: ::core::option::Option<String>,
 }
 
 /// DLP resources used for redaction while ingesting conversations. DLP settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint or the Dialogflow / Agent Assist runtime integrations. When using Dialogflow / Agent Assist runtime integrations, redaction should be performed in Dialogflow / Agent Assist.
@@ -9088,10 +9837,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewRespons
 pub struct GoogleCloudContactcenterinsightsV1mainRedactionConfig {
     /// The fully-qualified DLP deidentify template resource name. Format: projects/{project}/deidentifyTemplates/{template}
     #[serde(default, rename = "deidentifyTemplate")]
-    pub deidentify_template: Option<String>,
+    pub deidentify_template: ::core::option::Option<String>,
     /// The fully-qualified DLP inspect template resource name. Format: projects/{project}/locations/{location}/inspectTemplates/{template}
     #[serde(default, rename = "inspectTemplate")]
-    pub inspect_template: Option<String>,
+    pub inspect_template: ::core::option::Option<String>,
 }
 
 /// An annotation that was generated during the customer and agent interaction.
@@ -9099,43 +9848,62 @@ pub struct GoogleCloudContactcenterinsightsV1mainRedactionConfig {
 pub struct GoogleCloudContactcenterinsightsV1mainRuntimeAnnotation {
     /// The unique identifier of the annotation. Format: projects/{project}/locations/{location}/conversationDatasets/{dataset}/conversationDataItems/{data_item}/conversationAnnotations/{annotation}
     #[serde(default, rename = "annotationId")]
-    pub annotation_id: Option<String>,
+    pub annotation_id: ::core::option::Option<String>,
     /// The feedback that the customer has about the answer in data.
     #[serde(default, rename = "answerFeedback")]
-    pub answer_feedback: Option<GoogleCloudContactcenterinsightsV1mainAnswerFeedback>,
+    pub answer_feedback: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnswerFeedback>,
+    >,
     /// Agent Assist Article Suggestion data.
     #[serde(default, rename = "articleSuggestion")]
-    pub article_suggestion: Option<GoogleCloudContactcenterinsightsV1mainArticleSuggestionData>,
+    pub article_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainArticleSuggestionData>,
+    >,
     /// Conversation summarization suggestion data.
     #[serde(default, rename = "conversationSummarizationSuggestion")]
-    pub conversation_summarization_suggestion:
-        Option<GoogleCloudContactcenterinsightsV1mainConversationSummarizationSuggestionData>,
+    pub conversation_summarization_suggestion: ::core::option::Option<
+        ::std::boxed::Box<
+            GoogleCloudContactcenterinsightsV1mainConversationSummarizationSuggestionData,
+        >,
+    >,
     /// The time at which this annotation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Dialogflow interaction data.
     #[serde(default, rename = "dialogflowInteraction")]
-    pub dialogflow_interaction:
-        Option<GoogleCloudContactcenterinsightsV1mainDialogflowInteractionData>,
+    pub dialogflow_interaction: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDialogflowInteractionData>,
+    >,
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "endBoundary")]
-    pub end_boundary: Option<GoogleCloudContactcenterinsightsV1mainAnnotationBoundary>,
+    pub end_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnnotationBoundary>,
+    >,
     /// Agent Assist FAQ answer data.
     #[serde(default, rename = "faqAnswer")]
-    pub faq_answer: Option<GoogleCloudContactcenterinsightsV1mainFaqAnswerData>,
+    pub faq_answer: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainFaqAnswerData>,
+    >,
     /// Agent Assist Smart Compose suggestion data.
     #[serde(default, rename = "smartComposeSuggestion")]
-    pub smart_compose_suggestion:
-        Option<GoogleCloudContactcenterinsightsV1mainSmartComposeSuggestionData>,
+    pub smart_compose_suggestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSmartComposeSuggestionData>,
+    >,
     /// Agent Assist Smart Reply data.
     #[serde(default, rename = "smartReply")]
-    pub smart_reply: Option<GoogleCloudContactcenterinsightsV1mainSmartReplyData>,
+    pub smart_reply: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSmartReplyData>,
+    >,
     /// The boundary in the conversation where the annotation starts, inclusive.
     #[serde(default, rename = "startBoundary")]
-    pub start_boundary: Option<GoogleCloudContactcenterinsightsV1mainAnnotationBoundary>,
+    pub start_boundary: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainAnnotationBoundary>,
+    >,
     /// Explicit input used for generating the answer
     #[serde(default, rename = "userInput")]
-    pub user_input: Option<GoogleCloudContactcenterinsightsV1mainRuntimeAnnotationUserInput>,
+    pub user_input: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainRuntimeAnnotationUserInput>,
+    >,
 }
 
 /// Explicit input used for generating the answer
@@ -9143,13 +9911,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainRuntimeAnnotation {
 pub struct GoogleCloudContactcenterinsightsV1mainRuntimeAnnotationUserInput {
     /// The resource name of associated generator. Format: projects//locations//generators/
     #[serde(default, rename = "generatorName")]
-    pub generator_name: Option<String>,
+    pub generator_name: ::core::option::Option<String>,
     /// Query text. Article Search uses this to store the input query used to generate the search results.
     #[serde(default)]
-    pub query: Option<String>,
+    pub query: ::core::option::Option<String>,
     /// Query source for the answer. // TODO: enum values: ["QUERY_SOURCE_UNSPECIFIED", "AGENT_QUERY", "SUGGESTED_QUERY"]
     #[serde(default, rename = "querySource")]
-    pub query_source: Option<String>,
+    pub query_source: ::core::option::Option<String>,
 }
 
 /// The metadata for an SampleConversations operation.
@@ -9157,21 +9925,19 @@ pub struct GoogleCloudContactcenterinsightsV1mainRuntimeAnnotationUserInput {
 pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Partial errors during sample conversations operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// Output only. The original request for sample conversations to dataset.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainSampleConversationsRequest>,
+    pub request: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSampleConversationsRequest>>,
     /// Output only. Statistics for SampleConversations operation.
     #[serde(default, rename = "sampleConversationsStats")]
-    pub sample_conversations_stats: Option<
-        GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadataSampleConversationsStats,
-    >,
+    pub sample_conversations_stats: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadataSampleConversationsStats>>,
 }
 
 /// Statistics for SampleConversations operation.
@@ -9180,10 +9946,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadataSamp
 {
     /// Output only. The number of objects which were unable to be sampled due to errors. The errors are populated in the partial_errors field.
     #[serde(default, rename = "failedSampleCount")]
-    pub failed_sample_count: Option<i32>,
+    pub failed_sample_count: ::core::option::Option<i32>,
     /// Output only. The number of new conversations added during this sample operation.
     #[serde(default, rename = "successfulSampleCount")]
-    pub successful_sample_count: Option<i32>,
+    pub successful_sample_count: ::core::option::Option<i32>,
 }
 
 /// The request to sample conversations to a dataset.
@@ -9191,13 +9957,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadataSamp
 pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsRequest {
     /// The dataset resource to copy the sampled conversations to.
     #[serde(default, rename = "destinationDataset")]
-    pub destination_dataset: Option<GoogleCloudContactcenterinsightsV1mainDataset>,
+    pub destination_dataset:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainDataset>>,
     /// Required. The parent resource of the dataset.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. The sample rule used for sampling conversations.
     #[serde(default, rename = "sampleRule")]
-    pub sample_rule: Option<GoogleCloudContactcenterinsightsV1mainSampleRule>,
+    pub sample_rule:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSampleRule>>,
 }
 
 /// Message for sampling conversations.
@@ -9205,16 +9973,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainSampleRule {
     /// To specify the filter for the conversions that should apply this sample rule. An empty filter means this sample rule applies to all conversations.
     #[serde(default, rename = "conversationFilter")]
-    pub conversation_filter: Option<String>,
+    pub conversation_filter: ::core::option::Option<String>,
     /// Optional. Group by dimension to sample the conversation. If no dimension is provided, the sampling will be applied to the project level. Current supported dimensions is ''quality_metadata.agent_info.agent_id''.
     #[serde(default)]
-    pub dimension: Option<String>,
+    pub dimension: ::core::option::Option<String>,
     /// Percentage of conversations that we should sample based on the dimension between [0, 100].
     #[serde(default, rename = "samplePercentage")]
-    pub sample_percentage: Option<f64>,
+    pub sample_percentage: ::core::option::Option<f64>,
     /// Number of the conversations that we should sample based on the dimension.
     #[serde(default, rename = "sampleRow")]
-    pub sample_row: Option<String>,
+    pub sample_row: ::core::option::Option<String>,
 }
 
 /// The data for a sentiment annotation.
@@ -9222,10 +9990,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleRule {
 pub struct GoogleCloudContactcenterinsightsV1mainSentimentData {
     /// A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.
     #[serde(default)]
-    pub magnitude: Option<f32>,
+    pub magnitude: ::core::option::Option<f32>,
     /// The sentiment score between -1.0 (negative) and 1.0 (positive).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Agent Assist Smart Compose suggestion data.
@@ -9233,16 +10001,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainSentimentData {
 pub struct GoogleCloudContactcenterinsightsV1mainSmartComposeSuggestionData {
     /// The system''s confidence score that this suggestion is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f64>,
+    pub confidence_score: ::core::option::Option<f64>,
     /// Map that contains metadata about the Smart Compose suggestion and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The content of the suggestion.
     #[serde(default)]
-    pub suggestion: Option<String>,
+    pub suggestion: ::core::option::Option<String>,
 }
 
 /// Agent Assist Smart Reply data.
@@ -9250,16 +10018,16 @@ pub struct GoogleCloudContactcenterinsightsV1mainSmartComposeSuggestionData {
 pub struct GoogleCloudContactcenterinsightsV1mainSmartReplyData {
     /// The system''s confidence score that this reply is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: Option<f64>,
+    pub confidence_score: ::core::option::Option<f64>,
     /// Map that contains metadata about the Smart Reply and the document from which it originates.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "queryRecord")]
-    pub query_record: Option<String>,
+    pub query_record: ::core::option::Option<String>,
     /// The content of the reply.
     #[serde(default)]
-    pub reply: Option<String>,
+    pub reply: ::core::option::Option<String>,
 }
 
 /// Speech-to-Text configuration. Speech-to-Text settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint.
@@ -9267,10 +10035,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainSmartReplyData {
 pub struct GoogleCloudContactcenterinsightsV1mainSpeechConfig {
     /// Whether to disable word time offsets. If true, the enable_word_time_offsets field in the recognition config will be set to false.
     #[serde(default, rename = "disableWordTimeOffsets")]
-    pub disable_word_time_offsets: Option<bool>,
+    pub disable_word_time_offsets: ::core::option::Option<bool>,
     /// The fully-qualified Speech Recognizer resource name. Format: projects/{project_id}/locations/{location}/recognizer/{recognizer}
     #[serde(default, rename = "speechRecognizer")]
-    pub speech_recognizer: Option<String>,
+    pub speech_recognizer: ::core::option::Option<String>,
 }
 
 /// Metadata for testing correlation config.
@@ -9278,13 +10046,13 @@ pub struct GoogleCloudContactcenterinsightsV1mainSpeechConfig {
 pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The dataset used for sampling conversations.
     #[serde(default)]
-    pub dataset: Option<String>,
+    pub dataset: ::core::option::Option<String>,
     /// The statistics for the operation.
     #[serde(default)]
-    pub stats: Option<GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFullConversationCorrelationStats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFullConversationCorrelationStats>>,
 }
 
 /// Statistics for TestCorrelationConfig operation.
@@ -9292,19 +10060,19 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFullConversationCorrelationStats {
     /// A list of errors that occurred during correlation, one for each conversation that failed.
     #[serde(default, rename = "conversationCorrelationErrors")]
-    pub conversation_correlation_errors: Option<Vec<GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError>>,
+    pub conversation_correlation_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError>>>,
     /// The number of conversations correlated.
     #[serde(default, rename = "correlatedConversationsCount")]
-    pub correlated_conversations_count: Option<i32>,
+    pub correlated_conversations_count: ::core::option::Option<i32>,
     /// The number of conversations that failed correlation.
     #[serde(default, rename = "failedConversationsCount")]
-    pub failed_conversations_count: Option<i32>,
+    pub failed_conversations_count: ::core::option::Option<i32>,
     /// Partial errors during test correlation config operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
     /// The number of conversations sampled.
     #[serde(default, rename = "sampledConversationsCount")]
-    pub sampled_conversations_count: Option<i32>,
+    pub sampled_conversations_count: ::core::option::Option<i32>,
 }
 
 /// An error that occurred during correlation for a specific conversation.
@@ -9313,10 +10081,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFu
 {
     /// The conversation resource name that had an error during correlation.
     #[serde(default)]
-    pub conversation: Option<String>,
+    pub conversation: ::core::option::Option<String>,
     /// The error status.
     #[serde(default)]
-    pub status: Option<GoogleRpcStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
 }
 
 /// The response of testing correlation config.
@@ -9324,10 +10092,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFu
 pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponse {
     /// Results for the DETAILED_SYNC execution mode.
     #[serde(default, rename = "detailedResults")]
-    pub detailed_results: Option<GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponseDetailedCorrelationResults>,
+    pub detailed_results: ::core::option::Option<::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponseDetailedCorrelationResults>>,
     /// Partial errors during test correlation config operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
-    pub partial_errors: Option<Vec<GoogleRpcStatus>>,
+    pub partial_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleRpcStatus>>>,
 }
 
 /// Wrapper for detailed, step-by-step results.
@@ -9336,12 +10104,18 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponseDe
 {
     /// A list of constraint evaluation results for each pair of conversations.
     #[serde(default, rename = "constraintResults")]
-    pub constraint_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResult>>,
+    pub constraint_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResult>,
+        >,
+    >,
     /// A list of join key correlation results for each conversation tested.
     #[serde(default, rename = "joinKeyResults")]
-    pub join_key_results:
-        Option<Vec<GoogleCloudContactcenterinsightsV1mainConversationCorrelationResult>>,
+    pub join_key_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversationCorrelationResult>,
+        >,
+    >,
 }
 
 /// Metadata for undeploying an issue model.
@@ -9349,13 +10123,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponseDe
 pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The original request for undeployment.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainUndeployIssueModelRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainUndeployIssueModelRequest>,
+    >,
 }
 
 /// The request to undeploy an issue model.
@@ -9363,7 +10139,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelRequest {
     /// Required. The issue model to undeploy.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The metadata for updating a QaQuestionTag Resource.
@@ -9371,13 +10147,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagRequest>,
+    >,
 }
 
 /// The request for updating a QaQuestionTag.
@@ -9385,10 +10163,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagRequest {
     /// Required. The QaQuestionTag to update.
     #[serde(default, rename = "qaQuestionTag")]
-    pub qa_question_tag: Option<GoogleCloudContactcenterinsightsV1mainQaQuestionTag>,
+    pub qa_question_tag: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainQaQuestionTag>,
+    >,
     /// Optional. The list of fields to be updated. All possible fields can be updated by passing *, or a subset of the following updateable fields can be provided: * qa_question_tag_name - the name of the tag * qa_question_ids - the list of questions the tag applies to
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// The metadata for an UploadConversation operation.
@@ -9396,19 +10176,23 @@ pub struct GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagRequest {
 pub struct GoogleCloudContactcenterinsightsV1mainUploadConversationMetadata {
     /// Output only. The operation name for a successfully created analysis operation, if any.
     #[serde(default, rename = "analysisOperation")]
-    pub analysis_operation: Option<String>,
+    pub analysis_operation: ::core::option::Option<String>,
     /// Output only. The redaction config applied to the uploaded conversation.
     #[serde(default, rename = "appliedRedactionConfig")]
-    pub applied_redaction_config: Option<GoogleCloudContactcenterinsightsV1mainRedactionConfig>,
+    pub applied_redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainRedactionConfig>,
+    >,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The original request.
     #[serde(default)]
-    pub request: Option<GoogleCloudContactcenterinsightsV1mainUploadConversationRequest>,
+    pub request: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainUploadConversationRequest>,
+    >,
 }
 
 /// Request to upload a conversation.
@@ -9416,19 +10200,25 @@ pub struct GoogleCloudContactcenterinsightsV1mainUploadConversationMetadata {
 pub struct GoogleCloudContactcenterinsightsV1mainUploadConversationRequest {
     /// Required. The conversation resource to create.
     #[serde(default)]
-    pub conversation: Option<GoogleCloudContactcenterinsightsV1mainConversation>,
+    pub conversation: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainConversation>,
+    >,
     /// Optional. A unique ID for the new conversation. This ID will become the final component of the conversation''s resource name. If no ID is specified, a server-generated ID will be used. This value should be 4-64 characters and must match the regular expression ^[a-z0-9-]{4,64}$. Valid characters are a-z-
     #[serde(default, rename = "conversationId")]
-    pub conversation_id: Option<String>,
+    pub conversation_id: ::core::option::Option<String>,
     /// Required. The parent resource of the conversation.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Optional. DLP settings for transcript redaction. Will default to the config specified in Settings.
     #[serde(default, rename = "redactionConfig")]
-    pub redaction_config: Option<GoogleCloudContactcenterinsightsV1mainRedactionConfig>,
+    pub redaction_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainRedactionConfig>,
+    >,
     /// Optional. Speech-to-Text configuration. Will default to the config specified in Settings.
     #[serde(default, rename = "speechConfig")]
-    pub speech_config: Option<GoogleCloudContactcenterinsightsV1mainSpeechConfig>,
+    pub speech_config: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContactcenterinsightsV1mainSpeechConfig>,
+    >,
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
@@ -9436,10 +10226,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainUploadConversationRequest {
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: Option<Vec<GoogleIamV1AuditLogConfig>>,
+    pub audit_log_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV1AuditLogConfig>>>,
     /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
-    pub service: Option<String>,
+    pub service: ::core::option::Option<String>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -9447,10 +10238,10 @@ pub struct GoogleIamV1AuditConfig {
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: Option<Vec<String>>,
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
-    pub log_type: Option<String>,
+    pub log_type: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -9458,13 +10249,13 @@ pub struct GoogleIamV1AuditLogConfig {
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<GoogleTypeExpr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<GoogleTypeExpr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -9472,16 +10263,17 @@ pub struct GoogleIamV1Binding {
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: Option<Vec<GoogleIamV1AuditConfig>>,
+    pub audit_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV1AuditConfig>>>,
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<GoogleIamV1Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleIamV1Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -9489,10 +10281,10 @@ pub struct GoogleIamV1Policy {
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<GoogleIamV1Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<GoogleIamV1Policy>>,
     /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<String>,
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -9500,7 +10292,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -9508,7 +10300,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -9516,13 +10308,14 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -9530,19 +10323,19 @@ pub struct GoogleLongrunningListOperationsResponse {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -9550,13 +10343,13 @@ pub struct GoogleLongrunningOperation {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -9564,16 +10357,16 @@ pub struct GoogleRpcStatus {
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
@@ -9581,8 +10374,8 @@ pub struct GoogleTypeExpr {
 pub struct GoogleTypeInterval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }

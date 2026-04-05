@@ -10,36 +10,36 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Represents an account that was established by the customer on the service provider''s system.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     /// Output only. The approvals for this account. These approvals are used to track actions that are permitted or have been completed by a customer within the context of the provider. This might include a sign up flow or a provisioning step, for example, that the provider can admit to having happened.
     #[serde(default)]
-    pub approvals: Option<Vec<Approval>>,
+    pub approvals: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Approval>>>,
     /// Output only. The creation timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The custom properties that were collected from the user to create this account.
     #[serde(default, rename = "inputProperties")]
-    pub input_properties: Option<serde_json::Value>,
+    pub input_properties: ::core::option::Option<serde_json::Value>,
     /// Output only. The resource name of the account. Account names have the form accounts/{account_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The identifier of the service provider that this account was created against. Each service provider is assigned a unique provider value when they onboard with Cloud Commerce platform.
     #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: ::core::option::Option<String>,
     /// Output only. The reseller parent billing account of the account''s corresponding billing account, applicable only when the corresponding billing account is a subaccount of a reseller. Included in responses only for view: ACCOUNT_VIEW_FULL. Format: billingAccounts/{billing_account_id}
     #[serde(default, rename = "resellerParentBillingAccount")]
-    pub reseller_parent_billing_account: Option<String>,
+    pub reseller_parent_billing_account: ::core::option::Option<String>,
     /// Output only. The state of the account. This is used to decide whether the customer is in good standing with the provider and is able to make purchases. An account might not be able to make a purchase if the billing account is suspended, for example. // TODO: enum values: ["ACCOUNT_STATE_UNSPECIFIED", "ACCOUNT_ACTIVATION_REQUESTED", "ACCOUNT_ACTIVE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The last update timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// An approval for some action on an account.
@@ -47,16 +47,16 @@ pub struct Account {
 pub struct Approval {
     /// Output only. The name of the approval.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. An explanation for the state of the approval.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// Output only. The state of the approval. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "APPROVED", "REJECTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. The last update timestamp of the approval.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Request message for PartnerProcurementService.ApproveAccount.
@@ -64,13 +64,13 @@ pub struct Approval {
 pub struct ApproveAccountRequest {
     /// The name of the approval being approved. If absent and there is only one approval possible, that approval will be granted. If absent and there are many approvals possible, the request will fail with a 400 Bad Request. Optional.
     #[serde(default, rename = "approvalName")]
-    pub approval_name: Option<String>,
+    pub approval_name: ::core::option::Option<String>,
     /// Set of properties that should be associated with the account. Optional.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
     /// Free form text string explaining the approval reason. Optional. Max allowed length: 256 bytes. Longer strings will be truncated.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Request message for [PartnerProcurementService.ApproveEntitlementPlanChange[].
@@ -78,7 +78,7 @@ pub struct ApproveAccountRequest {
 pub struct ApproveEntitlementPlanChangeRequest {
     /// Required. Name of the pending plan that''s being approved.
     #[serde(default, rename = "pendingPlanName")]
-    pub pending_plan_name: Option<String>,
+    pub pending_plan_name: ::core::option::Option<String>,
 }
 
 /// Request message for [PartnerProcurementService.ApproveEntitlement[].
@@ -86,10 +86,10 @@ pub struct ApproveEntitlementPlanChangeRequest {
 pub struct ApproveEntitlementRequest {
     /// Optional. The resource name of the entitlement that was migrated, with the format providers/{provider_id}/entitlements/{entitlement_id}. Should only be sent when resources have been migrated from entitlement_migrated to the new entitlement. Optional.
     #[serde(default, rename = "entitlementMigrated")]
-    pub entitlement_migrated: Option<String>,
+    pub entitlement_migrated: ::core::option::Option<String>,
     /// Set of properties that should be associated with the entitlement. Optional.
     #[serde(default)]
-    pub properties: Option<serde_json::Value>,
+    pub properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// A resource using (consuming) this entitlement.
@@ -97,7 +97,7 @@ pub struct ApproveEntitlementRequest {
 pub struct Consumer {
     /// A project name with format projects/.
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
 }
 
 /// Represents a procured product of a customer.
@@ -105,82 +105,82 @@ pub struct Consumer {
 pub struct Entitlement {
     /// Output only. The resource name of the account that this entitlement is based on, if any.
     #[serde(default)]
-    pub account: Option<String>,
+    pub account: ::core::option::Option<String>,
     /// Output only. The reason the entitlement was cancelled. If this entitlement wasn''t cancelled, this field is empty. Possible values include "unknown", "expired", "user-cancelled", "account-closed", "billing-disabled" (if the customer has manually disabled billing to their resources), "user-aborted", and "migrated" (if the entitlement has migrated across products). Values of this field are subject to change, and we recommend that you don''t build your technical integration to rely on these fields.
     #[serde(default, rename = "cancellationReason")]
-    pub cancellation_reason: Option<String>,
+    pub cancellation_reason: ::core::option::Option<String>,
     /// Output only. The resources using this entitlement, if applicable.
     #[serde(default)]
-    pub consumers: Option<Vec<Consumer>>,
+    pub consumers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Consumer>>>,
     /// Output only. The creation timestamp.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The entitlement benefit IDs associated with the purchase.
     #[serde(default, rename = "entitlementBenefitIds")]
-    pub entitlement_benefit_ids: Option<Vec<String>>,
+    pub entitlement_benefit_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The custom properties that were collected from the user to create this entitlement.
     #[serde(default, rename = "inputProperties")]
-    pub input_properties: Option<serde_json::Value>,
+    pub input_properties: ::core::option::Option<serde_json::Value>,
     /// Provider-supplied message that is displayed to the end user. Currently this is used to communicate progress and ETA for provisioning. This field can be updated only when a user is waiting for an action from the provider, i.e. entitlement state is EntitlementState.ENTITLEMENT_ACTIVATION_REQUESTED or EntitlementState.ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL. This field is cleared automatically when the entitlement state changes.
     #[serde(default, rename = "messageToUser")]
-    pub message_to_user: Option<String>,
+    pub message_to_user: ::core::option::Option<String>,
     /// Output only. The resource name of the entitlement. Entitlement names have the form providers/{provider_id}/entitlements/{entitlement_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The end time of the new offer, determined from the offer''s specified end date. If the offer des not have a specified end date then this field is not set. This field is populated even if the entitlement isn''t active yet. If there''s no upcoming offer, the field is empty. * If the entitlement is in the state ENTITLEMENT_ACTIVATION_REQUESTED, ENTITLEMENT_ACTIVE, or ENTITLEMENT_PENDING_CANCELLATION, then this field is empty. * If the entitlement is in the state ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL or ENTITLEMENT_PENDING_PLAN_CHANGE, and the upcoming offer has a specified end date, then this field is populated with the expected end time of the upcoming offer, in the future. Otherwise, this field is empty. * If the entitlement is in the state ENTITLEMENT_CANCELLED, then this field is empty.
     #[serde(default, rename = "newOfferEndTime")]
-    pub new_offer_end_time: Option<String>,
+    pub new_offer_end_time: ::core::option::Option<String>,
     /// Output only. The timestamp when the new offer becomes effective. This field is populated even if the entitlement isn''t active yet. If there''s no upcoming offer, the field is empty. * If the entitlement is in the state ENTITLEMENT_ACTIVATION_REQUESTED, this field isn''t populated when the entitlement isn''t yet approved. After the entitlement is approved, this field is populated with the effective time of the upcoming offer. * If the entitlement is in the state ENTITLEMENT_ACTIVE or ENTITLEMENT_PENDING_CANCELLATION, this field isn''t populated. * If the entitlement is in the state ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL, this field isn''t populated, because the entitlement change is waiting on approval. * If the entitlement is in the state ENTITLEMENT_PENDING_PLAN_CHANGE, this field is populated with the expected effective time of the upcoming offer, which is in the future. * If the entitlement is in the state ENTITLEMENT_CANCELLED, then this field is empty.
     #[serde(default, rename = "newOfferStartTime")]
-    pub new_offer_start_time: Option<String>,
+    pub new_offer_start_time: ::core::option::Option<String>,
     /// Output only. Upon a pending plan change, the name of the offer that the entitlement is switching to. Only exists if the pending plan change is moving to an offer. This field isn''t populated for entitlements which aren''t active yet. Format: ''projects/{project}/services/{service}/privateOffers/{offer}'' OR ''projects/{project}/services/{service}/standardOffers/{offer}'', depending on whether the offer is private or public. The {service} in the name is the listing service of the offer. It could be either the product service that the offer is referencing, or a generic private offer parent service. We recommend that you don''t build your integration to rely on the meaning of this {service} part. * If the entitlement is in the state ENTITLEMENT_ACTIVATION_REQUESTED, ENTITLEMENT_ACTIVE or ENTITLEMENT_PENDING_CANCELLATION, then this field is empty. * If the entitlement is in the state ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL or ENTITLEMENT_PENDING_PLAN_CHANGE, then this field is populated with the upcoming offer. * If the entitlement is in the state ENTITLEMENT_CANCELLED, then this is empty.
     #[serde(default, rename = "newPendingOffer")]
-    pub new_pending_offer: Option<String>,
+    pub new_pending_offer: ::core::option::Option<String>,
     /// Output only. The duration of the new offer, in ISO 8601 duration format. This field is populated for pending offer changes. It isn''t populated for entitlements which aren''t active yet. If the offer has a specified end date instead of a duration, this field is empty. * If the entitlement is in the state ENTITLEMENT_ACTIVATION_REQUESTED, ENTITLEMENT_ACTIVE, or ENTITLEMENT_PENDING_CANCELLATION, this field is empty. * If the entitlement is in the state ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL or ENTITLEMENT_PENDING_PLAN_CHANGE, and the upcoming offer doesn''t have a specified end date, then this field is populated with the duration of the upcoming offer. Otherwise, this field is empty. * If the entitlement is in the state ENTITLEMENT_CANCELLED, then this field is empty.
     #[serde(default, rename = "newPendingOfferDuration")]
-    pub new_pending_offer_duration: Option<String>,
+    pub new_pending_offer_duration: ::core::option::Option<String>,
     /// Output only. The identifier of the pending new plan. Required if the product has plans and the entitlement has a pending plan change.
     #[serde(default, rename = "newPendingPlan")]
-    pub new_pending_plan: Option<String>,
+    pub new_pending_plan: ::core::option::Option<String>,
     /// Output only. The name of the offer that was procured. Field is empty if order wasn''t made using an offer. Format: ''projects/{project}/services/{service}/privateOffers/{offer}'' OR ''projects/{project}/services/{service}/standardOffers/{offer}'', depending on whether the offer is private or public. The {service} in the name is the listing service of the offer. It could be either the product service that the offer is referencing, or a generic private offer parent service. We recommend that you don''t build your integration to rely on the meaning of this {service} part. * If the entitlement is in the state ENTITLEMENT_ACTIVATION_REQUESTED, this field is populated with the upcoming offer. * If the entitlement is in the state ENTITLEMENT_ACTIVE, ENTITLEMENT_PENDING_CANCELLATION, ENTITLEMENT_PENDING_PLAN_CHANGE, or ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL, this field is populated with the current offer. * If the entitlement is in the state ENTITLEMENT_CANCELLED, then this field is populated with the latest offer that the order was associated with.
     #[serde(default)]
-    pub offer: Option<String>,
+    pub offer: ::core::option::Option<String>,
     /// Output only. The offer duration of the current offer, in ISO 8601 duration format. This is empty if the entitlement wasn''t made using an offer, or if the offer has a specified end date instead of a duration. * If the entitlement is in the state ENTITLEMENT_ACTIVATION_REQUESTED, and the upcoming offer doesn''t have a specified end date, then this field is populated with the duration of the upcoming offer. Otherwise, this field is empty. * If the entitlement is in the state ENTITLEMENT_ACTIVE, ENTITLEMENT_PENDING_CANCELLATION, ENTITLEMENT_PENDING_PLAN_CHANGE, or ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL, and the current offer doesn''t have a specified end date, then this field contains the duration of the current offer. Otherwise, this field is empty. * If the entitlement is in the state ENTITLEMENT_CANCELLED, and the offer doesn''t have a specified end date, then this field is populated with the duration of the latest offer that the order was associated with. Otherwise, this field is empty.
     #[serde(default, rename = "offerDuration")]
-    pub offer_duration: Option<String>,
+    pub offer_duration: ::core::option::Option<String>,
     /// Output only. End time for the current term of the Offer associated with this entitlement. The value of this field can change naturally over time due to auto-renewal, even if the offer isn''t changed. * If the entitlement is in the state ENTITLEMENT_ACTIVATION_REQUESTED, then: * If the entitlement isn''t approved yet approved, and the offer has a specified end date, then this field is populated with the expected end time of the upcoming offer, in the future. Otherwise, this field is empty. * If the entitlement is approved, then this field is populated with the expected end time of the upcoming offer, in the future. This means that this field and the field offer_duration can both exist. * If the entitlement is in the state ENTITLEMENT_ACTIVE or ENTITLEMENT_PENDING_CANCELLATION, then this field is populated with the expected end time of the current offer, in the future. This field''s value is set regardless of whether the offer has a specific end date or a duration. This means that this field and the field offer_duration can both exist. * If the entitlement is in the state ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL or ENTITLEMENT_PENDING_PLAN_CHANGE: * If the entitlement''s pricing model is usage based and the associated offer is a private offer whose term has ended, then this field reflects the ACTUAL end time of the entitlement''s associated offer (in the past), even though the entitlement associated with this private offer does not terminate at the end of that private offer''s term. * Otherwise, this is the expected end date of the current offer, in the future. * If the entitlement is in the state ENTITLEMENT_CANCELLED, then this field is populated with the end time, in the past, of the latest offer that the order was associated with. If the entitlement was cancelled before any offer started, then this field is empty.
     #[serde(default, rename = "offerEndTime")]
-    pub offer_end_time: Option<String>,
+    pub offer_end_time: ::core::option::Option<String>,
     /// Output only. The order ID of this entitlement, without any orders/ resource name prefix.
     #[serde(default, rename = "orderId")]
-    pub order_id: Option<String>,
+    pub order_id: ::core::option::Option<String>,
     /// Output only. The identifier of the plan that was procured. Required if the product has plans.
     #[serde(default)]
-    pub plan: Option<String>,
+    pub plan: ::core::option::Option<String>,
     /// Output only. The identifier of the entity that was purchased. This may actually represent a product, quote, or offer. We strongly recommend that you use the following more explicit fields: productExternalName, quoteExternalName, or offer.
     #[serde(default)]
-    pub product: Option<String>,
+    pub product: ::core::option::Option<String>,
     /// Output only. The identifier of the product that was procured.
     #[serde(default, rename = "productExternalName")]
-    pub product_external_name: Option<String>,
+    pub product_external_name: ::core::option::Option<String>,
     /// Output only. The identifier of the service provider that this entitlement was created against. Each service provider is assigned a unique provider value when they onboard with Cloud Commerce platform.
     #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: ::core::option::Option<String>,
     /// Output only. The identifier of the quote that was used to procure. Empty if the order is not purchased using a quote.
     #[serde(default, rename = "quoteExternalName")]
-    pub quote_external_name: Option<String>,
+    pub quote_external_name: ::core::option::Option<String>,
     /// Output only. The state of the entitlement. // TODO: enum values: ["ENTITLEMENT_STATE_UNSPECIFIED", "ENTITLEMENT_ACTIVATION_REQUESTED", "ENTITLEMENT_ACTIVE", "ENTITLEMENT_PENDING_CANCELLATION", "ENTITLEMENT_CANCELLED", "ENTITLEMENT_PENDING_PLAN_CHANGE", "ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL", "ENTITLEMENT_SUSPENDED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. End time for the subscription corresponding to this entitlement.
     #[serde(default, rename = "subscriptionEndTime")]
-    pub subscription_end_time: Option<String>,
+    pub subscription_end_time: ::core::option::Option<String>,
     /// Output only. The last update timestamp.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The consumerId to use when reporting usage through the Service Control API. See the consumerId field at [Reporting Metrics](https://cloud.google.com/service-control/reporting-metrics) for more details. This field is present only if the product has usage-based billing configured.
     #[serde(default, rename = "usageReportingId")]
-    pub usage_reporting_id: Option<String>,
+    pub usage_reporting_id: ::core::option::Option<String>,
 }
 
 /// Response message for [PartnerProcurementService.ListAccounts[].
@@ -188,10 +188,10 @@ pub struct Entitlement {
 pub struct ListAccountsResponse {
     /// The list of accounts in this response.
     #[serde(default)]
-    pub accounts: Option<Vec<Account>>,
+    pub accounts: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Account>>>,
     /// The token for fetching the next page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for PartnerProcurementService.ListEntitlements.
@@ -199,10 +199,10 @@ pub struct ListAccountsResponse {
 pub struct ListEntitlementsResponse {
     /// The list of entitlements in this response.
     #[serde(default)]
-    pub entitlements: Option<Vec<Entitlement>>,
+    pub entitlements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entitlement>>>,
     /// The token for fetching the next page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Request message for PartnerProcurementService.RejectAccount.
@@ -210,10 +210,10 @@ pub struct ListEntitlementsResponse {
 pub struct RejectAccountRequest {
     /// The name of the approval being rejected. If absent and there is only one approval possible, that approval will be rejected. If absent and there are many approvals possible, the request will fail with a 400 Bad Request. Optional.
     #[serde(default, rename = "approvalName")]
-    pub approval_name: Option<String>,
+    pub approval_name: ::core::option::Option<String>,
     /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Request message for PartnerProcurementService.RejectEntitlementPlanChange.
@@ -221,10 +221,10 @@ pub struct RejectAccountRequest {
 pub struct RejectEntitlementPlanChangeRequest {
     /// Required. Name of the pending plan that is being rejected.
     #[serde(default, rename = "pendingPlanName")]
-    pub pending_plan_name: Option<String>,
+    pub pending_plan_name: ::core::option::Option<String>,
     /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Request message for PartnerProcurementService.RejectEntitlement.
@@ -232,7 +232,7 @@ pub struct RejectEntitlementPlanChangeRequest {
 pub struct RejectEntitlementRequest {
     /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }
 
 /// Request message for ParterProcurementService.SuspendEntitlement. This is not yet supported.
@@ -240,5 +240,5 @@ pub struct RejectEntitlementRequest {
 pub struct SuspendEntitlementRequest {
     /// A free-form reason string, explaining the reason for suspension request.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
 }

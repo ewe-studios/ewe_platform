@@ -10,21 +10,23 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Configuration for Data Lineage. Defines different configuration options for Lineage customers to control behaviour of lineage systems.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1Config {
     /// Optional. etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a config from overwriting each other. It is required that systems make use of the etag in the read-modify-write cycle to perform config updates in order to avoid race conditions: An etag is returned in the response to GetConfig, and systems are expected to put that etag in the request to UpdateConfig to ensure that their change will be applied to the same version of the config. If an etag is not provided in the call to UpdateConfig, then the existing config, if any, will be overwritten.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. Ingestion rule for Data Lineage ingestion.
     #[serde(default)]
-    pub ingestion: Option<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion>,
+    pub ingestion: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion>,
+    >,
     /// Identifier. The resource name of the config. Format: organizations/{organization_id}/locations/global/config folders/{folder_id}/locations/global/config projects/{project_id}/locations/global/config projects/{project_number}/locations/global/config
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Defines how Lineage should be ingested for a given resource.
@@ -32,8 +34,13 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1Config {
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion {
     /// Optional. List of rules for Data Lineage ingestion.
     #[serde(default)]
-    pub rules:
-        Option<Vec<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule>>,
+    pub rules: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<
+                GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule,
+            >,
+        >,
+    >,
 }
 
 /// Ingestion rule for Data Lineage ingestion.
@@ -41,10 +48,10 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion {
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule {
     /// Required. Integration selector of the rule. The rule is only applied to the Integration selected by the selector.
     #[serde(default, rename = "integrationSelector")]
-    pub integration_selector: Option<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector>,
+    pub integration_selector: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector>>,
     /// Required. Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children. If unspecified, the ingestion will be enabled only if it was configured in the resource''s parent.
     #[serde(default, rename = "lineageEnablement")]
-    pub lineage_enablement: Option<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement>,
+    pub lineage_enablement: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement>>,
 }
 
 /// Integration selector of the rule. The rule is only applied to the Integration selected by the selector.
@@ -53,7 +60,7 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngesti
 {
     /// Required. Integration to which the rule applies. This field can be used to specify the integration against which the ingestion rule should be applied. // TODO: enum values: ["INTEGRATION_UNSPECIFIED", "DATAPROC", "LOOKER_CORE"]
     #[serde(default)]
-    pub integration: Option<String>,
+    pub integration: ::core::option::Option<String>,
 }
 
 /// Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children.
@@ -62,7 +69,7 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngesti
 {
     /// Optional. If true, ingestion of lineage should be enabled. If false, it should be disabled. If unspecified, the system default value is used.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Request message for BatchSearchLinkProcesses.
@@ -70,13 +77,13 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngesti
 pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest {
     /// Required. An array of links to check for their associated LineageProcesses. The maximum number of items in this array is 100. If the request contains more than 100 links, it returns the INVALID_ARGUMENT error. Format: projects/{project}/locations/{location}/links/{link}.
     #[serde(default)]
-    pub links: Option<Vec<String>>,
+    pub links: ::core::option::Option<::std::vec::Vec<String>>,
     /// The maximum number of processes to return in a single page of the response. A page may contain fewer results than this value.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// The page token received from a previous BatchSearchLinkProcesses call. Use it to get the next page. When requesting subsequent pages of a response, remember that all parameters must match the values you provided in the original request.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
 }
 
 /// Response message for BatchSearchLinkProcesses.
@@ -84,10 +91,12 @@ pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest {
 pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse {
     /// The token to specify as page_token in the subsequent call to get the next page. Omitted if there are no more pages in the response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// An array of processes associated with the specified links.
     #[serde(default, rename = "processLinks")]
-    pub process_links: Option<Vec<GoogleCloudDatacatalogLineageV1ProcessLinks>>,
+    pub process_links: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogLineageV1ProcessLinks>>,
+    >,
 }
 
 /// The soft reference to everything you can attach a lineage event to.
@@ -95,7 +104,7 @@ pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse {
 pub struct GoogleCloudDatacatalogLineageV1EntityReference {
     /// Required. [Fully Qualified Name (FQN)](https://cloud.google.com/dataplex/docs/fully-qualified-names) of the entity.
     #[serde(default, rename = "fullyQualifiedName")]
-    pub fully_qualified_name: Option<String>,
+    pub fully_qualified_name: ::core::option::Option<String>,
 }
 
 /// A lineage between source and target entities.
@@ -103,10 +112,12 @@ pub struct GoogleCloudDatacatalogLineageV1EntityReference {
 pub struct GoogleCloudDatacatalogLineageV1EventLink {
     /// Required. Reference to the source entity
     #[serde(default)]
-    pub source: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+    pub source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageV1EntityReference>>,
     /// Required. Reference to the target entity
     #[serde(default)]
-    pub target: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+    pub target:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageV1EntityReference>>,
 }
 
 /// A lineage event represents an operation on assets. Within the operation, the data flows from the source to the target defined in the links field.
@@ -114,16 +125,18 @@ pub struct GoogleCloudDatacatalogLineageV1EventLink {
 pub struct GoogleCloudDatacatalogLineageV1LineageEvent {
     /// Optional. The end of the transformation which resulted in this lineage event. For streaming scenarios, it should be the end of the period from which the lineage is being reported.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Optional. List of source-target pairs. Can''t contain more than 100 tuples.
     #[serde(default)]
-    pub links: Option<Vec<GoogleCloudDatacatalogLineageV1EventLink>>,
+    pub links: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogLineageV1EventLink>>,
+    >,
     /// Immutable. The resource name of the lineage event. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}/lineageEvents/{lineage_event}. Can be specified or auto-assigned. {lineage_event} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The beginning of the transformation which resulted in this lineage event. For streaming scenarios, it should be the beginning of the period from which the lineage is being reported.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Links represent the data flow between **source** (upstream) and **target** (downstream) assets in transformation pipelines. Links are created when LineageEvents record data transformation between related assets.
@@ -131,19 +144,21 @@ pub struct GoogleCloudDatacatalogLineageV1LineageEvent {
 pub struct GoogleCloudDatacatalogLineageV1Link {
     /// The end of the last event establishing this link.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Immutable. The name of the link. Format: projects/{project}/locations/{location}/links/{link}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The pointer to the entity that is the **source** of this link.
     #[serde(default)]
-    pub source: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+    pub source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageV1EntityReference>>,
     /// The start of the first event establishing this link.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The pointer to the entity that is the **target** of this link.
     #[serde(default)]
-    pub target: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+    pub target:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageV1EntityReference>>,
 }
 
 /// Response message for ListLineageEvents.
@@ -151,10 +166,12 @@ pub struct GoogleCloudDatacatalogLineageV1Link {
 pub struct GoogleCloudDatacatalogLineageV1ListLineageEventsResponse {
     /// Lineage events from the specified project and location.
     #[serde(default, rename = "lineageEvents")]
-    pub lineage_events: Option<Vec<GoogleCloudDatacatalogLineageV1LineageEvent>>,
+    pub lineage_events: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogLineageV1LineageEvent>>,
+    >,
     /// The token to specify as page_token in the next call to get the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Response message for ListProcesses.
@@ -162,10 +179,12 @@ pub struct GoogleCloudDatacatalogLineageV1ListLineageEventsResponse {
 pub struct GoogleCloudDatacatalogLineageV1ListProcessesResponse {
     /// The token to specify as page_token in the next call to get the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The processes from the specified project and location.
     #[serde(default)]
-    pub processes: Option<Vec<GoogleCloudDatacatalogLineageV1Process>>,
+    pub processes: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogLineageV1Process>>,
+    >,
 }
 
 /// Response message for ListRuns.
@@ -173,10 +192,12 @@ pub struct GoogleCloudDatacatalogLineageV1ListProcessesResponse {
 pub struct GoogleCloudDatacatalogLineageV1ListRunsResponse {
     /// The token to specify as page_token in the next call to get the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The runs from the specified project and location.
     #[serde(default)]
-    pub runs: Option<Vec<GoogleCloudDatacatalogLineageV1Run>>,
+    pub runs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogLineageV1Run>>,
+    >,
 }
 
 /// Metadata describing the operation.
@@ -184,22 +205,22 @@ pub struct GoogleCloudDatacatalogLineageV1ListRunsResponse {
 pub struct GoogleCloudDatacatalogLineageV1OperationMetadata {
     /// Output only. The timestamp of the operation submission to the server.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The timestamp of the operation termination, regardless of its success. This field is unset if the operation is still ongoing.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. The type of the operation being performed. // TODO: enum values: ["TYPE_UNSPECIFIED", "DELETE", "CREATE"]
     #[serde(default, rename = "operationType")]
-    pub operation_type: Option<String>,
+    pub operation_type: ::core::option::Option<String>,
     /// Output only. The [relative name] (https://cloud.google.com//apis/design/resource_names#relative_resource_name) of the resource being operated on.
     #[serde(default)]
-    pub resource: Option<String>,
+    pub resource: ::core::option::Option<String>,
     /// Output only. The UUID of the resource being operated on.
     #[serde(default, rename = "resourceUuid")]
-    pub resource_uuid: Option<String>,
+    pub resource_uuid: ::core::option::Option<String>,
     /// Output only. The current operation state. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "RUNNING", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Origin of a process.
@@ -207,10 +228,10 @@ pub struct GoogleCloudDatacatalogLineageV1OperationMetadata {
 pub struct GoogleCloudDatacatalogLineageV1Origin {
     /// If the source_type isn''t CUSTOM, the value of this field should be a Google Cloud resource name of the system, which reports lineage. The project and location parts of the resource name must match the project and location of the lineage resource being created. Examples: - {source_type: COMPOSER, name: "projects/foo/locations/us/environments/bar"} - {source_type: BIGQUERY, name: "projects/foo/locations/eu"} - {source_type: CUSTOM, name: "myCustomIntegration"}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Type of the source. Use of a source_type other than CUSTOM for process creation or updating is highly discouraged. It might be restricted in the future without notice. There will be increase in cost if you use any of the source types other than CUSTOM. // TODO: enum values: ["SOURCE_TYPE_UNSPECIFIED", "CUSTOM", "BIGQUERY", "DATA_FUSION", "COMPOSER", "LOOKER_STUDIO", "DATAPROC", "VERTEX_AI", "LOOKER_CORE"]
     #[serde(default, rename = "sourceType")]
-    pub source_type: Option<String>,
+    pub source_type: ::core::option::Option<String>,
 }
 
 /// A process is the definition of a data transformation operation.
@@ -218,16 +239,16 @@ pub struct GoogleCloudDatacatalogLineageV1Origin {
 pub struct GoogleCloudDatacatalogLineageV1Process {
     /// Optional. The attributes of the process. Should only be used for the purpose of non-semantic management (classifying, describing or labeling the process). Up to 100 attributes are allowed.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. A human-readable name you can set to display in a user interface. Must be not longer than 200 characters and only contain UTF-8 letters or numbers, spaces or characters like _-:&.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Immutable. The resource name of the lineage process. Format: projects/{project}/locations/{location}/processes/{process}. Can be specified or auto-assigned. {process} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The origin of this process and its runs and lineage events.
     #[serde(default)]
-    pub origin: Option<GoogleCloudDatacatalogLineageV1Origin>,
+    pub origin: ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageV1Origin>>,
 }
 
 /// Link details.
@@ -235,13 +256,13 @@ pub struct GoogleCloudDatacatalogLineageV1Process {
 pub struct GoogleCloudDatacatalogLineageV1ProcessLinkInfo {
     /// The end of the last event establishing this link-process tuple.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The name of the link in the format of projects/{project}/locations/{location}/links/{link}.
     #[serde(default)]
-    pub link: Option<String>,
+    pub link: ::core::option::Option<String>,
     /// The start of the first event establishing this link-process tuple.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Links associated with a specific process.
@@ -249,10 +270,12 @@ pub struct GoogleCloudDatacatalogLineageV1ProcessLinkInfo {
 pub struct GoogleCloudDatacatalogLineageV1ProcessLinks {
     /// An array containing link details objects of the links provided in the original request. A single process can result in creating multiple links. If any of the links you provide in the request are created by the same process, they all are included in this array.
     #[serde(default)]
-    pub links: Option<Vec<GoogleCloudDatacatalogLineageV1ProcessLinkInfo>>,
+    pub links: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogLineageV1ProcessLinkInfo>>,
+    >,
     /// The process name in the format of projects/{project}/locations/{location}/processes/{process}.
     #[serde(default)]
-    pub process: Option<String>,
+    pub process: ::core::option::Option<String>,
 }
 
 /// Response message for ProcessOpenLineageRunEvent.
@@ -260,13 +283,13 @@ pub struct GoogleCloudDatacatalogLineageV1ProcessLinks {
 pub struct GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse {
     /// Created lineage event names. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}/lineageEvents/{lineage_event}.
     #[serde(default, rename = "lineageEvents")]
-    pub lineage_events: Option<Vec<String>>,
+    pub lineage_events: ::core::option::Option<::std::vec::Vec<String>>,
     /// Created process name. Format: projects/{project}/locations/{location}/processes/{process}.
     #[serde(default)]
-    pub process: Option<String>,
+    pub process: ::core::option::Option<String>,
     /// Created run name. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}.
     #[serde(default)]
-    pub run: Option<String>,
+    pub run: ::core::option::Option<String>,
 }
 
 /// A lineage run represents an execution of a process that creates lineage events.
@@ -274,22 +297,22 @@ pub struct GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse {
 pub struct GoogleCloudDatacatalogLineageV1Run {
     /// Optional. The attributes of the run. Should only be used for the purpose of non-semantic management (classifying, describing or labeling the run). Up to 100 attributes are allowed.
     #[serde(default)]
-    pub attributes: Option<serde_json::Value>,
+    pub attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. A human-readable name you can set to display in a user interface. Must be not longer than 1024 characters and only contain UTF-8 letters or numbers, spaces or characters like _-:&.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. The timestamp of the end of the run.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Immutable. The resource name of the run. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}. Can be specified or auto-assigned. {run} must be not longer than 200 characters and only contain characters in a set: a-zA-Z0-9_-:.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The timestamp of the start of the run.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Required. The state of the run. // TODO: enum values: ["UNKNOWN", "STARTED", "COMPLETED", "FAILED", "ABORTED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Request message for SearchLinks.
@@ -297,16 +320,18 @@ pub struct GoogleCloudDatacatalogLineageV1Run {
 pub struct GoogleCloudDatacatalogLineageV1SearchLinksRequest {
     /// Optional. The maximum number of links to return in a single page of the response. A page may contain fewer links than this value. If unspecified, at most 10 links are returned. Maximum value is 100; values greater than 100 are reduced to 100.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// Optional. The page token received from a previous SearchLinksRequest call. Use it to get the next page. When requesting subsequent pages of a response, remember that all parameters must match the values you provided in the original request.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Optional. Send asset information in the **source** field to retrieve all links that lead from the specified asset to downstream assets.
     #[serde(default)]
-    pub source: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+    pub source:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageV1EntityReference>>,
     /// Optional. Send asset information in the **target** field to retrieve all links that lead from upstream assets to the specified asset.
     #[serde(default)]
-    pub target: Option<GoogleCloudDatacatalogLineageV1EntityReference>,
+    pub target:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDatacatalogLineageV1EntityReference>>,
 }
 
 /// Response message for SearchLinks.
@@ -314,10 +339,12 @@ pub struct GoogleCloudDatacatalogLineageV1SearchLinksRequest {
 pub struct GoogleCloudDatacatalogLineageV1SearchLinksResponse {
     /// The list of links for a given asset. Can be empty if the asset has no relations of requested type (source or target).
     #[serde(default)]
-    pub links: Option<Vec<GoogleCloudDatacatalogLineageV1Link>>,
+    pub links: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDatacatalogLineageV1Link>>,
+    >,
     /// The token to specify as page_token in the subsequent call to get the next page. Omitted if there are no more pages in the response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -325,13 +352,14 @@ pub struct GoogleCloudDatacatalogLineageV1SearchLinksResponse {
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -339,19 +367,19 @@ pub struct GoogleLongrunningListOperationsResponse {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<GoogleRpcStatus>,
+    pub error: ::core::option::Option<::std::boxed::Box<GoogleRpcStatus>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -359,11 +387,11 @@ pub struct GoogleLongrunningOperation {
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }

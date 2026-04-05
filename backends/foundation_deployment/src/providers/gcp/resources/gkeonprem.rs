@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Authorization defines the On-Prem cluster authorization configuration to bootstrap onto the admin cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Authorization {
     /// For VMware and bare metal user clusters, users will be granted the cluster-admin role on the cluster, which provides full administrative access to the cluster. For bare metal admin clusters, users will be granted the cluster-view role, which limits users to read-only access.
     #[serde(default, rename = "adminUsers")]
-    pub admin_users: Option<Vec<ClusterUser>>,
+    pub admin_users: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClusterUser>>>,
 }
 
 /// BareMetalAdminApiServerArgument represents an arg name-&gt;value pair. Only a subset of customized flags are supported. Please refer to the API server documentation below to know the exact format: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
@@ -26,10 +26,10 @@ pub struct Authorization {
 pub struct BareMetalAdminApiServerArgument {
     /// Required. The argument name as it appears on the API Server command line please make sure to remove the leading dashes.
     #[serde(default)]
-    pub argument: Option<String>,
+    pub argument: ::core::option::Option<String>,
     /// Required. The value of the arg as it will be passed to the API Server command line.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// BareMetalAdminBgpLbConfig represents configuration parameters for a Border Gateway Protocol (BGP) load balancer.
@@ -37,16 +37,20 @@ pub struct BareMetalAdminApiServerArgument {
 pub struct BareMetalAdminBgpLbConfig {
     /// Required. AddressPools is a list of non-overlapping IP pools used by load balancer typed services. All addresses must be routable to load balancer nodes. IngressVIP must be included in the pools.
     #[serde(default, rename = "addressPools")]
-    pub address_pools: Option<Vec<BareMetalAdminLoadBalancerAddressPool>>,
+    pub address_pools: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<BareMetalAdminLoadBalancerAddressPool>>,
+    >,
     /// Required. BGP autonomous system number (ASN) of the cluster. This field can be updated after cluster creation.
     #[serde(default)]
-    pub asn: Option<String>,
+    pub asn: ::core::option::Option<String>,
     /// Required. The list of BGP peers that the cluster will connect to. At least one peer must be configured for each control plane node. Control plane nodes will connect to these peers to advertise the control plane VIP. The Services load balancer also uses these peers by default. This field can be updated after cluster creation.
     #[serde(default, rename = "bgpPeerConfigs")]
-    pub bgp_peer_configs: Option<Vec<BareMetalAdminBgpPeerConfig>>,
+    pub bgp_peer_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalAdminBgpPeerConfig>>>,
     /// Specifies the node pool running data plane load balancing. L2 connectivity is required among nodes in this pool. If missing, the control plane node pool is used for data plane load balancing.
     #[serde(default, rename = "loadBalancerNodePoolConfig")]
-    pub load_balancer_node_pool_config: Option<BareMetalAdminLoadBalancerNodePoolConfig>,
+    pub load_balancer_node_pool_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminLoadBalancerNodePoolConfig>>,
 }
 
 /// BareMetalAdminBgpPeerConfig represents configuration parameters for a Border Gateway Protocol (BGP) peer.
@@ -54,13 +58,13 @@ pub struct BareMetalAdminBgpLbConfig {
 pub struct BareMetalAdminBgpPeerConfig {
     /// Required. BGP autonomous system number (ASN) for the network that contains the external peer device.
     #[serde(default)]
-    pub asn: Option<String>,
+    pub asn: ::core::option::Option<String>,
     /// The IP address of the control plane node that connects to the external peer. If you don''t specify any control plane nodes, all control plane nodes can connect to the external peer. If you specify one or more IP addresses, only the nodes specified participate in peering sessions.
     #[serde(default, rename = "controlPlaneNodes")]
-    pub control_plane_nodes: Option<Vec<String>>,
+    pub control_plane_nodes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The IP address of the external peer device.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
 }
 
 /// Resource that represents a bare metal admin cluster.
@@ -68,91 +72,96 @@ pub struct BareMetalAdminBgpPeerConfig {
 pub struct BareMetalAdminCluster {
     /// Annotations on the bare metal admin cluster. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// The Anthos clusters on bare metal version for the bare metal admin cluster.
     #[serde(default, rename = "bareMetalVersion")]
-    pub bare_metal_version: Option<String>,
+    pub bare_metal_version: ::core::option::Option<String>,
     /// Binary Authorization related configurations.
     #[serde(default, rename = "binaryAuthorization")]
-    pub binary_authorization: Option<BinaryAuthorization>,
+    pub binary_authorization: ::core::option::Option<::std::boxed::Box<BinaryAuthorization>>,
     /// Cluster operations configuration.
     #[serde(default, rename = "clusterOperations")]
-    pub cluster_operations: Option<BareMetalAdminClusterOperationsConfig>,
+    pub cluster_operations:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminClusterOperationsConfig>>,
     /// Control plane configuration.
     #[serde(default, rename = "controlPlane")]
-    pub control_plane: Option<BareMetalAdminControlPlaneConfig>,
+    pub control_plane: ::core::option::Option<::std::boxed::Box<BareMetalAdminControlPlaneConfig>>,
     /// Output only. The time at which this bare metal admin cluster was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time at which this bare metal admin cluster was deleted. If the resource is not deleted, this must be empty
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// A human readable description of this bare metal admin cluster.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The IP address name of bare metal admin cluster''s API server.
     #[serde(default)]
-    pub endpoint: Option<String>,
+    pub endpoint: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. Allows clients to perform consistent read-modify-writes through optimistic concurrency control.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Fleet configuration for the cluster.
     #[serde(default)]
-    pub fleet: Option<Fleet>,
+    pub fleet: ::core::option::Option<::std::boxed::Box<Fleet>>,
     /// Load balancer configuration.
     #[serde(default, rename = "loadBalancer")]
-    pub load_balancer: Option<BareMetalAdminLoadBalancerConfig>,
+    pub load_balancer: ::core::option::Option<::std::boxed::Box<BareMetalAdminLoadBalancerConfig>>,
     /// Output only. The object name of the bare metal cluster custom resource. This field is used to support conflicting names when enrolling existing clusters to the API. When used as a part of cluster enrollment, this field will differ from the ID in the resource name. For new clusters, this field will match the user provided cluster name and be visible in the last component of the resource name. It is not modifiable. All users should use this name to access their cluster using gkectl or kubectl and should expect to see the local name when viewing admin cluster controller logs.
     #[serde(default, rename = "localName")]
-    pub local_name: Option<String>,
+    pub local_name: ::core::option::Option<String>,
     /// Maintenance configuration.
     #[serde(default, rename = "maintenanceConfig")]
-    pub maintenance_config: Option<BareMetalAdminMaintenanceConfig>,
+    pub maintenance_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminMaintenanceConfig>>,
     /// Output only. MaintenanceStatus representing state of maintenance.
     #[serde(default, rename = "maintenanceStatus")]
-    pub maintenance_status: Option<BareMetalAdminMaintenanceStatus>,
+    pub maintenance_status:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminMaintenanceStatus>>,
     /// Immutable. The bare metal admin cluster resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Network configuration.
     #[serde(default, rename = "networkConfig")]
-    pub network_config: Option<BareMetalAdminNetworkConfig>,
+    pub network_config: ::core::option::Option<::std::boxed::Box<BareMetalAdminNetworkConfig>>,
     /// Node access related configurations.
     #[serde(default, rename = "nodeAccessConfig")]
-    pub node_access_config: Option<BareMetalAdminNodeAccessConfig>,
+    pub node_access_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminNodeAccessConfig>>,
     /// Workload node configuration.
     #[serde(default, rename = "nodeConfig")]
-    pub node_config: Option<BareMetalAdminWorkloadNodeConfig>,
+    pub node_config: ::core::option::Option<::std::boxed::Box<BareMetalAdminWorkloadNodeConfig>>,
     /// OS environment related configurations.
     #[serde(default, rename = "osEnvironmentConfig")]
-    pub os_environment_config: Option<BareMetalAdminOsEnvironmentConfig>,
+    pub os_environment_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminOsEnvironmentConfig>>,
     /// Proxy configuration.
     #[serde(default)]
-    pub proxy: Option<BareMetalAdminProxyConfig>,
+    pub proxy: ::core::option::Option<::std::boxed::Box<BareMetalAdminProxyConfig>>,
     /// Output only. If set, there are currently changes in flight to the bare metal Admin Cluster.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Security related configuration.
     #[serde(default, rename = "securityConfig")]
-    pub security_config: Option<BareMetalAdminSecurityConfig>,
+    pub security_config: ::core::option::Option<::std::boxed::Box<BareMetalAdminSecurityConfig>>,
     /// Output only. The current state of the bare metal admin cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "RUNNING", "RECONCILING", "STOPPING", "ERROR", "DEGRADED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. ResourceStatus representing detailed cluster status.
     #[serde(default)]
-    pub status: Option<ResourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ResourceStatus>>,
     /// Storage configuration.
     #[serde(default)]
-    pub storage: Option<BareMetalAdminStorageConfig>,
+    pub storage: ::core::option::Option<::std::boxed::Box<BareMetalAdminStorageConfig>>,
     /// Output only. The unique identifier of the bare metal admin cluster.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The time at which this bare metal admin cluster was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. ValidationCheck representing the result of the preflight check.
     #[serde(default, rename = "validationCheck")]
-    pub validation_check: Option<ValidationCheck>,
+    pub validation_check: ::core::option::Option<::std::boxed::Box<ValidationCheck>>,
 }
 
 /// BareMetalAdminClusterOperationsConfig specifies the admin cluster''s observability infrastructure.
@@ -160,7 +169,7 @@ pub struct BareMetalAdminCluster {
 pub struct BareMetalAdminClusterOperationsConfig {
     /// Whether collection of application logs/metrics should be enabled (in addition to system logs/metrics).
     #[serde(default, rename = "enableApplicationLogs")]
-    pub enable_application_logs: Option<bool>,
+    pub enable_application_logs: ::core::option::Option<bool>,
 }
 
 /// BareMetalAdminControlPlaneConfig specifies the control plane configuration.
@@ -168,10 +177,12 @@ pub struct BareMetalAdminClusterOperationsConfig {
 pub struct BareMetalAdminControlPlaneConfig {
     /// Customizes the default API server args. Only a subset of customized flags are supported. Please refer to the API server documentation below to know the exact format: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
     #[serde(default, rename = "apiServerArgs")]
-    pub api_server_args: Option<Vec<BareMetalAdminApiServerArgument>>,
+    pub api_server_args:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalAdminApiServerArgument>>>,
     /// Required. Configures the node pool running the control plane. If specified the corresponding NodePool will be created for the cluster''s control plane. The NodePool will have the same name and namespace as the cluster.
     #[serde(default, rename = "controlPlaneNodePoolConfig")]
-    pub control_plane_node_pool_config: Option<BareMetalAdminControlPlaneNodePoolConfig>,
+    pub control_plane_node_pool_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminControlPlaneNodePoolConfig>>,
 }
 
 /// BareMetalAdminControlPlaneNodePoolConfig specifies the control plane node pool configuration. We have a control plane specific node pool config so that we can flexible about supporting control plane specific fields in the future.
@@ -179,7 +190,7 @@ pub struct BareMetalAdminControlPlaneConfig {
 pub struct BareMetalAdminControlPlaneNodePoolConfig {
     /// Required. The generic configuration for a node pool running the control plane.
     #[serde(default, rename = "nodePoolConfig")]
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
+    pub node_pool_config: ::core::option::Option<::std::boxed::Box<BareMetalNodePoolConfig>>,
 }
 
 /// BareMetalAdminDrainedMachine represents the machines that are drained.
@@ -187,7 +198,7 @@ pub struct BareMetalAdminControlPlaneNodePoolConfig {
 pub struct BareMetalAdminDrainedMachine {
     /// Drained machine IP address.
     #[serde(default, rename = "nodeIp")]
-    pub node_ip: Option<String>,
+    pub node_ip: ::core::option::Option<String>,
 }
 
 /// BareMetalAdminDrainingMachine represents the machines that are currently draining.
@@ -195,10 +206,10 @@ pub struct BareMetalAdminDrainedMachine {
 pub struct BareMetalAdminDrainingMachine {
     /// Draining machine IP address.
     #[serde(default, rename = "nodeIp")]
-    pub node_ip: Option<String>,
+    pub node_ip: ::core::option::Option<String>,
     /// The count of pods yet to drain.
     #[serde(default, rename = "podCount")]
-    pub pod_count: Option<i32>,
+    pub pod_count: ::core::option::Option<i32>,
 }
 
 /// BareMetalAdminIslandModeCidrConfig specifies the cluster CIDR configuration while running in island mode.
@@ -206,10 +217,10 @@ pub struct BareMetalAdminDrainingMachine {
 pub struct BareMetalAdminIslandModeCidrConfig {
     /// Required. All pods in the cluster are assigned an RFC1918 IPv4 address from these ranges. This field cannot be changed after creation.
     #[serde(default, rename = "podAddressCidrBlocks")]
-    pub pod_address_cidr_blocks: Option<Vec<String>>,
+    pub pod_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. All services in the cluster are assigned an RFC1918 IPv4 address from these ranges. This field cannot be changed after creation.
     #[serde(default, rename = "serviceAddressCidrBlocks")]
-    pub service_address_cidr_blocks: Option<Vec<String>>,
+    pub service_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents an IP pool used by the load balancer.
@@ -217,16 +228,16 @@ pub struct BareMetalAdminIslandModeCidrConfig {
 pub struct BareMetalAdminLoadBalancerAddressPool {
     /// Required. The addresses that are part of this pool. Each address must be either in the CIDR form (1.2.3.0/24) or range form (1.2.3.1-1.2.3.5).
     #[serde(default)]
-    pub addresses: Option<Vec<String>>,
+    pub addresses: ::core::option::Option<::std::vec::Vec<String>>,
     /// If true, avoid using IPs ending in .0 or .255. This avoids buggy consumer devices mistakenly dropping IPv4 traffic for those special IP addresses.
     #[serde(default, rename = "avoidBuggyIps")]
-    pub avoid_buggy_ips: Option<bool>,
+    pub avoid_buggy_ips: ::core::option::Option<bool>,
     /// If true, prevent IP addresses from being automatically assigned.
     #[serde(default, rename = "manualAssign")]
-    pub manual_assign: Option<bool>,
+    pub manual_assign: ::core::option::Option<bool>,
     /// Required. The name of the address pool.
     #[serde(default)]
-    pub pool: Option<String>,
+    pub pool: ::core::option::Option<String>,
 }
 
 /// BareMetalAdminLoadBalancerConfig specifies the load balancer configuration.
@@ -234,16 +245,16 @@ pub struct BareMetalAdminLoadBalancerAddressPool {
 pub struct BareMetalAdminLoadBalancerConfig {
     /// Configuration for BGP typed load balancers.
     #[serde(default, rename = "bgpLbConfig")]
-    pub bgp_lb_config: Option<BareMetalAdminBgpLbConfig>,
+    pub bgp_lb_config: ::core::option::Option<::std::boxed::Box<BareMetalAdminBgpLbConfig>>,
     /// Manually configured load balancers.
     #[serde(default, rename = "manualLbConfig")]
-    pub manual_lb_config: Option<BareMetalAdminManualLbConfig>,
+    pub manual_lb_config: ::core::option::Option<::std::boxed::Box<BareMetalAdminManualLbConfig>>,
     /// Configures the ports that the load balancer will listen on.
     #[serde(default, rename = "portConfig")]
-    pub port_config: Option<BareMetalAdminPortConfig>,
+    pub port_config: ::core::option::Option<::std::boxed::Box<BareMetalAdminPortConfig>>,
     /// The VIPs used by the load balancer.
     #[serde(default, rename = "vipConfig")]
-    pub vip_config: Option<BareMetalAdminVipConfig>,
+    pub vip_config: ::core::option::Option<::std::boxed::Box<BareMetalAdminVipConfig>>,
 }
 
 /// Specifies the load balancer''s node pool configuration.
@@ -251,7 +262,7 @@ pub struct BareMetalAdminLoadBalancerConfig {
 pub struct BareMetalAdminLoadBalancerNodePoolConfig {
     /// The generic configuration for a node pool running a load balancer.
     #[serde(default, rename = "nodePoolConfig")]
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
+    pub node_pool_config: ::core::option::Option<::std::boxed::Box<BareMetalNodePoolConfig>>,
 }
 
 /// BareMetalAdminMachineDrainStatus represents the status of bare metal node machines that are undergoing drain operations.
@@ -259,10 +270,12 @@ pub struct BareMetalAdminLoadBalancerNodePoolConfig {
 pub struct BareMetalAdminMachineDrainStatus {
     /// The list of drained machines.
     #[serde(default, rename = "drainedMachines")]
-    pub drained_machines: Option<Vec<BareMetalAdminDrainedMachine>>,
+    pub drained_machines:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalAdminDrainedMachine>>>,
     /// The list of draning machines.
     #[serde(default, rename = "drainingMachines")]
-    pub draining_machines: Option<Vec<BareMetalAdminDrainingMachine>>,
+    pub draining_machines:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalAdminDrainingMachine>>>,
 }
 
 /// BareMetalAdminMaintenanceConfig specifies configurations to put bare metal Admin cluster CRs nodes in and out of maintenance.
@@ -270,7 +283,7 @@ pub struct BareMetalAdminMachineDrainStatus {
 pub struct BareMetalAdminMaintenanceConfig {
     /// Required. All IPv4 address from these ranges will be placed into maintenance mode. Nodes in maintenance mode will be cordoned and drained. When both of these are true, the "baremetal.cluster.gke.io/maintenance" annotation will be set on the node resource.
     #[serde(default, rename = "maintenanceAddressCidrBlocks")]
-    pub maintenance_address_cidr_blocks: Option<Vec<String>>,
+    pub maintenance_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// BareMetalAdminMaintenanceStatus represents the maintenance status for bare metal Admin cluster CR''s nodes.
@@ -278,7 +291,8 @@ pub struct BareMetalAdminMaintenanceConfig {
 pub struct BareMetalAdminMaintenanceStatus {
     /// Represents the status of draining and drained machine nodes. This is used to show the progress of cluster upgrade.
     #[serde(default, rename = "machineDrainStatus")]
-    pub machine_drain_status: Option<BareMetalAdminMachineDrainStatus>,
+    pub machine_drain_status:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminMachineDrainStatus>>,
 }
 
 /// BareMetalAdminManualLbConfig represents configuration parameters for a manual load balancer.
@@ -286,7 +300,7 @@ pub struct BareMetalAdminMaintenanceStatus {
 pub struct BareMetalAdminManualLbConfig {
     /// Whether manual load balancing is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Specifies the multiple networking interfaces cluster configuration.
@@ -294,7 +308,7 @@ pub struct BareMetalAdminManualLbConfig {
 pub struct BareMetalAdminMultipleNetworkInterfacesConfig {
     /// Whether to enable multiple network interfaces for your pods. When set network_config.advanced_networking is automatically set to true.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// BareMetalAdminNetworkConfig specifies the cluster network configuration.
@@ -302,13 +316,15 @@ pub struct BareMetalAdminMultipleNetworkInterfacesConfig {
 pub struct BareMetalAdminNetworkConfig {
     /// Enables the use of advanced Anthos networking features, such as Bundled Load Balancing with BGP or the egress NAT gateway. Setting configuration for advanced networking features will automatically set this flag.
     #[serde(default, rename = "advancedNetworking")]
-    pub advanced_networking: Option<bool>,
+    pub advanced_networking: ::core::option::Option<bool>,
     /// Configuration for Island mode CIDR.
     #[serde(default, rename = "islandModeCidr")]
-    pub island_mode_cidr: Option<BareMetalAdminIslandModeCidrConfig>,
+    pub island_mode_cidr:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminIslandModeCidrConfig>>,
     /// Configuration for multiple network interfaces.
     #[serde(default, rename = "multipleNetworkInterfacesConfig")]
-    pub multiple_network_interfaces_config: Option<BareMetalAdminMultipleNetworkInterfacesConfig>,
+    pub multiple_network_interfaces_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalAdminMultipleNetworkInterfacesConfig>>,
 }
 
 /// Specifies the node access related settings for the bare metal admin cluster.
@@ -316,7 +332,7 @@ pub struct BareMetalAdminNetworkConfig {
 pub struct BareMetalAdminNodeAccessConfig {
     /// Required. LoginUser is the user name used to access node machines. It defaults to "root" if not set.
     #[serde(default, rename = "loginUser")]
-    pub login_user: Option<String>,
+    pub login_user: ::core::option::Option<String>,
 }
 
 /// Specifies operating system operation settings for cluster provisioning.
@@ -324,7 +340,7 @@ pub struct BareMetalAdminNodeAccessConfig {
 pub struct BareMetalAdminOsEnvironmentConfig {
     /// Whether the package repo should be added when initializing bare metal machines.
     #[serde(default, rename = "packageRepoExcluded")]
-    pub package_repo_excluded: Option<bool>,
+    pub package_repo_excluded: ::core::option::Option<bool>,
 }
 
 /// BareMetalAdminPortConfig is the specification of load balancer ports.
@@ -332,7 +348,7 @@ pub struct BareMetalAdminOsEnvironmentConfig {
 pub struct BareMetalAdminPortConfig {
     /// The port that control plane hosted load balancers will listen on.
     #[serde(default, rename = "controlPlaneLoadBalancerPort")]
-    pub control_plane_load_balancer_port: Option<i32>,
+    pub control_plane_load_balancer_port: ::core::option::Option<i32>,
 }
 
 /// BareMetalAdminProxyConfig specifies the cluster proxy configuration.
@@ -340,10 +356,10 @@ pub struct BareMetalAdminPortConfig {
 pub struct BareMetalAdminProxyConfig {
     /// A list of IPs, hostnames, and domains that should skip the proxy. Examples: ["127.0.0.1", "example.com", ".corp", "localhost"].
     #[serde(default, rename = "noProxy")]
-    pub no_proxy: Option<Vec<String>>,
+    pub no_proxy: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Specifies the address of your proxy server. Examples: http://domain WARNING: Do not provide credentials in the format http://(username:password@)domain these will be rejected by the server.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Specifies the security related settings for the bare metal admin cluster.
@@ -351,7 +367,7 @@ pub struct BareMetalAdminProxyConfig {
 pub struct BareMetalAdminSecurityConfig {
     /// Configures user access to the admin cluster.
     #[serde(default)]
-    pub authorization: Option<Authorization>,
+    pub authorization: ::core::option::Option<::std::boxed::Box<Authorization>>,
 }
 
 /// BareMetalAdminStorageConfig specifies the cluster storage configuration.
@@ -359,10 +375,10 @@ pub struct BareMetalAdminSecurityConfig {
 pub struct BareMetalAdminStorageConfig {
     /// Required. Specifies the config for local PersistentVolumes backed by mounted node disks. These disks need to be formatted and mounted by the user, which can be done before or after cluster creation.
     #[serde(default, rename = "lvpNodeMountsConfig")]
-    pub lvp_node_mounts_config: Option<BareMetalLvpConfig>,
+    pub lvp_node_mounts_config: ::core::option::Option<::std::boxed::Box<BareMetalLvpConfig>>,
     /// Required. Specifies the config for local PersistentVolumes backed by subdirectories in a shared filesystem. These subdirectores are automatically created during cluster creation.
     #[serde(default, rename = "lvpShareConfig")]
-    pub lvp_share_config: Option<BareMetalLvpShareConfig>,
+    pub lvp_share_config: ::core::option::Option<::std::boxed::Box<BareMetalLvpShareConfig>>,
 }
 
 /// BareMetalAdminVipConfig for bare metal load balancer configurations.
@@ -370,7 +386,7 @@ pub struct BareMetalAdminStorageConfig {
 pub struct BareMetalAdminVipConfig {
     /// The VIP which you previously set aside for the Kubernetes API of this bare metal admin cluster.
     #[serde(default, rename = "controlPlaneVip")]
-    pub control_plane_vip: Option<String>,
+    pub control_plane_vip: ::core::option::Option<String>,
 }
 
 /// BareMetalAdminWorkloadNodeConfig specifies the workload node configurations.
@@ -378,7 +394,7 @@ pub struct BareMetalAdminVipConfig {
 pub struct BareMetalAdminWorkloadNodeConfig {
     /// The maximum number of pods a node can run. The size of the CIDR range assigned to the node will be derived from this parameter. By default 110 Pods are created per Node. Upper bound is 250 for both HA and non-HA admin cluster. Lower bound is 64 for non-HA admin cluster and 32 for HA admin cluster.
     #[serde(default, rename = "maxPodsPerNode")]
-    pub max_pods_per_node: Option<String>,
+    pub max_pods_per_node: ::core::option::Option<String>,
 }
 
 /// Represents an arg name-&gt;value pair. Only a subset of customized flags are supported. For the exact format, refer to the [API server documentation](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
@@ -386,10 +402,10 @@ pub struct BareMetalAdminWorkloadNodeConfig {
 pub struct BareMetalApiServerArgument {
     /// Required. The argument name as it appears on the API Server command line, make sure to remove the leading dashes.
     #[serde(default)]
-    pub argument: Option<String>,
+    pub argument: ::core::option::Option<String>,
     /// Required. The value of the arg as it will be passed to the API Server command line.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// BareMetalBgpLbConfig represents configuration parameters for a Border Gateway Protocol (BGP) load balancer.
@@ -397,16 +413,20 @@ pub struct BareMetalApiServerArgument {
 pub struct BareMetalBgpLbConfig {
     /// Required. AddressPools is a list of non-overlapping IP pools used by load balancer typed services. All addresses must be routable to load balancer nodes. IngressVIP must be included in the pools.
     #[serde(default, rename = "addressPools")]
-    pub address_pools: Option<Vec<BareMetalLoadBalancerAddressPool>>,
+    pub address_pools: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<BareMetalLoadBalancerAddressPool>>,
+    >,
     /// Required. BGP autonomous system number (ASN) of the cluster. This field can be updated after cluster creation.
     #[serde(default)]
-    pub asn: Option<String>,
+    pub asn: ::core::option::Option<String>,
     /// Required. The list of BGP peers that the cluster will connect to. At least one peer must be configured for each control plane node. Control plane nodes will connect to these peers to advertise the control plane VIP. The Services load balancer also uses these peers by default. This field can be updated after cluster creation.
     #[serde(default, rename = "bgpPeerConfigs")]
-    pub bgp_peer_configs: Option<Vec<BareMetalBgpPeerConfig>>,
+    pub bgp_peer_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalBgpPeerConfig>>>,
     /// Specifies the node pool running data plane load balancing. L2 connectivity is required among nodes in this pool. If missing, the control plane node pool is used for data plane load balancing.
     #[serde(default, rename = "loadBalancerNodePoolConfig")]
-    pub load_balancer_node_pool_config: Option<BareMetalLoadBalancerNodePoolConfig>,
+    pub load_balancer_node_pool_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalLoadBalancerNodePoolConfig>>,
 }
 
 /// BareMetalBgpPeerConfig represents configuration parameters for a Border Gateway Protocol (BGP) peer.
@@ -414,13 +434,13 @@ pub struct BareMetalBgpLbConfig {
 pub struct BareMetalBgpPeerConfig {
     /// Required. BGP autonomous system number (ASN) for the network that contains the external peer device.
     #[serde(default)]
-    pub asn: Option<String>,
+    pub asn: ::core::option::Option<String>,
     /// The IP address of the control plane node that connects to the external peer. If you don''t specify any control plane nodes, all control plane nodes can connect to the external peer. If you specify one or more IP addresses, only the nodes specified participate in peering sessions.
     #[serde(default, rename = "controlPlaneNodes")]
-    pub control_plane_nodes: Option<Vec<String>>,
+    pub control_plane_nodes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The IP address of the external peer device.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
 }
 
 /// Resource that represents a bare metal user cluster.
@@ -428,103 +448,105 @@ pub struct BareMetalBgpPeerConfig {
 pub struct BareMetalCluster {
     /// Required. The admin cluster this bare metal user cluster belongs to. This is the full resource name of the admin cluster''s fleet membership.
     #[serde(default, rename = "adminClusterMembership")]
-    pub admin_cluster_membership: Option<String>,
+    pub admin_cluster_membership: ::core::option::Option<String>,
     /// Output only. The resource name of the bare metal admin cluster managing this user cluster.
     #[serde(default, rename = "adminClusterName")]
-    pub admin_cluster_name: Option<String>,
+    pub admin_cluster_name: ::core::option::Option<String>,
     /// Annotations on the bare metal user cluster. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Required. The Anthos clusters on bare metal version for your user cluster.
     #[serde(default, rename = "bareMetalVersion")]
-    pub bare_metal_version: Option<String>,
+    pub bare_metal_version: ::core::option::Option<String>,
     /// Binary Authorization related configurations.
     #[serde(default, rename = "binaryAuthorization")]
-    pub binary_authorization: Option<BinaryAuthorization>,
+    pub binary_authorization: ::core::option::Option<::std::boxed::Box<BinaryAuthorization>>,
     /// Cluster operations configuration.
     #[serde(default, rename = "clusterOperations")]
-    pub cluster_operations: Option<BareMetalClusterOperationsConfig>,
+    pub cluster_operations:
+        ::core::option::Option<::std::boxed::Box<BareMetalClusterOperationsConfig>>,
     /// Required. Control plane configuration.
     #[serde(default, rename = "controlPlane")]
-    pub control_plane: Option<BareMetalControlPlaneConfig>,
+    pub control_plane: ::core::option::Option<::std::boxed::Box<BareMetalControlPlaneConfig>>,
     /// Output only. The time when the bare metal user cluster was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time when the bare metal user cluster was deleted. If the resource is not deleted, this must be empty
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// A human readable description of this bare metal user cluster.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Output only. The IP address of the bare metal user cluster''s API server.
     #[serde(default)]
-    pub endpoint: Option<String>,
+    pub endpoint: ::core::option::Option<String>,
     /// Output only. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. Allows clients to perform consistent read-modify-writes through optimistic concurrency control.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Fleet configuration for the cluster.
     #[serde(default)]
-    pub fleet: Option<Fleet>,
+    pub fleet: ::core::option::Option<::std::boxed::Box<Fleet>>,
     /// Required. Load balancer configuration.
     #[serde(default, rename = "loadBalancer")]
-    pub load_balancer: Option<BareMetalLoadBalancerConfig>,
+    pub load_balancer: ::core::option::Option<::std::boxed::Box<BareMetalLoadBalancerConfig>>,
     /// Output only. The object name of the bare metal user cluster custom resource on the associated admin cluster. This field is used to support conflicting names when enrolling existing clusters to the API. When used as a part of cluster enrollment, this field will differ from the name in the resource name. For new clusters, this field will match the user provided cluster name and be visible in the last component of the resource name. It is not modifiable. When the local name and cluster name differ, the local name is used in the admin cluster controller logs. You use the cluster name when accessing the cluster using bmctl and kubectl.
     #[serde(default, rename = "localName")]
-    pub local_name: Option<String>,
+    pub local_name: ::core::option::Option<String>,
     /// Output only. The namespace of the cluster.
     #[serde(default, rename = "localNamespace")]
-    pub local_namespace: Option<String>,
+    pub local_namespace: ::core::option::Option<String>,
     /// Maintenance configuration.
     #[serde(default, rename = "maintenanceConfig")]
-    pub maintenance_config: Option<BareMetalMaintenanceConfig>,
+    pub maintenance_config: ::core::option::Option<::std::boxed::Box<BareMetalMaintenanceConfig>>,
     /// Output only. Status of on-going maintenance tasks.
     #[serde(default, rename = "maintenanceStatus")]
-    pub maintenance_status: Option<BareMetalMaintenanceStatus>,
+    pub maintenance_status: ::core::option::Option<::std::boxed::Box<BareMetalMaintenanceStatus>>,
     /// Immutable. The bare metal user cluster resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Network configuration.
     #[serde(default, rename = "networkConfig")]
-    pub network_config: Option<BareMetalNetworkConfig>,
+    pub network_config: ::core::option::Option<::std::boxed::Box<BareMetalNetworkConfig>>,
     /// Node access related configurations.
     #[serde(default, rename = "nodeAccessConfig")]
-    pub node_access_config: Option<BareMetalNodeAccessConfig>,
+    pub node_access_config: ::core::option::Option<::std::boxed::Box<BareMetalNodeAccessConfig>>,
     /// Workload node configuration.
     #[serde(default, rename = "nodeConfig")]
-    pub node_config: Option<BareMetalWorkloadNodeConfig>,
+    pub node_config: ::core::option::Option<::std::boxed::Box<BareMetalWorkloadNodeConfig>>,
     /// OS environment related configurations.
     #[serde(default, rename = "osEnvironmentConfig")]
-    pub os_environment_config: Option<BareMetalOsEnvironmentConfig>,
+    pub os_environment_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalOsEnvironmentConfig>>,
     /// Proxy configuration.
     #[serde(default)]
-    pub proxy: Option<BareMetalProxyConfig>,
+    pub proxy: ::core::option::Option<::std::boxed::Box<BareMetalProxyConfig>>,
     /// Output only. If set, there are currently changes in flight to the bare metal user cluster.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Security related setting configuration.
     #[serde(default, rename = "securityConfig")]
-    pub security_config: Option<BareMetalSecurityConfig>,
+    pub security_config: ::core::option::Option<::std::boxed::Box<BareMetalSecurityConfig>>,
     /// Output only. The current state of the bare metal user cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "RUNNING", "RECONCILING", "STOPPING", "ERROR", "DEGRADED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Detailed cluster status.
     #[serde(default)]
-    pub status: Option<ResourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ResourceStatus>>,
     /// Required. Storage configuration.
     #[serde(default)]
-    pub storage: Option<BareMetalStorageConfig>,
+    pub storage: ::core::option::Option<::std::boxed::Box<BareMetalStorageConfig>>,
     /// Output only. The unique identifier of the bare metal user cluster.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The time when the bare metal user cluster was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The cluster upgrade policy.
     #[serde(default, rename = "upgradePolicy")]
-    pub upgrade_policy: Option<BareMetalClusterUpgradePolicy>,
+    pub upgrade_policy: ::core::option::Option<::std::boxed::Box<BareMetalClusterUpgradePolicy>>,
     /// Output only. The result of the preflight check.
     #[serde(default, rename = "validationCheck")]
-    pub validation_check: Option<ValidationCheck>,
+    pub validation_check: ::core::option::Option<::std::boxed::Box<ValidationCheck>>,
 }
 
 /// Specifies the bare metal user cluster''s observability infrastructure.
@@ -532,7 +554,7 @@ pub struct BareMetalCluster {
 pub struct BareMetalClusterOperationsConfig {
     /// Whether collection of application logs/metrics should be enabled (in addition to system logs/metrics).
     #[serde(default, rename = "enableApplicationLogs")]
-    pub enable_application_logs: Option<bool>,
+    pub enable_application_logs: ::core::option::Option<bool>,
 }
 
 /// BareMetalClusterUpgradePolicy defines the cluster upgrade policy.
@@ -540,10 +562,10 @@ pub struct BareMetalClusterOperationsConfig {
 pub struct BareMetalClusterUpgradePolicy {
     /// Output only. Pause is used to show the upgrade pause status. It''s view only for now.
     #[serde(default)]
-    pub pause: Option<bool>,
+    pub pause: ::core::option::Option<bool>,
     /// Specifies which upgrade policy to use. // TODO: enum values: ["NODE_POOL_POLICY_UNSPECIFIED", "SERIAL", "CONCURRENT"]
     #[serde(default)]
-    pub policy: Option<String>,
+    pub policy: ::core::option::Option<String>,
 }
 
 /// Specifies the control plane configuration.
@@ -551,10 +573,12 @@ pub struct BareMetalClusterUpgradePolicy {
 pub struct BareMetalControlPlaneConfig {
     /// Customizes the default API server args. Only a subset of customized flags are supported. For the exact format, refer to the [API server documentation](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
     #[serde(default, rename = "apiServerArgs")]
-    pub api_server_args: Option<Vec<BareMetalApiServerArgument>>,
+    pub api_server_args:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalApiServerArgument>>>,
     /// Required. Configures the node pool running the control plane.
     #[serde(default, rename = "controlPlaneNodePoolConfig")]
-    pub control_plane_node_pool_config: Option<BareMetalControlPlaneNodePoolConfig>,
+    pub control_plane_node_pool_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalControlPlaneNodePoolConfig>>,
 }
 
 /// Specifies the control plane node pool configuration.
@@ -562,7 +586,7 @@ pub struct BareMetalControlPlaneConfig {
 pub struct BareMetalControlPlaneNodePoolConfig {
     /// Required. The generic configuration for a node pool running the control plane.
     #[serde(default, rename = "nodePoolConfig")]
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
+    pub node_pool_config: ::core::option::Option<::std::boxed::Box<BareMetalNodePoolConfig>>,
 }
 
 /// Represents a machine that is currently drained.
@@ -570,7 +594,7 @@ pub struct BareMetalControlPlaneNodePoolConfig {
 pub struct BareMetalDrainedMachine {
     /// Drained machine IP address.
     #[serde(default, rename = "nodeIp")]
-    pub node_ip: Option<String>,
+    pub node_ip: ::core::option::Option<String>,
 }
 
 /// Represents a machine that is currently draining.
@@ -578,10 +602,10 @@ pub struct BareMetalDrainedMachine {
 pub struct BareMetalDrainingMachine {
     /// Draining machine IP address.
     #[serde(default, rename = "nodeIp")]
-    pub node_ip: Option<String>,
+    pub node_ip: ::core::option::Option<String>,
     /// The count of pods yet to drain.
     #[serde(default, rename = "podCount")]
-    pub pod_count: Option<i32>,
+    pub pod_count: ::core::option::Option<i32>,
 }
 
 /// Specifies the cluster CIDR configuration while running in island mode.
@@ -589,10 +613,10 @@ pub struct BareMetalDrainingMachine {
 pub struct BareMetalIslandModeCidrConfig {
     /// Required. All pods in the cluster are assigned an RFC1918 IPv4 address from these ranges. This field cannot be changed after creation.
     #[serde(default, rename = "podAddressCidrBlocks")]
-    pub pod_address_cidr_blocks: Option<Vec<String>>,
+    pub pod_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. All services in the cluster are assigned an RFC1918 IPv4 address from these ranges. This field is mutable after creation starting with version 1.15.
     #[serde(default, rename = "serviceAddressCidrBlocks")]
-    pub service_address_cidr_blocks: Option<Vec<String>>,
+    pub service_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).
@@ -600,13 +624,13 @@ pub struct BareMetalIslandModeCidrConfig {
 pub struct BareMetalKubeletConfig {
     /// The maximum size of bursty pulls, temporarily allows pulls to burst to this number, while still not exceeding registry_pull_qps. The value must not be a negative number. Updating this field may impact scalability by changing the amount of traffic produced by image pulls. Defaults to 10.
     #[serde(default, rename = "registryBurst")]
-    pub registry_burst: Option<i32>,
+    pub registry_burst: ::core::option::Option<i32>,
     /// The limit of registry pulls per second. Setting this value to 0 means no limit. Updating this field may impact scalability by changing the amount of traffic produced by image pulls. Defaults to 5.
     #[serde(default, rename = "registryPullQps")]
-    pub registry_pull_qps: Option<i32>,
+    pub registry_pull_qps: ::core::option::Option<i32>,
     /// Prevents the Kubelet from pulling multiple images at a time. We recommend *not* changing the default value on nodes that run docker daemon with version &lt; 1.9 or an Another Union File System (Aufs) storage backend. Issue https://github.com/kubernetes/kubernetes/issues/10959 has more details.
     #[serde(default, rename = "serializeImagePullsDisabled")]
-    pub serialize_image_pulls_disabled: Option<bool>,
+    pub serialize_image_pulls_disabled: ::core::option::Option<bool>,
 }
 
 /// Represents an IP pool used by the load balancer.
@@ -614,16 +638,16 @@ pub struct BareMetalKubeletConfig {
 pub struct BareMetalLoadBalancerAddressPool {
     /// Required. The addresses that are part of this pool. Each address must be either in the CIDR form (1.2.3.0/24) or range form (1.2.3.1-1.2.3.5).
     #[serde(default)]
-    pub addresses: Option<Vec<String>>,
+    pub addresses: ::core::option::Option<::std::vec::Vec<String>>,
     /// If true, avoid using IPs ending in .0 or .255. This avoids buggy consumer devices mistakenly dropping IPv4 traffic for those special IP addresses.
     #[serde(default, rename = "avoidBuggyIps")]
-    pub avoid_buggy_ips: Option<bool>,
+    pub avoid_buggy_ips: ::core::option::Option<bool>,
     /// If true, prevent IP addresses from being automatically assigned.
     #[serde(default, rename = "manualAssign")]
-    pub manual_assign: Option<bool>,
+    pub manual_assign: ::core::option::Option<bool>,
     /// Required. The name of the address pool.
     #[serde(default)]
-    pub pool: Option<String>,
+    pub pool: ::core::option::Option<String>,
 }
 
 /// Specifies the load balancer configuration.
@@ -631,19 +655,19 @@ pub struct BareMetalLoadBalancerAddressPool {
 pub struct BareMetalLoadBalancerConfig {
     /// Configuration for BGP typed load balancers. When set network_config.advanced_networking is automatically set to true.
     #[serde(default, rename = "bgpLbConfig")]
-    pub bgp_lb_config: Option<BareMetalBgpLbConfig>,
+    pub bgp_lb_config: ::core::option::Option<::std::boxed::Box<BareMetalBgpLbConfig>>,
     /// Manually configured load balancers.
     #[serde(default, rename = "manualLbConfig")]
-    pub manual_lb_config: Option<BareMetalManualLbConfig>,
+    pub manual_lb_config: ::core::option::Option<::std::boxed::Box<BareMetalManualLbConfig>>,
     /// Configuration for MetalLB load balancers.
     #[serde(default, rename = "metalLbConfig")]
-    pub metal_lb_config: Option<BareMetalMetalLbConfig>,
+    pub metal_lb_config: ::core::option::Option<::std::boxed::Box<BareMetalMetalLbConfig>>,
     /// Configures the ports that the load balancer will listen on.
     #[serde(default, rename = "portConfig")]
-    pub port_config: Option<BareMetalPortConfig>,
+    pub port_config: ::core::option::Option<::std::boxed::Box<BareMetalPortConfig>>,
     /// The VIPs used by the load balancer.
     #[serde(default, rename = "vipConfig")]
-    pub vip_config: Option<BareMetalVipConfig>,
+    pub vip_config: ::core::option::Option<::std::boxed::Box<BareMetalVipConfig>>,
 }
 
 /// Specifies the load balancer''s node pool configuration.
@@ -651,7 +675,7 @@ pub struct BareMetalLoadBalancerConfig {
 pub struct BareMetalLoadBalancerNodePoolConfig {
     /// The generic configuration for a node pool running a load balancer.
     #[serde(default, rename = "nodePoolConfig")]
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
+    pub node_pool_config: ::core::option::Option<::std::boxed::Box<BareMetalNodePoolConfig>>,
 }
 
 /// Specifies the configs for local persistent volumes (PVs).
@@ -659,10 +683,10 @@ pub struct BareMetalLoadBalancerNodePoolConfig {
 pub struct BareMetalLvpConfig {
     /// Required. The host machine path.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
     /// Required. The StorageClass name that PVs will be created with.
     #[serde(default, rename = "storageClass")]
-    pub storage_class: Option<String>,
+    pub storage_class: ::core::option::Option<String>,
 }
 
 /// Specifies the configs for local persistent volumes under a shared file system.
@@ -670,10 +694,10 @@ pub struct BareMetalLvpConfig {
 pub struct BareMetalLvpShareConfig {
     /// Required. Defines the machine path and storage class for the LVP Share.
     #[serde(default, rename = "lvpConfig")]
-    pub lvp_config: Option<BareMetalLvpConfig>,
+    pub lvp_config: ::core::option::Option<::std::boxed::Box<BareMetalLvpConfig>>,
     /// The number of subdirectories to create under path.
     #[serde(default, rename = "sharedPathPvCount")]
-    pub shared_path_pv_count: Option<i32>,
+    pub shared_path_pv_count: ::core::option::Option<i32>,
 }
 
 /// Represents the status of node machines that are undergoing drain operations.
@@ -681,10 +705,12 @@ pub struct BareMetalLvpShareConfig {
 pub struct BareMetalMachineDrainStatus {
     /// The list of drained machines.
     #[serde(default, rename = "drainedMachines")]
-    pub drained_machines: Option<Vec<BareMetalDrainedMachine>>,
+    pub drained_machines:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalDrainedMachine>>>,
     /// The list of draning machines.
     #[serde(default, rename = "drainingMachines")]
-    pub draining_machines: Option<Vec<BareMetalDrainingMachine>>,
+    pub draining_machines:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalDrainingMachine>>>,
 }
 
 /// Specifies configurations to put bare metal nodes in and out of maintenance.
@@ -692,7 +718,7 @@ pub struct BareMetalMachineDrainStatus {
 pub struct BareMetalMaintenanceConfig {
     /// Required. All IPv4 address from these ranges will be placed into maintenance mode. Nodes in maintenance mode will be cordoned and drained. When both of these are true, the "baremetal.cluster.gke.io/maintenance" annotation will be set on the node resource.
     #[serde(default, rename = "maintenanceAddressCidrBlocks")]
-    pub maintenance_address_cidr_blocks: Option<Vec<String>>,
+    pub maintenance_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents the maintenance status of the bare metal user cluster.
@@ -700,7 +726,8 @@ pub struct BareMetalMaintenanceConfig {
 pub struct BareMetalMaintenanceStatus {
     /// The maintenance status of node machines.
     #[serde(default, rename = "machineDrainStatus")]
-    pub machine_drain_status: Option<BareMetalMachineDrainStatus>,
+    pub machine_drain_status:
+        ::core::option::Option<::std::boxed::Box<BareMetalMachineDrainStatus>>,
 }
 
 /// Represents configuration parameters for a manual load balancer.
@@ -708,7 +735,7 @@ pub struct BareMetalMaintenanceStatus {
 pub struct BareMetalManualLbConfig {
     /// Whether manual load balancing is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Represents configuration parameters for a MetalLB load balancer.
@@ -716,10 +743,13 @@ pub struct BareMetalManualLbConfig {
 pub struct BareMetalMetalLbConfig {
     /// Required. AddressPools is a list of non-overlapping IP pools used by load balancer typed services. All addresses must be routable to load balancer nodes. IngressVIP must be included in the pools.
     #[serde(default, rename = "addressPools")]
-    pub address_pools: Option<Vec<BareMetalLoadBalancerAddressPool>>,
+    pub address_pools: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<BareMetalLoadBalancerAddressPool>>,
+    >,
     /// Specifies the node pool running the load balancer. L2 connectivity is required among nodes in this pool. If missing, the control plane node pool is used as the load balancer pool.
     #[serde(default, rename = "loadBalancerNodePoolConfig")]
-    pub load_balancer_node_pool_config: Option<BareMetalLoadBalancerNodePoolConfig>,
+    pub load_balancer_node_pool_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalLoadBalancerNodePoolConfig>>,
 }
 
 /// Specifies the multiple networking interfaces cluster configuration.
@@ -727,7 +757,7 @@ pub struct BareMetalMetalLbConfig {
 pub struct BareMetalMultipleNetworkInterfacesConfig {
     /// Whether to enable multiple network interfaces for your pods. When set network_config.advanced_networking is automatically set to true.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Specifies the cluster network configuration.
@@ -735,16 +765,17 @@ pub struct BareMetalMultipleNetworkInterfacesConfig {
 pub struct BareMetalNetworkConfig {
     /// Enables the use of advanced Anthos networking features, such as Bundled Load Balancing with BGP or the egress NAT gateway. Setting configuration for advanced networking features will automatically set this flag.
     #[serde(default, rename = "advancedNetworking")]
-    pub advanced_networking: Option<bool>,
+    pub advanced_networking: ::core::option::Option<bool>,
     /// Configuration for island mode CIDR. In an island-mode network, nodes have unique IP addresses, but pods don''t have unique addresses across clusters. This doesn''t cause problems because pods in one cluster never directly communicate with pods in another cluster. Instead, there are gateways that mediate between a pod in one cluster and a pod in another cluster.
     #[serde(default, rename = "islandModeCidr")]
-    pub island_mode_cidr: Option<BareMetalIslandModeCidrConfig>,
+    pub island_mode_cidr: ::core::option::Option<::std::boxed::Box<BareMetalIslandModeCidrConfig>>,
     /// Configuration for multiple network interfaces.
     #[serde(default, rename = "multipleNetworkInterfacesConfig")]
-    pub multiple_network_interfaces_config: Option<BareMetalMultipleNetworkInterfacesConfig>,
+    pub multiple_network_interfaces_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalMultipleNetworkInterfacesConfig>>,
     /// Configuration for SR-IOV.
     #[serde(default, rename = "srIovConfig")]
-    pub sr_iov_config: Option<BareMetalSrIovConfig>,
+    pub sr_iov_config: ::core::option::Option<::std::boxed::Box<BareMetalSrIovConfig>>,
 }
 
 /// Specifies the node access related settings for the bare metal user cluster.
@@ -752,7 +783,7 @@ pub struct BareMetalNetworkConfig {
 pub struct BareMetalNodeAccessConfig {
     /// LoginUser is the user name used to access node machines. It defaults to "root" if not set.
     #[serde(default, rename = "loginUser")]
-    pub login_user: Option<String>,
+    pub login_user: ::core::option::Option<String>,
 }
 
 /// BareMetalNodeConfig lists machine addresses to access Nodes.
@@ -760,10 +791,10 @@ pub struct BareMetalNodeAccessConfig {
 pub struct BareMetalNodeConfig {
     /// The labels assigned to this node. An object containing a list of key/value pairs. The labels here, unioned with the labels set on BareMetalNodePoolConfig are the set of labels that will be applied to the node. If there are any conflicts, the BareMetalNodeConfig labels take precedence. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The default IPv4 address for SSH access and Kubernetes node. Example: 192.168.0.1
     #[serde(default, rename = "nodeIp")]
-    pub node_ip: Option<String>,
+    pub node_ip: ::core::option::Option<String>,
 }
 
 /// Resource that represents a bare metal node pool.
@@ -771,43 +802,43 @@ pub struct BareMetalNodeConfig {
 pub struct BareMetalNodePool {
     /// Annotations on the bare metal node pool. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Output only. The time at which this bare metal node pool was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time at which this bare metal node pool was deleted. If the resource is not deleted, this must be empty
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// The display name for the bare metal node pool.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. Allows clients to perform consistent read-modify-writes through optimistic concurrency control.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Immutable. The bare metal node pool resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Node pool configuration.
     #[serde(default, rename = "nodePoolConfig")]
-    pub node_pool_config: Option<BareMetalNodePoolConfig>,
+    pub node_pool_config: ::core::option::Option<::std::boxed::Box<BareMetalNodePoolConfig>>,
     /// Output only. If set, there are currently changes in flight to the bare metal node pool.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of the bare metal node pool. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "RUNNING", "RECONCILING", "STOPPING", "ERROR", "DEGRADED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. ResourceStatus representing the detailed node pool status.
     #[serde(default)]
-    pub status: Option<ResourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ResourceStatus>>,
     /// Output only. The unique identifier of the bare metal node pool.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The time at which this bare metal node pool was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// The worker node pool upgrade policy.
     #[serde(default, rename = "upgradePolicy")]
-    pub upgrade_policy: Option<BareMetalNodePoolUpgradePolicy>,
+    pub upgrade_policy: ::core::option::Option<::std::boxed::Box<BareMetalNodePoolUpgradePolicy>>,
 }
 
 /// BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.
@@ -815,19 +846,20 @@ pub struct BareMetalNodePool {
 pub struct BareMetalNodePoolConfig {
     /// The modifiable kubelet configurations for the bare metal machines.
     #[serde(default, rename = "kubeletConfig")]
-    pub kubelet_config: Option<BareMetalKubeletConfig>,
+    pub kubelet_config: ::core::option::Option<::std::boxed::Box<BareMetalKubeletConfig>>,
     /// The labels assigned to nodes of this node pool. An object containing a list of key/value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. The list of machine addresses in the bare metal node pool.
     #[serde(default, rename = "nodeConfigs")]
-    pub node_configs: Option<Vec<BareMetalNodeConfig>>,
+    pub node_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalNodeConfig>>>,
     /// Specifies the nodes operating system (default: LINUX). // TODO: enum values: ["OPERATING_SYSTEM_UNSPECIFIED", "LINUX"]
     #[serde(default, rename = "operatingSystem")]
-    pub operating_system: Option<String>,
+    pub operating_system: ::core::option::Option<String>,
     /// The initial taints assigned to nodes of this node pool.
     #[serde(default)]
-    pub taints: Option<Vec<NodeTaint>>,
+    pub taints: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NodeTaint>>>,
 }
 
 /// BareMetalNodePoolUpgradePolicy defines the node pool upgrade policy.
@@ -835,7 +867,8 @@ pub struct BareMetalNodePoolConfig {
 pub struct BareMetalNodePoolUpgradePolicy {
     /// The parallel upgrade settings for worker node pools.
     #[serde(default, rename = "parallelUpgradeConfig")]
-    pub parallel_upgrade_config: Option<BareMetalParallelUpgradeConfig>,
+    pub parallel_upgrade_config:
+        ::core::option::Option<::std::boxed::Box<BareMetalParallelUpgradeConfig>>,
 }
 
 /// Specifies operating system settings for cluster provisioning.
@@ -843,7 +876,7 @@ pub struct BareMetalNodePoolUpgradePolicy {
 pub struct BareMetalOsEnvironmentConfig {
     /// Whether the package repo should not be included when initializing bare metal machines.
     #[serde(default, rename = "packageRepoExcluded")]
-    pub package_repo_excluded: Option<bool>,
+    pub package_repo_excluded: ::core::option::Option<bool>,
 }
 
 /// BareMetalParallelUpgradeConfig defines the parallel upgrade settings for worker node pools.
@@ -851,10 +884,10 @@ pub struct BareMetalOsEnvironmentConfig {
 pub struct BareMetalParallelUpgradeConfig {
     /// The maximum number of nodes that can be upgraded at once.
     #[serde(default, rename = "concurrentNodes")]
-    pub concurrent_nodes: Option<i32>,
+    pub concurrent_nodes: ::core::option::Option<i32>,
     /// The minimum number of nodes that should be healthy and available during an upgrade. If set to the default value of 0, it is possible that none of the nodes will be available during an upgrade.
     #[serde(default, rename = "minimumAvailableNodes")]
-    pub minimum_available_nodes: Option<i32>,
+    pub minimum_available_nodes: ::core::option::Option<i32>,
 }
 
 /// Specifies load balancer ports for the bare metal user cluster.
@@ -862,7 +895,7 @@ pub struct BareMetalParallelUpgradeConfig {
 pub struct BareMetalPortConfig {
     /// The port that control plane hosted load balancers will listen on.
     #[serde(default, rename = "controlPlaneLoadBalancerPort")]
-    pub control_plane_load_balancer_port: Option<i32>,
+    pub control_plane_load_balancer_port: ::core::option::Option<i32>,
 }
 
 /// Specifies the cluster proxy configuration.
@@ -870,10 +903,10 @@ pub struct BareMetalPortConfig {
 pub struct BareMetalProxyConfig {
     /// A list of IPs, hostnames, and domains that should skip the proxy. Examples: ["127.0.0.1", "example.com", ".corp", "localhost"].
     #[serde(default, rename = "noProxy")]
-    pub no_proxy: Option<Vec<String>>,
+    pub no_proxy: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Specifies the address of your proxy server. Examples: http://domain Do not provide credentials in the format http://(username:password@)domain these will be rejected by the server.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Specifies the security related settings for the bare metal user cluster.
@@ -881,7 +914,7 @@ pub struct BareMetalProxyConfig {
 pub struct BareMetalSecurityConfig {
     /// Configures user access to the user cluster.
     #[serde(default)]
-    pub authorization: Option<Authorization>,
+    pub authorization: ::core::option::Option<::std::boxed::Box<Authorization>>,
 }
 
 /// Specifies the SR-IOV networking operator config.
@@ -889,7 +922,7 @@ pub struct BareMetalSecurityConfig {
 pub struct BareMetalSrIovConfig {
     /// Whether to install the SR-IOV operator.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// BareMetalStorageConfig specifies the cluster storage configuration.
@@ -897,10 +930,10 @@ pub struct BareMetalSrIovConfig {
 pub struct BareMetalStorageConfig {
     /// Required. Specifies the config for local PersistentVolumes backed by mounted node disks. These disks need to be formatted and mounted by the user, which can be done before or after cluster creation.
     #[serde(default, rename = "lvpNodeMountsConfig")]
-    pub lvp_node_mounts_config: Option<BareMetalLvpConfig>,
+    pub lvp_node_mounts_config: ::core::option::Option<::std::boxed::Box<BareMetalLvpConfig>>,
     /// Required. Specifies the config for local PersistentVolumes backed by subdirectories in a shared filesystem. These subdirectores are automatically created during cluster creation.
     #[serde(default, rename = "lvpShareConfig")]
-    pub lvp_share_config: Option<BareMetalLvpShareConfig>,
+    pub lvp_share_config: ::core::option::Option<::std::boxed::Box<BareMetalLvpShareConfig>>,
 }
 
 /// Contains information about a specific Anthos on bare metal version.
@@ -908,13 +941,13 @@ pub struct BareMetalStorageConfig {
 pub struct BareMetalVersionInfo {
     /// The list of upgrade dependencies for this version.
     #[serde(default)]
-    pub dependencies: Option<Vec<UpgradeDependency>>,
+    pub dependencies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UpgradeDependency>>>,
     /// If set, the cluster dependencies (e.g. the admin cluster, other user clusters managed by the same admin cluster, version skew policy, etc) must be upgraded before this version can be installed or upgraded to.
     #[serde(default, rename = "hasDependencies")]
-    pub has_dependencies: Option<bool>,
+    pub has_dependencies: ::core::option::Option<bool>,
     /// Version number e.g. 1.13.1.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Specifies the VIP config for the bare metal load balancer.
@@ -922,10 +955,10 @@ pub struct BareMetalVersionInfo {
 pub struct BareMetalVipConfig {
     /// The VIP which you previously set aside for the Kubernetes API of this bare metal user cluster.
     #[serde(default, rename = "controlPlaneVip")]
-    pub control_plane_vip: Option<String>,
+    pub control_plane_vip: ::core::option::Option<String>,
     /// The VIP which you previously set aside for ingress traffic into this bare metal user cluster.
     #[serde(default, rename = "ingressVip")]
-    pub ingress_vip: Option<String>,
+    pub ingress_vip: ::core::option::Option<String>,
 }
 
 /// Specifies the workload node configurations.
@@ -933,10 +966,10 @@ pub struct BareMetalVipConfig {
 pub struct BareMetalWorkloadNodeConfig {
     /// Specifies which container runtime will be used. // TODO: enum values: ["CONTAINER_RUNTIME_UNSPECIFIED", "CONTAINERD"]
     #[serde(default, rename = "containerRuntime")]
-    pub container_runtime: Option<String>,
+    pub container_runtime: ::core::option::Option<String>,
     /// The maximum number of pods a node can run. The size of the CIDR range assigned to the node will be derived from this parameter.
     #[serde(default, rename = "maxPodsPerNode")]
-    pub max_pods_per_node: Option<String>,
+    pub max_pods_per_node: ::core::option::Option<String>,
 }
 
 /// Configuration for Binary Authorization.
@@ -944,7 +977,7 @@ pub struct BareMetalWorkloadNodeConfig {
 pub struct BinaryAuthorization {
     /// Mode of operation for binauthz policy evaluation. If unspecified, defaults to DISABLED. // TODO: enum values: ["EVALUATION_MODE_UNSPECIFIED", "DISABLED", "PROJECT_SINGLETON_POLICY_ENFORCE"]
     #[serde(default, rename = "evaluationMode")]
-    pub evaluation_mode: Option<String>,
+    pub evaluation_mode: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -952,13 +985,13 @@ pub struct BinaryAuthorization {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// ClusterUser configures user principals for an RBAC policy.
@@ -966,7 +999,7 @@ pub struct Binding {
 pub struct ClusterUser {
     /// Required. The name of the user, e.g. my-gcp-id@gmail.com.
     #[serde(default)]
-    pub username: Option<String>,
+    pub username: ::core::option::Option<String>,
 }
 
 /// Message for enrolling an existing bare metal admin cluster to the GKE on-prem API.
@@ -974,10 +1007,10 @@ pub struct ClusterUser {
 pub struct EnrollBareMetalAdminClusterRequest {
     /// User provided OnePlatform identifier that is used as part of the resource name. This must be unique among all GKE on-prem clusters within a project and location and will return a 409 if the cluster already exists. (https://tools.ietf.org/html/rfc1123) format.
     #[serde(default, rename = "bareMetalAdminClusterId")]
-    pub bare_metal_admin_cluster_id: Option<String>,
+    pub bare_metal_admin_cluster_id: ::core::option::Option<String>,
     /// Required. This is the full resource name of this admin cluster''s fleet membership.
     #[serde(default)]
-    pub membership: Option<String>,
+    pub membership: ::core::option::Option<String>,
 }
 
 /// Message for enrolling an existing bare metal cluster to the Anthos On-Prem API.
@@ -985,16 +1018,16 @@ pub struct EnrollBareMetalAdminClusterRequest {
 pub struct EnrollBareMetalClusterRequest {
     /// Required. The admin cluster this bare metal user cluster belongs to. This is the full resource name of the admin cluster''s fleet membership. In the future, references to other resource types might be allowed if admin clusters are modeled as their own resources.
     #[serde(default, rename = "adminClusterMembership")]
-    pub admin_cluster_membership: Option<String>,
+    pub admin_cluster_membership: ::core::option::Option<String>,
     /// User provided OnePlatform identifier that is used as part of the resource name. This must be unique among all bare metal clusters within a project and location and will return a 409 if the cluster already exists. (https://tools.ietf.org/html/rfc1123) format.
     #[serde(default, rename = "bareMetalClusterId")]
-    pub bare_metal_cluster_id: Option<String>,
+    pub bare_metal_cluster_id: ::core::option::Option<String>,
     /// Optional. The object name of the bare metal cluster custom resource on the associated admin cluster. This field is used to support conflicting resource names when enrolling existing clusters to the API. When not provided, this field will resolve to the bare_metal_cluster_id. Otherwise, it must match the object name of the bare metal cluster custom resource. It is not modifiable outside / beyond the enrollment operation.
     #[serde(default, rename = "localName")]
-    pub local_name: Option<String>,
+    pub local_name: ::core::option::Option<String>,
     /// Optional. The namespace of the cluster.
     #[serde(default, rename = "localNamespace")]
-    pub local_namespace: Option<String>,
+    pub local_namespace: ::core::option::Option<String>,
 }
 
 /// Message for enrolling an existing bare metal node pool to the GKE on-prem API.
@@ -1002,10 +1035,10 @@ pub struct EnrollBareMetalClusterRequest {
 pub struct EnrollBareMetalNodePoolRequest {
     /// User provided OnePlatform identifier that is used as part of the resource name. (https://tools.ietf.org/html/rfc1123) format.
     #[serde(default, rename = "bareMetalNodePoolId")]
-    pub bare_metal_node_pool_id: Option<String>,
+    pub bare_metal_node_pool_id: ::core::option::Option<String>,
     /// If set, only validate the request, but do not actually enroll the node pool.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
 }
 
 /// Message for enrolling an existing VMware admin cluster to the GKE on-prem API.
@@ -1013,10 +1046,10 @@ pub struct EnrollBareMetalNodePoolRequest {
 pub struct EnrollVmwareAdminClusterRequest {
     /// Required. This is the full resource name of this admin cluster''s fleet membership.
     #[serde(default)]
-    pub membership: Option<String>,
+    pub membership: ::core::option::Option<String>,
     /// User provided OnePlatform identifier that is used as part of the resource name. This must be unique among all GKE on-prem clusters within a project and location and will return a 409 if the cluster already exists. (https://tools.ietf.org/html/rfc1123) format.
     #[serde(default, rename = "vmwareAdminClusterId")]
-    pub vmware_admin_cluster_id: Option<String>,
+    pub vmware_admin_cluster_id: ::core::option::Option<String>,
 }
 
 /// Message for enrolling an existing VMware cluster to the Anthos On-Prem API.
@@ -1024,16 +1057,16 @@ pub struct EnrollVmwareAdminClusterRequest {
 pub struct EnrollVmwareClusterRequest {
     /// Required. The admin cluster this VMware user cluster belongs to. This is the full resource name of the admin cluster''s fleet membership. In the future, references to other resource types might be allowed if admin clusters are modeled as their own resources.
     #[serde(default, rename = "adminClusterMembership")]
-    pub admin_cluster_membership: Option<String>,
+    pub admin_cluster_membership: ::core::option::Option<String>,
     /// Optional. The object name of the VMware OnPremUserCluster custom resource on the associated admin cluster. This field is used to support conflicting resource names when enrolling existing clusters to the API. When not provided, this field will resolve to the vmware_cluster_id. Otherwise, it must match the object name of the VMware OnPremUserCluster custom resource. It is not modifiable outside / beyond the enrollment operation.
     #[serde(default, rename = "localName")]
-    pub local_name: Option<String>,
+    pub local_name: ::core::option::Option<String>,
     /// Validate the request without actually doing any updates.
     #[serde(default, rename = "validateOnly")]
-    pub validate_only: Option<bool>,
+    pub validate_only: ::core::option::Option<bool>,
     /// User provided OnePlatform identifier that is used as part of the resource name. This must be unique among all GKE on-prem clusters within a project and location and will return a 409 if the cluster already exists. (https://tools.ietf.org/html/rfc1123) format.
     #[serde(default, rename = "vmwareClusterId")]
-    pub vmware_cluster_id: Option<String>,
+    pub vmware_cluster_id: ::core::option::Option<String>,
 }
 
 /// Message for enrolling a VMware node pool.
@@ -1041,7 +1074,7 @@ pub struct EnrollVmwareClusterRequest {
 pub struct EnrollVmwareNodePoolRequest {
     /// The target node pool id to be enrolled.
     #[serde(default, rename = "vmwareNodePoolId")]
-    pub vmware_node_pool_id: Option<String>,
+    pub vmware_node_pool_id: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -1049,16 +1082,16 @@ pub struct EnrollVmwareNodePoolRequest {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Fleet related configuration. Fleets are a Google Cloud concept for logically organizing clusters, letting you use and manage multi-cluster capabilities and apply consistent policies across your systems. See [Anthos Fleets](https://cloud.google.com/anthos/multicluster-management/fleets) for more details on Anthos multi-cluster capabilities using Fleets. ##
@@ -1066,7 +1099,7 @@ pub struct Expr {
 pub struct Fleet {
     /// Output only. The name of the managed fleet Membership resource associated to this cluster. Membership names are formatted as projects//locations//memberships/.
     #[serde(default)]
-    pub membership: Option<String>,
+    pub membership: ::core::option::Option<String>,
 }
 
 /// Response message for listing bare metal admin clusters.
@@ -1074,13 +1107,14 @@ pub struct Fleet {
 pub struct ListBareMetalAdminClustersResponse {
     /// The list of bare metal admin cluster.
     #[serde(default, rename = "bareMetalAdminClusters")]
-    pub bare_metal_admin_clusters: Option<Vec<BareMetalAdminCluster>>,
+    pub bare_metal_admin_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalAdminCluster>>>,
     /// A token identifying a page of results the server should return. If the token is not empty this means that more results are available and should be retrieved by repeating the request with the provided page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for listing bare metal Clusters.
@@ -1088,13 +1122,14 @@ pub struct ListBareMetalAdminClustersResponse {
 pub struct ListBareMetalClustersResponse {
     /// The list of bare metal Clusters.
     #[serde(default, rename = "bareMetalClusters")]
-    pub bare_metal_clusters: Option<Vec<BareMetalCluster>>,
+    pub bare_metal_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalCluster>>>,
     /// A token identifying a page of results the server should return. If the token is not empty this means that more results are available and should be retrieved by repeating the request with the provided page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for listing bare metal node pools.
@@ -1102,13 +1137,14 @@ pub struct ListBareMetalClustersResponse {
 pub struct ListBareMetalNodePoolsResponse {
     /// The node pools from the specified parent resource.
     #[serde(default, rename = "bareMetalNodePools")]
-    pub bare_metal_node_pools: Option<Vec<BareMetalNodePool>>,
+    pub bare_metal_node_pools:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalNodePool>>>,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1116,10 +1152,10 @@ pub struct ListBareMetalNodePoolsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1127,13 +1163,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for listing VMware admin clusters.
@@ -1141,13 +1177,14 @@ pub struct ListOperationsResponse {
 pub struct ListVmwareAdminClustersResponse {
     /// A token identifying a page of results the server should return. If the token is not empty this means that more results are available and should be retrieved by repeating the request with the provided page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of VMware admin cluster.
     #[serde(default, rename = "vmwareAdminClusters")]
-    pub vmware_admin_clusters: Option<Vec<VmwareAdminCluster>>,
+    pub vmware_admin_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareAdminCluster>>>,
 }
 
 /// Response message for listing VMware Clusters.
@@ -1155,13 +1192,13 @@ pub struct ListVmwareAdminClustersResponse {
 pub struct ListVmwareClustersResponse {
     /// A token identifying a page of results the server should return. If the token is not empty this means that more results are available and should be retrieved by repeating the request with the provided page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// The list of VMware Cluster.
     #[serde(default, rename = "vmwareClusters")]
-    pub vmware_clusters: Option<Vec<VmwareCluster>>,
+    pub vmware_clusters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareCluster>>>,
 }
 
 /// Response message for listing VMware node pools.
@@ -1169,13 +1206,14 @@ pub struct ListVmwareClustersResponse {
 pub struct ListVmwareNodePoolsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
     /// The node pools from the specified parent resource.
     #[serde(default, rename = "vmwareNodePools")]
-    pub vmware_node_pools: Option<Vec<VmwareNodePool>>,
+    pub vmware_node_pools:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareNodePool>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1183,19 +1221,19 @@ pub struct ListVmwareNodePoolsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Progress metric is (string, int|float|string) pair.
@@ -1203,16 +1241,16 @@ pub struct Location {
 pub struct Metric {
     /// For metrics with floating point value.
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// For metrics with integer value.
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     /// Required. The metric name. // TODO: enum values: ["METRIC_ID_UNSPECIFIED", "NODES_TOTAL", "NODES_DRAINING", "NODES_UPGRADING", "NODES_PENDING_UPGRADE", "NODES_UPGRADED", "NODES_FAILED", "NODES_HEALTHY", "NODES_RECONCILING", "NODES_IN_MAINTENANCE", "PREFLIGHTS_COMPLETED", "PREFLIGHTS_RUNNING", "PREFLIGHTS_FAILED", "PREFLIGHTS_TOTAL"]
     #[serde(default)]
-    pub metric: Option<String>,
+    pub metric: ::core::option::Option<String>,
     /// For metrics with custom values (ratios, visual progress, etc.).
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
 }
 
 /// NodeTaint applied to every Kubernetes node in a node pool. Kubernetes taints can be used together with tolerations to control how workloads are scheduled to your nodes. Node taints are permanent.
@@ -1220,13 +1258,13 @@ pub struct Metric {
 pub struct NodeTaint {
     /// The taint effect. // TODO: enum values: ["EFFECT_UNSPECIFIED", "NO_SCHEDULE", "PREFER_NO_SCHEDULE", "NO_EXECUTE"]
     #[serde(default)]
-    pub effect: Option<String>,
+    pub effect: ::core::option::Option<String>,
     /// Key associated with the effect.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Value associated with the effect.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1234,19 +1272,19 @@ pub struct NodeTaint {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1254,34 +1292,34 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. Denotes if the local managing cluster''s control plane is currently disconnected. This is expected to occur temporarily during self-managed cluster upgrades.
     #[serde(default, rename = "controlPlaneDisconnected")]
-    pub control_plane_disconnected: Option<bool>,
+    pub control_plane_disconnected: ::core::option::Option<bool>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Detailed progress information for the operation.
     #[serde(default)]
-    pub progress: Option<OperationProgress>,
+    pub progress: ::core::option::Option<::std::boxed::Box<OperationProgress>>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have [Operation.error] value with a [google.rpc.Status.code] of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Type of operation being executed. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "CREATE", "DELETE", "UPDATE", "UPGRADE", "PLATFORM_UPGRADE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Information about operation progress.
@@ -1289,7 +1327,7 @@ pub struct OperationMetadata {
 pub struct OperationProgress {
     /// The stages of the operation.
     #[serde(default)]
-    pub stages: Option<Vec<OperationStage>>,
+    pub stages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OperationStage>>>,
 }
 
 /// Information about a particular stage of an operation.
@@ -1297,19 +1335,19 @@ pub struct OperationProgress {
 pub struct OperationStage {
     /// Time the stage ended.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Progress metric bundle.
     #[serde(default)]
-    pub metrics: Option<Vec<Metric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Metric>>>,
     /// The high-level stage of the operation. // TODO: enum values: ["STAGE_UNSPECIFIED", "PREFLIGHT_CHECK", "CONFIGURE", "DEPLOY", "HEALTH_CHECK", "UPDATE"]
     #[serde(default)]
-    pub stage: Option<String>,
+    pub stage: ::core::option::Option<String>,
     /// Time the stage started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. State of the stage. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "RUNNING", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -1317,13 +1355,13 @@ pub struct OperationStage {
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Response message for querying bare metal admin cluster version config.
@@ -1331,7 +1369,7 @@ pub struct Policy {
 pub struct QueryBareMetalAdminVersionConfigResponse {
     /// List of available versions to install or to upgrade to.
     #[serde(default)]
-    pub versions: Option<Vec<BareMetalVersionInfo>>,
+    pub versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalVersionInfo>>>,
 }
 
 /// Response message for querying bare metal admin cluster version config.
@@ -1339,7 +1377,7 @@ pub struct QueryBareMetalAdminVersionConfigResponse {
 pub struct QueryBareMetalVersionConfigResponse {
     /// List of available versions to install or to upgrade to.
     #[serde(default)]
-    pub versions: Option<Vec<BareMetalVersionInfo>>,
+    pub versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BareMetalVersionInfo>>>,
 }
 
 /// Response message for querying VMware user cluster version config.
@@ -1347,7 +1385,7 @@ pub struct QueryBareMetalVersionConfigResponse {
 pub struct QueryVmwareVersionConfigResponse {
     /// List of available versions to install or to upgrade to.
     #[serde(default)]
-    pub versions: Option<Vec<VmwareVersionInfo>>,
+    pub versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareVersionInfo>>>,
 }
 
 /// ResourceCondition provides a standard mechanism for higher-level status reporting from controller.
@@ -1355,19 +1393,19 @@ pub struct QueryVmwareVersionConfigResponse {
 pub struct ResourceCondition {
     /// Last time the condition transit from one status to another.
     #[serde(default, rename = "lastTransitionTime")]
-    pub last_transition_time: Option<String>,
+    pub last_transition_time: ::core::option::Option<String>,
     /// Human-readable message indicating details about last transition.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
     /// Machine-readable message indicating details about last transition.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// state of the condition. // TODO: enum values: ["STATE_UNSPECIFIED", "STATE_TRUE", "STATE_FALSE", "STATE_UNKNOWN"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Type of the condition. (e.g., ClusterRunning, NodePoolRunning or ServerSidePreflightReady)
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).
@@ -1375,16 +1413,16 @@ pub struct ResourceCondition {
 pub struct ResourceStatus {
     /// ResourceCondition provide a standard mechanism for higher-level status reporting from controller.
     #[serde(default)]
-    pub conditions: Option<Vec<ResourceCondition>>,
+    pub conditions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceCondition>>>,
     /// Human-friendly representation of the error message from controller. The error message can be temporary as the controller controller creates a cluster or node pool. If the error message persists for a longer period of time, it can be used to surface error message to indicate real problems requiring user intervention.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// Reflect current version of the resource.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// Shows the mapping of a given version to the number of machines under this version.
     #[serde(default)]
-    pub versions: Option<Versions>,
+    pub versions: ::core::option::Option<::std::boxed::Box<Versions>>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -1392,7 +1430,7 @@ pub struct ResourceStatus {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1400,13 +1438,13 @@ pub struct SetIamPolicyRequest {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -1414,7 +1452,7 @@ pub struct Status {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -1422,7 +1460,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// UpgradeDependency represents a dependency when upgrading a resource.
@@ -1430,16 +1468,16 @@ pub struct TestIamPermissionsResponse {
 pub struct UpgradeDependency {
     /// Current version of the dependency e.g. 1.15.0.
     #[serde(default, rename = "currentVersion")]
-    pub current_version: Option<String>,
+    pub current_version: ::core::option::Option<String>,
     /// Membership names are formatted as projects//locations//memberships/.
     #[serde(default)]
-    pub membership: Option<String>,
+    pub membership: ::core::option::Option<String>,
     /// Resource name of the dependency.
     #[serde(default, rename = "resourceName")]
-    pub resource_name: Option<String>,
+    pub resource_name: ::core::option::Option<String>,
     /// Target version of the dependency e.g. 1.16.1. This is the version the dependency needs to be upgraded to before a resource can be upgraded.
     #[serde(default, rename = "targetVersion")]
-    pub target_version: Option<String>,
+    pub target_version: ::core::option::Option<String>,
 }
 
 /// ValidationCheck represents the result of preflight check.
@@ -1447,13 +1485,13 @@ pub struct UpgradeDependency {
 pub struct ValidationCheck {
     /// Options used for the validation check // TODO: enum values: ["OPTIONS_UNSPECIFIED", "SKIP_VALIDATION_CHECK_BLOCKING", "SKIP_VALIDATION_ALL"]
     #[serde(default)]
-    pub option: Option<String>,
+    pub option: ::core::option::Option<String>,
     /// Output only. The scenario when the preflight checks were run. // TODO: enum values: ["SCENARIO_UNSPECIFIED", "CREATE", "UPDATE"]
     #[serde(default)]
-    pub scenario: Option<String>,
+    pub scenario: ::core::option::Option<String>,
     /// Output only. The detailed validation check status.
     #[serde(default)]
-    pub status: Option<ValidationCheckStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ValidationCheckStatus>>,
 }
 
 /// ValidationCheckResult defines the details about the validation check.
@@ -1461,19 +1499,19 @@ pub struct ValidationCheck {
 pub struct ValidationCheckResult {
     /// The category of the validation.
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// The description of the validation check.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Detailed failure information, which might be unformatted.
     #[serde(default)]
-    pub details: Option<String>,
+    pub details: ::core::option::Option<String>,
     /// A human-readable message of the check failure.
     #[serde(default)]
-    pub reason: Option<String>,
+    pub reason: ::core::option::Option<String>,
     /// The validation check state. // TODO: enum values: ["STATE_UNKNOWN", "STATE_FAILURE", "STATE_SKIPPED", "STATE_FATAL", "STATE_WARNING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// ValidationCheckStatus defines the detailed validation check status.
@@ -1481,7 +1519,7 @@ pub struct ValidationCheckResult {
 pub struct ValidationCheckStatus {
     /// Individual checks which failed as part of the Preflight check execution.
     #[serde(default)]
-    pub result: Option<Vec<ValidationCheckResult>>,
+    pub result: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValidationCheckResult>>>,
 }
 
 /// Version describes the number of nodes at a given version under a resource.
@@ -1489,10 +1527,10 @@ pub struct ValidationCheckStatus {
 pub struct Version {
     /// Number of machines under the above version.
     #[serde(default)]
-    pub count: Option<String>,
+    pub count: ::core::option::Option<String>,
     /// Resource version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Versions describes the mapping of a given version to the number of machines under this version.
@@ -1500,7 +1538,7 @@ pub struct Version {
 pub struct Versions {
     /// Shows the mapping of a given version to the number of machines under this version.
     #[serde(default)]
-    pub versions: Option<Vec<Version>>,
+    pub versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Version>>>,
 }
 
 /// Specifies anti affinity group config for the VMware user cluster.
@@ -1508,7 +1546,7 @@ pub struct Versions {
 pub struct VmwareAAGConfig {
     /// Spread nodes across at least three physical hosts (requires at least three hosts). Enabled by default.
     #[serde(default, rename = "aagConfigDisabled")]
-    pub aag_config_disabled: Option<bool>,
+    pub aag_config_disabled: ::core::option::Option<bool>,
 }
 
 /// Represents an IP pool used by the load balancer.
@@ -1516,16 +1554,16 @@ pub struct VmwareAAGConfig {
 pub struct VmwareAddressPool {
     /// Required. The addresses that are part of this pool. Each address must be either in the CIDR form (1.2.3.0/24) or range form (1.2.3.1-1.2.3.5).
     #[serde(default)]
-    pub addresses: Option<Vec<String>>,
+    pub addresses: ::core::option::Option<::std::vec::Vec<String>>,
     /// If true, avoid using IPs ending in .0 or .255. This avoids buggy consumer devices mistakenly dropping IPv4 traffic for those special IP addresses.
     #[serde(default, rename = "avoidBuggyIps")]
-    pub avoid_buggy_ips: Option<bool>,
+    pub avoid_buggy_ips: ::core::option::Option<bool>,
     /// If true, prevent IP addresses from being automatically assigned.
     #[serde(default, rename = "manualAssign")]
-    pub manual_assign: Option<bool>,
+    pub manual_assign: ::core::option::Option<bool>,
     /// Required. The name of the address pool.
     #[serde(default)]
-    pub pool: Option<String>,
+    pub pool: ::core::option::Option<String>,
 }
 
 /// VmwareAdminAddonNodeConfig contains add-on node configurations for VMware admin cluster.
@@ -1533,7 +1571,7 @@ pub struct VmwareAddressPool {
 pub struct VmwareAdminAddonNodeConfig {
     /// VmwareAutoResizeConfig config specifies auto resize config.
     #[serde(default, rename = "autoResizeConfig")]
-    pub auto_resize_config: Option<VmwareAutoResizeConfig>,
+    pub auto_resize_config: ::core::option::Option<::std::boxed::Box<VmwareAutoResizeConfig>>,
 }
 
 /// VmwareAdminAuthorizationConfig represents configuration for admin cluster authorization.
@@ -1541,7 +1579,7 @@ pub struct VmwareAdminAddonNodeConfig {
 pub struct VmwareAdminAuthorizationConfig {
     /// For VMware admin clusters, users will be granted the cluster-viewer role on the cluster.
     #[serde(default, rename = "viewerUsers")]
-    pub viewer_users: Option<Vec<ClusterUser>>,
+    pub viewer_users: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ClusterUser>>>,
 }
 
 /// Resource that represents a VMware admin cluster.
@@ -1549,94 +1587,97 @@ pub struct VmwareAdminAuthorizationConfig {
 pub struct VmwareAdminCluster {
     /// The VMware admin cluster addon node configuration.
     #[serde(default, rename = "addonNode")]
-    pub addon_node: Option<VmwareAdminAddonNodeConfig>,
+    pub addon_node: ::core::option::Option<::std::boxed::Box<VmwareAdminAddonNodeConfig>>,
     /// Annotations on the VMware admin cluster. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// The VMware admin cluster anti affinity group configuration.
     #[serde(default, rename = "antiAffinityGroups")]
-    pub anti_affinity_groups: Option<VmwareAAGConfig>,
+    pub anti_affinity_groups: ::core::option::Option<::std::boxed::Box<VmwareAAGConfig>>,
     /// The VMware admin cluster authorization configuration.
     #[serde(default)]
-    pub authorization: Option<VmwareAdminAuthorizationConfig>,
+    pub authorization: ::core::option::Option<::std::boxed::Box<VmwareAdminAuthorizationConfig>>,
     /// The VMware admin cluster auto repair configuration.
     #[serde(default, rename = "autoRepairConfig")]
-    pub auto_repair_config: Option<VmwareAutoRepairConfig>,
+    pub auto_repair_config: ::core::option::Option<::std::boxed::Box<VmwareAutoRepairConfig>>,
     /// The bootstrap cluster this VMware admin cluster belongs to.
     #[serde(default, rename = "bootstrapClusterMembership")]
-    pub bootstrap_cluster_membership: Option<String>,
+    pub bootstrap_cluster_membership: ::core::option::Option<String>,
     /// The VMware admin cluster control plane node configuration.
     #[serde(default, rename = "controlPlaneNode")]
-    pub control_plane_node: Option<VmwareAdminControlPlaneNodeConfig>,
+    pub control_plane_node:
+        ::core::option::Option<::std::boxed::Box<VmwareAdminControlPlaneNodeConfig>>,
     /// Output only. The time at which VMware admin cluster was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// A human readable description of this VMware admin cluster.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Enable advanced cluster.
     #[serde(default, rename = "enableAdvancedCluster")]
-    pub enable_advanced_cluster: Option<bool>,
+    pub enable_advanced_cluster: ::core::option::Option<bool>,
     /// Output only. The DNS name of VMware admin cluster''s API server.
     #[serde(default)]
-    pub endpoint: Option<String>,
+    pub endpoint: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. Allows clients to perform consistent read-modify-writes through optimistic concurrency control.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Fleet configuration for the cluster.
     #[serde(default)]
-    pub fleet: Option<Fleet>,
+    pub fleet: ::core::option::Option<::std::boxed::Box<Fleet>>,
     /// The OS image type for the VMware admin cluster.
     #[serde(default, rename = "imageType")]
-    pub image_type: Option<String>,
+    pub image_type: ::core::option::Option<String>,
     /// The VMware admin cluster load balancer configuration.
     #[serde(default, rename = "loadBalancer")]
-    pub load_balancer: Option<VmwareAdminLoadBalancerConfig>,
+    pub load_balancer: ::core::option::Option<::std::boxed::Box<VmwareAdminLoadBalancerConfig>>,
     /// Output only. The object name of the VMware OnPremAdminCluster custom resource. This field is used to support conflicting names when enrolling existing clusters to the API. When used as a part of cluster enrollment, this field will differ from the ID in the resource name. For new clusters, this field will match the user provided cluster name and be visible in the last component of the resource name. It is not modifiable. All users should use this name to access their cluster using gkectl or kubectl and should expect to see the local name when viewing admin cluster controller logs.
     #[serde(default, rename = "localName")]
-    pub local_name: Option<String>,
+    pub local_name: ::core::option::Option<String>,
     /// Immutable. The VMware admin cluster resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The VMware admin cluster network configuration.
     #[serde(default, rename = "networkConfig")]
-    pub network_config: Option<VmwareAdminNetworkConfig>,
+    pub network_config: ::core::option::Option<::std::boxed::Box<VmwareAdminNetworkConfig>>,
     /// The Anthos clusters on the VMware version for the admin cluster.
     #[serde(default, rename = "onPremVersion")]
-    pub on_prem_version: Option<String>,
+    pub on_prem_version: ::core::option::Option<String>,
     /// The VMware platform configuration.
     #[serde(default, rename = "platformConfig")]
-    pub platform_config: Option<VmwarePlatformConfig>,
+    pub platform_config: ::core::option::Option<::std::boxed::Box<VmwarePlatformConfig>>,
     /// Output only. The VMware admin cluster prepared secrets configuration. It should always be enabled by the Central API, instead of letting users set it.
     #[serde(default, rename = "preparedSecrets")]
-    pub prepared_secrets: Option<VmwareAdminPreparedSecretsConfig>,
+    pub prepared_secrets:
+        ::core::option::Option<::std::boxed::Box<VmwareAdminPreparedSecretsConfig>>,
     /// Configuration for registry.
     #[serde(default, rename = "privateRegistryConfig")]
-    pub private_registry_config: Option<VmwareAdminPrivateRegistryConfig>,
+    pub private_registry_config:
+        ::core::option::Option<::std::boxed::Box<VmwareAdminPrivateRegistryConfig>>,
     /// Configuration for proxy.
     #[serde(default)]
-    pub proxy: Option<VmwareAdminProxy>,
+    pub proxy: ::core::option::Option<::std::boxed::Box<VmwareAdminProxy>>,
     /// Output only. If set, there are currently changes in flight to the VMware admin cluster.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of VMware admin cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "RUNNING", "RECONCILING", "STOPPING", "ERROR", "DEGRADED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. ResourceStatus representing detailed cluster state.
     #[serde(default)]
-    pub status: Option<ResourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ResourceStatus>>,
     /// Output only. The unique identifier of the VMware admin cluster.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The time at which VMware admin cluster was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. ValidationCheck represents the result of the preflight check job.
     #[serde(default, rename = "validationCheck")]
-    pub validation_check: Option<ValidationCheck>,
+    pub validation_check: ::core::option::Option<::std::boxed::Box<ValidationCheck>>,
     /// The VMware admin cluster VCenter configuration.
     #[serde(default)]
-    pub vcenter: Option<VmwareAdminVCenterConfig>,
+    pub vcenter: ::core::option::Option<::std::boxed::Box<VmwareAdminVCenterConfig>>,
 }
 
 /// VmwareAdminControlPlaneNodeConfig contains control plane node configuration for VMware admin cluster.
@@ -1644,13 +1685,13 @@ pub struct VmwareAdminCluster {
 pub struct VmwareAdminControlPlaneNodeConfig {
     /// The number of vCPUs for the control-plane node of the admin cluster.
     #[serde(default)]
-    pub cpus: Option<String>,
+    pub cpus: ::core::option::Option<String>,
     /// The number of mebibytes of memory for the control-plane node of the admin cluster.
     #[serde(default)]
-    pub memory: Option<String>,
+    pub memory: ::core::option::Option<String>,
     /// The number of control plane nodes for this VMware admin cluster. (default: 1 replica).
     #[serde(default)]
-    pub replicas: Option<String>,
+    pub replicas: ::core::option::Option<String>,
 }
 
 /// VmwareAdminF5BigIpConfig represents configuration parameters for an F5 BIG-IP load balancer.
@@ -1658,13 +1699,13 @@ pub struct VmwareAdminControlPlaneNodeConfig {
 pub struct VmwareAdminF5BigIpConfig {
     /// The load balancer''s IP address.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// The preexisting partition to be used by the load balancer. This partition is usually created for the admin cluster for example: ''my-f5-admin-partition''.
     #[serde(default)]
-    pub partition: Option<String>,
+    pub partition: ::core::option::Option<String>,
     /// The pool name. Only necessary, if using SNAT.
     #[serde(default, rename = "snatPool")]
-    pub snat_pool: Option<String>,
+    pub snat_pool: ::core::option::Option<String>,
 }
 
 /// Specifies HA admin control plane config.
@@ -1672,7 +1713,7 @@ pub struct VmwareAdminF5BigIpConfig {
 pub struct VmwareAdminHAControlPlaneConfig {
     /// Static IP addresses for the admin control plane nodes.
     #[serde(default, rename = "controlPlaneIpBlock")]
-    pub control_plane_ip_block: Option<VmwareIpBlock>,
+    pub control_plane_ip_block: ::core::option::Option<::std::boxed::Box<VmwareIpBlock>>,
 }
 
 /// VmwareAdminLoadBalancerConfig contains load balancer configuration for VMware admin cluster.
@@ -1680,19 +1721,19 @@ pub struct VmwareAdminHAControlPlaneConfig {
 pub struct VmwareAdminLoadBalancerConfig {
     /// Configuration for F5 Big IP typed load balancers.
     #[serde(default, rename = "f5Config")]
-    pub f5_config: Option<VmwareAdminF5BigIpConfig>,
+    pub f5_config: ::core::option::Option<::std::boxed::Box<VmwareAdminF5BigIpConfig>>,
     /// Manually configured load balancers.
     #[serde(default, rename = "manualLbConfig")]
-    pub manual_lb_config: Option<VmwareAdminManualLbConfig>,
+    pub manual_lb_config: ::core::option::Option<::std::boxed::Box<VmwareAdminManualLbConfig>>,
     /// MetalLB load balancers.
     #[serde(default, rename = "metalLbConfig")]
-    pub metal_lb_config: Option<VmwareAdminMetalLbConfig>,
+    pub metal_lb_config: ::core::option::Option<::std::boxed::Box<VmwareAdminMetalLbConfig>>,
     /// Output only. Configuration for Seesaw typed load balancers.
     #[serde(default, rename = "seesawConfig")]
-    pub seesaw_config: Option<VmwareAdminSeesawConfig>,
+    pub seesaw_config: ::core::option::Option<::std::boxed::Box<VmwareAdminSeesawConfig>>,
     /// The VIPs used by the load balancer.
     #[serde(default, rename = "vipConfig")]
-    pub vip_config: Option<VmwareAdminVipConfig>,
+    pub vip_config: ::core::option::Option<::std::boxed::Box<VmwareAdminVipConfig>>,
 }
 
 /// VmwareAdminManualLbConfig resource type.
@@ -1700,19 +1741,19 @@ pub struct VmwareAdminLoadBalancerConfig {
 pub struct VmwareAdminManualLbConfig {
     /// NodePort for add-ons server in the admin cluster.
     #[serde(default, rename = "addonsNodePort")]
-    pub addons_node_port: Option<i32>,
+    pub addons_node_port: ::core::option::Option<i32>,
     /// NodePort for control plane service. The Kubernetes API server in the admin cluster is implemented as a Service of type NodePort (ex. 30968).
     #[serde(default, rename = "controlPlaneNodePort")]
-    pub control_plane_node_port: Option<i32>,
+    pub control_plane_node_port: ::core::option::Option<i32>,
     /// NodePort for ingress service''s http. The ingress service in the admin cluster is implemented as a Service of type NodePort (ex. 32527).
     #[serde(default, rename = "ingressHttpNodePort")]
-    pub ingress_http_node_port: Option<i32>,
+    pub ingress_http_node_port: ::core::option::Option<i32>,
     /// NodePort for ingress service''s https. The ingress service in the admin cluster is implemented as a Service of type NodePort (ex. 30139).
     #[serde(default, rename = "ingressHttpsNodePort")]
-    pub ingress_https_node_port: Option<i32>,
+    pub ingress_https_node_port: ::core::option::Option<i32>,
     /// NodePort for konnectivity server service running as a sidecar in each kube-apiserver pod (ex. 30564).
     #[serde(default, rename = "konnectivityServerNodePort")]
-    pub konnectivity_server_node_port: Option<i32>,
+    pub konnectivity_server_node_port: ::core::option::Option<i32>,
 }
 
 /// VmwareAdminMetalLbConfig represents configuration parameters for a MetalLB load balancer. For admin clusters, currently no configurations is needed.
@@ -1720,7 +1761,7 @@ pub struct VmwareAdminManualLbConfig {
 pub struct VmwareAdminMetalLbConfig {
     /// Whether MetalLB is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// VmwareAdminNetworkConfig contains network configuration for VMware admin cluster.
@@ -1728,25 +1769,26 @@ pub struct VmwareAdminMetalLbConfig {
 pub struct VmwareAdminNetworkConfig {
     /// Configuration settings for a DHCP IP configuration.
     #[serde(default, rename = "dhcpIpConfig")]
-    pub dhcp_ip_config: Option<VmwareDhcpIpConfig>,
+    pub dhcp_ip_config: ::core::option::Option<::std::boxed::Box<VmwareDhcpIpConfig>>,
     /// Configuration for HA admin cluster control plane.
     #[serde(default, rename = "haControlPlaneConfig")]
-    pub ha_control_plane_config: Option<VmwareAdminHAControlPlaneConfig>,
+    pub ha_control_plane_config:
+        ::core::option::Option<::std::boxed::Box<VmwareAdminHAControlPlaneConfig>>,
     /// Represents common network settings irrespective of the host''s IP address.
     #[serde(default, rename = "hostConfig")]
-    pub host_config: Option<VmwareHostConfig>,
+    pub host_config: ::core::option::Option<::std::boxed::Box<VmwareHostConfig>>,
     /// Required. All pods in the cluster are assigned an RFC1918 IPv4 address from these ranges. Only a single range is supported. This field cannot be changed after creation.
     #[serde(default, rename = "podAddressCidrBlocks")]
-    pub pod_address_cidr_blocks: Option<Vec<String>>,
+    pub pod_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. All services in the cluster are assigned an RFC1918 IPv4 address from these ranges. Only a single range is supported. This field cannot be changed after creation.
     #[serde(default, rename = "serviceAddressCidrBlocks")]
-    pub service_address_cidr_blocks: Option<Vec<String>>,
+    pub service_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Configuration settings for a static IP configuration.
     #[serde(default, rename = "staticIpConfig")]
-    pub static_ip_config: Option<VmwareStaticIpConfig>,
+    pub static_ip_config: ::core::option::Option<::std::boxed::Box<VmwareStaticIpConfig>>,
     /// vcenter_network specifies vCenter network name.
     #[serde(default, rename = "vcenterNetwork")]
-    pub vcenter_network: Option<String>,
+    pub vcenter_network: ::core::option::Option<String>,
 }
 
 /// VmwareAdminPreparedSecretsConfig represents configuration for admin cluster prepared secrets.
@@ -1754,7 +1796,7 @@ pub struct VmwareAdminNetworkConfig {
 pub struct VmwareAdminPreparedSecretsConfig {
     /// Whether prepared secrets is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// VmwareAdminPrivateRegistryConfig represents configuration for admin cluster registry.
@@ -1762,10 +1804,10 @@ pub struct VmwareAdminPreparedSecretsConfig {
 pub struct VmwareAdminPrivateRegistryConfig {
     /// The registry address.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// When the container runtime pulls an image from private registry, the registry must prove its identity by presenting a certificate. The registry''s certificate is signed by a certificate authority (CA). The container runtime uses the CA''s certificate to validate the registry''s certificate.
     #[serde(default, rename = "caCert")]
-    pub ca_cert: Option<String>,
+    pub ca_cert: ::core::option::Option<String>,
 }
 
 /// VmwareAdminProxy represents configuration for admin cluster proxy.
@@ -1773,10 +1815,10 @@ pub struct VmwareAdminPrivateRegistryConfig {
 pub struct VmwareAdminProxy {
     /// A comma-separated list of IP addresses, IP address ranges, host names, and domain names that should not go through the proxy server. When Google Distributed Cloud sends a request to one of these addresses, hosts, or domains, the request is sent directly.
     #[serde(default, rename = "noProxy")]
-    pub no_proxy: Option<String>,
+    pub no_proxy: ::core::option::Option<String>,
     /// The HTTP address of proxy server.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// VmwareSeesawConfig represents configuration parameters for an already existing Seesaw load balancer. IMPORTANT: Please note that the Anthos On-Prem API will not generate or update Seesaw configurations it can only bind a pre-existing configuration to a new user cluster. IMPORTANT: When attempting to create a user cluster with a pre-existing Seesaw load balancer you will need to follow some preparation steps before calling the ''CreateVmwareCluster'' API method. First you will need to create the user cluster''s namespace via kubectl. The namespace will need to use the following naming convention : -gke-onprem-mgmt or -gke-onprem-mgmt depending on whether you used the ''VmwareCluster.local_name'' to disambiguate collisions; for more context see the documentation of ''VmwareCluster.local_name''. Once the namespace is created you will need to create a secret resource via kubectl. This secret will contain copies of your Seesaw credentials. The Secret must be called ''user-cluster-creds'' and contain Seesaw''s SSH and Cert credentials. The credentials must be keyed with the following names: ''seesaw-ssh-private-key'', ''seesaw-ssh-public-key'', ''seesaw-ssh-ca-key'', ''seesaw-ssh-ca-cert''.
@@ -1784,22 +1826,22 @@ pub struct VmwareAdminProxy {
 pub struct VmwareAdminSeesawConfig {
     /// Enable two load balancer VMs to achieve a highly-available Seesaw load balancer.
     #[serde(default, rename = "enableHa")]
-    pub enable_ha: Option<bool>,
+    pub enable_ha: ::core::option::Option<bool>,
     /// In general the following format should be used for the Seesaw group name: seesaw-for-[cluster_name].
     #[serde(default)]
-    pub group: Option<String>,
+    pub group: ::core::option::Option<String>,
     /// The IP Blocks to be used by the Seesaw load balancer
     #[serde(default, rename = "ipBlocks")]
-    pub ip_blocks: Option<Vec<VmwareIpBlock>>,
+    pub ip_blocks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareIpBlock>>>,
     /// MasterIP is the IP announced by the master of Seesaw group.
     #[serde(default, rename = "masterIp")]
-    pub master_ip: Option<String>,
+    pub master_ip: ::core::option::Option<String>,
     /// Name to be used by Stackdriver.
     #[serde(default, rename = "stackdriverName")]
-    pub stackdriver_name: Option<String>,
+    pub stackdriver_name: ::core::option::Option<String>,
     /// Names of the VMs created for this Seesaw group.
     #[serde(default)]
-    pub vms: Option<Vec<String>>,
+    pub vms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// VmwareAdminVCenterConfig contains VCenter configuration for VMware admin cluster.
@@ -1807,31 +1849,31 @@ pub struct VmwareAdminSeesawConfig {
 pub struct VmwareAdminVCenterConfig {
     /// The vCenter IP address.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Contains the vCenter CA certificate public key for SSL verification.
     #[serde(default, rename = "caCertData")]
-    pub ca_cert_data: Option<String>,
+    pub ca_cert_data: ::core::option::Option<String>,
     /// The name of the vCenter cluster for the admin cluster.
     #[serde(default)]
-    pub cluster: Option<String>,
+    pub cluster: ::core::option::Option<String>,
     /// The name of the virtual machine disk (VMDK) for the admin cluster.
     #[serde(default, rename = "dataDisk")]
-    pub data_disk: Option<String>,
+    pub data_disk: ::core::option::Option<String>,
     /// The name of the vCenter datacenter for the admin cluster.
     #[serde(default)]
-    pub datacenter: Option<String>,
+    pub datacenter: ::core::option::Option<String>,
     /// The name of the vCenter datastore for the admin cluster.
     #[serde(default)]
-    pub datastore: Option<String>,
+    pub datastore: ::core::option::Option<String>,
     /// The name of the vCenter folder for the admin cluster.
     #[serde(default)]
-    pub folder: Option<String>,
+    pub folder: ::core::option::Option<String>,
     /// The name of the vCenter resource pool for the admin cluster.
     #[serde(default, rename = "resourcePool")]
-    pub resource_pool: Option<String>,
+    pub resource_pool: ::core::option::Option<String>,
     /// The name of the vCenter storage policy for the user cluster.
     #[serde(default, rename = "storagePolicyName")]
-    pub storage_policy_name: Option<String>,
+    pub storage_policy_name: ::core::option::Option<String>,
 }
 
 /// VmwareAdminVipConfig for VMware load balancer configurations.
@@ -1839,10 +1881,10 @@ pub struct VmwareAdminVCenterConfig {
 pub struct VmwareAdminVipConfig {
     /// The VIP to configure the load balancer for add-ons.
     #[serde(default, rename = "addonsVip")]
-    pub addons_vip: Option<String>,
+    pub addons_vip: ::core::option::Option<String>,
     /// The VIP which you previously set aside for the Kubernetes API of the admin cluster.
     #[serde(default, rename = "controlPlaneVip")]
-    pub control_plane_vip: Option<String>,
+    pub control_plane_vip: ::core::option::Option<String>,
 }
 
 /// Specifies config to enable/disable auto repair. The cluster-health-controller is deployed only if Enabled is true.
@@ -1850,7 +1892,7 @@ pub struct VmwareAdminVipConfig {
 pub struct VmwareAutoRepairConfig {
     /// Whether auto repair is enabled.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Represents auto resizing configurations for the VMware user cluster.
@@ -1858,7 +1900,7 @@ pub struct VmwareAutoRepairConfig {
 pub struct VmwareAutoResizeConfig {
     /// Whether to enable controle plane node auto resizing.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// VmwareBundleConfig represents configuration for the bundle.
@@ -1866,10 +1908,10 @@ pub struct VmwareAutoResizeConfig {
 pub struct VmwareBundleConfig {
     /// Output only. Resource status for the bundle.
     #[serde(default)]
-    pub status: Option<ResourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ResourceStatus>>,
     /// The version of the bundle.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Resource that represents a VMware user cluster. ##
@@ -1877,103 +1919,103 @@ pub struct VmwareBundleConfig {
 pub struct VmwareCluster {
     /// Required. The admin cluster this VMware user cluster belongs to. This is the full resource name of the admin cluster''s fleet membership. In the future, references to other resource types might be allowed if admin clusters are modeled as their own resources.
     #[serde(default, rename = "adminClusterMembership")]
-    pub admin_cluster_membership: Option<String>,
+    pub admin_cluster_membership: ::core::option::Option<String>,
     /// Output only. The resource name of the VMware admin cluster hosting this user cluster.
     #[serde(default, rename = "adminClusterName")]
-    pub admin_cluster_name: Option<String>,
+    pub admin_cluster_name: ::core::option::Option<String>,
     /// Annotations on the VMware user cluster. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// AAGConfig specifies whether to spread VMware user cluster nodes across at least three physical hosts in the datacenter.
     #[serde(default, rename = "antiAffinityGroups")]
-    pub anti_affinity_groups: Option<VmwareAAGConfig>,
+    pub anti_affinity_groups: ::core::option::Option<::std::boxed::Box<VmwareAAGConfig>>,
     /// RBAC policy that will be applied and managed by the Anthos On-Prem API.
     #[serde(default)]
-    pub authorization: Option<Authorization>,
+    pub authorization: ::core::option::Option<::std::boxed::Box<Authorization>>,
     /// Configuration for auto repairing.
     #[serde(default, rename = "autoRepairConfig")]
-    pub auto_repair_config: Option<VmwareAutoRepairConfig>,
+    pub auto_repair_config: ::core::option::Option<::std::boxed::Box<VmwareAutoRepairConfig>>,
     /// Binary Authorization related configurations.
     #[serde(default, rename = "binaryAuthorization")]
-    pub binary_authorization: Option<BinaryAuthorization>,
+    pub binary_authorization: ::core::option::Option<::std::boxed::Box<BinaryAuthorization>>,
     /// VMware user cluster control plane nodes must have either 1 or 3 replicas.
     #[serde(default, rename = "controlPlaneNode")]
-    pub control_plane_node: Option<VmwareControlPlaneNodeConfig>,
+    pub control_plane_node: ::core::option::Option<::std::boxed::Box<VmwareControlPlaneNodeConfig>>,
     /// Output only. The time at which VMware user cluster was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// VmwareDataplaneV2Config specifies configuration for Dataplane V2.
     #[serde(default, rename = "dataplaneV2")]
-    pub dataplane_v2: Option<VmwareDataplaneV2Config>,
+    pub dataplane_v2: ::core::option::Option<::std::boxed::Box<VmwareDataplaneV2Config>>,
     /// Output only. The time at which VMware user cluster was deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// A human readable description of this VMware user cluster.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Disable bundled ingress.
     #[serde(default, rename = "disableBundledIngress")]
-    pub disable_bundled_ingress: Option<bool>,
+    pub disable_bundled_ingress: ::core::option::Option<bool>,
     /// Enable advanced cluster.
     #[serde(default, rename = "enableAdvancedCluster")]
-    pub enable_advanced_cluster: Option<bool>,
+    pub enable_advanced_cluster: ::core::option::Option<bool>,
     /// Enable control plane V2. Default to false.
     #[serde(default, rename = "enableControlPlaneV2")]
-    pub enable_control_plane_v2: Option<bool>,
+    pub enable_control_plane_v2: ::core::option::Option<bool>,
     /// Output only. The DNS name of VMware user cluster''s API server.
     #[serde(default)]
-    pub endpoint: Option<String>,
+    pub endpoint: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. Allows clients to perform consistent read-modify-writes through optimistic concurrency control.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Output only. Fleet configuration for the cluster.
     #[serde(default)]
-    pub fleet: Option<Fleet>,
+    pub fleet: ::core::option::Option<::std::boxed::Box<Fleet>>,
     /// Load balancer configuration.
     #[serde(default, rename = "loadBalancer")]
-    pub load_balancer: Option<VmwareLoadBalancerConfig>,
+    pub load_balancer: ::core::option::Option<::std::boxed::Box<VmwareLoadBalancerConfig>>,
     /// Output only. The object name of the VMware OnPremUserCluster custom resource on the associated admin cluster. This field is used to support conflicting names when enrolling existing clusters to the API. When used as a part of cluster enrollment, this field will differ from the ID in the resource name. For new clusters, this field will match the user provided cluster name and be visible in the last component of the resource name. It is not modifiable. All users should use this name to access their cluster using gkectl or kubectl and should expect to see the local name when viewing admin cluster controller logs.
     #[serde(default, rename = "localName")]
-    pub local_name: Option<String>,
+    pub local_name: ::core::option::Option<String>,
     /// Immutable. The VMware user cluster resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The VMware user cluster network configuration.
     #[serde(default, rename = "networkConfig")]
-    pub network_config: Option<VmwareNetworkConfig>,
+    pub network_config: ::core::option::Option<::std::boxed::Box<VmwareNetworkConfig>>,
     /// Required. The Anthos clusters on the VMware version for your user cluster.
     #[serde(default, rename = "onPremVersion")]
-    pub on_prem_version: Option<String>,
+    pub on_prem_version: ::core::option::Option<String>,
     /// Output only. If set, there are currently changes in flight to the VMware user cluster.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of VMware user cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "RUNNING", "RECONCILING", "STOPPING", "ERROR", "DEGRADED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. ResourceStatus representing detailed cluster state.
     #[serde(default)]
-    pub status: Option<ResourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ResourceStatus>>,
     /// Storage configuration.
     #[serde(default)]
-    pub storage: Option<VmwareStorageConfig>,
+    pub storage: ::core::option::Option<::std::boxed::Box<VmwareStorageConfig>>,
     /// Output only. The unique identifier of the VMware user cluster.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The time at which VMware user cluster was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Specifies upgrade policy for the cluster.
     #[serde(default, rename = "upgradePolicy")]
-    pub upgrade_policy: Option<VmwareClusterUpgradePolicy>,
+    pub upgrade_policy: ::core::option::Option<::std::boxed::Box<VmwareClusterUpgradePolicy>>,
     /// Output only. ValidationCheck represents the result of the preflight check job.
     #[serde(default, rename = "validationCheck")]
-    pub validation_check: Option<ValidationCheck>,
+    pub validation_check: ::core::option::Option<::std::boxed::Box<ValidationCheck>>,
     /// VmwareVCenterConfig specifies vCenter config for the user cluster. If unspecified, it is inherited from the admin cluster.
     #[serde(default)]
-    pub vcenter: Option<VmwareVCenterConfig>,
+    pub vcenter: ::core::option::Option<::std::boxed::Box<VmwareVCenterConfig>>,
     /// Enable VM tracking.
     #[serde(default, rename = "vmTrackingEnabled")]
-    pub vm_tracking_enabled: Option<bool>,
+    pub vm_tracking_enabled: ::core::option::Option<bool>,
 }
 
 /// VmwareClusterUpgradePolicy defines the cluster upgrade policy.
@@ -1981,7 +2023,7 @@ pub struct VmwareCluster {
 pub struct VmwareClusterUpgradePolicy {
     /// Controls whether the upgrade applies to the control plane only.
     #[serde(default, rename = "controlPlaneOnly")]
-    pub control_plane_only: Option<bool>,
+    pub control_plane_only: ::core::option::Option<bool>,
 }
 
 /// Specifies control plane node config for the VMware user cluster.
@@ -1989,19 +2031,19 @@ pub struct VmwareClusterUpgradePolicy {
 pub struct VmwareControlPlaneNodeConfig {
     /// AutoResizeConfig provides auto resizing configurations.
     #[serde(default, rename = "autoResizeConfig")]
-    pub auto_resize_config: Option<VmwareAutoResizeConfig>,
+    pub auto_resize_config: ::core::option::Option<::std::boxed::Box<VmwareAutoResizeConfig>>,
     /// The number of CPUs for each admin cluster node that serve as control planes for this VMware user cluster. (default: 4 CPUs)
     #[serde(default)]
-    pub cpus: Option<String>,
+    pub cpus: ::core::option::Option<String>,
     /// The megabytes of memory for each admin cluster node that serves as a control plane for this VMware user cluster (default: 8192 MB memory).
     #[serde(default)]
-    pub memory: Option<String>,
+    pub memory: ::core::option::Option<String>,
     /// The number of control plane nodes for this VMware user cluster. (default: 1 replica).
     #[serde(default)]
-    pub replicas: Option<String>,
+    pub replicas: ::core::option::Option<String>,
     /// Vsphere-specific config.
     #[serde(default, rename = "vsphereConfig")]
-    pub vsphere_config: Option<VmwareControlPlaneVsphereConfig>,
+    pub vsphere_config: ::core::option::Option<::std::boxed::Box<VmwareControlPlaneVsphereConfig>>,
 }
 
 /// Specifies control plane V2 config.
@@ -2009,7 +2051,7 @@ pub struct VmwareControlPlaneNodeConfig {
 pub struct VmwareControlPlaneV2Config {
     /// Static IP addresses for the control plane nodes.
     #[serde(default, rename = "controlPlaneIpBlock")]
-    pub control_plane_ip_block: Option<VmwareIpBlock>,
+    pub control_plane_ip_block: ::core::option::Option<::std::boxed::Box<VmwareIpBlock>>,
 }
 
 /// Specifies control plane node config.
@@ -2017,10 +2059,10 @@ pub struct VmwareControlPlaneV2Config {
 pub struct VmwareControlPlaneVsphereConfig {
     /// The Vsphere datastore used by the control plane Node.
     #[serde(default)]
-    pub datastore: Option<String>,
+    pub datastore: ::core::option::Option<String>,
     /// The Vsphere storage policy used by the control plane Node.
     #[serde(default, rename = "storagePolicyName")]
-    pub storage_policy_name: Option<String>,
+    pub storage_policy_name: ::core::option::Option<String>,
 }
 
 /// Contains configurations for Dataplane V2, which is optimized dataplane for Kubernetes networking. For more information, see: https://cloud.google.com/kubernetes-engine/docs/concepts/dataplane-v2
@@ -2028,16 +2070,16 @@ pub struct VmwareControlPlaneVsphereConfig {
 pub struct VmwareDataplaneV2Config {
     /// Enable advanced networking which requires dataplane_v2_enabled to be set true.
     #[serde(default, rename = "advancedNetworking")]
-    pub advanced_networking: Option<bool>,
+    pub advanced_networking: ::core::option::Option<bool>,
     /// Enables Dataplane V2.
     #[serde(default, rename = "dataplaneV2Enabled")]
-    pub dataplane_v2_enabled: Option<bool>,
+    pub dataplane_v2_enabled: ::core::option::Option<bool>,
     /// Configure ForwardMode for Dataplane v2.
     #[serde(default, rename = "forwardMode")]
-    pub forward_mode: Option<String>,
+    pub forward_mode: ::core::option::Option<String>,
     /// Enable Dataplane V2 for clusters with Windows nodes.
     #[serde(default, rename = "windowsDataplaneV2Enabled")]
-    pub windows_dataplane_v2_enabled: Option<bool>,
+    pub windows_dataplane_v2_enabled: ::core::option::Option<bool>,
 }
 
 /// Represents the network configuration required for the VMware user clusters with DHCP IP configurations.
@@ -2045,7 +2087,7 @@ pub struct VmwareDataplaneV2Config {
 pub struct VmwareDhcpIpConfig {
     /// enabled is a flag to mark if DHCP IP allocation is used for VMware user clusters.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
 }
 
 /// Represents configuration parameters for an F5 BIG-IP load balancer.
@@ -2053,13 +2095,13 @@ pub struct VmwareDhcpIpConfig {
 pub struct VmwareF5BigIpConfig {
     /// The load balancer''s IP address.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// The preexisting partition to be used by the load balancer. This partition is usually created for the admin cluster for example: ''my-f5-admin-partition''.
     #[serde(default)]
-    pub partition: Option<String>,
+    pub partition: ::core::option::Option<String>,
     /// The pool name. Only necessary, if using SNAT.
     #[serde(default, rename = "snatPool")]
-    pub snat_pool: Option<String>,
+    pub snat_pool: ::core::option::Option<String>,
 }
 
 /// Represents the common parameters for all the hosts irrespective of their IP address.
@@ -2067,13 +2109,13 @@ pub struct VmwareF5BigIpConfig {
 pub struct VmwareHostConfig {
     /// DNS search domains.
     #[serde(default, rename = "dnsSearchDomains")]
-    pub dns_search_domains: Option<Vec<String>>,
+    pub dns_search_domains: ::core::option::Option<::std::vec::Vec<String>>,
     /// DNS servers.
     #[serde(default, rename = "dnsServers")]
-    pub dns_servers: Option<Vec<String>>,
+    pub dns_servers: ::core::option::Option<::std::vec::Vec<String>>,
     /// NTP servers.
     #[serde(default, rename = "ntpServers")]
-    pub ntp_servers: Option<Vec<String>>,
+    pub ntp_servers: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents VMware user cluster node''s network configuration.
@@ -2081,10 +2123,10 @@ pub struct VmwareHostConfig {
 pub struct VmwareHostIp {
     /// Hostname of the machine. VM''s name will be used if this field is empty.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// IP could be an IP address (like 1.2.3.4) or a CIDR (like 1.2.3.0/24).
     #[serde(default)]
-    pub ip: Option<String>,
+    pub ip: ::core::option::Option<String>,
 }
 
 /// Represents a collection of IP addresses to assign to nodes.
@@ -2092,13 +2134,13 @@ pub struct VmwareHostIp {
 pub struct VmwareIpBlock {
     /// The network gateway used by the VMware user cluster.
     #[serde(default)]
-    pub gateway: Option<String>,
+    pub gateway: ::core::option::Option<String>,
     /// The node''s network configurations used by the VMware user cluster.
     #[serde(default)]
-    pub ips: Option<Vec<VmwareHostIp>>,
+    pub ips: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareHostIp>>>,
     /// The netmask used by the VMware user cluster.
     #[serde(default)]
-    pub netmask: Option<String>,
+    pub netmask: ::core::option::Option<String>,
 }
 
 /// Specifies the locad balancer config for the VMware user cluster.
@@ -2106,19 +2148,19 @@ pub struct VmwareIpBlock {
 pub struct VmwareLoadBalancerConfig {
     /// Configuration for F5 Big IP typed load balancers.
     #[serde(default, rename = "f5Config")]
-    pub f5_config: Option<VmwareF5BigIpConfig>,
+    pub f5_config: ::core::option::Option<::std::boxed::Box<VmwareF5BigIpConfig>>,
     /// Manually configured load balancers.
     #[serde(default, rename = "manualLbConfig")]
-    pub manual_lb_config: Option<VmwareManualLbConfig>,
+    pub manual_lb_config: ::core::option::Option<::std::boxed::Box<VmwareManualLbConfig>>,
     /// Configuration for MetalLB typed load balancers.
     #[serde(default, rename = "metalLbConfig")]
-    pub metal_lb_config: Option<VmwareMetalLbConfig>,
+    pub metal_lb_config: ::core::option::Option<::std::boxed::Box<VmwareMetalLbConfig>>,
     /// Output only. Configuration for Seesaw typed load balancers.
     #[serde(default, rename = "seesawConfig")]
-    pub seesaw_config: Option<VmwareSeesawConfig>,
+    pub seesaw_config: ::core::option::Option<::std::boxed::Box<VmwareSeesawConfig>>,
     /// The VIPs used by the load balancer.
     #[serde(default, rename = "vipConfig")]
-    pub vip_config: Option<VmwareVipConfig>,
+    pub vip_config: ::core::option::Option<::std::boxed::Box<VmwareVipConfig>>,
 }
 
 /// Represents configuration parameters for an already existing manual load balancer. Given the nature of manual load balancers it is expected that said load balancer will be fully managed by users. IMPORTANT: Please note that the Anthos On-Prem API will not generate or update ManualLB configurations it can only bind a pre-existing configuration to a new VMware user cluster.
@@ -2126,16 +2168,16 @@ pub struct VmwareLoadBalancerConfig {
 pub struct VmwareManualLbConfig {
     /// NodePort for control plane service. The Kubernetes API server in the admin cluster is implemented as a Service of type NodePort (ex. 30968).
     #[serde(default, rename = "controlPlaneNodePort")]
-    pub control_plane_node_port: Option<i32>,
+    pub control_plane_node_port: ::core::option::Option<i32>,
     /// NodePort for ingress service''s http. The ingress service in the admin cluster is implemented as a Service of type NodePort (ex. 32527).
     #[serde(default, rename = "ingressHttpNodePort")]
-    pub ingress_http_node_port: Option<i32>,
+    pub ingress_http_node_port: ::core::option::Option<i32>,
     /// NodePort for ingress service''s https. The ingress service in the admin cluster is implemented as a Service of type NodePort (ex. 30139).
     #[serde(default, rename = "ingressHttpsNodePort")]
-    pub ingress_https_node_port: Option<i32>,
+    pub ingress_https_node_port: ::core::option::Option<i32>,
     /// NodePort for konnectivity server service running as a sidecar in each kube-apiserver pod (ex. 30564).
     #[serde(default, rename = "konnectivityServerNodePort")]
-    pub konnectivity_server_node_port: Option<i32>,
+    pub konnectivity_server_node_port: ::core::option::Option<i32>,
 }
 
 /// Represents configuration parameters for the MetalLB load balancer.
@@ -2143,7 +2185,8 @@ pub struct VmwareManualLbConfig {
 pub struct VmwareMetalLbConfig {
     /// Required. AddressPools is a list of non-overlapping IP pools used by load balancer typed services. All addresses must be routable to load balancer nodes. IngressVIP must be included in the pools.
     #[serde(default, rename = "addressPools")]
-    pub address_pools: Option<Vec<VmwareAddressPool>>,
+    pub address_pools:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareAddressPool>>>,
 }
 
 /// Specifies network config for the VMware user cluster.
@@ -2151,25 +2194,26 @@ pub struct VmwareMetalLbConfig {
 pub struct VmwareNetworkConfig {
     /// Configuration for control plane V2 mode.
     #[serde(default, rename = "controlPlaneV2Config")]
-    pub control_plane_v2_config: Option<VmwareControlPlaneV2Config>,
+    pub control_plane_v2_config:
+        ::core::option::Option<::std::boxed::Box<VmwareControlPlaneV2Config>>,
     /// Configuration settings for a DHCP IP configuration.
     #[serde(default, rename = "dhcpIpConfig")]
-    pub dhcp_ip_config: Option<VmwareDhcpIpConfig>,
+    pub dhcp_ip_config: ::core::option::Option<::std::boxed::Box<VmwareDhcpIpConfig>>,
     /// Represents common network settings irrespective of the host''s IP address.
     #[serde(default, rename = "hostConfig")]
-    pub host_config: Option<VmwareHostConfig>,
+    pub host_config: ::core::option::Option<::std::boxed::Box<VmwareHostConfig>>,
     /// Required. All pods in the cluster are assigned an RFC1918 IPv4 address from these ranges. Only a single range is supported. This field cannot be changed after creation.
     #[serde(default, rename = "podAddressCidrBlocks")]
-    pub pod_address_cidr_blocks: Option<Vec<String>>,
+    pub pod_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. All services in the cluster are assigned an RFC1918 IPv4 address from these ranges. Only a single range is supported. This field cannot be changed after creation.
     #[serde(default, rename = "serviceAddressCidrBlocks")]
-    pub service_address_cidr_blocks: Option<Vec<String>>,
+    pub service_address_cidr_blocks: ::core::option::Option<::std::vec::Vec<String>>,
     /// Configuration settings for a static IP configuration.
     #[serde(default, rename = "staticIpConfig")]
-    pub static_ip_config: Option<VmwareStaticIpConfig>,
+    pub static_ip_config: ::core::option::Option<::std::boxed::Box<VmwareStaticIpConfig>>,
     /// vcenter_network specifies vCenter network name. Inherited from the admin cluster.
     #[serde(default, rename = "vcenterNetwork")]
-    pub vcenter_network: Option<String>,
+    pub vcenter_network: ::core::option::Option<String>,
 }
 
 /// Parameters that describe the configuration of all nodes within a given node pool.
@@ -2177,34 +2221,34 @@ pub struct VmwareNetworkConfig {
 pub struct VmwareNodeConfig {
     /// VMware disk size to be used during creation.
     #[serde(default, rename = "bootDiskSizeGb")]
-    pub boot_disk_size_gb: Option<String>,
+    pub boot_disk_size_gb: ::core::option::Option<String>,
     /// The number of CPUs for each node in the node pool.
     #[serde(default)]
-    pub cpus: Option<String>,
+    pub cpus: ::core::option::Option<String>,
     /// Allow node pool traffic to be load balanced. Only works for clusters with MetalLB load balancers.
     #[serde(default, rename = "enableLoadBalancer")]
-    pub enable_load_balancer: Option<bool>,
+    pub enable_load_balancer: ::core::option::Option<bool>,
     /// The OS image name in vCenter, only valid when using Windows.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// Required. The OS image to be used for each node in a node pool. Currently cos, cos_cgv2, ubuntu, ubuntu_cgv2, ubuntu_containerd and windows are supported.
     #[serde(default, rename = "imageType")]
-    pub image_type: Option<String>,
+    pub image_type: ::core::option::Option<String>,
     /// The map of Kubernetes labels (key/value pairs) to be applied to each node. These will added in addition to any default label(s) that Kubernetes may apply to the node. In case of conflict in label keys, the applied set may differ depending on the Kubernetes version -- it''s best to assume the behavior is undefined and conflicts should be avoided. For more information, including usage and the valid values, see: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The megabytes of memory for each node in the node pool.
     #[serde(default, rename = "memoryMb")]
-    pub memory_mb: Option<String>,
+    pub memory_mb: ::core::option::Option<String>,
     /// The number of nodes in the node pool.
     #[serde(default)]
-    pub replicas: Option<String>,
+    pub replicas: ::core::option::Option<String>,
     /// The initial taints assigned to nodes of this node pool.
     #[serde(default)]
-    pub taints: Option<Vec<NodeTaint>>,
+    pub taints: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NodeTaint>>>,
     /// Specifies the vSphere config for node pool.
     #[serde(default, rename = "vsphereConfig")]
-    pub vsphere_config: Option<VmwareVsphereConfig>,
+    pub vsphere_config: ::core::option::Option<::std::boxed::Box<VmwareVsphereConfig>>,
 }
 
 /// Resource VmwareNodePool represents a VMware node pool. ##
@@ -2212,46 +2256,47 @@ pub struct VmwareNodeConfig {
 pub struct VmwareNodePool {
     /// Annotations on the node pool. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
-    pub annotations: Option<serde_json::Value>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
     /// Required. The node configuration of the node pool.
     #[serde(default)]
-    pub config: Option<VmwareNodeConfig>,
+    pub config: ::core::option::Option<::std::boxed::Box<VmwareNodeConfig>>,
     /// Output only. The time at which this node pool was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time at which this node pool was deleted. If the resource is not deleted, this must be empty
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// The display name for the node pool.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. Allows clients to perform consistent read-modify-writes through optimistic concurrency control.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Immutable. The resource name of this node pool.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Node pool autoscaling config for the node pool.
     #[serde(default, rename = "nodePoolAutoscaling")]
-    pub node_pool_autoscaling: Option<VmwareNodePoolAutoscalingConfig>,
+    pub node_pool_autoscaling:
+        ::core::option::Option<::std::boxed::Box<VmwareNodePoolAutoscalingConfig>>,
     /// Anthos version for the node pool. Defaults to the user cluster version.
     #[serde(default, rename = "onPremVersion")]
-    pub on_prem_version: Option<String>,
+    pub on_prem_version: ::core::option::Option<String>,
     /// Output only. If set, there are currently changes in flight to the node pool.
     #[serde(default)]
-    pub reconciling: Option<bool>,
+    pub reconciling: ::core::option::Option<bool>,
     /// Output only. The current state of the node pool. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "RUNNING", "RECONCILING", "STOPPING", "ERROR", "DEGRADED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. ResourceStatus representing the detailed VMware node pool state.
     #[serde(default)]
-    pub status: Option<ResourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ResourceStatus>>,
     /// Output only. The unique identifier of the node pool.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The time at which this node pool was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// NodePoolAutoscaling config for the NodePool to allow for the kubernetes to scale NodePool.
@@ -2259,10 +2304,10 @@ pub struct VmwareNodePool {
 pub struct VmwareNodePoolAutoscalingConfig {
     /// Maximum number of replicas in the NodePool.
     #[serde(default, rename = "maxReplicas")]
-    pub max_replicas: Option<i32>,
+    pub max_replicas: ::core::option::Option<i32>,
     /// Minimum number of replicas in the NodePool.
     #[serde(default, rename = "minReplicas")]
-    pub min_replicas: Option<i32>,
+    pub min_replicas: ::core::option::Option<i32>,
 }
 
 /// VmwarePlatformConfig represents configuration for the VMware platform.
@@ -2270,16 +2315,16 @@ pub struct VmwareNodePoolAutoscalingConfig {
 pub struct VmwarePlatformConfig {
     /// Output only. The list of bundles installed in the admin cluster.
     #[serde(default)]
-    pub bundles: Option<Vec<VmwareBundleConfig>>,
+    pub bundles: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareBundleConfig>>>,
     /// Output only. The platform version e.g. 1.13.2.
     #[serde(default, rename = "platformVersion")]
-    pub platform_version: Option<String>,
+    pub platform_version: ::core::option::Option<String>,
     /// Input only. The required platform version e.g. 1.13.1. If the current platform version is lower than the target version, the platform version will be updated to the target version. If the target version is not installed in the platform (bundle versions), download the target version bundle.
     #[serde(default, rename = "requiredPlatformVersion")]
-    pub required_platform_version: Option<String>,
+    pub required_platform_version: ::core::option::Option<String>,
     /// Output only. Resource status for the platform.
     #[serde(default)]
-    pub status: Option<ResourceStatus>,
+    pub status: ::core::option::Option<::std::boxed::Box<ResourceStatus>>,
 }
 
 /// VmwareSeesawConfig represents configuration parameters for an already existing Seesaw load balancer. IMPORTANT: Please note that the Anthos On-Prem API will not generate or update Seesaw configurations it can only bind a pre-existing configuration to a new user cluster. IMPORTANT: When attempting to create a user cluster with a pre-existing Seesaw load balancer you will need to follow some preparation steps before calling the ''CreateVmwareCluster'' API method. First you will need to create the user cluster''s namespace via kubectl. The namespace will need to use the following naming convention : -gke-onprem-mgmt or -gke-onprem-mgmt depending on whether you used the ''VmwareCluster.local_name'' to disambiguate collisions; for more context see the documentation of ''VmwareCluster.local_name''. Once the namespace is created you will need to create a secret resource via kubectl. This secret will contain copies of your Seesaw credentials. The Secret must be called ''user-cluster-creds'' and contain Seesaw''s SSH and Cert credentials. The credentials must be keyed with the following names: ''seesaw-ssh-private-key'', ''seesaw-ssh-public-key'', ''seesaw-ssh-ca-key'', ''seesaw-ssh-ca-cert''.
@@ -2287,22 +2332,22 @@ pub struct VmwarePlatformConfig {
 pub struct VmwareSeesawConfig {
     /// Enable two load balancer VMs to achieve a highly-available Seesaw load balancer.
     #[serde(default, rename = "enableHa")]
-    pub enable_ha: Option<bool>,
+    pub enable_ha: ::core::option::Option<bool>,
     /// Required. In general the following format should be used for the Seesaw group name: seesaw-for-[cluster_name].
     #[serde(default)]
-    pub group: Option<String>,
+    pub group: ::core::option::Option<String>,
     /// Required. The IP Blocks to be used by the Seesaw load balancer
     #[serde(default, rename = "ipBlocks")]
-    pub ip_blocks: Option<Vec<VmwareIpBlock>>,
+    pub ip_blocks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareIpBlock>>>,
     /// Required. MasterIP is the IP announced by the master of Seesaw group.
     #[serde(default, rename = "masterIp")]
-    pub master_ip: Option<String>,
+    pub master_ip: ::core::option::Option<String>,
     /// Name to be used by Stackdriver.
     #[serde(default, rename = "stackdriverName")]
-    pub stackdriver_name: Option<String>,
+    pub stackdriver_name: ::core::option::Option<String>,
     /// Names of the VMs created for this Seesaw group.
     #[serde(default)]
-    pub vms: Option<Vec<String>>,
+    pub vms: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents the network configuration required for the VMware user clusters with Static IP configurations.
@@ -2310,7 +2355,7 @@ pub struct VmwareSeesawConfig {
 pub struct VmwareStaticIpConfig {
     /// Represents the configuration values for static IP allocation to nodes.
     #[serde(default, rename = "ipBlocks")]
-    pub ip_blocks: Option<Vec<VmwareIpBlock>>,
+    pub ip_blocks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareIpBlock>>>,
 }
 
 /// Specifies vSphere CSI components deployment config in the VMware user cluster.
@@ -2318,7 +2363,7 @@ pub struct VmwareStaticIpConfig {
 pub struct VmwareStorageConfig {
     /// Whether or not to deploy vSphere CSI components in the VMware user cluster. Enabled by default.
     #[serde(default, rename = "vsphereCsiDisabled")]
-    pub vsphere_csi_disabled: Option<bool>,
+    pub vsphere_csi_disabled: ::core::option::Option<bool>,
 }
 
 /// Represents configuration for the VMware VCenter for the user cluster.
@@ -2326,28 +2371,28 @@ pub struct VmwareStorageConfig {
 pub struct VmwareVCenterConfig {
     /// Output only. The vCenter IP address.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Contains the vCenter CA certificate public key for SSL verification.
     #[serde(default, rename = "caCertData")]
-    pub ca_cert_data: Option<String>,
+    pub ca_cert_data: ::core::option::Option<String>,
     /// The name of the vCenter cluster for the user cluster.
     #[serde(default)]
-    pub cluster: Option<String>,
+    pub cluster: ::core::option::Option<String>,
     /// The name of the vCenter datacenter for the user cluster.
     #[serde(default)]
-    pub datacenter: Option<String>,
+    pub datacenter: ::core::option::Option<String>,
     /// The name of the vCenter datastore for the user cluster.
     #[serde(default)]
-    pub datastore: Option<String>,
+    pub datastore: ::core::option::Option<String>,
     /// The name of the vCenter folder for the user cluster.
     #[serde(default)]
-    pub folder: Option<String>,
+    pub folder: ::core::option::Option<String>,
     /// The name of the vCenter resource pool for the user cluster.
     #[serde(default, rename = "resourcePool")]
-    pub resource_pool: Option<String>,
+    pub resource_pool: ::core::option::Option<String>,
     /// The name of the vCenter storage policy for the user cluster.
     #[serde(default, rename = "storagePolicyName")]
-    pub storage_policy_name: Option<String>,
+    pub storage_policy_name: ::core::option::Option<String>,
 }
 
 /// Contains information about a specific Anthos on VMware version.
@@ -2355,16 +2400,16 @@ pub struct VmwareVCenterConfig {
 pub struct VmwareVersionInfo {
     /// The list of upgrade dependencies for this version.
     #[serde(default)]
-    pub dependencies: Option<Vec<UpgradeDependency>>,
+    pub dependencies: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UpgradeDependency>>>,
     /// If set, the cluster dependencies (e.g. the admin cluster, other user clusters managed by the same admin cluster) must be upgraded before this version can be installed or upgraded to.
     #[serde(default, rename = "hasDependencies")]
-    pub has_dependencies: Option<bool>,
+    pub has_dependencies: ::core::option::Option<bool>,
     /// If set, the version is installed in the admin cluster. Otherwise, the version bundle must be downloaded and installed before a user cluster can be created at or upgraded to this version.
     #[serde(default, rename = "isInstalled")]
-    pub is_installed: Option<bool>,
+    pub is_installed: ::core::option::Option<bool>,
     /// Version number e.g. 1.13.1-gke.1000.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Specifies the VIP config for the VMware user cluster load balancer.
@@ -2372,10 +2417,10 @@ pub struct VmwareVersionInfo {
 pub struct VmwareVipConfig {
     /// The VIP which you previously set aside for the Kubernetes API of this cluster.
     #[serde(default, rename = "controlPlaneVip")]
-    pub control_plane_vip: Option<String>,
+    pub control_plane_vip: ::core::option::Option<String>,
     /// The VIP which you previously set aside for ingress traffic into this cluster.
     #[serde(default, rename = "ingressVip")]
-    pub ingress_vip: Option<String>,
+    pub ingress_vip: ::core::option::Option<String>,
 }
 
 /// VmwareVsphereConfig represents configuration for the VMware VCenter for node pool.
@@ -2383,13 +2428,13 @@ pub struct VmwareVipConfig {
 pub struct VmwareVsphereConfig {
     /// The name of the vCenter datastore. Inherited from the user cluster.
     #[serde(default)]
-    pub datastore: Option<String>,
+    pub datastore: ::core::option::Option<String>,
     /// Vsphere host groups to apply to all VMs in the node pool
     #[serde(default, rename = "hostGroups")]
-    pub host_groups: Option<Vec<String>>,
+    pub host_groups: ::core::option::Option<::std::vec::Vec<String>>,
     /// Tags to apply to VMs.
     #[serde(default)]
-    pub tags: Option<Vec<VmwareVsphereTag>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<VmwareVsphereTag>>>,
 }
 
 /// VmwareVsphereTag describes a vSphere tag to be placed on VMs in the node pool. For more information, see https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.vcenterhost.doc/GUID-E8E854DD-AA97-4E0C-8419-CE84F93C4058.html
@@ -2397,8 +2442,8 @@ pub struct VmwareVsphereConfig {
 pub struct VmwareVsphereTag {
     /// The Vsphere tag category.
     #[serde(default)]
-    pub category: Option<String>,
+    pub category: ::core::option::Option<String>,
     /// The Vsphere tag name.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }

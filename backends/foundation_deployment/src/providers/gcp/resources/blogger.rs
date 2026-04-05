@@ -10,51 +10,51 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Blog resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Blog {
     /// The JSON custom meta-data for the Blog.
     #[serde(default, rename = "customMetaData")]
-    pub custom_meta_data: Option<String>,
+    pub custom_meta_data: ::core::option::Option<String>,
     /// The description of this blog. This is displayed underneath the title.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The identifier for this resource.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The kind of this entry. Always blogger#blog.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The locale this Blog is set to.
     #[serde(default)]
-    pub locale: Option<serde_json::Value>,
+    pub locale: ::core::option::Option<serde_json::Value>,
     /// The name of this blog. This is displayed as the title.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The container of pages in this blog.
     #[serde(default)]
-    pub pages: Option<serde_json::Value>,
+    pub pages: ::core::option::Option<serde_json::Value>,
     /// The container of posts in this blog.
     #[serde(default)]
-    pub posts: Option<serde_json::Value>,
+    pub posts: ::core::option::Option<serde_json::Value>,
     /// RFC 3339 date-time when this blog was published.
     #[serde(default)]
-    pub published: Option<String>,
+    pub published: ::core::option::Option<String>,
     /// The API REST URL to fetch this resource from.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// The status of the blog. // TODO: enum values: ["LIVE", "DELETED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// RFC 3339 date-time when this blog was last updated.
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
     /// The URL where this blog is published.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// BlogList resource type.
@@ -62,13 +62,13 @@ pub struct Blog {
 pub struct BlogList {
     /// Admin level list of blog per-user information.
     #[serde(default, rename = "blogUserInfos")]
-    pub blog_user_infos: Option<Vec<BlogUserInfo>>,
+    pub blog_user_infos: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BlogUserInfo>>>,
     /// The list of Blogs this user has Authorship or Admin rights over.
     #[serde(default)]
-    pub items: Option<Vec<Blog>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Blog>>>,
     /// The kind of this entity. Always blogger#blogList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// BlogPerUserInfo resource type.
@@ -76,22 +76,22 @@ pub struct BlogList {
 pub struct BlogPerUserInfo {
     /// ID of the Blog resource.
     #[serde(default, rename = "blogId")]
-    pub blog_id: Option<String>,
+    pub blog_id: ::core::option::Option<String>,
     /// True if the user has Admin level access to the blog.
     #[serde(default, rename = "hasAdminAccess")]
-    pub has_admin_access: Option<bool>,
+    pub has_admin_access: ::core::option::Option<bool>,
     /// The kind of this entity. Always blogger#blogPerUserInfo.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The Photo Album Key for the user when adding photos to the blog.
     #[serde(default, rename = "photosAlbumKey")]
-    pub photos_album_key: Option<String>,
+    pub photos_album_key: ::core::option::Option<String>,
     /// Access permissions that the user has for the blog (ADMIN, AUTHOR, or READER). // TODO: enum values: ["VIEW_TYPE_UNSPECIFIED", "READER", "AUTHOR", "ADMIN"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// ID of the User.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// BlogUserInfo resource type.
@@ -99,13 +99,13 @@ pub struct BlogPerUserInfo {
 pub struct BlogUserInfo {
     /// The Blog resource.
     #[serde(default)]
-    pub blog: Option<Blog>,
+    pub blog: ::core::option::Option<::std::boxed::Box<Blog>>,
     /// Information about a User for the Blog.
     #[serde(default)]
-    pub blog_user_info: Option<BlogPerUserInfo>,
+    pub blog_user_info: ::core::option::Option<::std::boxed::Box<BlogPerUserInfo>>,
     /// The kind of this entity. Always blogger#blogUserInfo.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Comment resource type.
@@ -113,37 +113,37 @@ pub struct BlogUserInfo {
 pub struct Comment {
     /// The author of this Comment.
     #[serde(default)]
-    pub author: Option<serde_json::Value>,
+    pub author: ::core::option::Option<serde_json::Value>,
     /// Data about the blog containing this comment.
     #[serde(default)]
-    pub blog: Option<serde_json::Value>,
+    pub blog: ::core::option::Option<serde_json::Value>,
     /// The actual content of the comment. May include HTML markup.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The identifier for this resource.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Data about the comment this is in reply to.
     #[serde(default, rename = "inReplyTo")]
-    pub in_reply_to: Option<serde_json::Value>,
+    pub in_reply_to: ::core::option::Option<serde_json::Value>,
     /// The kind of this entry. Always blogger#comment.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Data about the post containing this comment.
     #[serde(default)]
-    pub post: Option<serde_json::Value>,
+    pub post: ::core::option::Option<serde_json::Value>,
     /// RFC 3339 date-time when this comment was published.
     #[serde(default)]
-    pub published: Option<String>,
+    pub published: ::core::option::Option<String>,
     /// The API REST URL to fetch this resource from.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// The status of the comment (only populated for admin users). // TODO: enum values: ["LIVE", "EMPTIED", "PENDING", "SPAM"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// RFC 3339 date-time when this comment was last updated.
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
 }
 
 /// CommentList resource type.
@@ -151,19 +151,19 @@ pub struct Comment {
 pub struct CommentList {
     /// Etag of the response.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The List of Comments for a Post.
     #[serde(default)]
-    pub items: Option<Vec<Comment>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Comment>>>,
     /// The kind of this entry. Always blogger#commentList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to fetch the next page, if one exists.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Pagination token to fetch the previous page, if one exists.
     #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: Option<String>,
+    pub prev_page_token: ::core::option::Option<String>,
 }
 
 /// Page resource type.
@@ -171,43 +171,43 @@ pub struct CommentList {
 pub struct Page {
     /// The author of this Page.
     #[serde(default)]
-    pub author: Option<serde_json::Value>,
+    pub author: ::core::option::Option<serde_json::Value>,
     /// Data about the blog containing this Page.
     #[serde(default)]
-    pub blog: Option<serde_json::Value>,
+    pub blog: ::core::option::Option<serde_json::Value>,
     /// The body content of this Page, in HTML.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Etag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The identifier for this resource.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The kind of this entity. Always blogger#page.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// RFC 3339 date-time when this Page was published.
     #[serde(default)]
-    pub published: Option<String>,
+    pub published: ::core::option::Option<String>,
     /// The API REST URL to fetch this resource from.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// The status of the page for admin resources (either LIVE or DRAFT). // TODO: enum values: ["LIVE", "DRAFT", "SOFT_TRASHED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// The title of this entity. This is the name displayed in the Admin user interface.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// RFC 3339 date-time when this Page was trashed.
     #[serde(default)]
-    pub trashed: Option<String>,
+    pub trashed: ::core::option::Option<String>,
     /// RFC 3339 date-time when this Page was last updated.
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
     /// The URL that this Page is displayed at.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// PageList resource type.
@@ -215,16 +215,16 @@ pub struct Page {
 pub struct PageList {
     /// Etag of the response.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The list of Pages for a Blog.
     #[serde(default)]
-    pub items: Option<Vec<Page>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Page>>>,
     /// The kind of this entity. Always blogger#pageList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to fetch the next page, if one exists.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Pageviews resource type.
@@ -232,13 +232,13 @@ pub struct PageList {
 pub struct Pageviews {
     /// Blog Id.
     #[serde(default, rename = "blogId")]
-    pub blog_id: Option<String>,
+    pub blog_id: ::core::option::Option<String>,
     /// The container of posts in this blog.
     #[serde(default)]
-    pub counts: Option<Vec<serde_json::Value>>,
+    pub counts: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// The kind of this entry. Always blogger#page_views.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
 }
 
 /// Post resource type.
@@ -246,64 +246,64 @@ pub struct Pageviews {
 pub struct Post {
     /// The author of this Post.
     #[serde(default)]
-    pub author: Option<serde_json::Value>,
+    pub author: ::core::option::Option<serde_json::Value>,
     /// Data about the blog containing this Post.
     #[serde(default)]
-    pub blog: Option<serde_json::Value>,
+    pub blog: ::core::option::Option<serde_json::Value>,
     /// The content of the Post. May contain HTML markup.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The JSON meta-data for the Post.
     #[serde(default, rename = "customMetaData")]
-    pub custom_meta_data: Option<String>,
+    pub custom_meta_data: ::core::option::Option<String>,
     /// Etag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The identifier of this Post.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Display image for the Post.
     #[serde(default)]
-    pub images: Option<Vec<serde_json::Value>>,
+    pub images: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// The kind of this entity. Always blogger#post.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The list of labels this Post was tagged with.
     #[serde(default)]
-    pub labels: Option<Vec<String>>,
+    pub labels: ::core::option::Option<::std::vec::Vec<String>>,
     /// The location for geotagged posts.
     #[serde(default)]
-    pub location: Option<serde_json::Value>,
+    pub location: ::core::option::Option<serde_json::Value>,
     /// RFC 3339 date-time when this Post was published.
     #[serde(default)]
-    pub published: Option<String>,
+    pub published: ::core::option::Option<String>,
     /// Comment control and display setting for readers of this post. // TODO: enum values: ["ALLOW", "DONT_ALLOW_SHOW_EXISTING", "DONT_ALLOW_HIDE_EXISTING"]
     #[serde(default, rename = "readerComments")]
-    pub reader_comments: Option<String>,
+    pub reader_comments: ::core::option::Option<String>,
     /// The container of comments on this Post.
     #[serde(default)]
-    pub replies: Option<serde_json::Value>,
+    pub replies: ::core::option::Option<serde_json::Value>,
     /// The API REST URL to fetch this resource from.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// Status of the post. Only set for admin-level requests. // TODO: enum values: ["LIVE", "DRAFT", "SCHEDULED", "SOFT_TRASHED"]
     #[serde(default)]
-    pub status: Option<String>,
+    pub status: ::core::option::Option<String>,
     /// The title of the Post.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The title link URL, similar to atom''s related link.
     #[serde(default, rename = "titleLink")]
-    pub title_link: Option<String>,
+    pub title_link: ::core::option::Option<String>,
     /// RFC 3339 date-time when this Post was last trashed.
     #[serde(default)]
-    pub trashed: Option<String>,
+    pub trashed: ::core::option::Option<String>,
     /// RFC 3339 date-time when this Post was last updated.
     #[serde(default)]
-    pub updated: Option<String>,
+    pub updated: ::core::option::Option<String>,
     /// The URL where this Post is displayed.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// PostList resource type.
@@ -311,19 +311,19 @@ pub struct Post {
 pub struct PostList {
     /// Etag of the response.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The list of Posts for this Blog.
     #[serde(default)]
-    pub items: Option<Vec<Post>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Post>>>,
     /// The kind of this entity. Always blogger#postList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to fetch the next page, if one exists.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Pagination token to fetch the previous page, if one exists.
     #[serde(default, rename = "prevPageToken")]
-    pub prev_page_token: Option<String>,
+    pub prev_page_token: ::core::option::Option<String>,
 }
 
 /// PostPerUserInfo resource type.
@@ -331,19 +331,19 @@ pub struct PostList {
 pub struct PostPerUserInfo {
     /// ID of the Blog that the post resource belongs to.
     #[serde(default, rename = "blogId")]
-    pub blog_id: Option<String>,
+    pub blog_id: ::core::option::Option<String>,
     /// True if the user has Author level access to the post.
     #[serde(default, rename = "hasEditAccess")]
-    pub has_edit_access: Option<bool>,
+    pub has_edit_access: ::core::option::Option<bool>,
     /// The kind of this entity. Always blogger#postPerUserInfo.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// ID of the Post resource.
     #[serde(default, rename = "postId")]
-    pub post_id: Option<String>,
+    pub post_id: ::core::option::Option<String>,
     /// ID of the User.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// PostUserInfo resource type.
@@ -351,13 +351,13 @@ pub struct PostPerUserInfo {
 pub struct PostUserInfo {
     /// The kind of this entity. Always blogger#postUserInfo.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The Post resource.
     #[serde(default)]
-    pub post: Option<Post>,
+    pub post: ::core::option::Option<::std::boxed::Box<Post>>,
     /// Information about a User for the Post.
     #[serde(default)]
-    pub post_user_info: Option<PostPerUserInfo>,
+    pub post_user_info: ::core::option::Option<::std::boxed::Box<PostPerUserInfo>>,
 }
 
 /// PostUserInfosList resource type.
@@ -365,13 +365,13 @@ pub struct PostUserInfo {
 pub struct PostUserInfosList {
     /// The list of Posts with User information for the post, for this Blog.
     #[serde(default)]
-    pub items: Option<Vec<PostUserInfo>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PostUserInfo>>>,
     /// The kind of this entity. Always blogger#postList.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Pagination token to fetch the next page, if one exists.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// User resource type.
@@ -379,29 +379,29 @@ pub struct PostUserInfosList {
 pub struct User {
     /// Profile summary information.
     #[serde(default)]
-    pub about: Option<String>,
+    pub about: ::core::option::Option<String>,
     /// The container of blogs for this user.
     #[serde(default)]
-    pub blogs: Option<serde_json::Value>,
+    pub blogs: ::core::option::Option<serde_json::Value>,
     /// The timestamp of when this profile was created, in seconds since epoch.
     #[serde(default)]
-    pub created: Option<String>,
+    pub created: ::core::option::Option<String>,
     /// The display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The identifier for this User.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The kind of this entity. Always blogger#user.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// This user''s locale
     #[serde(default)]
-    pub locale: Option<serde_json::Value>,
+    pub locale: ::core::option::Option<serde_json::Value>,
     /// The API REST URL to fetch this resource from.
     #[serde(default, rename = "selfLink")]
-    pub self_link: Option<String>,
+    pub self_link: ::core::option::Option<String>,
     /// The user''s profile page.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }

@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Defines an aggregation that produces a single result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Aggregation {
     /// Optional. Optional name of the field to store the result of the aggregation into. If not provided, Firestore will pick a default name following the format field_. For example:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2), COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) OVER ( ... );  becomes:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2) AS field_1, COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) AS field_2 OVER ( ... );  Requires: * Must be unique across all aggregation aliases. * Conform to document field name limitations.
     #[serde(default)]
-    pub alias: Option<String>,
+    pub alias: ::core::option::Option<String>,
     /// Average aggregator.
     #[serde(default)]
-    pub avg: Option<Avg>,
+    pub avg: ::core::option::Option<::std::boxed::Box<Avg>>,
     /// Count aggregator.
     #[serde(default)]
-    pub count: Option<Count>,
+    pub count: ::core::option::Option<::std::boxed::Box<Count>>,
     /// Sum aggregator.
     #[serde(default)]
-    pub sum: Option<Sum>,
+    pub sum: ::core::option::Option<::std::boxed::Box<Sum>>,
 }
 
 /// An array value.
@@ -35,7 +35,7 @@ pub struct Aggregation {
 pub struct ArrayValue {
     /// Values in the array.
     #[serde(default)]
-    pub values: Option<Vec<Value>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiValue>>>,
 }
 
 /// Average of the values of the requested field. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns NULL. * Always returns the result as a double.
@@ -43,7 +43,7 @@ pub struct ArrayValue {
 pub struct Avg {
     /// The field to aggregate on.
     #[serde(default)]
-    pub field: Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
 }
 
 /// The request for Firestore.BatchGetDocuments.
@@ -51,19 +51,19 @@ pub struct Avg {
 pub struct BatchGetDocumentsRequest {
     /// The names of the documents to retrieve. In the format: projects/{project_id}/databases/{database_id}/documents/{document_path}. The request will fail if any of the document is not a child resource of the given database. Duplicate names will be elided.
     #[serde(default)]
-    pub documents: Option<Vec<String>>,
+    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
     /// The fields to return. If not set, returns all fields. If a document has a field that is not present in this mask, that field will not be returned in the response.
     #[serde(default)]
-    pub mask: Option<DocumentMask>,
+    pub mask: ::core::option::Option<::std::boxed::Box<DocumentMask>>,
     /// Starts a new transaction and reads the documents. Defaults to a read-only transaction. The new transaction ID will be returned as the first response in the stream.
     #[serde(default, rename = "newTransaction")]
-    pub new_transaction: Option<TransactionOptions>,
+    pub new_transaction: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
     /// Reads documents as they were at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// Reads documents in a transaction.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// The streamed response for Firestore.BatchGetDocuments.
@@ -71,16 +71,16 @@ pub struct BatchGetDocumentsRequest {
 pub struct BatchGetDocumentsResponse {
     /// A document that was requested.
     #[serde(default)]
-    pub found: Option<Document>,
+    pub found: ::core::option::Option<::std::boxed::Box<Document>>,
     /// A document name that was requested but does not exist. In the format: projects/{project_id}/databases/{database_id}/documents/{document_path}.
     #[serde(default)]
-    pub missing: Option<String>,
+    pub missing: ::core::option::Option<String>,
     /// The time at which the document was read. This may be monotically increasing, in this case the previous documents in the result stream are guaranteed not to have changed between their read_time and this one.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// The transaction that was started as part of this request. Will only be set in the first response, and only if BatchGetDocumentsRequest.new_transaction was set in the request.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// The request for Firestore.BatchWrite.
@@ -88,10 +88,10 @@ pub struct BatchGetDocumentsResponse {
 pub struct BatchWriteRequest {
     /// Labels associated with this batch write.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The writes to apply. Method does not apply writes atomically and does not guarantee ordering. Each write succeeds or fails independently. You cannot write to the same document more than once per request.
     #[serde(default)]
-    pub writes: Option<Vec<Write>>,
+    pub writes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Write>>>,
 }
 
 /// The response from Firestore.BatchWrite.
@@ -99,10 +99,10 @@ pub struct BatchWriteRequest {
 pub struct BatchWriteResponse {
     /// The status of applying the writes. This i-th write status corresponds to the i-th write in the request.
     #[serde(default)]
-    pub status: Option<Vec<Status>>,
+    pub status: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
     /// The result of applying the writes. This i-th write result corresponds to the i-th write in the request.
     #[serde(default, rename = "writeResults")]
-    pub write_results: Option<Vec<WriteResult>>,
+    pub write_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WriteResult>>>,
 }
 
 /// The request for Firestore.BeginTransaction.
@@ -110,7 +110,7 @@ pub struct BatchWriteResponse {
 pub struct BeginTransactionRequest {
     /// The options for the transaction. Defaults to a read-write transaction.
     #[serde(default)]
-    pub options: Option<TransactionOptions>,
+    pub options: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
 }
 
 /// The response for Firestore.BeginTransaction.
@@ -118,7 +118,7 @@ pub struct BeginTransactionRequest {
 pub struct BeginTransactionResponse {
     /// The transaction that was started.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// A sequence of bits, encoded in a byte array. Each byte in the bitmap byte array stores 8 bits of the sequence. The only exception is the last byte, which may store 8 _or fewer_ bits. The padding defines the number of bits of the last byte to be ignored as "padding". The values of these "padding" bits are unspecified and must be ignored. To retrieve the first bit, bit 0, calculate: (bitmap[0] & 0x01) != 0. To retrieve the second bit, bit 1, calculate: (bitmap[0] & 0x02) != 0. To retrieve the third bit, bit 2, calculate: (bitmap[0] & 0x04) != 0. To retrieve the fourth bit, bit 3, calculate: (bitmap[0] & 0x08) != 0. To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 &lt;&lt; (n % 8))) != 0. The "size" of a BitSequence (the number of bits it contains) is calculated by this formula: (bitmap.length * 8) - padding.
@@ -126,10 +126,10 @@ pub struct BeginTransactionResponse {
 pub struct BitSequence {
     /// The bytes that encode the bit sequence. May have a length of zero.
     #[serde(default)]
-    pub bitmap: Option<String>,
+    pub bitmap: ::core::option::Option<String>,
     /// The number of bits of the last byte in bitmap to ignore as "padding". If the length of bitmap is zero, then this value must be 0. Otherwise, this value must be between 0 and 7, inclusive.
     #[serde(default)]
-    pub padding: Option<i32>,
+    pub padding: ::core::option::Option<i32>,
 }
 
 /// A bloom filter (https://en.wikipedia.org/wiki/Bloom_filter). The bloom filter hashes the entries with MD5 and treats the resulting 128-bit hash as 2 distinct 64-bit hash values, interpreted as unsigned integers using 2''s complement encoding. These two hash values, named h1 and h2, are then used to compute the hash_count hash values using the formula, starting at i=0: h(i) = h1 + (i * h2) These resulting values are then taken modulo the number of bits in the bloom filter to get the bits of the bloom filter to test for the given entry.
@@ -137,10 +137,10 @@ pub struct BitSequence {
 pub struct BloomFilter {
     /// The bloom filter data.
     #[serde(default)]
-    pub bits: Option<BitSequence>,
+    pub bits: ::core::option::Option<::std::boxed::Box<BitSequence>>,
     /// The number of hashes used by the algorithm.
     #[serde(default, rename = "hashCount")]
-    pub hash_count: Option<i32>,
+    pub hash_count: ::core::option::Option<i32>,
 }
 
 /// A selection of a collection, such as messages as m1.
@@ -148,10 +148,10 @@ pub struct BloomFilter {
 pub struct CollectionSelector {
     /// When false, selects only collections that are immediate children of the parent specified in the containing RunQueryRequest. When true, selects all descendant collections.
     #[serde(default, rename = "allDescendants")]
-    pub all_descendants: Option<bool>,
+    pub all_descendants: ::core::option::Option<bool>,
     /// The collection ID. When set, selects only collections with this ID.
     #[serde(default, rename = "collectionId")]
-    pub collection_id: Option<String>,
+    pub collection_id: ::core::option::Option<String>,
 }
 
 /// The request for Firestore.Commit.
@@ -159,10 +159,10 @@ pub struct CollectionSelector {
 pub struct CommitRequest {
     /// If set, applies all writes in this transaction, and commits it.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
     /// The writes to apply. Always executed atomically and in order.
     #[serde(default)]
-    pub writes: Option<Vec<Write>>,
+    pub writes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Write>>>,
 }
 
 /// The response for Firestore.Commit.
@@ -170,10 +170,10 @@ pub struct CommitRequest {
 pub struct CommitResponse {
     /// The time at which the commit occurred. Any read with an equal or greater read_time is guaranteed to see the effects of the commit.
     #[serde(default, rename = "commitTime")]
-    pub commit_time: Option<String>,
+    pub commit_time: ::core::option::Option<String>,
     /// The result of applying the writes. This i-th write result corresponds to the i-th write in the request.
     #[serde(default, rename = "writeResults")]
-    pub write_results: Option<Vec<WriteResult>>,
+    pub write_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WriteResult>>>,
 }
 
 /// A filter that merges multiple other filters using the given operator.
@@ -181,10 +181,10 @@ pub struct CommitResponse {
 pub struct CompositeFilter {
     /// The list of filters to combine. Requires: * At least one filter is present.
     #[serde(default)]
-    pub filters: Option<Vec<Filter>>,
+    pub filters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Filter>>>,
     /// The operator for combining multiple filters. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "AND", "OR"]
     #[serde(default)]
-    pub op: Option<String>,
+    pub op: ::core::option::Option<String>,
 }
 
 /// Count of documents that match the query. The COUNT(*) aggregation function operates on the entire document so it does not require a field reference.
@@ -192,7 +192,7 @@ pub struct CompositeFilter {
 pub struct Count {
     /// Optional. Optional constraint on the maximum number of documents to count. This provides a way to set an upper bound on the number of documents to scan, limiting latency, and cost. Unspecified is interpreted as no bound. High-Level Example:  AGGREGATE COUNT_UP_TO(1000) OVER ( SELECT * FROM k );  Requires: * Must be greater than zero when present.
     #[serde(default, rename = "upTo")]
-    pub up_to: Option<String>,
+    pub up_to: ::core::option::Option<String>,
 }
 
 /// A position in a query result set.
@@ -200,10 +200,10 @@ pub struct Count {
 pub struct Cursor {
     /// If the position is just before or just after the given values, relative to the sort order defined by the query.
     #[serde(default)]
-    pub before: Option<bool>,
+    pub before: ::core::option::Option<bool>,
     /// The values that represent a position, in the order they appear in the order by clause of a query. Can contain fewer values than specified in the order by clause.
     #[serde(default)]
-    pub values: Option<Vec<Value>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiValue>>>,
 }
 
 /// A Firestore document. Must not exceed 1 MiB - 4 bytes.
@@ -211,16 +211,16 @@ pub struct Cursor {
 pub struct Document {
     /// Output only. The time at which the document was created. This value increases monotonically when a document is deleted then recreated. It can also be compared to values from other documents and the read_time of a query.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The document''s fields. The map keys represent field names. Field names matching the regular expression __.*__ are reserved. Reserved field names are forbidden except in certain documented contexts. The field names, represented as UTF-8, must not exceed 1,500 bytes and cannot be empty. Field paths may be used in other contexts to refer to structured fields defined here. For map_value, the field path is represented by a dot-delimited (.) string of segments. Each segment is either a simple field name (defined below) or a quoted field name. For example, the structured field "foo" : { map_value: { "x&y" : { string_value: "hello" }}} would be represented by the field path  foo.x&y . A simple field name contains only characters a to z, A to Z, 0 to 9, or _, and must not start with 0 to 9. For example, foo_bar_17. A quoted field name starts and ends with    and may contain any character. Some characters, including   , must be escaped using a \. For example,  x&y  represents x&y and  bak\tik  represents  baktik .
     #[serde(default)]
-    pub fields: Option<serde_json::Value>,
+    pub fields: ::core::option::Option<serde_json::Value>,
     /// The resource name of the document, for example projects/{project_id}/databases/{database_id}/documents/{document_path}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The time at which the document was last changed. This value is initially set to the create_time then increases monotonically with each change to the document. It can also be compared to values from other documents and the read_time of a query.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A Document has changed. May be the result of multiple writes, including deletes, that ultimately resulted in a new value for the Document. Multiple DocumentChange messages may be returned for the same logical change, if multiple targets are affected.
@@ -228,13 +228,13 @@ pub struct Document {
 pub struct DocumentChange {
     /// The new state of the Document. If mask is set, contains only fields that were updated or added.
     #[serde(default)]
-    pub document: Option<Document>,
+    pub document: ::core::option::Option<::std::boxed::Box<Document>>,
     /// A set of target IDs for targets that no longer match this document.
     #[serde(default, rename = "removedTargetIds")]
-    pub removed_target_ids: Option<Vec<i32>>,
+    pub removed_target_ids: ::core::option::Option<::std::vec::Vec<i32>>,
     /// A set of target IDs of targets that match this document.
     #[serde(default, rename = "targetIds")]
-    pub target_ids: Option<Vec<i32>>,
+    pub target_ids: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// A Document has been deleted. May be the result of multiple writes, including updates, the last of which deleted the Document. Multiple DocumentDelete messages may be returned for the same logical delete, if multiple targets are affected.
@@ -242,13 +242,13 @@ pub struct DocumentChange {
 pub struct DocumentDelete {
     /// The resource name of the Document that was deleted.
     #[serde(default)]
-    pub document: Option<String>,
+    pub document: ::core::option::Option<String>,
     /// The read timestamp at which the delete was observed. Greater or equal to the commit_time of the delete.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// A set of target IDs for targets that previously matched this entity.
     #[serde(default, rename = "removedTargetIds")]
-    pub removed_target_ids: Option<Vec<i32>>,
+    pub removed_target_ids: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// A set of field paths on a document. Used to restrict a get or update operation on a document to a subset of its fields. This is different from standard field masks, as this is always scoped to a Document, and takes in account the dynamic nature of Value.
@@ -256,7 +256,7 @@ pub struct DocumentDelete {
 pub struct DocumentMask {
     /// The list of field paths in the mask. See Document.fields for a field path syntax reference.
     #[serde(default, rename = "fieldPaths")]
-    pub field_paths: Option<Vec<String>>,
+    pub field_paths: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A Document has been removed from the view of the targets. Sent if the document is no longer relevant to a target and is out of view. Can be sent instead of a DocumentDelete or a DocumentChange if the server can not send the new value of the document. Multiple DocumentRemove messages may be returned for the same logical write or delete, if multiple targets are affected.
@@ -264,13 +264,13 @@ pub struct DocumentMask {
 pub struct DocumentRemove {
     /// The resource name of the Document that has gone out of view.
     #[serde(default)]
-    pub document: Option<String>,
+    pub document: ::core::option::Option<String>,
     /// The read timestamp at which the remove was observed. Greater or equal to the commit_time of the change/delete/remove.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// A set of target IDs for targets that previously matched this document.
     #[serde(default, rename = "removedTargetIds")]
-    pub removed_target_ids: Option<Vec<i32>>,
+    pub removed_target_ids: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// A transformation of a document.
@@ -278,10 +278,11 @@ pub struct DocumentRemove {
 pub struct DocumentTransform {
     /// The name of the document to transform.
     #[serde(default)]
-    pub document: Option<String>,
+    pub document: ::core::option::Option<String>,
     /// The list of transformations to apply to the fields of the document, in order. This must not be empty.
     #[serde(default, rename = "fieldTransforms")]
-    pub field_transforms: Option<Vec<FieldTransform>>,
+    pub field_transforms:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldTransform>>>,
 }
 
 /// A target specified by a set of documents names.
@@ -289,7 +290,7 @@ pub struct DocumentTransform {
 pub struct DocumentsTarget {
     /// The names of the documents to retrieve. In the format: projects/{project_id}/databases/{database_id}/documents/{document_path}. The request will fail if any of the document is not a child resource of the given database. Duplicate names will be elided.
     #[serde(default)]
-    pub documents: Option<Vec<String>>,
+    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The request for Firestore.ExecutePipeline.
@@ -297,16 +298,16 @@ pub struct DocumentsTarget {
 pub struct ExecutePipelineRequest {
     /// Execute the pipeline in a new transaction. The identifier of the newly created transaction will be returned in the first response on the stream. This defaults to a read-only transaction.
     #[serde(default, rename = "newTransaction")]
-    pub new_transaction: Option<TransactionOptions>,
+    pub new_transaction: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
     /// Execute the pipeline in a snapshot transaction at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// A pipelined operation.
     #[serde(default, rename = "structuredPipeline")]
-    pub structured_pipeline: Option<StructuredPipeline>,
+    pub structured_pipeline: ::core::option::Option<::std::boxed::Box<StructuredPipeline>>,
     /// Run the query within an already active transaction. The value here is the opaque transaction ID to execute the query in.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// The response for Firestore.Execute.
@@ -314,16 +315,16 @@ pub struct ExecutePipelineRequest {
 pub struct ExecutePipelineResponse {
     /// The time at which the results are valid. This is a (not strictly) monotonically increasing value across multiple responses in the same stream. The API guarantees that all previously returned results are still valid at the latest execution_time. This allows the API consumer to treat the query if it ran at the latest execution_time returned. If the query returns no results, a response with execution_time and no results will be sent, and this represents the time at which the operation was run.
     #[serde(default, rename = "executionTime")]
-    pub execution_time: Option<String>,
+    pub execution_time: ::core::option::Option<String>,
     /// Query explain stats. This is present on the **last** response if the request configured explain to run in ''analyze'' or ''explain'' mode in the pipeline options. If the query does not return any results, a response with explain_stats and no results will still be sent.
     #[serde(default, rename = "explainStats")]
-    pub explain_stats: Option<ExplainStats>,
+    pub explain_stats: ::core::option::Option<::std::boxed::Box<ExplainStats>>,
     /// An ordered batch of results returned executing a pipeline. The batch size is variable, and can even be zero for when only a partial progress message is returned. The fields present in the returned documents are only those that were explicitly requested in the pipeline, this includes those like __name__ and __update_time__. This is explicitly a divergence from Firestore.RunQuery / Firestore.GetDocument RPCs which always return such fields even when they are not specified in the mask.
     #[serde(default)]
-    pub results: Option<Vec<Document>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Document>>>,
     /// Newly created transaction identifier. This field is only specified as part of the first response from the server, alongside the results field when the original request specified ExecuteRequest.new_transaction.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// Execution statistics for the query.
@@ -331,16 +332,16 @@ pub struct ExecutePipelineResponse {
 pub struct ExecutionStats {
     /// Debugging statistics from the execution of the query. Note that the debugging stats are subject to change as Firestore evolves. It could include: { "indexes_entries_scanned": "1000", "documents_scanned": "20", "billing_details" : { "documents_billable": "20", "index_entries_billable": "1000", "min_query_cost": "0" } }
     #[serde(default, rename = "debugStats")]
-    pub debug_stats: Option<serde_json::Value>,
+    pub debug_stats: ::core::option::Option<serde_json::Value>,
     /// Total time to execute the query in the backend.
     #[serde(default, rename = "executionDuration")]
-    pub execution_duration: Option<String>,
+    pub execution_duration: ::core::option::Option<String>,
     /// Total billable read operations.
     #[serde(default, rename = "readOperations")]
-    pub read_operations: Option<String>,
+    pub read_operations: ::core::option::Option<String>,
     /// Total number of results returned, including documents, projections, aggregation results, keys.
     #[serde(default, rename = "resultsReturned")]
-    pub results_returned: Option<String>,
+    pub results_returned: ::core::option::Option<String>,
 }
 
 /// A digest of all the documents that match a given target.
@@ -348,13 +349,13 @@ pub struct ExecutionStats {
 pub struct ExistenceFilter {
     /// The total count of documents that match target_id. If different from the count of documents in the client that match, the client must manually determine which documents no longer match the target. The client can use the unchanged_names bloom filter to assist with this determination by testing ALL the document names against the filter; if the document name is NOT in the filter, it means the document no longer matches the target.
     #[serde(default)]
-    pub count: Option<i32>,
+    pub count: ::core::option::Option<i32>,
     /// The target ID to which this filter applies.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<i32>,
+    pub target_id: ::core::option::Option<i32>,
     /// A bloom filter that, despite its name, contains the UTF-8 byte encodings of the resource names of ALL the documents that match target_id, in the form projects/{project_id}/databases/{database_id}/documents/{document_path}. This bloom filter may be omitted at the server''s discretion, such as if it is deemed that the client will not make use of it or if it is too computationally expensive to calculate or transmit. Clients must gracefully handle this field being absent by falling back to the logic used before this field existed; that is, re-add the target without a resume token to figure out which documents in the client''s cache are out of sync.
     #[serde(default, rename = "unchangedNames")]
-    pub unchanged_names: Option<BloomFilter>,
+    pub unchanged_names: ::core::option::Option<::std::boxed::Box<BloomFilter>>,
 }
 
 /// Explain metrics for the query.
@@ -362,10 +363,10 @@ pub struct ExistenceFilter {
 pub struct ExplainMetrics {
     /// Aggregated stats from the execution of the query. Only present when ExplainOptions.analyze is set to true.
     #[serde(default, rename = "executionStats")]
-    pub execution_stats: Option<ExecutionStats>,
+    pub execution_stats: ::core::option::Option<::std::boxed::Box<ExecutionStats>>,
     /// Planning phase information for the query.
     #[serde(default, rename = "planSummary")]
-    pub plan_summary: Option<PlanSummary>,
+    pub plan_summary: ::core::option::Option<::std::boxed::Box<PlanSummary>>,
 }
 
 /// Explain options for the query.
@@ -373,7 +374,7 @@ pub struct ExplainMetrics {
 pub struct ExplainOptions {
     /// Optional. Whether to execute this query. When false (the default), the query will be planned, returning only metrics from the planning stages. When true, the query will be planned and executed, returning the full query results along with both planning and execution stage metrics.
     #[serde(default)]
-    pub analyze: Option<bool>,
+    pub analyze: ::core::option::Option<bool>,
 }
 
 /// A filter on a specific field.
@@ -381,13 +382,13 @@ pub struct ExplainOptions {
 pub struct FieldFilter {
     /// The field to filter by.
     #[serde(default)]
-    pub field: Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
     /// The operator to filter by. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL", "EQUAL", "NOT_EQUAL", "ARRAY_CONTAINS", "IN", "ARRAY_CONTAINS_ANY", "NOT_IN"]
     #[serde(default)]
-    pub op: Option<String>,
+    pub op: ::core::option::Option<String>,
     /// The value to compare to.
     #[serde(default)]
-    pub value: Option<Value>,
+    pub value: ::core::option::Option<::std::boxed::Box<ApiValue>>,
 }
 
 /// A reference to a field in a document, ex: stats.operations.
@@ -395,7 +396,7 @@ pub struct FieldFilter {
 pub struct FieldReference {
     /// A reference to a field in a document. Requires: * MUST be a dot-delimited (.) string of segments, where each segment conforms to document field name limitations.
     #[serde(default, rename = "fieldPath")]
-    pub field_path: Option<String>,
+    pub field_path: ::core::option::Option<String>,
 }
 
 /// A transformation of a field of the document.
@@ -403,25 +404,25 @@ pub struct FieldReference {
 pub struct FieldTransform {
     /// Append the given elements in order if they are not already present in the current field value. If the field is not an array, or if the field does not yet exist, it is first set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when checking if a value is missing. NaN is equal to NaN, and Null is equal to Null. If the input contains multiple equivalent values, only the first will be considered. The corresponding transform_result will be the null value.
     #[serde(default, rename = "appendMissingElements")]
-    pub append_missing_elements: Option<ArrayValue>,
+    pub append_missing_elements: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// The path of the field. See Document.fields for the field path syntax reference.
     #[serde(default, rename = "fieldPath")]
-    pub field_path: Option<String>,
+    pub field_path: ::core::option::Option<String>,
     /// Adds the given value to the field''s current value. This must be an integer or a double value. If the field is not an integer or double, or if the field does not yet exist, the transformation will set the field to the given value. If either of the given value or the current field value are doubles, both values will be interpreted as doubles. Double arithmetic and representation of double values follow IEEE 754 semantics. If there is positive/negative integer overflow, the field is resolved to the largest magnitude positive/negative integer.
     #[serde(default)]
-    pub increment: Option<Value>,
+    pub increment: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Sets the field to the maximum of its current value and the given value. This must be an integer or a double value. If the field is not an integer or double, or if the field does not yet exist, the transformation will set the field to the given value. If a maximum operation is applied where the field and the input value are of mixed types (that is - one is an integer and one is a double) the field takes on the type of the larger operand. If the operands are equivalent (e.g. 3 and 3.0), the field does not change. 0, 0.0, and -0.0 are all zero. The maximum of a zero stored value and zero input value is always the stored value. The maximum of any numeric value x and NaN is NaN.
     #[serde(default)]
-    pub maximum: Option<Value>,
+    pub maximum: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Sets the field to the minimum of its current value and the given value. This must be an integer or a double value. If the field is not an integer or double, or if the field does not yet exist, the transformation will set the field to the input value. If a minimum operation is applied where the field and the input value are of mixed types (that is - one is an integer and one is a double) the field takes on the type of the smaller operand. If the operands are equivalent (e.g. 3 and 3.0), the field does not change. 0, 0.0, and -0.0 are all zero. The minimum of a zero stored value and zero input value is always the stored value. The minimum of any numeric value x and NaN is NaN.
     #[serde(default)]
-    pub minimum: Option<Value>,
+    pub minimum: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Remove all of the given elements from the array in the field. If the field is not an array, or if the field does not yet exist, it is set to the empty array. Equivalent numbers of the different types (e.g. 3L and 3.0) are considered equal when deciding whether an element should be removed. NaN is equal to NaN, and Null is equal to Null. This will remove all equivalent values if there are duplicates. The corresponding transform_result will be the null value.
     #[serde(default, rename = "removeAllFromArray")]
-    pub remove_all_from_array: Option<ArrayValue>,
+    pub remove_all_from_array: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// Sets the field to the given server value. // TODO: enum values: ["SERVER_VALUE_UNSPECIFIED", "REQUEST_TIME"]
     #[serde(default, rename = "setToServerValue")]
-    pub set_to_server_value: Option<String>,
+    pub set_to_server_value: ::core::option::Option<String>,
 }
 
 /// A filter.
@@ -429,13 +430,13 @@ pub struct FieldTransform {
 pub struct Filter {
     /// A composite filter.
     #[serde(default, rename = "compositeFilter")]
-    pub composite_filter: Option<CompositeFilter>,
+    pub composite_filter: ::core::option::Option<::std::boxed::Box<CompositeFilter>>,
     /// A filter on a document field.
     #[serde(default, rename = "fieldFilter")]
-    pub field_filter: Option<FieldFilter>,
+    pub field_filter: ::core::option::Option<::std::boxed::Box<FieldFilter>>,
     /// A filter that takes exactly one argument.
     #[serde(default, rename = "unaryFilter")]
-    pub unary_filter: Option<UnaryFilter>,
+    pub unary_filter: ::core::option::Option<::std::boxed::Box<UnaryFilter>>,
 }
 
 /// Nearest Neighbors search config. The ordering provided by FindNearest supersedes the order_by stage. If multiple documents have the same vector distance, the returned document order is not guaranteed to be stable between queries.
@@ -443,22 +444,22 @@ pub struct Filter {
 pub struct FindNearest {
     /// Required. The distance measure to use, required. // TODO: enum values: ["DISTANCE_MEASURE_UNSPECIFIED", "EUCLIDEAN", "COSINE", "DOT_PRODUCT"]
     #[serde(default, rename = "distanceMeasure")]
-    pub distance_measure: Option<String>,
+    pub distance_measure: ::core::option::Option<String>,
     /// Optional. Optional name of the field to output the result of the vector distance calculation. Must conform to document field name limitations.
     #[serde(default, rename = "distanceResultField")]
-    pub distance_result_field: Option<String>,
+    pub distance_result_field: ::core::option::Option<String>,
     /// Optional. Option to specify a threshold for which no less similar documents will be returned. The behavior of the specified distance_measure will affect the meaning of the distance threshold. Since DOT_PRODUCT distances increase when the vectors are more similar, the comparison is inverted. * For EUCLIDEAN, COSINE: WHERE distance &lt;= distance_threshold * For DOT_PRODUCT: WHERE distance &gt;= distance_threshold
     #[serde(default, rename = "distanceThreshold")]
-    pub distance_threshold: Option<f64>,
+    pub distance_threshold: ::core::option::Option<f64>,
     /// Required. The number of nearest neighbors to return. Must be a positive integer of no more than 1000.
     #[serde(default)]
-    pub limit: Option<i32>,
+    pub limit: ::core::option::Option<i32>,
     /// Required. The query vector that we are searching on. Must be a vector of no more than 2048 dimensions.
     #[serde(default, rename = "queryVector")]
-    pub query_vector: Option<Value>,
+    pub query_vector: ::core::option::Option<::std::boxed::Box<ApiValue>>,
     /// Required. An indexed vector field to search upon. Only documents which contain vectors whose dimensionality match the query_vector can be returned.
     #[serde(default, rename = "vectorField")]
-    pub vector_field: Option<FieldReference>,
+    pub vector_field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
 }
 
 /// Represents an unevaluated scalar expression. For example, the expression like(user_name, "%alice%") is represented as:  name: "like" args { field_reference: "user_name" } args { string_value: "%alice%" }
@@ -466,13 +467,13 @@ pub struct FindNearest {
 pub struct Function {
     /// Optional. Ordered list of arguments the given function expects.
     #[serde(default)]
-    pub args: Option<Vec<Value>>,
+    pub args: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiValue>>>,
     /// Required. The name of the function to evaluate. **Requires:** * must be in snake case (lower case with underscore separator).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Optional named arguments that certain functions may support.
     #[serde(default)]
-    pub options: Option<serde_json::Value>,
+    pub options: ::core::option::Option<serde_json::Value>,
 }
 
 /// A Backup of a Cloud Firestore Database. The backup contains all documents and index configurations for the given database at a specific point in time.
@@ -480,25 +481,25 @@ pub struct Function {
 pub struct GoogleFirestoreAdminV1Backup {
     /// Output only. Name of the Firestore database that the backup is from. Format is projects/{project}/databases/{database}.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// Output only. The system-generated UUID4 for the Firestore database that the backup is from.
     #[serde(default, rename = "databaseUid")]
-    pub database_uid: Option<String>,
+    pub database_uid: ::core::option::Option<String>,
     /// Output only. The timestamp at which this backup expires.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Output only. The unique resource name of the Backup. Format is projects/{project}/locations/{location}/backups/{backup}. The location in the name will be the Standard Managed Multi-Region (SMMR) location (e.g. us) if the backup was created with an SMMR location, or the Google Managed Multi-Region (GMMR) location (e.g. nam5) if the backup was created with a GMMR location.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The backup contains an externally consistent copy of the database at this time.
     #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: Option<String>,
+    pub snapshot_time: ::core::option::Option<String>,
     /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "NOT_AVAILABLE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Statistics about the backup. This data only becomes available after the backup is fully materialized to secondary storage. This field will be empty till then.
     #[serde(default)]
-    pub stats: Option<GoogleFirestoreAdminV1Stats>,
+    pub stats: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Stats>>,
 }
 
 /// A backup schedule for a Cloud Firestore Database. This resource is owned by the database it is backing up, and is deleted along with the database. The actual backups are not though.
@@ -506,22 +507,23 @@ pub struct GoogleFirestoreAdminV1Backup {
 pub struct GoogleFirestoreAdminV1BackupSchedule {
     /// Output only. The timestamp at which this backup schedule was created and effective since. No backups will be created for this schedule before this time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// For a schedule that runs daily.
     #[serde(default, rename = "dailyRecurrence")]
-    pub daily_recurrence: Option<serde_json::Value>,
+    pub daily_recurrence: ::core::option::Option<serde_json::Value>,
     /// Output only. The unique backup schedule identifier across all locations and databases for the given project. This will be auto-assigned. Format is projects/{project}/databases/{database}/backupSchedules/{backup_schedule}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// At what relative time in the future, compared to its creation time, the backup should be deleted, e.g. keep backups for 7 days. The maximum supported retention period is 14 weeks.
     #[serde(default)]
-    pub retention: Option<String>,
+    pub retention: ::core::option::Option<String>,
     /// Output only. The timestamp at which this backup schedule was most recently updated. When a backup schedule is first created, this is the same as create_time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// For a schedule that runs weekly on a specific day.
     #[serde(default, rename = "weeklyRecurrence")]
-    pub weekly_recurrence: Option<GoogleFirestoreAdminV1WeeklyRecurrence>,
+    pub weekly_recurrence:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1WeeklyRecurrence>>,
 }
 
 /// Information about a backup that was used to restore a database.
@@ -529,7 +531,7 @@ pub struct GoogleFirestoreAdminV1BackupSchedule {
 pub struct GoogleFirestoreAdminV1BackupSource {
     /// The resource name of the backup that was used to restore this database. Format: projects/{project}/locations/{location}/backups/{backup}.
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
 }
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.BulkDeleteDocuments.
@@ -537,28 +539,29 @@ pub struct GoogleFirestoreAdminV1BackupSource {
 pub struct GoogleFirestoreAdminV1BulkDeleteDocumentsMetadata {
     /// The IDs of the collection groups that are being deleted.
     #[serde(default, rename = "collectionIds")]
-    pub collection_ids: Option<Vec<String>>,
+    pub collection_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The time this operation completed. Will be unset if operation still in progress.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Which namespace IDs are being deleted.
     #[serde(default, rename = "namespaceIds")]
-    pub namespace_ids: Option<Vec<String>>,
+    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The state of the operation. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default, rename = "operationState")]
-    pub operation_state: Option<String>,
+    pub operation_state: ::core::option::Option<String>,
     /// The progress, in bytes, of this operation.
     #[serde(default, rename = "progressBytes")]
-    pub progress_bytes: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_bytes: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The progress, in documents, of this operation.
     #[serde(default, rename = "progressDocuments")]
-    pub progress_documents: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_documents:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The timestamp that corresponds to the version of the database that is being read to get the list of documents to delete. This time can also be used as the timestamp of PITR in case of disaster recovery (subject to PITR window limit).
     #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: Option<String>,
+    pub snapshot_time: ::core::option::Option<String>,
     /// The time this operation started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The request for FirestoreAdmin.BulkDeleteDocuments. When both collection_ids and namespace_ids are set, only documents satisfying both conditions will be deleted. Requests with namespace_ids and collection_ids both empty will be rejected. Please use FirestoreAdmin.DeleteDatabase instead.
@@ -566,10 +569,10 @@ pub struct GoogleFirestoreAdminV1BulkDeleteDocumentsMetadata {
 pub struct GoogleFirestoreAdminV1BulkDeleteDocumentsRequest {
     /// Optional. IDs of the collection groups to delete. Unspecified means all collection groups. Each collection group in this list must be unique.
     #[serde(default, rename = "collectionIds")]
-    pub collection_ids: Option<Vec<String>>,
+    pub collection_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Namespaces to delete. An empty list means all namespaces. This is the recommended usage for databases that don''t use namespaces. An empty string element represents the default namespace. This should be used if the database has data in non-default namespaces, but doesn''t want to delete from them. Each namespace in this list must be unique.
     #[serde(default, rename = "namespaceIds")]
-    pub namespace_ids: Option<Vec<String>>,
+    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata for the long-running operation from the CloneDatabase request.
@@ -577,22 +580,24 @@ pub struct GoogleFirestoreAdminV1BulkDeleteDocumentsRequest {
 pub struct GoogleFirestoreAdminV1CloneDatabaseMetadata {
     /// The name of the database being cloned to.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// The time the clone finished, unset for ongoing clones.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The operation state of the clone. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default, rename = "operationState")]
-    pub operation_state: Option<String>,
+    pub operation_state: ::core::option::Option<String>,
     /// The snapshot from which this database was cloned.
     #[serde(default, rename = "pitrSnapshot")]
-    pub pitr_snapshot: Option<GoogleFirestoreAdminV1PitrSnapshot>,
+    pub pitr_snapshot:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1PitrSnapshot>>,
     /// How far along the clone is as an estimated percentage of remaining time.
     #[serde(default, rename = "progressPercentage")]
-    pub progress_percentage: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_percentage:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The time the clone was started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The request message for FirestoreAdmin.CloneDatabase.
@@ -600,16 +605,18 @@ pub struct GoogleFirestoreAdminV1CloneDatabaseMetadata {
 pub struct GoogleFirestoreAdminV1CloneDatabaseRequest {
     /// Required. The ID to use for the database, which will become the final component of the database''s resource name. This database ID must not be associated with an existing database. This value should be 4-63 characters. Valid characters are /a-z-/ with first character a letter and the last a letter or a number. Must not be UUID-like /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/. "(default)" database ID is also valid if the database is Standard edition.
     #[serde(default, rename = "databaseId")]
-    pub database_id: Option<String>,
+    pub database_id: ::core::option::Option<String>,
     /// Optional. Encryption configuration for the cloned database. If this field is not specified, the cloned database will use the same encryption configuration as the source database, namely use_source_encryption.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<GoogleFirestoreAdminV1EncryptionConfig>,
+    pub encryption_config:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1EncryptionConfig>>,
     /// Required. Specification of the PITR data to clone from. The source database must exist. The cloned database will be created in the same location as the source database.
     #[serde(default, rename = "pitrSnapshot")]
-    pub pitr_snapshot: Option<GoogleFirestoreAdminV1PitrSnapshot>,
+    pub pitr_snapshot:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1PitrSnapshot>>,
     /// Optional. Immutable. Tags to be bound to the cloned database. The tags should be provided in the format of tagKeys/{tag_key_id} -&gt; tagValues/{tag_value_id}.
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// The CMEK (Customer Managed Encryption Key) configuration for a Firestore database. If not present, the database is secured by the default Google encryption key.
@@ -617,10 +624,10 @@ pub struct GoogleFirestoreAdminV1CloneDatabaseRequest {
 pub struct GoogleFirestoreAdminV1CmekConfig {
     /// Output only. Currently in-use [KMS key versions](https://cloud.google.com/kms/docs/resource-hierarchy#key_versions). During [key rotation](https://cloud.google.com/kms/docs/key-rotation), there can be multiple in-use key versions. The expected format is projects/{project_id}/locations/{kms_location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}/cryptoKeyVersions/{key_version}.
     #[serde(default, rename = "activeKeyVersion")]
-    pub active_key_version: Option<Vec<String>>,
+    pub active_key_version: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Only keys in the same location as this database are allowed to be used for encryption. For Firestore''s nam5 multi-region, this corresponds to Cloud KMS multi-region us. For Firestore''s eur3 multi-region, this corresponds to Cloud KMS multi-region europe. See https://cloud.google.com/kms/docs/locations. The expected format is projects/{project_id}/locations/{kms_location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// The configuration options for using CMEK (Customer Managed Encryption Key) encryption.
@@ -628,7 +635,7 @@ pub struct GoogleFirestoreAdminV1CmekConfig {
 pub struct GoogleFirestoreAdminV1CustomerManagedEncryptionOptions {
     /// Required. Only keys in the same location as the database are allowed to be used for encryption. For Firestore''s nam5 multi-region, this corresponds to Cloud KMS multi-region us. For Firestore''s eur3 multi-region, this corresponds to Cloud KMS multi-region europe. See https://cloud.google.com/kms/docs/locations. The expected format is projects/{project_id}/locations/{kms_location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// A Cloud Firestore Database.
@@ -636,76 +643,76 @@ pub struct GoogleFirestoreAdminV1CustomerManagedEncryptionOptions {
 pub struct GoogleFirestoreAdminV1Database {
     /// The App Engine integration mode to use for this database. // TODO: enum values: ["APP_ENGINE_INTEGRATION_MODE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "appEngineIntegrationMode")]
-    pub app_engine_integration_mode: Option<String>,
+    pub app_engine_integration_mode: ::core::option::Option<String>,
     /// Optional. Presence indicates CMEK is enabled for this database.
     #[serde(default, rename = "cmekConfig")]
-    pub cmek_config: Option<GoogleFirestoreAdminV1CmekConfig>,
+    pub cmek_config: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1CmekConfig>>,
     /// The concurrency control mode to use for this database. If unspecified in a CreateDatabase request, this will default based on the database edition: Optimistic for Enterprise and Pessimistic for all other databases. // TODO: enum values: ["CONCURRENCY_MODE_UNSPECIFIED", "OPTIMISTIC", "PESSIMISTIC", "OPTIMISTIC_WITH_ENTITY_GROUPS"]
     #[serde(default, rename = "concurrencyMode")]
-    pub concurrency_mode: Option<String>,
+    pub concurrency_mode: ::core::option::Option<String>,
     /// Output only. The timestamp at which this database was created. Databases created before 2016 do not populate create_time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Immutable. The edition of the database. // TODO: enum values: ["DATABASE_EDITION_UNSPECIFIED", "STANDARD", "ENTERPRISE"]
     #[serde(default, rename = "databaseEdition")]
-    pub database_edition: Option<String>,
+    pub database_edition: ::core::option::Option<String>,
     /// State of delete protection for the database. // TODO: enum values: ["DELETE_PROTECTION_STATE_UNSPECIFIED", "DELETE_PROTECTION_DISABLED", "DELETE_PROTECTION_ENABLED"]
     #[serde(default, rename = "deleteProtectionState")]
-    pub delete_protection_state: Option<String>,
+    pub delete_protection_state: ::core::option::Option<String>,
     /// Output only. The timestamp at which this database was deleted. Only set if the database has been deleted.
     #[serde(default, rename = "deleteTime")]
-    pub delete_time: Option<String>,
+    pub delete_time: ::core::option::Option<String>,
     /// Output only. The earliest timestamp at which older versions of the data can be read from the database. See [version_retention_period] above; this field is populated with now - version_retention_period. This value is continuously updated, and becomes stale the moment it is queried. If you are using this value to recover data, make sure to account for the time from the moment when the value is queried to the moment when you initiate the recovery.
     #[serde(default, rename = "earliestVersionTime")]
-    pub earliest_version_time: Option<String>,
+    pub earliest_version_time: ::core::option::Option<String>,
     /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Optional. The Firestore API data access mode to use for this database. If not set on write: - the default value is DATA_ACCESS_MODE_DISABLED for Enterprise Edition. - the default value is DATA_ACCESS_MODE_ENABLED for Standard Edition. // TODO: enum values: ["DATA_ACCESS_MODE_UNSPECIFIED", "DATA_ACCESS_MODE_ENABLED", "DATA_ACCESS_MODE_DISABLED"]
     #[serde(default, rename = "firestoreDataAccessMode")]
-    pub firestore_data_access_mode: Option<String>,
+    pub firestore_data_access_mode: ::core::option::Option<String>,
     /// Output only. Background: Free tier is the ability of a Firestore database to use a small amount of resources every day without being charged. Once usage exceeds the free tier limit further usage is charged. Whether this database can make use of the free tier. Only one database per project can be eligible for the free tier. The first (or next) database that is created in a project without a free tier database will be marked as eligible for the free tier. Databases that are created while there is a free tier database will not be eligible for the free tier.
     #[serde(default, rename = "freeTier")]
-    pub free_tier: Option<bool>,
+    pub free_tier: ::core::option::Option<bool>,
     /// Output only. The key_prefix for this database. This key_prefix is used, in combination with the project ID ("~") to construct the application ID that is returned from the Cloud Datastore APIs in Google App Engine first generation runtimes. This value may be empty in which case the appid to use for URL-encoded keys is the project_id (eg: foo instead of v~foo).
     #[serde(default, rename = "keyPrefix")]
-    pub key_prefix: Option<String>,
+    pub key_prefix: ::core::option::Option<String>,
     /// Required. The location of the database. Available locations are listed at https://cloud.google.com/firestore/docs/locations.
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Optional. The MongoDB compatible API data access mode to use for this database. If not set on write, the default value is DATA_ACCESS_MODE_ENABLED for Enterprise Edition. The value is always DATA_ACCESS_MODE_DISABLED for Standard Edition. // TODO: enum values: ["DATA_ACCESS_MODE_UNSPECIFIED", "DATA_ACCESS_MODE_ENABLED", "DATA_ACCESS_MODE_DISABLED"]
     #[serde(default, rename = "mongodbCompatibleDataAccessMode")]
-    pub mongodb_compatible_data_access_mode: Option<String>,
+    pub mongodb_compatible_data_access_mode: ::core::option::Option<String>,
     /// The resource name of the Database. Format: projects/{project}/databases/{database}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Whether to enable the PITR feature on this database. // TODO: enum values: ["POINT_IN_TIME_RECOVERY_ENABLEMENT_UNSPECIFIED", "POINT_IN_TIME_RECOVERY_ENABLED", "POINT_IN_TIME_RECOVERY_DISABLED"]
     #[serde(default, rename = "pointInTimeRecoveryEnablement")]
-    pub point_in_time_recovery_enablement: Option<String>,
+    pub point_in_time_recovery_enablement: ::core::option::Option<String>,
     /// Output only. The database resource''s prior database ID. This field is only populated for deleted databases.
     #[serde(default, rename = "previousId")]
-    pub previous_id: Option<String>,
+    pub previous_id: ::core::option::Option<String>,
     /// Immutable. The default Realtime Updates mode to use for this database. // TODO: enum values: ["REALTIME_UPDATES_MODE_UNSPECIFIED", "REALTIME_UPDATES_MODE_ENABLED", "REALTIME_UPDATES_MODE_DISABLED"]
     #[serde(default, rename = "realtimeUpdatesMode")]
-    pub realtime_updates_mode: Option<String>,
+    pub realtime_updates_mode: ::core::option::Option<String>,
     /// Output only. Information about the provenance of this database.
     #[serde(default, rename = "sourceInfo")]
-    pub source_info: Option<GoogleFirestoreAdminV1SourceInfo>,
+    pub source_info: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1SourceInfo>>,
     /// Optional. Input only. Immutable. Tag keys/values directly bound to this resource. For example: "123/environment": "production", "123/costCenter": "marketing"
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
     /// Required. The type of the database. See https://cloud.google.com/datastore/docs/firestore-or-datastore for information about how to choose. // TODO: enum values: ["DATABASE_TYPE_UNSPECIFIED", "FIRESTORE_NATIVE", "DATASTORE_MODE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. The system-generated UUID4 for this Database.
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Output only. The timestamp at which this database was most recently updated. Note this only includes updates to the database resource and not data contained by the database.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The period during which past versions of data are retained in the database. Any read or query can specify a read_time within this window, and will read the state of the database at that time. If the PITR feature is enabled, the retention period is 7 days. Otherwise, the retention period is 1 hour.
     #[serde(default, rename = "versionRetentionPeriod")]
-    pub version_retention_period: Option<String>,
+    pub version_retention_period: ::core::option::Option<String>,
 }
 
 /// Encryption configuration for a new database being created from another source. The source could be a Backup or a PitrSnapshot.
@@ -713,13 +720,15 @@ pub struct GoogleFirestoreAdminV1Database {
 pub struct GoogleFirestoreAdminV1EncryptionConfig {
     /// Use Customer Managed Encryption Keys (CMEK) for encryption.
     #[serde(default, rename = "customerManagedEncryption")]
-    pub customer_managed_encryption: Option<GoogleFirestoreAdminV1CustomerManagedEncryptionOptions>,
+    pub customer_managed_encryption: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirestoreAdminV1CustomerManagedEncryptionOptions>,
+    >,
     /// Use Google default encryption.
     #[serde(default, rename = "googleDefaultEncryption")]
-    pub google_default_encryption: Option<serde_json::Value>,
+    pub google_default_encryption: ::core::option::Option<serde_json::Value>,
     /// The database will use the same encryption configuration as the source.
     #[serde(default, rename = "useSourceEncryption")]
-    pub use_source_encryption: Option<serde_json::Value>,
+    pub use_source_encryption: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.ExportDocuments.
@@ -727,31 +736,32 @@ pub struct GoogleFirestoreAdminV1EncryptionConfig {
 pub struct GoogleFirestoreAdminV1ExportDocumentsMetadata {
     /// Which collection IDs are being exported.
     #[serde(default, rename = "collectionIds")]
-    pub collection_ids: Option<Vec<String>>,
+    pub collection_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The time this operation completed. Will be unset if operation still in progress.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Which namespace IDs are being exported.
     #[serde(default, rename = "namespaceIds")]
-    pub namespace_ids: Option<Vec<String>>,
+    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The state of the export operation. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default, rename = "operationState")]
-    pub operation_state: Option<String>,
+    pub operation_state: ::core::option::Option<String>,
     /// Where the documents are being exported to.
     #[serde(default, rename = "outputUriPrefix")]
-    pub output_uri_prefix: Option<String>,
+    pub output_uri_prefix: ::core::option::Option<String>,
     /// The progress, in bytes, of this operation.
     #[serde(default, rename = "progressBytes")]
-    pub progress_bytes: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_bytes: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The progress, in documents, of this operation.
     #[serde(default, rename = "progressDocuments")]
-    pub progress_documents: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_documents:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The timestamp that corresponds to the version of the database that is being exported. If unspecified, there are no guarantees about the consistency of the documents being exported.
     #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: Option<String>,
+    pub snapshot_time: ::core::option::Option<String>,
     /// The time this operation started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The request for FirestoreAdmin.ExportDocuments.
@@ -759,16 +769,16 @@ pub struct GoogleFirestoreAdminV1ExportDocumentsMetadata {
 pub struct GoogleFirestoreAdminV1ExportDocumentsRequest {
     /// IDs of the collection groups to export. Unspecified means all collection groups. Each collection group in this list must be unique.
     #[serde(default, rename = "collectionIds")]
-    pub collection_ids: Option<Vec<String>>,
+    pub collection_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// An empty list represents all namespaces. This is the preferred usage for databases that don''t use namespaces. An empty string element represents the default namespace. This should be used if the database has data in non-default namespaces, but doesn''t want to include them. Each namespace in this list must be unique.
     #[serde(default, rename = "namespaceIds")]
-    pub namespace_ids: Option<Vec<String>>,
+    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The output URI. Currently only supports Google Cloud Storage URIs of the form: gs://BUCKET_NAME[/NAMESPACE_PATH], where BUCKET_NAME is the name of the Google Cloud Storage bucket and NAMESPACE_PATH is an optional Google Cloud Storage namespace path. When choosing a name, be sure to consider Google Cloud Storage naming guidelines: https://cloud.google.com/storage/docs/naming. If the URI is a bucket (without a namespace path), a prefix will be generated based on the start time.
     #[serde(default, rename = "outputUriPrefix")]
-    pub output_uri_prefix: Option<String>,
+    pub output_uri_prefix: ::core::option::Option<String>,
     /// The timestamp that corresponds to the version of the database to be exported. The timestamp must be in the past, rounded to the minute and not older than earliestVersionTime. If specified, then the exported documents will represent a consistent view of the database at the provided time. Otherwise, there are no guarantees about the consistency of the exported documents.
     #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: Option<String>,
+    pub snapshot_time: ::core::option::Option<String>,
 }
 
 /// Returned in the google.longrunning.Operation response field.
@@ -776,7 +786,7 @@ pub struct GoogleFirestoreAdminV1ExportDocumentsRequest {
 pub struct GoogleFirestoreAdminV1ExportDocumentsResponse {
     /// Location of the output files. This can be used to begin an import into Cloud Firestore (this project or another project) after the operation completes successfully.
     #[serde(default, rename = "outputUriPrefix")]
-    pub output_uri_prefix: Option<String>,
+    pub output_uri_prefix: ::core::option::Option<String>,
 }
 
 /// Represents a single field in the database. Fields are grouped by their "Collection Group", which represent all collections in the database with the same ID.
@@ -784,13 +794,13 @@ pub struct GoogleFirestoreAdminV1ExportDocumentsResponse {
 pub struct GoogleFirestoreAdminV1Field {
     /// The index configuration for this field. If unset, field indexing will revert to the configuration defined by the ancestor_field. To explicitly remove all indexes for this field, specify an index config with an empty list of indexes.
     #[serde(default, rename = "indexConfig")]
-    pub index_config: Option<GoogleFirestoreAdminV1IndexConfig>,
+    pub index_config: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1IndexConfig>>,
     /// Required. A field name of the form: projects/{project_id}/databases/{database_id}/collectionGroups/{collection_id}/fields/{field_path} A field path can be a simple field name, e.g. address or a path to fields within map_value , e.g. address.city, or a special field path. The only valid special field is *, which represents any field. Field paths can be quoted using    (backtick). The only character that must be escaped within a quoted field path is the backtick character itself, escaped using a backslash. Special characters in field paths that must be quoted include: *, .,    (backtick), [, ], as well as any ascii symbolic characters. Examples:  address.city  represents a field named address.city, not the map key city in the field address.  *  represents a field named *, not any field. A special Field contains the default indexing settings for all fields. This field''s resource name is: projects/{project_id}/databases/{database_id}/collectionGroups/__default__/fields/* Indexes defined on this Field will be applied to all fields which do not have their own Field index configuration.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The TTL configuration for this Field. Setting or unsetting this will enable or disable the TTL for documents that have this Field.
     #[serde(default, rename = "ttlConfig")]
-    pub ttl_config: Option<GoogleFirestoreAdminV1TtlConfig>,
+    pub ttl_config: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1TtlConfig>>,
 }
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.UpdateField.
@@ -798,28 +808,32 @@ pub struct GoogleFirestoreAdminV1Field {
 pub struct GoogleFirestoreAdminV1FieldOperationMetadata {
     /// The time this operation completed. Will be unset if operation still in progress.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The field resource that this operation is acting on. For example: projects/{project_id}/databases/{database_id}/collectionGroups/{collection_id}/fields/{field_path}
     #[serde(default)]
-    pub field: Option<String>,
+    pub field: ::core::option::Option<String>,
     /// A list of IndexConfigDelta, which describe the intent of this operation.
     #[serde(default, rename = "indexConfigDeltas")]
-    pub index_config_deltas: Option<Vec<GoogleFirestoreAdminV1IndexConfigDelta>>,
+    pub index_config_deltas: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1IndexConfigDelta>>,
+    >,
     /// The progress, in bytes, of this operation.
     #[serde(default, rename = "progressBytes")]
-    pub progress_bytes: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_bytes: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The progress, in documents, of this operation.
     #[serde(default, rename = "progressDocuments")]
-    pub progress_documents: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_documents:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The time this operation started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The state of the operation. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Describes the deltas of TTL configuration.
     #[serde(default, rename = "ttlConfigDelta")]
-    pub ttl_config_delta: Option<GoogleFirestoreAdminV1TtlConfigDelta>,
+    pub ttl_config_delta:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1TtlConfigDelta>>,
 }
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.ImportDocuments.
@@ -827,28 +841,29 @@ pub struct GoogleFirestoreAdminV1FieldOperationMetadata {
 pub struct GoogleFirestoreAdminV1ImportDocumentsMetadata {
     /// Which collection IDs are being imported.
     #[serde(default, rename = "collectionIds")]
-    pub collection_ids: Option<Vec<String>>,
+    pub collection_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The time this operation completed. Will be unset if operation still in progress.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The location of the documents being imported.
     #[serde(default, rename = "inputUriPrefix")]
-    pub input_uri_prefix: Option<String>,
+    pub input_uri_prefix: ::core::option::Option<String>,
     /// Which namespace IDs are being imported.
     #[serde(default, rename = "namespaceIds")]
-    pub namespace_ids: Option<Vec<String>>,
+    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The state of the import operation. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default, rename = "operationState")]
-    pub operation_state: Option<String>,
+    pub operation_state: ::core::option::Option<String>,
     /// The progress, in bytes, of this operation.
     #[serde(default, rename = "progressBytes")]
-    pub progress_bytes: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_bytes: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The progress, in documents, of this operation.
     #[serde(default, rename = "progressDocuments")]
-    pub progress_documents: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_documents:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The time this operation started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The request for FirestoreAdmin.ImportDocuments.
@@ -856,13 +871,13 @@ pub struct GoogleFirestoreAdminV1ImportDocumentsMetadata {
 pub struct GoogleFirestoreAdminV1ImportDocumentsRequest {
     /// IDs of the collection groups to import. Unspecified means all collection groups that were included in the export. Each collection group in this list must be unique.
     #[serde(default, rename = "collectionIds")]
-    pub collection_ids: Option<Vec<String>>,
+    pub collection_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Location of the exported files. This must match the output_uri_prefix of an ExportDocumentsResponse from an export that has completed successfully. See: google.firestore.admin.v1.ExportDocumentsResponse.output_uri_prefix.
     #[serde(default, rename = "inputUriPrefix")]
-    pub input_uri_prefix: Option<String>,
+    pub input_uri_prefix: ::core::option::Option<String>,
     /// An empty list represents all namespaces. This is the preferred usage for databases that don''t use namespaces. An empty string element represents the default namespace. This should be used if the database has data in non-default namespaces, but doesn''t want to include them. Each namespace in this list must be unique.
     #[serde(default, rename = "namespaceIds")]
-    pub namespace_ids: Option<Vec<String>>,
+    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Cloud Firestore indexes enable simple and complex queries against documents in a database.
@@ -870,34 +885,37 @@ pub struct GoogleFirestoreAdminV1ImportDocumentsRequest {
 pub struct GoogleFirestoreAdminV1Index {
     /// The API scope supported by this index. // TODO: enum values: ["ANY_API", "DATASTORE_MODE_API", "MONGODB_COMPATIBLE_API"]
     #[serde(default, rename = "apiScope")]
-    pub api_scope: Option<String>,
+    pub api_scope: ::core::option::Option<String>,
     /// Immutable. The density configuration of the index. // TODO: enum values: ["DENSITY_UNSPECIFIED", "SPARSE_ALL", "SPARSE_ANY", "DENSE"]
     #[serde(default)]
-    pub density: Option<String>,
+    pub density: ::core::option::Option<String>,
     /// The fields supported by this index. For composite indexes, this requires a minimum of 2 and a maximum of 100 fields. The last field entry is always for the field path __name__. If, on creation, __name__ was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in a composite index is not directional, the __name__ will be ordered ASCENDING (unless explicitly specified). For single field indexes, this will always be exactly one entry with a field path equal to the field path of the associated field.
     #[serde(default)]
-    pub fields: Option<Vec<GoogleFirestoreAdminV1IndexField>>,
+    pub fields: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1IndexField>>,
+    >,
     /// Optional. Whether the index is multikey. By default, the index is not multikey. For non-multikey indexes, none of the paths in the index definition reach or traverse an array, except via an explicit array index. For multikey indexes, at most one of the paths in the index definition reach or traverse an array, except via an explicit array index. Violations will result in errors. Note this field only applies to index with MONGODB_COMPATIBLE_API ApiScope.
     #[serde(default)]
-    pub multikey: Option<bool>,
+    pub multikey: ::core::option::Option<bool>,
     /// Output only. A server defined name for this index. The form of this name for composite indexes will be: projects/{project_id}/databases/{database_id}/collectionGroups/{collection_id}/indexes/{composite_index_id} For single field indexes, this field will be empty.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Indexes with a collection query scope specified allow queries against a collection that is the child of a specific document, specified at query time, and that has the same collection ID. Indexes with a collection group query scope specified allow queries against all collections descended from a specific document, specified at query time, and that have the same collection ID as this index. // TODO: enum values: ["QUERY_SCOPE_UNSPECIFIED", "COLLECTION", "COLLECTION_GROUP", "COLLECTION_RECURSIVE"]
     #[serde(default, rename = "queryScope")]
-    pub query_scope: Option<String>,
+    pub query_scope: ::core::option::Option<String>,
     /// Optional. Options for search indexes that are at the index definition level. This field is only currently supported for indexes with MONGODB_COMPATIBLE_API ApiScope.
     #[serde(default, rename = "searchIndexOptions")]
-    pub search_index_options: Option<GoogleFirestoreAdminV1SearchIndexOptions>,
+    pub search_index_options:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1SearchIndexOptions>>,
     /// Optional. The number of shards for the index.
     #[serde(default, rename = "shardCount")]
-    pub shard_count: Option<i32>,
+    pub shard_count: ::core::option::Option<i32>,
     /// Output only. The serving state of the index. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "NEEDS_REPAIR"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. Whether it is an unique index. Unique index ensures all values for the indexed field(s) are unique across documents.
     #[serde(default)]
-    pub unique: Option<bool>,
+    pub unique: ::core::option::Option<bool>,
 }
 
 /// The index configuration for this field.
@@ -905,16 +923,17 @@ pub struct GoogleFirestoreAdminV1Index {
 pub struct GoogleFirestoreAdminV1IndexConfig {
     /// Output only. Specifies the resource name of the Field from which this field''s index configuration is set (when uses_ancestor_config is true), or from which it *would* be set if this field had no index configuration (when uses_ancestor_config is false).
     #[serde(default, rename = "ancestorField")]
-    pub ancestor_field: Option<String>,
+    pub ancestor_field: ::core::option::Option<String>,
     /// The indexes supported for this field.
     #[serde(default)]
-    pub indexes: Option<Vec<GoogleFirestoreAdminV1Index>>,
+    pub indexes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1Index>>>,
     /// Output only When true, the Field''s index configuration is in the process of being reverted. Once complete, the index config will transition to the same state as the field specified by ancestor_field, at which point uses_ancestor_config will be true and reverting will be false.
     #[serde(default)]
-    pub reverting: Option<bool>,
+    pub reverting: ::core::option::Option<bool>,
     /// Output only. When true, the Field''s index configuration is set from the configuration specified by the ancestor_field. When false, the Field''s index configuration is defined explicitly.
     #[serde(default, rename = "usesAncestorConfig")]
-    pub uses_ancestor_config: Option<bool>,
+    pub uses_ancestor_config: ::core::option::Option<bool>,
 }
 
 /// Information about an index configuration change.
@@ -922,10 +941,10 @@ pub struct GoogleFirestoreAdminV1IndexConfig {
 pub struct GoogleFirestoreAdminV1IndexConfigDelta {
     /// Specifies how the index is changing. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default, rename = "changeType")]
-    pub change_type: Option<String>,
+    pub change_type: ::core::option::Option<String>,
     /// The index being changed.
     #[serde(default)]
-    pub index: Option<GoogleFirestoreAdminV1Index>,
+    pub index: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Index>>,
 }
 
 /// A field in an index. The field_path describes which field is indexed, the value_mode describes how the field value is indexed.
@@ -933,19 +952,21 @@ pub struct GoogleFirestoreAdminV1IndexConfigDelta {
 pub struct GoogleFirestoreAdminV1IndexField {
     /// Indicates that this field supports operations on array_values. // TODO: enum values: ["ARRAY_CONFIG_UNSPECIFIED", "CONTAINS"]
     #[serde(default, rename = "arrayConfig")]
-    pub array_config: Option<String>,
+    pub array_config: ::core::option::Option<String>,
     /// Can be __name__. For single field indexes, this must match the name of the field or may be omitted.
     #[serde(default, rename = "fieldPath")]
-    pub field_path: Option<String>,
+    pub field_path: ::core::option::Option<String>,
     /// Indicates that this field supports ordering by the specified order or comparing using =, !=, &lt;, &lt;=, &gt;, &gt;=. // TODO: enum values: ["ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
     #[serde(default)]
-    pub order: Option<String>,
+    pub order: ::core::option::Option<String>,
     /// Indicates that this field supports search operations. This field is only currently supported for indexes with MONGODB_COMPATIBLE_API ApiScope.
     #[serde(default, rename = "searchConfig")]
-    pub search_config: Option<GoogleFirestoreAdminV1SearchConfig>,
+    pub search_config:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1SearchConfig>>,
     /// Indicates that this field supports nearest neighbor and distance operations on vector.
     #[serde(default, rename = "vectorConfig")]
-    pub vector_config: Option<GoogleFirestoreAdminV1VectorConfig>,
+    pub vector_config:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1VectorConfig>>,
 }
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.CreateIndex.
@@ -953,22 +974,23 @@ pub struct GoogleFirestoreAdminV1IndexField {
 pub struct GoogleFirestoreAdminV1IndexOperationMetadata {
     /// The time this operation completed. Will be unset if operation still in progress.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The index resource that this operation is acting on. For example: projects/{project_id}/databases/{database_id}/collectionGroups/{collection_id}/indexes/{index_id}
     #[serde(default)]
-    pub index: Option<String>,
+    pub index: ::core::option::Option<String>,
     /// The progress, in bytes, of this operation.
     #[serde(default, rename = "progressBytes")]
-    pub progress_bytes: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_bytes: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The progress, in documents, of this operation.
     #[serde(default, rename = "progressDocuments")]
-    pub progress_documents: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_documents:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The time this operation started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// The state of the operation. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// The response for FirestoreAdmin.ListBackupSchedules.
@@ -976,7 +998,9 @@ pub struct GoogleFirestoreAdminV1IndexOperationMetadata {
 pub struct GoogleFirestoreAdminV1ListBackupSchedulesResponse {
     /// List of all backup schedules.
     #[serde(default, rename = "backupSchedules")]
-    pub backup_schedules: Option<Vec<GoogleFirestoreAdminV1BackupSchedule>>,
+    pub backup_schedules: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1BackupSchedule>>,
+    >,
 }
 
 /// The response for FirestoreAdmin.ListBackups.
@@ -984,10 +1008,11 @@ pub struct GoogleFirestoreAdminV1ListBackupSchedulesResponse {
 pub struct GoogleFirestoreAdminV1ListBackupsResponse {
     /// List of all backups for the project.
     #[serde(default)]
-    pub backups: Option<Vec<GoogleFirestoreAdminV1Backup>>,
+    pub backups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1Backup>>>,
     /// List of locations that existing backups were not able to be fetched from. Instead of failing the entire requests when a single location is unreachable, this response returns a partial result set and list of locations unable to be reached here. The request can be retried against a single location to get a concrete error.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The list of databases for a project.
@@ -995,10 +1020,11 @@ pub struct GoogleFirestoreAdminV1ListBackupsResponse {
 pub struct GoogleFirestoreAdminV1ListDatabasesResponse {
     /// The databases in the project.
     #[serde(default)]
-    pub databases: Option<Vec<GoogleFirestoreAdminV1Database>>,
+    pub databases:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1Database>>>,
     /// In the event that data about individual databases cannot be listed they will be recorded here. An example entry might be: projects/some_project/locations/some_location This can happen if the Cloud Region that the Database resides in is currently unavailable. In this case we can''t fetch all the details about the database. You may be able to get a more detailed error message (or possibly fetch the resource) by sending a ''Get'' request for the resource or a ''List'' request for the specific location.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response for FirestoreAdmin.ListFields.
@@ -1006,10 +1032,11 @@ pub struct GoogleFirestoreAdminV1ListDatabasesResponse {
 pub struct GoogleFirestoreAdminV1ListFieldsResponse {
     /// The requested fields.
     #[serde(default)]
-    pub fields: Option<Vec<GoogleFirestoreAdminV1Field>>,
+    pub fields:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1Field>>>,
     /// A page token that may be used to request another page of results. If blank, this is the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for FirestoreAdmin.ListIndexes.
@@ -1017,10 +1044,11 @@ pub struct GoogleFirestoreAdminV1ListFieldsResponse {
 pub struct GoogleFirestoreAdminV1ListIndexesResponse {
     /// The requested indexes.
     #[serde(default)]
-    pub indexes: Option<Vec<GoogleFirestoreAdminV1Index>>,
+    pub indexes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1Index>>>,
     /// A page token that may be used to request another page of results. If blank, this is the last page.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for FirestoreAdmin.ListUserCreds.
@@ -1028,7 +1056,8 @@ pub struct GoogleFirestoreAdminV1ListIndexesResponse {
 pub struct GoogleFirestoreAdminV1ListUserCredsResponse {
     /// The user creds for the database.
     #[serde(default, rename = "userCreds")]
-    pub user_creds: Option<Vec<GoogleFirestoreAdminV1UserCreds>>,
+    pub user_creds:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1UserCreds>>>,
 }
 
 /// A consistent snapshot of a database at a specific point in time. A PITR (Point-in-time recovery) snapshot with previous versions of a database''s data is available for every minute up to the associated database''s data retention period. If the PITR feature is enabled, the retention period is 7 days; otherwise, it is one hour.
@@ -1036,13 +1065,13 @@ pub struct GoogleFirestoreAdminV1ListUserCredsResponse {
 pub struct GoogleFirestoreAdminV1PitrSnapshot {
     /// Required. The name of the database that this was a snapshot of. Format: projects/{project}/databases/{database}.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// Output only. Public UUID of the database the snapshot was associated with.
     #[serde(default, rename = "databaseUid")]
-    pub database_uid: Option<String>,
+    pub database_uid: ::core::option::Option<String>,
     /// Required. Snapshot time of the database.
     #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: Option<String>,
+    pub snapshot_time: ::core::option::Option<String>,
 }
 
 /// Describes the progress of the operation. Unit of work is generic and must be interpreted based on where Progress is used.
@@ -1050,10 +1079,10 @@ pub struct GoogleFirestoreAdminV1PitrSnapshot {
 pub struct GoogleFirestoreAdminV1Progress {
     /// The amount of work completed.
     #[serde(default, rename = "completedWork")]
-    pub completed_work: Option<String>,
+    pub completed_work: ::core::option::Option<String>,
     /// The amount of work estimated.
     #[serde(default, rename = "estimatedWork")]
-    pub estimated_work: Option<String>,
+    pub estimated_work: ::core::option::Option<String>,
 }
 
 /// Describes a Resource Identity principal.
@@ -1061,7 +1090,7 @@ pub struct GoogleFirestoreAdminV1Progress {
 pub struct GoogleFirestoreAdminV1ResourceIdentity {
     /// Output only. Principal identifier string. See: https://cloud.google.com/iam/docs/principal-identifiers
     #[serde(default)]
-    pub principal: Option<String>,
+    pub principal: ::core::option::Option<String>,
 }
 
 /// Metadata for the long-running operation from the RestoreDatabase request.
@@ -1069,22 +1098,23 @@ pub struct GoogleFirestoreAdminV1ResourceIdentity {
 pub struct GoogleFirestoreAdminV1RestoreDatabaseMetadata {
     /// The name of the backup restoring from.
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
     /// The name of the database being restored to.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// The time the restore finished, unset for ongoing restores.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The operation state of the restore. // TODO: enum values: ["OPERATION_STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default, rename = "operationState")]
-    pub operation_state: Option<String>,
+    pub operation_state: ::core::option::Option<String>,
     /// How far along the restore is as an estimated percentage of remaining time.
     #[serde(default, rename = "progressPercentage")]
-    pub progress_percentage: Option<GoogleFirestoreAdminV1Progress>,
+    pub progress_percentage:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1Progress>>,
     /// The time the restore was started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// The request message for FirestoreAdmin.RestoreDatabase.
@@ -1092,16 +1122,17 @@ pub struct GoogleFirestoreAdminV1RestoreDatabaseMetadata {
 pub struct GoogleFirestoreAdminV1RestoreDatabaseRequest {
     /// Required. Backup to restore from. Must be from the same project as the parent. The restored database will be created in the same location as the source backup. Format is: projects/{project_id}/locations/{location}/backups/{backup}
     #[serde(default)]
-    pub backup: Option<String>,
+    pub backup: ::core::option::Option<String>,
     /// Required. The ID to use for the database, which will become the final component of the database''s resource name. This database ID must not be associated with an existing database. This value should be 4-63 characters. Valid characters are /a-z-/ with first character a letter and the last a letter or a number. Must not be UUID-like /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/. "(default)" database ID is also valid if the database is Standard edition.
     #[serde(default, rename = "databaseId")]
-    pub database_id: Option<String>,
+    pub database_id: ::core::option::Option<String>,
     /// Optional. Encryption configuration for the restored database. If this field is not specified, the restored database will use the same encryption configuration as the backup, namely use_source_encryption.
     #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: Option<GoogleFirestoreAdminV1EncryptionConfig>,
+    pub encryption_config:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1EncryptionConfig>>,
     /// Optional. Immutable. Tags to be bound to the restored database. The tags should be provided in the format of tagKeys/{tag_key_id} -&gt; tagValues/{tag_value_id}.
     #[serde(default)]
-    pub tags: Option<serde_json::Value>,
+    pub tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// The configuration for how to index a field for search.
@@ -1109,13 +1140,14 @@ pub struct GoogleFirestoreAdminV1RestoreDatabaseRequest {
 pub struct GoogleFirestoreAdminV1SearchConfig {
     /// Optional. The specification for building a geo search index for a field.
     #[serde(default, rename = "geoSpec")]
-    pub geo_spec: Option<GoogleFirestoreAdminV1SearchGeoSpec>,
+    pub geo_spec: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1SearchGeoSpec>>,
     /// Optional. The specification for building a number search index for a field.
     #[serde(default, rename = "numberSpec")]
-    pub number_spec: Option<GoogleFirestoreAdminV1SearchNumberSpec>,
+    pub number_spec:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1SearchNumberSpec>>,
     /// Optional. The specification for building a text search index for a field.
     #[serde(default, rename = "textSpec")]
-    pub text_spec: Option<GoogleFirestoreAdminV1SearchTextSpec>,
+    pub text_spec: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1SearchTextSpec>>,
 }
 
 /// The specification for how to build a geo search index for a field.
@@ -1123,7 +1155,7 @@ pub struct GoogleFirestoreAdminV1SearchConfig {
 pub struct GoogleFirestoreAdminV1SearchGeoSpec {
     /// Optional. Disables geoJSON indexing for the field. By default, geoJSON points are indexed.
     #[serde(default, rename = "geoJsonIndexingDisabled")]
-    pub geo_json_indexing_disabled: Option<bool>,
+    pub geo_json_indexing_disabled: ::core::option::Option<bool>,
 }
 
 /// Options for search indexes at the definition level.
@@ -1131,13 +1163,13 @@ pub struct GoogleFirestoreAdminV1SearchGeoSpec {
 pub struct GoogleFirestoreAdminV1SearchIndexOptions {
     /// Optional. Custom partition fields to use for the search index. If unspecified, all indexed fields will be in the same default partition. If a search index is created specifying custom partition fields, all search queries using that index will be required to filter on the partition. For indexes with MONGODB_COMPATIBLE_API ApiScope: This must refer to a top level field name.
     #[serde(default, rename = "customPartitionFieldPaths")]
-    pub custom_partition_field_paths: Option<Vec<String>>,
+    pub custom_partition_field_paths: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The language to use for text search indexes. Used as the default language if not overridden at the document level by specifying the text_language_override_field. The language is specified as a BCP 47 language code. For indexes with MONGODB_COMPATIBLE_API ApiScope: If unspecified, the default language is English. For indexes with ANY_API ApiScope: If unspecified, the default behavior is autodetect.
     #[serde(default, rename = "textLanguage")]
-    pub text_language: Option<String>,
+    pub text_language: ::core::option::Option<String>,
     /// Optional. The field in the document that specifies which language to use for that specific document. For indexes with MONGODB_COMPATIBLE_API ApiScope: if unspecified, the language is taken from the "language" field if it exists or from text_language if it does not.
     #[serde(default, rename = "textLanguageOverrideFieldPath")]
-    pub text_language_override_field_path: Option<String>,
+    pub text_language_override_field_path: ::core::option::Option<String>,
 }
 
 /// The specification for how to build a number search index for a field.
@@ -1145,7 +1177,7 @@ pub struct GoogleFirestoreAdminV1SearchIndexOptions {
 pub struct GoogleFirestoreAdminV1SearchNumberSpec {
     /// Required. How to index the number field value. // TODO: enum values: ["NUMBER_INDEX_TYPE_UNSPECIFIED", "FLOAT64", "INT32_LOG_TREE", "INT64_LOG_TREE", "INT32_PREFIX_TREE", "INT64_PREFIX_TREE"]
     #[serde(default, rename = "indexType")]
-    pub index_type: Option<String>,
+    pub index_type: ::core::option::Option<String>,
 }
 
 /// Specification of how the field should be indexed for search text indexes.
@@ -1153,10 +1185,10 @@ pub struct GoogleFirestoreAdminV1SearchNumberSpec {
 pub struct GoogleFirestoreAdminV1SearchTextIndexSpec {
     /// Required. How to index the text field value. // TODO: enum values: ["TEXT_INDEX_TYPE_UNSPECIFIED", "TOKENIZED", "NGRAMS", "EXACT_MATCH"]
     #[serde(default, rename = "indexType")]
-    pub index_type: Option<String>,
+    pub index_type: ::core::option::Option<String>,
     /// Required. How to match the text field value. // TODO: enum values: ["TEXT_MATCH_TYPE_UNSPECIFIED", "MATCH_GLOBALLY", "MATCH_FIELD"]
     #[serde(default, rename = "matchType")]
-    pub match_type: Option<String>,
+    pub match_type: ::core::option::Option<String>,
 }
 
 /// The specification for how to build a text search index for a field.
@@ -1164,7 +1196,9 @@ pub struct GoogleFirestoreAdminV1SearchTextIndexSpec {
 pub struct GoogleFirestoreAdminV1SearchTextSpec {
     /// Required. Specifications for how the field should be indexed. Repeated so that the field can be indexed in multiple ways.
     #[serde(default, rename = "indexSpecs")]
-    pub index_specs: Option<Vec<GoogleFirestoreAdminV1SearchTextIndexSpec>>,
+    pub index_specs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirestoreAdminV1SearchTextIndexSpec>>,
+    >,
 }
 
 /// Information about the provenance of this database.
@@ -1172,10 +1206,10 @@ pub struct GoogleFirestoreAdminV1SearchTextSpec {
 pub struct GoogleFirestoreAdminV1SourceInfo {
     /// If set, this database was restored from the specified backup (or a snapshot thereof).
     #[serde(default)]
-    pub backup: Option<GoogleFirestoreAdminV1BackupSource>,
+    pub backup: ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1BackupSource>>,
     /// The associated long-running operation. This field may not be set after the operation has completed. Format: projects/{project}/databases/{database}/operations/{operation}.
     #[serde(default)]
-    pub operation: Option<String>,
+    pub operation: ::core::option::Option<String>,
 }
 
 /// Backup specific statistics.
@@ -1183,13 +1217,13 @@ pub struct GoogleFirestoreAdminV1SourceInfo {
 pub struct GoogleFirestoreAdminV1Stats {
     /// Output only. The total number of documents contained in the backup.
     #[serde(default, rename = "documentCount")]
-    pub document_count: Option<String>,
+    pub document_count: ::core::option::Option<String>,
     /// Output only. The total number of index entries contained in the backup.
     #[serde(default, rename = "indexCount")]
-    pub index_count: Option<String>,
+    pub index_count: ::core::option::Option<String>,
     /// Output only. Summation of the size of all documents and index entries in the backup, measured in bytes.
     #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: Option<String>,
+    pub size_bytes: ::core::option::Option<String>,
 }
 
 /// The TTL (time-to-live) configuration for documents that have this Field set. A timestamp stored in a TTL-enabled field will be used to determine the expiration time of the document. The expiration time is the sum of the timestamp value and the expiration_offset. For Enterprise edition databases, the timestamp value may alternatively be stored in an array value in the TTL-enabled field. An expiration time in the past indicates that the document is eligible for immediate expiration. Using any other data type or leaving the field absent will disable expiration for the individual document.
@@ -1197,10 +1231,10 @@ pub struct GoogleFirestoreAdminV1Stats {
 pub struct GoogleFirestoreAdminV1TtlConfig {
     /// Optional. The offset, relative to the timestamp value from the TTL-enabled field, used to determine the document''s expiration time. expiration_offset.seconds must be between 0 and 2,147,483,647 inclusive. Values more precise than seconds are rejected. If unset, defaults to 0, in which case the expiration time is the same as the timestamp value from the TTL-enabled field.
     #[serde(default, rename = "expirationOffset")]
-    pub expiration_offset: Option<String>,
+    pub expiration_offset: ::core::option::Option<String>,
     /// Output only. The state of the TTL configuration. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "NEEDS_REPAIR"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Information about a TTL configuration change.
@@ -1208,10 +1242,10 @@ pub struct GoogleFirestoreAdminV1TtlConfig {
 pub struct GoogleFirestoreAdminV1TtlConfigDelta {
     /// Specifies how the TTL configuration is changing. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default, rename = "changeType")]
-    pub change_type: Option<String>,
+    pub change_type: ::core::option::Option<String>,
     /// The offset, relative to the timestamp value in the TTL-enabled field, used determine the document''s expiration time.
     #[serde(default, rename = "expirationOffset")]
-    pub expiration_offset: Option<String>,
+    pub expiration_offset: ::core::option::Option<String>,
 }
 
 /// A Cloud Firestore User Creds.
@@ -1219,22 +1253,23 @@ pub struct GoogleFirestoreAdminV1TtlConfigDelta {
 pub struct GoogleFirestoreAdminV1UserCreds {
     /// Output only. The time the user creds were created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The resource name of the UserCreds. Format: projects/{project}/databases/{database}/userCreds/{user_creds}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Resource Identity descriptor.
     #[serde(default, rename = "resourceIdentity")]
-    pub resource_identity: Option<GoogleFirestoreAdminV1ResourceIdentity>,
+    pub resource_identity:
+        ::core::option::Option<::std::boxed::Box<GoogleFirestoreAdminV1ResourceIdentity>>,
     /// Output only. The plaintext server-generated password for the user creds. Only populated in responses for CreateUserCreds and ResetUserPassword.
     #[serde(default, rename = "securePassword")]
-    pub secure_password: Option<String>,
+    pub secure_password: ::core::option::Option<String>,
     /// Output only. Whether the user creds are enabled or disabled. Defaults to ENABLED on creation. // TODO: enum values: ["STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time the user creds were last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The index configuration to support vector search operations
@@ -1242,10 +1277,10 @@ pub struct GoogleFirestoreAdminV1UserCreds {
 pub struct GoogleFirestoreAdminV1VectorConfig {
     /// Required. The vector dimension this configuration applies to. The resulting index will only include vectors of this dimension, and can be used for vector search with the same dimension.
     #[serde(default)]
-    pub dimension: Option<i32>,
+    pub dimension: ::core::option::Option<i32>,
     /// Indicates the vector index is a flat index.
     #[serde(default)]
-    pub flat: Option<serde_json::Value>,
+    pub flat: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents a recurring schedule that runs on a specified day of the week. The time zone is UTC.
@@ -1253,7 +1288,7 @@ pub struct GoogleFirestoreAdminV1VectorConfig {
 pub struct GoogleFirestoreAdminV1WeeklyRecurrence {
     /// The day of week to run. DAY_OF_WEEK_UNSPECIFIED is not allowed. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
-    pub day: Option<String>,
+    pub day: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1261,13 +1296,14 @@ pub struct GoogleFirestoreAdminV1WeeklyRecurrence {
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<GoogleLongrunningOperation>>,
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleLongrunningOperation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1275,19 +1311,19 @@ pub struct GoogleLongrunningListOperationsResponse {
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
@@ -1295,10 +1331,10 @@ pub struct GoogleLongrunningOperation {
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     /// The longitude in degrees. It must be in the range [-180.0, +180.0].
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
 }
 
 /// The request for Firestore.ListCollectionIds.
@@ -1306,13 +1342,13 @@ pub struct LatLng {
 pub struct ListCollectionIdsRequest {
     /// The maximum number of results to return.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// A page token. Must be a value from ListCollectionIdsResponse.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// Reads documents as they were at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
 }
 
 /// The response from Firestore.ListCollectionIds.
@@ -1320,10 +1356,10 @@ pub struct ListCollectionIdsRequest {
 pub struct ListCollectionIdsResponse {
     /// The collection ids.
     #[serde(default, rename = "collectionIds")]
-    pub collection_ids: Option<Vec<String>>,
+    pub collection_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// A page token that may be used to continue the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for Firestore.ListDocuments.
@@ -1331,10 +1367,10 @@ pub struct ListCollectionIdsResponse {
 pub struct ListDocumentsResponse {
     /// The Documents found.
     #[serde(default)]
-    pub documents: Option<Vec<Document>>,
+    pub documents: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Document>>>,
     /// A token to retrieve the next page of documents. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1342,10 +1378,10 @@ pub struct ListDocumentsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A request for Firestore.Listen
@@ -1353,13 +1389,13 @@ pub struct ListLocationsResponse {
 pub struct ListenRequest {
     /// A target to add to this stream.
     #[serde(default, rename = "addTarget")]
-    pub add_target: Option<Target>,
+    pub add_target: ::core::option::Option<::std::boxed::Box<Target>>,
     /// Labels associated with this target change.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The ID of a target to remove from this stream.
     #[serde(default, rename = "removeTarget")]
-    pub remove_target: Option<i32>,
+    pub remove_target: ::core::option::Option<i32>,
 }
 
 /// The response for Firestore.Listen.
@@ -1367,19 +1403,19 @@ pub struct ListenRequest {
 pub struct ListenResponse {
     /// A Document has changed.
     #[serde(default, rename = "documentChange")]
-    pub document_change: Option<DocumentChange>,
+    pub document_change: ::core::option::Option<::std::boxed::Box<DocumentChange>>,
     /// A Document has been deleted.
     #[serde(default, rename = "documentDelete")]
-    pub document_delete: Option<DocumentDelete>,
+    pub document_delete: ::core::option::Option<::std::boxed::Box<DocumentDelete>>,
     /// A Document has been removed from a target (because it is no longer relevant to that target).
     #[serde(default, rename = "documentRemove")]
-    pub document_remove: Option<DocumentRemove>,
+    pub document_remove: ::core::option::Option<::std::boxed::Box<DocumentRemove>>,
     /// A filter to apply to the set of documents previously returned for the given target. Returned when documents may have been removed from the given target, but the exact documents are unknown.
     #[serde(default)]
-    pub filter: Option<ExistenceFilter>,
+    pub filter: ::core::option::Option<::std::boxed::Box<ExistenceFilter>>,
     /// Targets have changed.
     #[serde(default, rename = "targetChange")]
-    pub target_change: Option<TargetChange>,
+    pub target_change: ::core::option::Option<::std::boxed::Box<TargetChange>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1387,19 +1423,19 @@ pub struct ListenResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// An order on a field.
@@ -1407,10 +1443,10 @@ pub struct Location {
 pub struct Order {
     /// The direction to order by. Defaults to ASCENDING. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "ASCENDING", "DESCENDING"]
     #[serde(default)]
-    pub direction: Option<String>,
+    pub direction: ::core::option::Option<String>,
     /// The field to order by.
     #[serde(default)]
-    pub field: Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
 }
 
 /// The request for Firestore.PartitionQuery.
@@ -1418,19 +1454,19 @@ pub struct Order {
 pub struct PartitionQueryRequest {
     /// The maximum number of partitions to return in this call, subject to partition_count. For example, if partition_count = 10 and page_size = 8, the first call to PartitionQuery will return up to 8 partitions and a next_page_token if more results exist. A second call to PartitionQuery will return up to 2 partitions, to complete the total of 10 specified in partition_count.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// The next_page_token value returned from a previous call to PartitionQuery that may be used to get an additional set of results. There are no ordering guarantees between sets of results. Thus, using multiple sets of results will require merging the different result sets. For example, two subsequent calls using a page_token may return: * cursor B, cursor M, cursor Q * cursor A, cursor U, cursor W To obtain a complete result set ordered with respect to the results of the query supplied to PartitionQuery, the results sets should be merged: cursor A, cursor B, cursor M, cursor Q, cursor U, cursor W
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
     /// The desired maximum number of partition points. The partitions may be returned across multiple pages of results. The number must be positive. The actual number of partitions returned may be fewer. For example, this may be set to one fewer than the number of parallel queries to be run, or in running a data pipeline job, one fewer than the number of workers or compute instances available.
     #[serde(default, rename = "partitionCount")]
-    pub partition_count: Option<String>,
+    pub partition_count: ::core::option::Option<String>,
     /// Reads documents as they were at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// A structured query. Query must specify collection with all descendants and be ordered by name ascending. Other filters, order bys, limits, offsets, and start/end cursors are not supported.
     #[serde(default, rename = "structuredQuery")]
-    pub structured_query: Option<StructuredQuery>,
+    pub structured_query: ::core::option::Option<::std::boxed::Box<StructuredQuery>>,
 }
 
 /// The response for Firestore.PartitionQuery.
@@ -1438,10 +1474,10 @@ pub struct PartitionQueryRequest {
 pub struct PartitionQueryResponse {
     /// A page token that may be used to request an additional set of results, up to the number specified by partition_count in the PartitionQuery request. If blank, there are no more results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Partition results. Each partition is a split point that can be used by RunQuery as a starting or end point for the query results. The RunQuery requests must be made with the same query supplied to this PartitionQuery request. The partition cursors will be ordered according to same ordering as the results of the query supplied to PartitionQuery. For example, if a PartitionQuery request returns partition cursors A and B, running the following three queries will return the entire result set of the original query: * query, end_at A * query, start_at A, end_at B * query, start_at B An empty result may indicate that the query has too few results to be partitioned, or that the query is not yet supported for partitioning.
     #[serde(default)]
-    pub partitions: Option<Vec<Cursor>>,
+    pub partitions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Cursor>>>,
 }
 
 /// A Firestore query represented as an ordered list of operations / stages.
@@ -1449,7 +1485,7 @@ pub struct PartitionQueryResponse {
 pub struct Pipeline {
     /// Required. Ordered list of stages to evaluate.
     #[serde(default)]
-    pub stages: Option<Vec<Stage>>,
+    pub stages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Stage>>>,
 }
 
 /// Planning phase information for the query.
@@ -1457,7 +1493,7 @@ pub struct Pipeline {
 pub struct PlanSummary {
     /// The indexes selected for the query. For example: [ {"query_scope": "Collection", "properties": "(foo ASC, __name__ ASC)"}, {"query_scope": "Collection", "properties": "(bar ASC, __name__ ASC)"} ]
     #[serde(default, rename = "indexesUsed")]
-    pub indexes_used: Option<Vec<serde_json::Value>>,
+    pub indexes_used: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// A precondition on a document, used for conditional operations.
@@ -1465,10 +1501,10 @@ pub struct PlanSummary {
 pub struct Precondition {
     /// When set to true, the target document must exist. When set to false, the target document must not exist.
     #[serde(default)]
-    pub exists: Option<bool>,
+    pub exists: ::core::option::Option<bool>,
     /// When set, the target document must exist and have been last updated at that time. Timestamp must be microsecond aligned.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The projection of document''s fields to return.
@@ -1476,7 +1512,7 @@ pub struct Precondition {
 pub struct Projection {
     /// The fields to return. If empty, all fields are returned. To only return the name of the document, use [''__name__''].
     #[serde(default)]
-    pub fields: Option<Vec<FieldReference>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldReference>>>,
 }
 
 /// A target specified by a query.
@@ -1484,10 +1520,10 @@ pub struct Projection {
 pub struct QueryTarget {
     /// The parent resource name. In the format: projects/{project_id}/databases/{database_id}/documents or projects/{project_id}/databases/{database_id}/documents/{document_path}. For example: projects/my-project/databases/my-database/documents or projects/my-project/databases/my-database/documents/chatrooms/my-chatroom
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// A structured query.
     #[serde(default, rename = "structuredQuery")]
-    pub structured_query: Option<StructuredQuery>,
+    pub structured_query: ::core::option::Option<::std::boxed::Box<StructuredQuery>>,
 }
 
 /// Options for a transaction that can only be used to read documents.
@@ -1495,7 +1531,7 @@ pub struct QueryTarget {
 pub struct ReadOnly {
     /// Reads documents at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
 }
 
 /// Options for a transaction that can be used to read and write documents. Firestore does not allow 3rd party auth requests to create read-write. transactions.
@@ -1503,7 +1539,7 @@ pub struct ReadOnly {
 pub struct ReadWrite {
     /// An optional transaction to retry.
     #[serde(default, rename = "retryTransaction")]
-    pub retry_transaction: Option<String>,
+    pub retry_transaction: ::core::option::Option<String>,
 }
 
 /// The request for Firestore.Rollback.
@@ -1511,7 +1547,7 @@ pub struct ReadWrite {
 pub struct RollbackRequest {
     /// Required. The transaction to roll back.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// The request for Firestore.RunAggregationQuery.
@@ -1519,19 +1555,20 @@ pub struct RollbackRequest {
 pub struct RunAggregationQueryRequest {
     /// Optional. Explain options for the query. If set, additional query statistics will be returned. If not, only query results will be returned.
     #[serde(default, rename = "explainOptions")]
-    pub explain_options: Option<ExplainOptions>,
+    pub explain_options: ::core::option::Option<::std::boxed::Box<ExplainOptions>>,
     /// Starts a new transaction as part of the query, defaulting to read-only. The new transaction ID will be returned as the first response in the stream.
     #[serde(default, rename = "newTransaction")]
-    pub new_transaction: Option<TransactionOptions>,
+    pub new_transaction: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
     /// Executes the query at the given timestamp. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// An aggregation query.
     #[serde(default, rename = "structuredAggregationQuery")]
-    pub structured_aggregation_query: Option<StructuredAggregationQuery>,
+    pub structured_aggregation_query:
+        ::core::option::Option<::std::boxed::Box<StructuredAggregationQuery>>,
     /// Run the aggregation within an already active transaction. The value here is the opaque transaction ID to execute the query in.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// The response for Firestore.RunAggregationQuery.
@@ -1539,16 +1576,16 @@ pub struct RunAggregationQueryRequest {
 pub struct RunAggregationQueryResponse {
     /// Query explain metrics. This is only present when the RunAggregationQueryRequest.explain_options is provided, and it is sent only once with the last response in the stream.
     #[serde(default, rename = "explainMetrics")]
-    pub explain_metrics: Option<ExplainMetrics>,
+    pub explain_metrics: ::core::option::Option<::std::boxed::Box<ExplainMetrics>>,
     /// The time at which the aggregate result was computed. This is always monotonically increasing; in this case, the previous AggregationResult in the result stream are guaranteed not to have changed between their read_time and this one. If the query returns no results, a response with read_time and no result will be sent, and this represents the time at which the query was run.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// A single aggregation result. Not present when reporting partial progress.
     #[serde(default)]
-    pub result: Option<AggregationResult>,
+    pub result: ::core::option::Option<::std::boxed::Box<AggregationResult>>,
     /// The transaction that was started as part of this request. Only present on the first response when the request requested to start a new transaction.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// The request for Firestore.RunQuery.
@@ -1556,19 +1593,19 @@ pub struct RunAggregationQueryResponse {
 pub struct RunQueryRequest {
     /// Optional. Explain options for the query. If set, additional query statistics will be returned. If not, only query results will be returned.
     #[serde(default, rename = "explainOptions")]
-    pub explain_options: Option<ExplainOptions>,
+    pub explain_options: ::core::option::Option<::std::boxed::Box<ExplainOptions>>,
     /// Starts a new transaction and reads the documents. Defaults to a read-only transaction. The new transaction ID will be returned as the first response in the stream.
     #[serde(default, rename = "newTransaction")]
-    pub new_transaction: Option<TransactionOptions>,
+    pub new_transaction: ::core::option::Option<::std::boxed::Box<TransactionOptions>>,
     /// Reads documents as they were at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// A structured query.
     #[serde(default, rename = "structuredQuery")]
-    pub structured_query: Option<StructuredQuery>,
+    pub structured_query: ::core::option::Option<::std::boxed::Box<StructuredQuery>>,
     /// Run the query within an already active transaction. The value here is the opaque transaction ID to execute the query in.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// The response for Firestore.RunQuery.
@@ -1576,22 +1613,22 @@ pub struct RunQueryRequest {
 pub struct RunQueryResponse {
     /// A query result, not set when reporting partial progress.
     #[serde(default)]
-    pub document: Option<Document>,
+    pub document: ::core::option::Option<::std::boxed::Box<Document>>,
     /// If present, Firestore has completely finished the request and no more documents will be returned.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// Query explain metrics. This is only present when the RunQueryRequest.explain_options is provided, and it is sent only once with the last response in the stream.
     #[serde(default, rename = "explainMetrics")]
-    pub explain_metrics: Option<ExplainMetrics>,
+    pub explain_metrics: ::core::option::Option<::std::boxed::Box<ExplainMetrics>>,
     /// The time at which the document was read. This may be monotonically increasing; in this case, the previous documents in the result stream are guaranteed not to have changed between their read_time and this one. If the query returns no results, a response with read_time and no document will be sent, and this represents the time at which the query was run.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// The number of results that have been skipped due to an offset between the last response and the current response.
     #[serde(default, rename = "skippedResults")]
-    pub skipped_results: Option<i32>,
+    pub skipped_results: ::core::option::Option<i32>,
     /// The transaction that was started as part of this request. Can only be set in the first response, and only if RunQueryRequest.new_transaction was set in the request. If set, no other fields will be set in this response.
     #[serde(default)]
-    pub transaction: Option<String>,
+    pub transaction: ::core::option::Option<String>,
 }
 
 /// A single operation within a pipeline. A stage is made up of a unique name, and a list of arguments. The exact number of arguments & types is dependent on the stage type. To give an example, the stage filter(state = "MD") would be encoded as:  name: "filter" args { function_value { name: "eq" args { field_reference_value: "state" } args { string_value: "MD" } } }  See public documentation for the full list.
@@ -1599,13 +1636,13 @@ pub struct RunQueryResponse {
 pub struct Stage {
     /// Optional. Ordered list of arguments the given stage expects.
     #[serde(default)]
-    pub args: Option<Vec<Value>>,
+    pub args: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiValue>>>,
     /// Required. The name of the stage to evaluate. **Requires:** * must be in snake case (lower case with underscore separator).
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Optional named arguments that certain functions may support.
     #[serde(default)]
-    pub options: Option<serde_json::Value>,
+    pub options: ::core::option::Option<serde_json::Value>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -1613,13 +1650,13 @@ pub struct Stage {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Firestore query for running an aggregation over a StructuredQuery.
@@ -1627,10 +1664,10 @@ pub struct Status {
 pub struct StructuredAggregationQuery {
     /// Optional. Series of aggregations to apply over the results of the structured_query. Requires: * A minimum of one and maximum of five aggregations per query.
     #[serde(default)]
-    pub aggregations: Option<Vec<Aggregation>>,
+    pub aggregations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Aggregation>>>,
     /// Nested structured query.
     #[serde(default, rename = "structuredQuery")]
-    pub structured_query: Option<StructuredQuery>,
+    pub structured_query: ::core::option::Option<::std::boxed::Box<StructuredQuery>>,
 }
 
 /// A Firestore query represented as an ordered list of operations / stages. This is considered the top-level function which plans and executes a query. It is logically equivalent to query(stages, options), but prevents the client from having to build a function wrapper.
@@ -1638,10 +1675,10 @@ pub struct StructuredAggregationQuery {
 pub struct StructuredPipeline {
     /// Optional. Optional query-level arguments.
     #[serde(default)]
-    pub options: Option<serde_json::Value>,
+    pub options: ::core::option::Option<serde_json::Value>,
     /// Required. The pipeline query to execute.
     #[serde(default)]
-    pub pipeline: Option<Pipeline>,
+    pub pipeline: ::core::option::Option<::std::boxed::Box<Pipeline>>,
 }
 
 /// A Firestore query. The query stages are executed in the following order: 1. from 2. where 3. select 4. order_by + start_at + end_at 5. offset 6. limit 7. find_nearest
@@ -1649,31 +1686,31 @@ pub struct StructuredPipeline {
 pub struct StructuredQuery {
     /// A potential prefix of a position in the result set to end the query at. This is similar to START_AT but with it controlling the end position rather than the start position. Requires: * The number of values cannot be greater than the number of fields specified in the ORDER BY clause.
     #[serde(default, rename = "endAt")]
-    pub end_at: Option<Cursor>,
+    pub end_at: ::core::option::Option<::std::boxed::Box<Cursor>>,
     /// Optional. A potential nearest neighbors search. Applies after all other filters and ordering. Finds the closest vector embeddings to the given query vector.
     #[serde(default, rename = "findNearest")]
-    pub find_nearest: Option<FindNearest>,
+    pub find_nearest: ::core::option::Option<::std::boxed::Box<FindNearest>>,
     /// The collections to query.
     #[serde(default)]
-    pub from: Option<Vec<CollectionSelector>>,
+    pub from: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CollectionSelector>>>,
     /// The maximum number of results to return. Applies after all other constraints. Requires: * The value must be greater than or equal to zero if specified.
     #[serde(default)]
-    pub limit: Option<i32>,
+    pub limit: ::core::option::Option<i32>,
     /// The number of documents to skip before returning the first result. This applies after the constraints specified by the WHERE, START AT, & END AT but before the LIMIT clause. Requires: * The value must be greater than or equal to zero if specified.
     #[serde(default)]
-    pub offset: Option<i32>,
+    pub offset: ::core::option::Option<i32>,
     /// The order to apply to the query results. Callers can provide a full ordering, a partial ordering, or no ordering at all. While Firestore will always respect the provided order, the behavior for queries without a full ordering is different per database edition: In Standard edition, Firestore guarantees a stable ordering through the following rules: * The order_by is required to reference all fields used with an inequality filter. * All fields that are required to be in the order_by but are not already present are appended in lexicographical ordering of the field name. * If an order on __name__ is not specified, it is appended by default. Fields are appended with the same sort direction as the last order specified, or ''ASCENDING'' if no order was specified. For example: * ORDER BY a becomes ORDER BY a ASC, __name__ ASC * ORDER BY a DESC becomes ORDER BY a DESC, __name__ DESC * WHERE a &gt; 1 becomes WHERE a &gt; 1 ORDER BY a ASC, __name__ ASC * WHERE __name__ &gt; ... AND a &gt; 1 becomes WHERE __name__ &gt; ... AND a &gt; 1 ORDER BY a ASC, __name__ ASC In Enterprise edition, Firestore does not guarantee a stable ordering. Instead it will pick the most efficient ordering based on the indexes available at the time of query execution. This will result in a different ordering for queries that are otherwise identical. To ensure a stable ordering, always include a unique field in the order_by clause, such as __name__.
     #[serde(default, rename = "orderBy")]
-    pub order_by: Option<Vec<Order>>,
+    pub order_by: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Order>>>,
     /// Optional sub-set of the fields to return. This acts as a DocumentMask over the documents returned from a query. When not set, assumes that the caller wants all fields returned.
     #[serde(default)]
-    pub select: Option<Projection>,
+    pub select: ::core::option::Option<::std::boxed::Box<Projection>>,
     /// A potential prefix of a position in the result set to start the query at. The ordering of the result set is based on the ORDER BY clause of the original query.  SELECT * FROM k WHERE a = 1 AND b &gt; 2 ORDER BY b ASC, __name__ ASC;  This query''s results are ordered by (b ASC, __name__ ASC). Cursors can reference either the full ordering or a prefix of the location, though it cannot reference more fields than what are in the provided ORDER BY. Continuing off the example above, attaching the following start cursors will have varying impact: - START BEFORE (2, /k/123): start the query right before a = 1 AND b &gt; 2 AND __name__ &gt; /k/123. - START AFTER (10): start the query right after a = 1 AND b &gt; 10. Unlike OFFSET which requires scanning over the first N results to skip, a start cursor allows the query to begin at a logical position. This position is not required to match an actual result, it will scan forward from this position to find the next document. Requires: * The number of values cannot be greater than the number of fields specified in the ORDER BY clause.
     #[serde(default, rename = "startAt")]
-    pub start_at: Option<Cursor>,
+    pub start_at: ::core::option::Option<::std::boxed::Box<Cursor>>,
     /// The filter to apply.
     #[serde(default, rename = "where")]
-    pub where_: Option<Filter>,
+    pub where_: ::core::option::Option<::std::boxed::Box<Filter>>,
 }
 
 /// Sum of the values of the requested field. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns 0. * Returns a 64-bit integer if all aggregated numbers are integers and the sum result does not overflow. Otherwise, the result is returned as a double. Note that even if all the aggregated values are integers, the result is returned as a double if it cannot fit within a 64-bit signed integer. When this occurs, the returned value will lose precision. * When underflow occurs, floating-point aggregation is non-deterministic. This means that running the same query repeatedly without any changes to the underlying values could produce slightly different results each time. In those cases, values should be stored as integers over floating-point numbers.
@@ -1681,7 +1718,7 @@ pub struct StructuredQuery {
 pub struct Sum {
     /// The field to aggregate on.
     #[serde(default)]
-    pub field: Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
 }
 
 /// A specification of a set of documents to listen to.
@@ -1689,25 +1726,25 @@ pub struct Sum {
 pub struct Target {
     /// A target specified by a set of document names.
     #[serde(default)]
-    pub documents: Option<DocumentsTarget>,
+    pub documents: ::core::option::Option<::std::boxed::Box<DocumentsTarget>>,
     /// The number of documents that last matched the query at the resume token or read time. This value is only relevant when a resume_type is provided. This value being present and greater than zero signals that the client wants ExistenceFilter.unchanged_names to be included in the response.
     #[serde(default, rename = "expectedCount")]
-    pub expected_count: Option<i32>,
+    pub expected_count: ::core::option::Option<i32>,
     /// If the target should be removed once it is current and consistent.
     #[serde(default)]
-    pub once: Option<bool>,
+    pub once: ::core::option::Option<bool>,
     /// A target specified by a query.
     #[serde(default)]
-    pub query: Option<QueryTarget>,
+    pub query: ::core::option::Option<::std::boxed::Box<QueryTarget>>,
     /// Start listening after a specific read_time. The client must know the state of matching documents at this time.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// A resume token from a prior TargetChange for an identical target. Using a resume token with a different target is unsupported and may fail.
     #[serde(default, rename = "resumeToken")]
-    pub resume_token: Option<String>,
+    pub resume_token: ::core::option::Option<String>,
     /// The target ID that identifies the target on the stream. Must be a positive number and non-zero. If target_id is 0 (or unspecified), the server will assign an ID for this target and return that in a TargetChange::ADD event. Once a target with target_id=0 is added, all subsequent targets must also have target_id=0. If an AddTarget request with target_id != 0 is sent to the server after a target with target_id=0 is added, the server will immediately send a response with a TargetChange::Remove event. Note that if the client sends multiple AddTarget requests without an ID, the order of IDs returned in TargetChange.target_ids are undefined. Therefore, clients should provide a target ID instead of relying on the server to assign one. If target_id is non-zero, there must not be an existing active target on this stream with the same ID.
     #[serde(default, rename = "targetId")]
-    pub target_id: Option<i32>,
+    pub target_id: ::core::option::Option<i32>,
 }
 
 /// Targets being watched have changed.
@@ -1715,19 +1752,19 @@ pub struct Target {
 pub struct TargetChange {
     /// The error that resulted in this change, if applicable.
     #[serde(default)]
-    pub cause: Option<Status>,
+    pub cause: ::core::option::Option<::std::boxed::Box<Status>>,
     /// The consistent read_time for the given target_ids (omitted when the target_ids are not at a consistent snapshot). The stream is guaranteed to send a read_time with target_ids empty whenever the entire stream reaches a new consistent snapshot. ADD, CURRENT, and RESET messages are guaranteed to (eventually) result in a new consistent snapshot (while NO_CHANGE and REMOVE messages are not). For a given stream, read_time is guaranteed to be monotonically increasing.
     #[serde(default, rename = "readTime")]
-    pub read_time: Option<String>,
+    pub read_time: ::core::option::Option<String>,
     /// A token that can be used to resume the stream for the given target_ids, or all targets if target_ids is empty. Not set on every target change.
     #[serde(default, rename = "resumeToken")]
-    pub resume_token: Option<String>,
+    pub resume_token: ::core::option::Option<String>,
     /// The type of change that occurred. // TODO: enum values: ["NO_CHANGE", "ADD", "REMOVE", "CURRENT", "RESET"]
     #[serde(default, rename = "targetChangeType")]
-    pub target_change_type: Option<String>,
+    pub target_change_type: ::core::option::Option<String>,
     /// The target IDs of targets that have changed. If empty, the change applies to all targets. The order of the target IDs is not defined.
     #[serde(default, rename = "targetIds")]
-    pub target_ids: Option<Vec<i32>>,
+    pub target_ids: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// Options for creating a new transaction.
@@ -1735,10 +1772,10 @@ pub struct TargetChange {
 pub struct TransactionOptions {
     /// The transaction can only be used for read operations.
     #[serde(default, rename = "readOnly")]
-    pub read_only: Option<ReadOnly>,
+    pub read_only: ::core::option::Option<::std::boxed::Box<ReadOnly>>,
     /// The transaction can be used for both read and write operations.
     #[serde(default, rename = "readWrite")]
-    pub read_write: Option<ReadWrite>,
+    pub read_write: ::core::option::Option<::std::boxed::Box<ReadWrite>>,
 }
 
 /// A filter with a single operand.
@@ -1746,60 +1783,60 @@ pub struct TransactionOptions {
 pub struct UnaryFilter {
     /// The field to which to apply the operator.
     #[serde(default)]
-    pub field: Option<FieldReference>,
+    pub field: ::core::option::Option<::std::boxed::Box<FieldReference>>,
     /// The unary operator to apply. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "IS_NAN", "IS_NULL", "IS_NOT_NAN", "IS_NOT_NULL"]
     #[serde(default)]
-    pub op: Option<String>,
+    pub op: ::core::option::Option<String>,
 }
 
 /// A message that can hold any of the supported value types.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Value {
+pub struct ApiValue {
     /// An array value. Cannot directly contain another array value, though can contain a map which contains another array.
     #[serde(default, rename = "arrayValue")]
-    pub array_value: Option<ArrayValue>,
+    pub array_value: ::core::option::Option<::std::boxed::Box<ArrayValue>>,
     /// A boolean value.
     #[serde(default, rename = "booleanValue")]
-    pub boolean_value: Option<bool>,
+    pub boolean_value: ::core::option::Option<bool>,
     /// A bytes value. Must not exceed 1 MiB - 89 bytes. Only the first 1,500 bytes are considered by queries.
     #[serde(default, rename = "bytesValue")]
-    pub bytes_value: Option<String>,
+    pub bytes_value: ::core::option::Option<String>,
     /// A double value.
     #[serde(default, rename = "doubleValue")]
-    pub double_value: Option<f64>,
+    pub double_value: ::core::option::Option<f64>,
     /// Value which references a field. This is considered relative (vs absolute) since it only refers to a field and not a field within a particular document. **Requires:** * Must follow field reference limitations. * Not allowed to be used when writing documents.
     #[serde(default, rename = "fieldReferenceValue")]
-    pub field_reference_value: Option<String>,
+    pub field_reference_value: ::core::option::Option<String>,
     /// A value that represents an unevaluated expression. **Requires:** * Not allowed to be used when writing documents.
     #[serde(default, rename = "functionValue")]
-    pub function_value: Option<Function>,
+    pub function_value: ::core::option::Option<::std::boxed::Box<Function>>,
     /// A geo point value representing a point on the surface of Earth.
     #[serde(default, rename = "geoPointValue")]
-    pub geo_point_value: Option<LatLng>,
+    pub geo_point_value: ::core::option::Option<::std::boxed::Box<LatLng>>,
     /// An integer value.
     #[serde(default, rename = "integerValue")]
-    pub integer_value: Option<String>,
+    pub integer_value: ::core::option::Option<String>,
     /// A map value.
     #[serde(default, rename = "mapValue")]
-    pub map_value: Option<MapValue>,
+    pub map_value: ::core::option::Option<::std::boxed::Box<MapValue>>,
     /// A null value. // TODO: enum values: ["NULL_VALUE"]
     #[serde(default, rename = "nullValue")]
-    pub null_value: Option<String>,
+    pub null_value: ::core::option::Option<String>,
     /// A value that represents an unevaluated pipeline. **Requires:** * Not allowed to be used when writing documents.
     #[serde(default, rename = "pipelineValue")]
-    pub pipeline_value: Option<Pipeline>,
+    pub pipeline_value: ::core::option::Option<::std::boxed::Box<Pipeline>>,
     /// A reference to a document. For example: projects/{project_id}/databases/{database_id}/documents/{document_path}.
     #[serde(default, rename = "referenceValue")]
-    pub reference_value: Option<String>,
+    pub reference_value: ::core::option::Option<String>,
     /// A string value. The string, represented as UTF-8, must not exceed 1 MiB - 89 bytes. Only the first 1,500 bytes of the UTF-8 representation are considered by queries.
     #[serde(default, rename = "stringValue")]
-    pub string_value: Option<String>,
+    pub string_value: ::core::option::Option<String>,
     /// A timestamp value. Precise only to microseconds. When stored, any additional precision is rounded down.
     #[serde(default, rename = "timestampValue")]
-    pub timestamp_value: Option<String>,
+    pub timestamp_value: ::core::option::Option<String>,
     /// Pointer to a variable defined elsewhere in a pipeline. Unlike field_reference_value which references a field within a document, this refers to a variable, defined in a separate namespace than the fields of a document.
     #[serde(default, rename = "variableReferenceValue")]
-    pub variable_reference_value: Option<String>,
+    pub variable_reference_value: ::core::option::Option<String>,
 }
 
 /// A write on a document.
@@ -1807,22 +1844,23 @@ pub struct Value {
 pub struct Write {
     /// An optional precondition on the document. The write will fail if this is set and not met by the target document.
     #[serde(default, rename = "currentDocument")]
-    pub current_document: Option<Precondition>,
+    pub current_document: ::core::option::Option<::std::boxed::Box<Precondition>>,
     /// A document name to delete. In the format: projects/{project_id}/databases/{database_id}/documents/{document_path}.
     #[serde(default)]
-    pub delete: Option<String>,
+    pub delete: ::core::option::Option<String>,
     /// Applies a transformation to a document.
     #[serde(default)]
-    pub transform: Option<DocumentTransform>,
+    pub transform: ::core::option::Option<::std::boxed::Box<DocumentTransform>>,
     /// A document to write.
     #[serde(default)]
-    pub update: Option<Document>,
+    pub update: ::core::option::Option<::std::boxed::Box<Document>>,
     /// The fields to update in this write. This field can be set only when the operation is update. If the mask is not set for an update and the document exists, any existing data will be overwritten. If the mask is set and the document on the server has fields not covered by the mask, they are left unchanged. Fields referenced in the mask, but not present in the input document, are deleted from the document on the server. The field paths in this mask must not contain a reserved field name.
     #[serde(default, rename = "updateMask")]
-    pub update_mask: Option<DocumentMask>,
+    pub update_mask: ::core::option::Option<::std::boxed::Box<DocumentMask>>,
     /// The transforms to perform after update. This field can be set only when the operation is update. If present, this write is equivalent to performing update and transform to the same document atomically and in order.
     #[serde(default, rename = "updateTransforms")]
-    pub update_transforms: Option<Vec<FieldTransform>>,
+    pub update_transforms:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldTransform>>>,
 }
 
 /// The request for Firestore.Write. The first request creates a stream, or resumes an existing one from a token. When creating a new stream, the server replies with a response containing only an ID and a token, to use in the next request. When resuming a stream, the server first streams any responses later than the given token, then a response containing only an up-to-date token, to use in the next request.
@@ -1830,16 +1868,16 @@ pub struct Write {
 pub struct WriteRequest {
     /// Labels associated with this write request.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The ID of the write stream to resume. This may only be set in the first message. When left empty, a new write stream will be created.
     #[serde(default, rename = "streamId")]
-    pub stream_id: Option<String>,
+    pub stream_id: ::core::option::Option<String>,
     /// A stream token that was previously sent by the server. The client should set this field to the token from the most recent WriteResponse it has received. This acknowledges that the client has received responses up to this token. After sending this token, earlier tokens may not be used anymore. The server may close the stream if there are too many unacknowledged responses. Leave this field unset when creating a new stream. To resume a stream at a specific point, set this field and the stream_id field. Leave this field unset when creating a new stream.
     #[serde(default, rename = "streamToken")]
-    pub stream_token: Option<String>,
+    pub stream_token: ::core::option::Option<String>,
     /// The writes to apply. Always executed atomically and in order. This must be empty on the first request. This may be empty on the last request. This must not be empty on all other requests.
     #[serde(default)]
-    pub writes: Option<Vec<Write>>,
+    pub writes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Write>>>,
 }
 
 /// The response for Firestore.Write.
@@ -1847,16 +1885,16 @@ pub struct WriteRequest {
 pub struct WriteResponse {
     /// The time at which the commit occurred. Any read with an equal or greater read_time is guaranteed to see the effects of the write.
     #[serde(default, rename = "commitTime")]
-    pub commit_time: Option<String>,
+    pub commit_time: ::core::option::Option<String>,
     /// The ID of the stream. Only set on the first message, when a new stream was created.
     #[serde(default, rename = "streamId")]
-    pub stream_id: Option<String>,
+    pub stream_id: ::core::option::Option<String>,
     /// A token that represents the position of this response in the stream. This can be used by a client to resume the stream at this point. This field is always set.
     #[serde(default, rename = "streamToken")]
-    pub stream_token: Option<String>,
+    pub stream_token: ::core::option::Option<String>,
     /// The result of applying the writes. This i-th write result corresponds to the i-th write in the request.
     #[serde(default, rename = "writeResults")]
-    pub write_results: Option<Vec<WriteResult>>,
+    pub write_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WriteResult>>>,
 }
 
 /// The result of applying a write.
@@ -1864,8 +1902,8 @@ pub struct WriteResponse {
 pub struct WriteResult {
     /// The results of applying each DocumentTransform.FieldTransform, in the same order.
     #[serde(default, rename = "transformResults")]
-    pub transform_results: Option<Vec<Value>>,
+    pub transform_results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiValue>>>,
     /// The last update time of the document after applying the write. Not set after a delete. If the write did not actually change the document, this will be the previous update_time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }

@@ -10,30 +10,30 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// AggregateBucket resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AggregateBucket {
     /// Available for Bucket.Type.ACTIVITY_TYPE, Bucket.Type.ACTIVITY_SEGMENT
     #[serde(default)]
-    pub activity: Option<i32>,
+    pub activity: ::core::option::Option<i32>,
     /// There will be one dataset per AggregateBy in the request.
     #[serde(default)]
-    pub dataset: Option<Vec<Dataset>>,
+    pub dataset: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Dataset>>>,
     /// The end time for the aggregated data, in milliseconds since epoch, inclusive.
     #[serde(default, rename = "endTimeMillis")]
-    pub end_time_millis: Option<String>,
+    pub end_time_millis: ::core::option::Option<String>,
     /// Available for Bucket.Type.SESSION
     #[serde(default)]
-    pub session: Option<Session>,
+    pub session: ::core::option::Option<::std::boxed::Box<Session>>,
     /// The start time for the aggregated data, in milliseconds since epoch, inclusive.
     #[serde(default, rename = "startTimeMillis")]
-    pub start_time_millis: Option<String>,
+    pub start_time_millis: ::core::option::Option<String>,
     /// The type of a bucket signifies how the data aggregation is performed in the bucket. // TODO: enum values: ["unknown", "time", "session", "activityType", "activitySegment"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The specification of which data to aggregate.
@@ -41,10 +41,10 @@ pub struct AggregateBucket {
 pub struct AggregateBy {
     /// A data source ID to aggregate. Only data from the specified data source ID will be included in the aggregation. If specified, this data source must exist; the OAuth scopes in the supplied credentials must grant read access to this data type. The dataset in the response will have the same data source ID. Note: Data can be aggregated by either the dataTypeName or the dataSourceId, not both.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// The data type to aggregate. All data sources providing this data type will contribute data to the aggregation. The response will contain a single dataset for this data type name. The dataset will have a data source ID of derived::com.google.android.gms:aggregated. If the user has no data for this data type, an empty data set will be returned. Note: Data can be aggregated by either the dataTypeName or the dataSourceId, not both.
     #[serde(default, rename = "dataTypeName")]
-    pub data_type_name: Option<String>,
+    pub data_type_name: ::core::option::Option<String>,
 }
 
 /// Next id: 10
@@ -52,28 +52,28 @@ pub struct AggregateBy {
 pub struct AggregateRequest {
     /// The specification of data to be aggregated. At least one aggregateBy spec must be provided. All data that is specified will be aggregated using the same bucketing criteria. There will be one dataset in the response for every aggregateBy spec.
     #[serde(default, rename = "aggregateBy")]
-    pub aggregate_by: Option<Vec<AggregateBy>>,
+    pub aggregate_by: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AggregateBy>>>,
     /// Specifies that data be aggregated each activity segment recorded for a user. Similar to bucketByActivitySegment, but bucketing is done for each activity segment rather than all segments of the same type. Mutually exclusive of other bucketing specifications.
     #[serde(default, rename = "bucketByActivitySegment")]
-    pub bucket_by_activity_segment: Option<BucketByActivity>,
+    pub bucket_by_activity_segment: ::core::option::Option<::std::boxed::Box<BucketByActivity>>,
     /// Specifies that data be aggregated by the type of activity being performed when the data was recorded. All data that was recorded during a certain activity type (.for the given time range) will be aggregated into the same bucket. Data that was recorded while the user was not active will not be included in the response. Mutually exclusive of other bucketing specifications.
     #[serde(default, rename = "bucketByActivityType")]
-    pub bucket_by_activity_type: Option<BucketByActivity>,
+    pub bucket_by_activity_type: ::core::option::Option<::std::boxed::Box<BucketByActivity>>,
     /// Specifies that data be aggregated by user sessions. Data that does not fall within the time range of a session will not be included in the response. Mutually exclusive of other bucketing specifications.
     #[serde(default, rename = "bucketBySession")]
-    pub bucket_by_session: Option<BucketBySession>,
+    pub bucket_by_session: ::core::option::Option<::std::boxed::Box<BucketBySession>>,
     /// Specifies that data be aggregated by a single time interval. Mutually exclusive of other bucketing specifications.
     #[serde(default, rename = "bucketByTime")]
-    pub bucket_by_time: Option<BucketByTime>,
+    pub bucket_by_time: ::core::option::Option<::std::boxed::Box<BucketByTime>>,
     /// The end of a window of time. Data that intersects with this time window will be aggregated. The time is in milliseconds since epoch, inclusive. The maximum allowed difference between start_time_millis // and end_time_millis is 7776000000 (roughly 90 days).
     #[serde(default, rename = "endTimeMillis")]
-    pub end_time_millis: Option<String>,
+    pub end_time_millis: ::core::option::Option<String>,
     /// DO NOT POPULATE THIS FIELD. It is ignored.
     #[serde(default, rename = "filteredDataQualityStandard")]
-    pub filtered_data_quality_standard: Option<Vec<String>>,
+    pub filtered_data_quality_standard: ::core::option::Option<::std::vec::Vec<String>>,
     /// The start of a window of time. Data that intersects with this time window will be aggregated. The time is in milliseconds since epoch, inclusive.
     #[serde(default, rename = "startTimeMillis")]
-    pub start_time_millis: Option<String>,
+    pub start_time_millis: ::core::option::Option<String>,
 }
 
 /// AggregateResponse resource type.
@@ -81,7 +81,7 @@ pub struct AggregateRequest {
 pub struct AggregateResponse {
     /// A list of buckets containing the aggregated data.
     #[serde(default)]
-    pub bucket: Option<Vec<AggregateBucket>>,
+    pub bucket: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AggregateBucket>>>,
 }
 
 /// Application resource type.
@@ -89,16 +89,16 @@ pub struct AggregateResponse {
 pub struct Application {
     /// An optional URI that can be used to link back to the application.
     #[serde(default, rename = "detailsUrl")]
-    pub details_url: Option<String>,
+    pub details_url: ::core::option::Option<String>,
     /// The name of this application. This is required for REST clients, but we do not enforce uniqueness of this name. It is provided as a matter of convenience for other developers who would like to identify which REST created an Application or Data Source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Package name for this application. This is used as a unique identifier when created by Android applications, but cannot be specified by REST clients. REST clients will have their developer project number reflected into the Data Source data stream IDs, instead of the packageName.
     #[serde(default, rename = "packageName")]
-    pub package_name: Option<String>,
+    pub package_name: ::core::option::Option<String>,
     /// Version of the application. You should update this field whenever the application changes in a way that affects the computation of the data.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// BucketByActivity resource type.
@@ -106,10 +106,10 @@ pub struct Application {
 pub struct BucketByActivity {
     /// The default activity stream will be used if a specific activityDataSourceId is not specified.
     #[serde(default, rename = "activityDataSourceId")]
-    pub activity_data_source_id: Option<String>,
+    pub activity_data_source_id: ::core::option::Option<String>,
     /// Specifies that only activity segments of duration longer than minDurationMillis are considered and used as a container for aggregated data.
     #[serde(default, rename = "minDurationMillis")]
-    pub min_duration_millis: Option<String>,
+    pub min_duration_millis: ::core::option::Option<String>,
 }
 
 /// BucketBySession resource type.
@@ -117,7 +117,7 @@ pub struct BucketByActivity {
 pub struct BucketBySession {
     /// Specifies that only sessions of duration longer than minDurationMillis are considered and used as a container for aggregated data.
     #[serde(default, rename = "minDurationMillis")]
-    pub min_duration_millis: Option<String>,
+    pub min_duration_millis: ::core::option::Option<String>,
 }
 
 /// BucketByTime resource type.
@@ -125,9 +125,9 @@ pub struct BucketBySession {
 pub struct BucketByTime {
     /// Specifies that result buckets aggregate data by exactly durationMillis time frames. Time frames that contain no data will be included in the response with an empty dataset.
     #[serde(default, rename = "durationMillis")]
-    pub duration_millis: Option<String>,
+    pub duration_millis: ::core::option::Option<String>,
     #[serde(default)]
-    pub period: Option<BucketByTimePeriod>,
+    pub period: ::core::option::Option<::std::boxed::Box<BucketByTimePeriod>>,
 }
 
 /// BucketByTimePeriod resource type.
@@ -135,12 +135,12 @@ pub struct BucketByTime {
 pub struct BucketByTimePeriod {
     /// org.joda.timezone.DateTimeZone
     #[serde(default, rename = "timeZoneId")]
-    pub time_zone_id: Option<String>,
+    pub time_zone_id: ::core::option::Option<String>,
     /// TODO: enum values: ["day", "week", "month"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     #[serde(default)]
-    pub value: Option<i32>,
+    pub value: ::core::option::Option<i32>,
 }
 
 /// Represents a single data point, generated by a particular data source. A data point holds a value for each field, an end timestamp and an optional start time. The exact semantics of each of these attributes are specified in the documentation for the particular data type. A data point can represent an instantaneous measurement, reading or input observation, as well as averages or aggregates over a time interval. Check the data type documentation to determine which is the case for a particular data type. Data points always contain one value for each field of the data type.
@@ -148,28 +148,28 @@ pub struct BucketByTimePeriod {
 pub struct DataPoint {
     /// DO NOT USE THIS FIELD. It is ignored, and not stored.
     #[serde(default, rename = "computationTimeMillis")]
-    pub computation_time_millis: Option<String>,
+    pub computation_time_millis: ::core::option::Option<String>,
     /// The data type defining the format of the values in this data point.
     #[serde(default, rename = "dataTypeName")]
-    pub data_type_name: Option<String>,
+    pub data_type_name: ::core::option::Option<String>,
     /// The end time of the interval represented by this data point, in nanoseconds since epoch.
     #[serde(default, rename = "endTimeNanos")]
-    pub end_time_nanos: Option<String>,
+    pub end_time_nanos: ::core::option::Option<String>,
     /// Indicates the last time this data point was modified. Useful only in contexts where we are listing the data changes, rather than representing the current state of the data.
     #[serde(default, rename = "modifiedTimeMillis")]
-    pub modified_time_millis: Option<String>,
+    pub modified_time_millis: ::core::option::Option<String>,
     /// If the data point is contained in a dataset for a derived data source, this field will be populated with the data source stream ID that created the data point originally. WARNING: do not rely on this field for anything other than debugging. The value of this field, if it is set at all, is an implementation detail and is not guaranteed to remain consistent.
     #[serde(default, rename = "originDataSourceId")]
-    pub origin_data_source_id: Option<String>,
+    pub origin_data_source_id: ::core::option::Option<String>,
     /// The raw timestamp from the original SensorEvent.
     #[serde(default, rename = "rawTimestampNanos")]
-    pub raw_timestamp_nanos: Option<String>,
+    pub raw_timestamp_nanos: ::core::option::Option<String>,
     /// The start time of the interval represented by this data point, in nanoseconds since epoch.
     #[serde(default, rename = "startTimeNanos")]
-    pub start_time_nanos: Option<String>,
+    pub start_time_nanos: ::core::option::Option<String>,
     /// Values of each data type field for the data point. It is expected that each value corresponding to a data type field will occur in the same order that the field is listed with in the data type specified in a data source. Only one of integer and floating point fields will be populated, depending on the format enum value within data source''s type field.
     #[serde(default)]
-    pub value: Option<Vec<Value>>,
+    pub value: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiValue>>>,
 }
 
 /// Definition of a unique source of sensor data. Data sources can expose raw data coming from hardware sensors on local or companion devices. They can also expose derived data, created by transforming or merging other data sources. Multiple data sources can exist for the same data type. Every data point inserted into or read from this service has an associated data source. The data source contains enough information to uniquely identify its data, including the hardware device and the application that collected and/or transformed the data. It also holds useful metadata, such as the hardware and application versions, and the device type. Each data source produces a unique stream of data, with a unique identifier. Not all changes to data source affect the stream identifier, so that data collected by updated versions of the same application/device can still be considered to belong to the same data stream.
@@ -177,28 +177,28 @@ pub struct DataPoint {
 pub struct DataSource {
     /// Information about an application which feeds sensor data into the platform.
     #[serde(default)]
-    pub application: Option<Application>,
+    pub application: ::core::option::Option<::std::boxed::Box<Application>>,
     /// DO NOT POPULATE THIS FIELD. It is never populated in responses from the platform, and is ignored in queries. It will be removed in a future version entirely.
     #[serde(default, rename = "dataQualityStandard")]
-    pub data_quality_standard: Option<Vec<String>>,
+    pub data_quality_standard: ::core::option::Option<::std::vec::Vec<String>>,
     /// A unique identifier for the data stream produced by this data source. The identifier includes: - The physical device''s manufacturer, model, and serial number (UID). - The application''s package name or name. Package name is used when the data source was created by an Android application. The developer project number is used when the data source was created by a REST client. - The data source''s type. - The data source''s stream name. Note that not all attributes of the data source are used as part of the stream identifier. In particular, the version of the hardware/the application isn''t used. This allows us to preserve the same stream through version updates. This also means that two DataSource objects may represent the same data stream even if they''re not equal. The exact format of the data stream ID created by an Android application is: type:dataType.name:application.packageName:device.manufacturer:device.model:device.uid:dataStreamName The exact format of the data stream ID created by a REST client is: type:dataType.name:developer project number:device.manufacturer:device.model:device.uid:dataStreamName When any of the optional fields that make up the data stream ID are absent, they will be omitted from the data stream ID. The minimum viable data stream ID would be: type:dataType.name:developer project number Finally, the developer project number and device UID are obfuscated when read by any REST or Android client that did not create the data source. Only the data source creator will see the developer project number in clear and normal form. This means a client will see a different set of data_stream_ids than another client with different credentials.
     #[serde(default, rename = "dataStreamId")]
-    pub data_stream_id: Option<String>,
+    pub data_stream_id: ::core::option::Option<String>,
     /// The stream name uniquely identifies this particular data source among other data sources of the same type from the same underlying producer. Setting the stream name is optional, but should be done whenever an application exposes two streams for the same data type, or when a device has two equivalent sensors.
     #[serde(default, rename = "dataStreamName")]
-    pub data_stream_name: Option<String>,
+    pub data_stream_name: ::core::option::Option<String>,
     /// The data type defines the schema for a stream of data being collected by, inserted into, or queried from the Fitness API.
     #[serde(default, rename = "dataType")]
-    pub data_type: Option<DataType>,
+    pub data_type: ::core::option::Option<::std::boxed::Box<DataType>>,
     /// Representation of an integrated device (such as a phone or a wearable) that can hold sensors.
     #[serde(default)]
-    pub device: Option<Device>,
+    pub device: ::core::option::Option<::std::boxed::Box<Device>>,
     /// An end-user visible name for this data source.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A constant describing the type of this data source. Indicates whether this data source produces raw or derived data. // TODO: enum values: ["raw", "derived"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// DataType resource type.
@@ -206,10 +206,10 @@ pub struct DataSource {
 pub struct DataType {
     /// A field represents one dimension of a data type.
     #[serde(default)]
-    pub field: Option<Vec<DataTypeField>>,
+    pub field: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataTypeField>>>,
     /// Each data type has a unique, namespaced, name. All data types in the com.google namespace are shared as part of the platform.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// In case of multi-dimensional data (such as an accelerometer with x, y, and z axes) each field represents one dimension. Each data type field has a unique name which identifies it. The field also defines the format of the data (int, float, etc.). This message is only instantiated in code and not used for wire comms or stored in any way.
@@ -217,12 +217,12 @@ pub struct DataType {
 pub struct DataTypeField {
     /// The different supported formats for each field in a data type. // TODO: enum values: ["integer", "floatPoint", "string", "map", "integerList", "floatList", "blob"]
     #[serde(default)]
-    pub format: Option<String>,
+    pub format: ::core::option::Option<String>,
     /// Defines the name and format of data. Unlike data type names, field names are not namespaced, and only need to be unique within the data type.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub optional: Option<bool>,
+    pub optional: ::core::option::Option<bool>,
 }
 
 /// A dataset represents a projection container for data points. They do not carry any info of their own. Datasets represent a set of data points from a particular data source. A data point can be found in more than one dataset.
@@ -230,19 +230,19 @@ pub struct DataTypeField {
 pub struct Dataset {
     /// The data stream ID of the data source that created the points in this dataset.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// The largest end time of all data points in this possibly partial representation of the dataset. Time is in nanoseconds from epoch. This should also match the second part of the dataset identifier.
     #[serde(default, rename = "maxEndTimeNs")]
-    pub max_end_time_ns: Option<String>,
+    pub max_end_time_ns: ::core::option::Option<String>,
     /// The smallest start time of all data points in this possibly partial representation of the dataset. Time is in nanoseconds from epoch. This should also match the first part of the dataset identifier.
     #[serde(default, rename = "minStartTimeNs")]
-    pub min_start_time_ns: Option<String>,
+    pub min_start_time_ns: ::core::option::Option<String>,
     /// This token will be set when a dataset is received in response to a GET request and the dataset is too large to be included in a single response. Provide this value in a subsequent GET request to return the next page of data points within this dataset.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A partial list of data points contained in the dataset, ordered by endTimeNanos. This list is considered complete when retrieving a small dataset and partial when patching a dataset or retrieving a dataset that is too large to include in a single response.
     #[serde(default)]
-    pub point: Option<Vec<DataPoint>>,
+    pub point: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataPoint>>>,
 }
 
 /// Representation of an integrated device (such as a phone or a wearable) that can hold sensors. Each sensor is exposed as a data source. The main purpose of the device information contained in this class is to identify the hardware of a particular data source. This can be useful in different ways, including: - Distinguishing two similar sensors on different devices (the step counter on two nexus 5 phones, for instance) - Display the source of data to the user (by using the device make / model) - Treat data differently depending on sensor type (accelerometers on a watch may give different patterns than those on a phone) - Build different analysis models for each device/version.
@@ -250,19 +250,19 @@ pub struct Dataset {
 pub struct Device {
     /// Manufacturer of the product/hardware.
     #[serde(default)]
-    pub manufacturer: Option<String>,
+    pub manufacturer: ::core::option::Option<String>,
     /// End-user visible model name for the device.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// A constant representing the type of the device. // TODO: enum values: ["unknown", "phone", "tablet", "watch", "chestStrap", "scale", "headMounted", "smartDisplay"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// The serial number or other unique ID for the hardware. This field is obfuscated when read by any REST or Android client that did not create the data source. Only the data source creator will see the uid field in clear and normal form. The obfuscation preserves equality; that is, given two IDs, if id1 == id2, obfuscated(id1) == obfuscated(id2).
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
     /// Version string for the device hardware/software.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// ListDataPointChangesResponse resource type.
@@ -270,16 +270,16 @@ pub struct Device {
 pub struct ListDataPointChangesResponse {
     /// The data stream ID of the data source with data point changes.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// Deleted data points for the user. Note, for modifications this should be parsed before handling insertions.
     #[serde(default, rename = "deletedDataPoint")]
-    pub deleted_data_point: Option<Vec<DataPoint>>,
+    pub deleted_data_point: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataPoint>>>,
     /// Inserted data points for the user.
     #[serde(default, rename = "insertedDataPoint")]
-    pub inserted_data_point: Option<Vec<DataPoint>>,
+    pub inserted_data_point: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataPoint>>>,
     /// The continuation token, which is used to page through large result sets. Provide this value in a subsequent request to return the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// ListDataSourcesResponse resource type.
@@ -287,7 +287,7 @@ pub struct ListDataPointChangesResponse {
 pub struct ListDataSourcesResponse {
     /// A previously created data source.
     #[serde(default, rename = "dataSource")]
-    pub data_source: Option<Vec<DataSource>>,
+    pub data_source: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSource>>>,
 }
 
 /// ListSessionsResponse resource type.
@@ -295,16 +295,16 @@ pub struct ListDataSourcesResponse {
 pub struct ListSessionsResponse {
     /// If includeDeleted is set to true in the request, and startTime and endTime are omitted, this will include sessions which were deleted since the last sync.
     #[serde(default, rename = "deletedSession")]
-    pub deleted_session: Option<Vec<Session>>,
+    pub deleted_session: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Session>>>,
     /// Flag to indicate server has more data to transfer. DO NOT USE THIS FIELD. It is never populated in responses from the server.
     #[serde(default, rename = "hasMoreData")]
-    pub has_more_data: Option<bool>,
+    pub has_more_data: ::core::option::Option<bool>,
     /// The sync token which is used to sync further changes. This will only be provided if both startTime and endTime are omitted from the request.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Sessions starting before endTime of the request and ending after startTime of the request up to (endTime of the request + 1 day).
     #[serde(default)]
-    pub session: Option<Vec<Session>>,
+    pub session: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Session>>>,
 }
 
 /// Holder object for the value of an entry in a map field of a data point. A map value supports a subset of the formats that the regular Value supports.
@@ -312,7 +312,7 @@ pub struct ListSessionsResponse {
 pub struct MapValue {
     /// Floating point value.
     #[serde(default, rename = "fpVal")]
-    pub fp_val: Option<f64>,
+    pub fp_val: ::core::option::Option<f64>,
 }
 
 /// Sessions contain metadata, such as a user-friendly name and time interval information.
@@ -320,55 +320,55 @@ pub struct MapValue {
 pub struct Session {
     /// Session active time. While start_time_millis and end_time_millis define the full session time, the active time can be shorter and specified by active_time_millis. If the inactive time during the session is known, it should also be inserted via a com.google.activity.segment data point with a STILL activity value
     #[serde(default, rename = "activeTimeMillis")]
-    pub active_time_millis: Option<String>,
+    pub active_time_millis: ::core::option::Option<String>,
     /// The type of activity this session represents.
     #[serde(default, rename = "activityType")]
-    pub activity_type: Option<i32>,
+    pub activity_type: ::core::option::Option<i32>,
     /// The application that created the session.
     #[serde(default)]
-    pub application: Option<Application>,
+    pub application: ::core::option::Option<::std::boxed::Box<Application>>,
     /// A description for this session.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// An end time, in milliseconds since epoch, inclusive.
     #[serde(default, rename = "endTimeMillis")]
-    pub end_time_millis: Option<String>,
+    pub end_time_millis: ::core::option::Option<String>,
     /// A client-generated identifier that is unique across all sessions owned by this particular user.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// A timestamp that indicates when the session was last modified.
     #[serde(default, rename = "modifiedTimeMillis")]
-    pub modified_time_millis: Option<String>,
+    pub modified_time_millis: ::core::option::Option<String>,
     /// A human readable name of the session.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A start time, in milliseconds since epoch, inclusive.
     #[serde(default, rename = "startTimeMillis")]
-    pub start_time_millis: Option<String>,
+    pub start_time_millis: ::core::option::Option<String>,
 }
 
 /// Holder object for the value of a single field in a data point. A field value has a particular format and is only ever set to one of an integer or a floating point value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Value {
+pub struct ApiValue {
     /// Floating point value. When this is set, other values must not be set.
     #[serde(default, rename = "fpVal")]
-    pub fp_val: Option<f64>,
+    pub fp_val: ::core::option::Option<f64>,
     /// Integer value. When this is set, other values must not be set.
     #[serde(default, rename = "intVal")]
-    pub int_val: Option<i32>,
+    pub int_val: ::core::option::Option<i32>,
     /// Map value. The valid key space and units for the corresponding value of each entry should be documented as part of the data type definition. Keys should be kept small whenever possible. Data streams with large keys and high data frequency may be down sampled.
     #[serde(default, rename = "mapVal")]
-    pub map_val: Option<Vec<ValueMapValEntry>>,
+    pub map_val: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ValueMapValEntry>>>,
     /// String value. When this is set, other values must not be set. Strings should be kept small whenever possible. Data streams with large string values and high data frequency may be down sampled.
     #[serde(default, rename = "stringVal")]
-    pub string_val: Option<String>,
+    pub string_val: ::core::option::Option<String>,
 }
 
 /// ValueMapValEntry resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValueMapValEntry {
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     #[serde(default)]
-    pub value: Option<MapValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<MapValue>>,
 }

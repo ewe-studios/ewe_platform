@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// AMP URL response for a requested URL.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AmpUrl {
     /// The AMP URL pointing to the publisher''s web server.
     #[serde(default, rename = "ampUrl")]
-    pub amp_url: Option<String>,
+    pub amp_url: ::core::option::Option<String>,
     /// The [AMP Cache URL](/amp/cache/overview#amp-cache-url-format) pointing to the cached document in the Google AMP Cache.
     #[serde(default, rename = "cdnAmpUrl")]
-    pub cdn_amp_url: Option<String>,
+    pub cdn_amp_url: ::core::option::Option<String>,
     /// The original non-AMP URL.
     #[serde(default, rename = "originalUrl")]
-    pub original_url: Option<String>,
+    pub original_url: ::core::option::Option<String>,
 }
 
 /// AMP URL Error resource for a requested URL that couldn''t be found.
@@ -32,13 +32,13 @@ pub struct AmpUrl {
 pub struct AmpUrlError {
     /// The error code of an API call. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "INPUT_URL_NOT_FOUND", "NO_AMP_URL", "APPLICATION_ERROR", "URL_IS_VALID_AMP", "URL_IS_INVALID_AMP"]
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<String>,
+    pub error_code: ::core::option::Option<String>,
     /// An optional descriptive error message.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// The original non-AMP URL.
     #[serde(default, rename = "originalUrl")]
-    pub original_url: Option<String>,
+    pub original_url: ::core::option::Option<String>,
 }
 
 /// AMP URL request for a batch of URLs.
@@ -46,10 +46,10 @@ pub struct AmpUrlError {
 pub struct BatchGetAmpUrlsRequest {
     /// The lookup_strategy being requested. // TODO: enum values: ["FETCH_LIVE_DOC", "IN_INDEX_DOC"]
     #[serde(default, rename = "lookupStrategy")]
-    pub lookup_strategy: Option<String>,
+    pub lookup_strategy: ::core::option::Option<String>,
     /// List of URLs to look up for the paired AMP URLs. The URLs are case-sensitive. Up to 50 URLs per lookup (see [Usage Limits](/amp/cache/reference/limits)).
     #[serde(default)]
-    pub urls: Option<Vec<String>>,
+    pub urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Batch AMP URL response.
@@ -57,8 +57,8 @@ pub struct BatchGetAmpUrlsRequest {
 pub struct BatchGetAmpUrlsResponse {
     /// For each URL in BatchAmpUrlsRequest, the URL response. The response might not be in the same order as URLs in the batch request. If BatchAmpUrlsRequest contains duplicate URLs, AmpUrl is generated only once.
     #[serde(default, rename = "ampUrls")]
-    pub amp_urls: Option<Vec<AmpUrl>>,
+    pub amp_urls: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AmpUrl>>>,
     /// The errors for requested URLs that have no AMP URL.
     #[serde(default, rename = "urlErrors")]
-    pub url_errors: Option<Vec<AmpUrlError>>,
+    pub url_errors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AmpUrlError>>>,
 }

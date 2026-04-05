@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Request message for the AddProductToProductSet method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddProductToProductSetRequest {
     /// Required. The resource name for the Product to be added to this ProductSet. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID
     #[serde(default)]
-    pub product: Option<String>,
+    pub product: ::core::option::Option<String>,
 }
 
 /// A request to annotate one single file, e.g. a PDF, TIFF or GIF file.
@@ -26,16 +26,16 @@ pub struct AddProductToProductSetRequest {
 pub struct AnnotateFileRequest {
     /// Required. Requested features.
     #[serde(default)]
-    pub features: Option<Vec<Feature>>,
+    pub features: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Feature>>>,
     /// Additional context that may accompany the image(s) in the file.
     #[serde(default, rename = "imageContext")]
-    pub image_context: Option<ImageContext>,
+    pub image_context: ::core::option::Option<::std::boxed::Box<ImageContext>>,
     /// Required. Information about the input file.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<InputConfig>,
+    pub input_config: ::core::option::Option<::std::boxed::Box<InputConfig>>,
     /// Pages of the file to perform image annotation. Pages starts from 1, we assume the first page of the file is page 1. At most 5 pages are supported per request. Pages can be negative. Page 1 means the first page. Page 2 means the second page. Page -1 means the last page. Page -2 means the second to the last page. If the file is GIF instead of PDF or TIFF, page refers to GIF frames. If this field is empty, by default the service performs image annotation for the first 5 pages of the file.
     #[serde(default)]
-    pub pages: Option<Vec<i32>>,
+    pub pages: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
@@ -43,16 +43,17 @@ pub struct AnnotateFileRequest {
 pub struct AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Information about the file for which this response is generated.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<InputConfig>,
+    pub input_config: ::core::option::Option<::std::boxed::Box<InputConfig>>,
     /// Individual responses to images found within the file. This field will be empty if the error field is set.
     #[serde(default)]
-    pub responses: Option<Vec<AnnotateImageResponse>>,
+    pub responses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AnnotateImageResponse>>>,
     /// This field gives the total number of pages in the file.
     #[serde(default, rename = "totalPages")]
-    pub total_pages: Option<i32>,
+    pub total_pages: ::core::option::Option<i32>,
 }
 
 /// Request for performing Google Cloud Vision API tasks over a user-provided image, with user-requested features, and with context information.
@@ -60,13 +61,13 @@ pub struct AnnotateFileResponse {
 pub struct AnnotateImageRequest {
     /// Requested features.
     #[serde(default)]
-    pub features: Option<Vec<Feature>>,
+    pub features: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Feature>>>,
     /// The image to be processed.
     #[serde(default)]
-    pub image: Option<Image>,
+    pub image: ::core::option::Option<::std::boxed::Box<Image>>,
     /// Additional context that may accompany the image.
     #[serde(default, rename = "imageContext")]
-    pub image_context: Option<ImageContext>,
+    pub image_context: ::core::option::Option<::std::boxed::Box<ImageContext>>,
 }
 
 /// Response to an image annotation request.
@@ -74,46 +75,52 @@ pub struct AnnotateImageRequest {
 pub struct AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
-    pub context: Option<ImageAnnotationContext>,
+    pub context: ::core::option::Option<::std::boxed::Box<ImageAnnotationContext>>,
     /// If present, crop hints have completed successfully.
     #[serde(default, rename = "cropHintsAnnotation")]
-    pub crop_hints_annotation: Option<CropHintsAnnotation>,
+    pub crop_hints_annotation: ::core::option::Option<::std::boxed::Box<CropHintsAnnotation>>,
     /// If set, represents the error message for the operation. Note that filled-in image annotations are guaranteed to be correct, even when error is set.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// If present, face detection has completed successfully.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<FaceAnnotation>>,
+    pub face_annotations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FaceAnnotation>>>,
     /// If present, text (OCR) detection or document (OCR) text detection has completed successfully. This annotation provides the structural hierarchy for the OCR detected text.
     #[serde(default, rename = "fullTextAnnotation")]
-    pub full_text_annotation: Option<TextAnnotation>,
+    pub full_text_annotation: ::core::option::Option<::std::boxed::Box<TextAnnotation>>,
     /// If present, image properties were extracted successfully.
     #[serde(default, rename = "imagePropertiesAnnotation")]
-    pub image_properties_annotation: Option<ImageProperties>,
+    pub image_properties_annotation: ::core::option::Option<::std::boxed::Box<ImageProperties>>,
     /// If present, label detection has completed successfully.
     #[serde(default, rename = "labelAnnotations")]
-    pub label_annotations: Option<Vec<EntityAnnotation>>,
+    pub label_annotations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EntityAnnotation>>>,
     /// If present, landmark detection has completed successfully.
     #[serde(default, rename = "landmarkAnnotations")]
-    pub landmark_annotations: Option<Vec<EntityAnnotation>>,
+    pub landmark_annotations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EntityAnnotation>>>,
     /// If present, localized object detection has completed successfully. This will be sorted descending by confidence score.
     #[serde(default, rename = "localizedObjectAnnotations")]
-    pub localized_object_annotations: Option<Vec<LocalizedObjectAnnotation>>,
+    pub localized_object_annotations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LocalizedObjectAnnotation>>>,
     /// If present, logo detection has completed successfully.
     #[serde(default, rename = "logoAnnotations")]
-    pub logo_annotations: Option<Vec<EntityAnnotation>>,
+    pub logo_annotations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EntityAnnotation>>>,
     /// If present, product search has completed successfully.
     #[serde(default, rename = "productSearchResults")]
-    pub product_search_results: Option<ProductSearchResults>,
+    pub product_search_results: ::core::option::Option<::std::boxed::Box<ProductSearchResults>>,
     /// If present, safe-search annotation has completed successfully.
     #[serde(default, rename = "safeSearchAnnotation")]
-    pub safe_search_annotation: Option<SafeSearchAnnotation>,
+    pub safe_search_annotation: ::core::option::Option<::std::boxed::Box<SafeSearchAnnotation>>,
     /// If present, text (OCR) detection has completed successfully.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<EntityAnnotation>>,
+    pub text_annotations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EntityAnnotation>>>,
     /// If present, web detection has completed successfully.
     #[serde(default, rename = "webDetection")]
-    pub web_detection: Option<WebDetection>,
+    pub web_detection: ::core::option::Option<::std::boxed::Box<WebDetection>>,
 }
 
 /// An offline file annotation request.
@@ -121,16 +128,16 @@ pub struct AnnotateImageResponse {
 pub struct AsyncAnnotateFileRequest {
     /// Required. Requested features.
     #[serde(default)]
-    pub features: Option<Vec<Feature>>,
+    pub features: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Feature>>>,
     /// Additional context that may accompany the image(s) in the file.
     #[serde(default, rename = "imageContext")]
-    pub image_context: Option<ImageContext>,
+    pub image_context: ::core::option::Option<::std::boxed::Box<ImageContext>>,
     /// Required. Information about the input file.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<InputConfig>,
+    pub input_config: ::core::option::Option<::std::boxed::Box<InputConfig>>,
     /// Required. The desired output location and metadata (e.g. format).
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<OutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<OutputConfig>>,
 }
 
 /// The response for a single offline file annotation request.
@@ -138,7 +145,7 @@ pub struct AsyncAnnotateFileRequest {
 pub struct AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<OutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<OutputConfig>>,
 }
 
 /// Multiple async file annotation requests are batched into a single service call.
@@ -146,13 +153,14 @@ pub struct AsyncAnnotateFileResponse {
 pub struct AsyncBatchAnnotateFilesRequest {
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Target project and location to make a call. Format: projects/{project-id}/locations/{location-id}. If no parent is specified, a region will be chosen automatically. Supported location-ids: us: USA country only, asia: East asia areas, like Japan, Taiwan, eu: The European Union. Example: projects/project-A/locations/eu.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Required. Individual async file annotation requests for this batch.
     #[serde(default)]
-    pub requests: Option<Vec<AsyncAnnotateFileRequest>>,
+    pub requests:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AsyncAnnotateFileRequest>>>,
 }
 
 /// Response to an async batch file annotation request.
@@ -160,7 +168,8 @@ pub struct AsyncBatchAnnotateFilesRequest {
 pub struct AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
-    pub responses: Option<Vec<AsyncAnnotateFileResponse>>,
+    pub responses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AsyncAnnotateFileResponse>>>,
 }
 
 /// Request for async image annotation for a list of images.
@@ -168,16 +177,16 @@ pub struct AsyncBatchAnnotateFilesResponse {
 pub struct AsyncBatchAnnotateImagesRequest {
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. The desired output location and metadata (e.g. format).
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<OutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<OutputConfig>>,
     /// Optional. Target project and location to make a call. Format: projects/{project-id}/locations/{location-id}. If no parent is specified, a region will be chosen automatically. Supported location-ids: us: USA country only, asia: East asia areas, like Japan, Taiwan, eu: The European Union. Example: projects/project-A/locations/eu.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Required. Individual image annotation requests for this batch.
     #[serde(default)]
-    pub requests: Option<Vec<AnnotateImageRequest>>,
+    pub requests: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AnnotateImageRequest>>>,
 }
 
 /// Response to an async batch image annotation request.
@@ -185,7 +194,7 @@ pub struct AsyncBatchAnnotateImagesRequest {
 pub struct AsyncBatchAnnotateImagesResponse {
     /// The output location and metadata from AsyncBatchAnnotateImagesRequest.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<OutputConfig>,
+    pub output_config: ::core::option::Option<::std::boxed::Box<OutputConfig>>,
 }
 
 /// A list of requests to annotate files using the BatchAnnotateFiles API.
@@ -193,13 +202,13 @@ pub struct AsyncBatchAnnotateImagesResponse {
 pub struct BatchAnnotateFilesRequest {
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Target project and location to make a call. Format: projects/{project-id}/locations/{location-id}. If no parent is specified, a region will be chosen automatically. Supported location-ids: us: USA country only, asia: East asia areas, like Japan, Taiwan, eu: The European Union. Example: projects/project-A/locations/eu.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Required. The list of file annotation requests. Right now we support only one AnnotateFileRequest in BatchAnnotateFilesRequest.
     #[serde(default)]
-    pub requests: Option<Vec<AnnotateFileRequest>>,
+    pub requests: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AnnotateFileRequest>>>,
 }
 
 /// A list of file annotation responses.
@@ -207,7 +216,7 @@ pub struct BatchAnnotateFilesRequest {
 pub struct BatchAnnotateFilesResponse {
     /// The list of file annotation responses, each response corresponding to each AnnotateFileRequest in BatchAnnotateFilesRequest.
     #[serde(default)]
-    pub responses: Option<Vec<AnnotateFileResponse>>,
+    pub responses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AnnotateFileResponse>>>,
 }
 
 /// Multiple image annotation requests are batched into a single service call.
@@ -215,13 +224,13 @@ pub struct BatchAnnotateFilesResponse {
 pub struct BatchAnnotateImagesRequest {
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Optional. Target project and location to make a call. Format: projects/{project-id}/locations/{location-id}. If no parent is specified, a region will be chosen automatically. Supported location-ids: us: USA country only, asia: East asia areas, like Japan, Taiwan, eu: The European Union. Example: projects/project-A/locations/eu.
     #[serde(default)]
-    pub parent: Option<String>,
+    pub parent: ::core::option::Option<String>,
     /// Required. Individual image annotation requests for this batch.
     #[serde(default)]
-    pub requests: Option<Vec<AnnotateImageRequest>>,
+    pub requests: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AnnotateImageRequest>>>,
 }
 
 /// Response to a batch image annotation request.
@@ -229,7 +238,8 @@ pub struct BatchAnnotateImagesRequest {
 pub struct BatchAnnotateImagesResponse {
     /// Individual responses to image annotation requests within the batch.
     #[serde(default)]
-    pub responses: Option<Vec<AnnotateImageResponse>>,
+    pub responses:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AnnotateImageResponse>>>,
 }
 
 /// Metadata for the batch operations such as the current state. This is included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -237,13 +247,13 @@ pub struct BatchAnnotateImagesResponse {
 pub struct BatchOperationMetadata {
     /// The time when the batch request is finished and google.longrunning.Operation.done is set to true.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "PROCESSING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the batch request was submitted to the server.
     #[serde(default, rename = "submitTime")]
-    pub submit_time: Option<String>,
+    pub submit_time: ::core::option::Option<String>,
 }
 
 /// Logical element on the page.
@@ -251,19 +261,19 @@ pub struct BatchOperationMetadata {
 pub struct Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
-    pub block_type: Option<String>,
+    pub block_type: ::core::option::Option<String>,
     /// The bounding box for the block. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<BoundingPoly>,
+    pub bounding_box: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// Confidence of the OCR results on the block. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// List of paragraphs in this block (if this blocks is of type text).
     #[serde(default)]
-    pub paragraphs: Option<Vec<Paragraph>>,
+    pub paragraphs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Paragraph>>>,
     /// Additional information detected for the block.
     #[serde(default)]
-    pub property: Option<TextProperty>,
+    pub property: ::core::option::Option<::std::boxed::Box<TextProperty>>,
 }
 
 /// A bounding polygon for the detected image annotation.
@@ -271,10 +281,11 @@ pub struct Block {
 pub struct BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices: Option<Vec<NormalizedVertex>>,
+    pub normalized_vertices:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NormalizedVertex>>>,
     /// The bounding polygon vertices.
     #[serde(default)]
-    pub vertices: Option<Vec<Vertex>>,
+    pub vertices: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Vertex>>>,
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
@@ -282,16 +293,16 @@ pub struct BoundingPoly {
 pub struct Color {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
-    pub alpha: Option<f32>,
+    pub alpha: ::core::option::Option<f32>,
     /// The amount of blue in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub blue: Option<f32>,
+    pub blue: ::core::option::Option<f32>,
     /// The amount of green in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub green: Option<f32>,
+    pub green: ::core::option::Option<f32>,
     /// The amount of red in the color as a value in the interval [0, 1].
     #[serde(default)]
-    pub red: Option<f32>,
+    pub red: ::core::option::Option<f32>,
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
@@ -299,13 +310,13 @@ pub struct Color {
 pub struct ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The fraction of pixels the color occupies in the image. Value in range [0, 1].
     #[serde(default, rename = "pixelFraction")]
-    pub pixel_fraction: Option<f32>,
+    pub pixel_fraction: ::core::option::Option<f32>,
     /// Image-specific score for this color. Value in range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
@@ -313,13 +324,13 @@ pub struct ColorInfo {
 pub struct CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<BoundingPoly>,
+    pub bounding_poly: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// Confidence of this being a salient region. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Fraction of importance of this salient region with respect to the original image.
     #[serde(default, rename = "importanceFraction")]
-    pub importance_fraction: Option<f32>,
+    pub importance_fraction: ::core::option::Option<f32>,
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
@@ -327,7 +338,7 @@ pub struct CropHint {
 pub struct CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
-    pub crop_hints: Option<Vec<CropHint>>,
+    pub crop_hints: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CropHint>>>,
 }
 
 /// Parameters for crop hints annotation request.
@@ -335,7 +346,7 @@ pub struct CropHintsAnnotation {
 pub struct CropHintsParams {
     /// Aspect ratios in floats, representing the ratio of the width to the height of the image. For example, if the desired aspect ratio is 4/3, the corresponding float value should be 1.33333. If not specified, the best possible crop is returned. The number of provided aspect ratios is limited to a maximum of 16; any aspect ratios provided after the 16th are ignored.
     #[serde(default, rename = "aspectRatios")]
-    pub aspect_ratios: Option<Vec<f32>>,
+    pub aspect_ratios: ::core::option::Option<::std::vec::Vec<f32>>,
 }
 
 /// Detected start or end of a structural component.
@@ -343,10 +354,10 @@ pub struct CropHintsParams {
 pub struct DetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
-    pub is_prefix: Option<bool>,
+    pub is_prefix: ::core::option::Option<bool>,
     /// Detected break type. // TODO: enum values: ["UNKNOWN", "SPACE", "SURE_SPACE", "EOL_SURE_SPACE", "HYPHEN", "LINE_BREAK"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Detected language for a structural component.
@@ -354,10 +365,10 @@ pub struct DetectedBreak {
 pub struct DetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Set of dominant colors and their corresponding scores.
@@ -365,7 +376,7 @@ pub struct DetectedLanguage {
 pub struct DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
-    pub colors: Option<Vec<ColorInfo>>,
+    pub colors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ColorInfo>>>,
 }
 
 /// Set of detected entity features.
@@ -373,31 +384,31 @@ pub struct DominantColorsAnnotation {
 pub struct EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<BoundingPoly>,
+    pub bounding_poly: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// **Deprecated. Use score instead.** The accuracy of the entity detection in an image. For example, for an image in which the "Eiffel Tower" entity is detected, this field represents the confidence that there is a tower in the query image. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity textual description, expressed in its locale language.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The language code for the locale in which the entity textual description is expressed.
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The location information for the detected entity. Multiple LocationInfo elements can be present because one location may indicate the location of the scene in the image, and another location may indicate the location of the place where the image was taken. Location information is usually present for landmarks.
     #[serde(default)]
-    pub locations: Option<Vec<LocationInfo>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<LocationInfo>>>,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Some entities may have optional user-supplied Property (name/value) fields, such a score or string that qualifies the entity.
     #[serde(default)]
-    pub properties: Option<Vec<Property>>,
+    pub properties: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Property>>>,
     /// Overall score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The relevancy of the ICA (Image Content Annotation) label to the image. For example, the relevancy of "tower" is likely higher to an image containing the detected "Eiffel Tower" than to an image containing a detected distant towering building, even though the confidence that there is a tower in each image may be the same. Range [0, 1].
     #[serde(default)]
-    pub topicality: Option<f32>,
+    pub topicality: ::core::option::Option<f32>,
 }
 
 /// A face annotation object contains the results of face detection.
@@ -405,49 +416,49 @@ pub struct EntityAnnotation {
 pub struct FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
-    pub anger_likelihood: Option<String>,
+    pub anger_likelihood: ::core::option::Option<String>,
     /// Blurred likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "blurredLikelihood")]
-    pub blurred_likelihood: Option<String>,
+    pub blurred_likelihood: ::core::option::Option<String>,
     /// The bounding polygon around the face. The coordinates of the bounding box are in the original image''s scale. The bounding box is computed to "frame" the face in accordance with human expectations. It is based on the landmarker results. Note that one or more x and/or y coordinates may not be generated in the BoundingPoly (the polygon will be unbounded) if only a partial face appears in the image to be annotated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<BoundingPoly>,
+    pub bounding_poly: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// Detection confidence. Range [0, 1].
     #[serde(default, rename = "detectionConfidence")]
-    pub detection_confidence: Option<f32>,
+    pub detection_confidence: ::core::option::Option<f32>,
     /// The fd_bounding_poly bounding polygon is tighter than the boundingPoly, and encloses only the skin part of the face. Typically, it is used to eliminate the face from any image analysis that detects the "amount of skin" visible in an image. It is not based on the landmarker results, only on the initial face detection, hence the fd (face detection) prefix.
     #[serde(default, rename = "fdBoundingPoly")]
-    pub fd_bounding_poly: Option<BoundingPoly>,
+    pub fd_bounding_poly: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// Headwear likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "headwearLikelihood")]
-    pub headwear_likelihood: Option<String>,
+    pub headwear_likelihood: ::core::option::Option<String>,
     /// Joy likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "joyLikelihood")]
-    pub joy_likelihood: Option<String>,
+    pub joy_likelihood: ::core::option::Option<String>,
     /// Face landmarking confidence. Range [0, 1].
     #[serde(default, rename = "landmarkingConfidence")]
-    pub landmarking_confidence: Option<f32>,
+    pub landmarking_confidence: ::core::option::Option<f32>,
     /// Detected face landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<Landmark>>,
+    pub landmarks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Landmark>>>,
     /// Yaw angle, which indicates the leftward/rightward angle that the face is pointing relative to the vertical plane perpendicular to the image. Range [-180,180].
     #[serde(default, rename = "panAngle")]
-    pub pan_angle: Option<f32>,
+    pub pan_angle: ::core::option::Option<f32>,
     /// Roll angle, which indicates the amount of clockwise/anti-clockwise rotation of the face relative to the image vertical about the axis perpendicular to the face. Range [-180,180].
     #[serde(default, rename = "rollAngle")]
-    pub roll_angle: Option<f32>,
+    pub roll_angle: ::core::option::Option<f32>,
     /// Sorrow likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "sorrowLikelihood")]
-    pub sorrow_likelihood: Option<String>,
+    pub sorrow_likelihood: ::core::option::Option<String>,
     /// Surprise likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "surpriseLikelihood")]
-    pub surprise_likelihood: Option<String>,
+    pub surprise_likelihood: ::core::option::Option<String>,
     /// Pitch angle, which indicates the upwards/downwards angle that the face is pointing relative to the image''s horizontal plane. Range [-180,180].
     #[serde(default, rename = "tiltAngle")]
-    pub tilt_angle: Option<f32>,
+    pub tilt_angle: ::core::option::Option<f32>,
     /// Under-exposed likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "underExposedLikelihood")]
-    pub under_exposed_likelihood: Option<String>,
+    pub under_exposed_likelihood: ::core::option::Option<String>,
 }
 
 /// The type of Google Cloud Vision API detection to perform, and the maximum number of results to return for that type. Multiple Feature objects can be specified in the features list.
@@ -455,13 +466,13 @@ pub struct FaceAnnotation {
 pub struct Feature {
     /// Maximum number of results of this type. Does not apply to TEXT_DETECTION, DOCUMENT_TEXT_DETECTION, or CROP_HINTS.
     #[serde(default, rename = "maxResults")]
-    pub max_results: Option<i32>,
+    pub max_results: ::core::option::Option<i32>,
     /// Model to use for the feature. Supported values: "builtin/stable" (the default if unset) and "builtin/latest". DOCUMENT_TEXT_DETECTION and TEXT_DETECTION also support "builtin/rc" for the latest release candidate.
     #[serde(default)]
-    pub model: Option<String>,
+    pub model: ::core::option::Option<String>,
     /// The feature type. // TODO: enum values: ["TYPE_UNSPECIFIED", "FACE_DETECTION", "LANDMARK_DETECTION", "LOGO_DETECTION", "LABEL_DETECTION", "TEXT_DETECTION", "DOCUMENT_TEXT_DETECTION", "SAFE_SEARCH_DETECTION", "IMAGE_PROPERTIES", "CROP_HINTS", "WEB_DETECTION", "PRODUCT_SEARCH", "OBJECT_LOCALIZATION"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the output will be written to.
@@ -469,7 +480,7 @@ pub struct Feature {
 pub struct GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the input will be read from.
@@ -477,7 +488,7 @@ pub struct GcsDestination {
 pub struct GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
@@ -485,16 +496,19 @@ pub struct GcsSource {
 pub struct GoogleCloudVisionV1p1beta1AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Information about the file for which this response is generated.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudVisionV1p1beta1InputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1InputConfig>>,
     /// Individual responses to images found within the file. This field will be empty if the error field is set.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p1beta1AnnotateImageResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1AnnotateImageResponse>>,
+    >,
     /// This field gives the total number of pages in the file.
     #[serde(default, rename = "totalPages")]
-    pub total_pages: Option<i32>,
+    pub total_pages: ::core::option::Option<i32>,
 }
 
 /// Response to an image annotation request.
@@ -502,47 +516,65 @@ pub struct GoogleCloudVisionV1p1beta1AnnotateFileResponse {
 pub struct GoogleCloudVisionV1p1beta1AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
-    pub context: Option<GoogleCloudVisionV1p1beta1ImageAnnotationContext>,
+    pub context:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1ImageAnnotationContext>>,
     /// If present, crop hints have completed successfully.
     #[serde(default, rename = "cropHintsAnnotation")]
-    pub crop_hints_annotation: Option<GoogleCloudVisionV1p1beta1CropHintsAnnotation>,
+    pub crop_hints_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1CropHintsAnnotation>>,
     /// If set, represents the error message for the operation. Note that filled-in image annotations are guaranteed to be correct, even when error is set.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// If present, face detection has completed successfully.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVisionV1p1beta1FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1FaceAnnotation>>,
+    >,
     /// If present, text (OCR) detection or document (OCR) text detection has completed successfully. This annotation provides the structural hierarchy for the OCR detected text.
     #[serde(default, rename = "fullTextAnnotation")]
-    pub full_text_annotation: Option<GoogleCloudVisionV1p1beta1TextAnnotation>,
+    pub full_text_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1TextAnnotation>>,
     /// If present, image properties were extracted successfully.
     #[serde(default, rename = "imagePropertiesAnnotation")]
-    pub image_properties_annotation: Option<GoogleCloudVisionV1p1beta1ImageProperties>,
+    pub image_properties_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1ImageProperties>>,
     /// If present, label detection has completed successfully.
     #[serde(default, rename = "labelAnnotations")]
-    pub label_annotations: Option<Vec<GoogleCloudVisionV1p1beta1EntityAnnotation>>,
+    pub label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1EntityAnnotation>>,
+    >,
     /// If present, landmark detection has completed successfully.
     #[serde(default, rename = "landmarkAnnotations")]
-    pub landmark_annotations: Option<Vec<GoogleCloudVisionV1p1beta1EntityAnnotation>>,
+    pub landmark_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1EntityAnnotation>>,
+    >,
     /// If present, localized object detection has completed successfully. This will be sorted descending by confidence score.
     #[serde(default, rename = "localizedObjectAnnotations")]
-    pub localized_object_annotations:
-        Option<Vec<GoogleCloudVisionV1p1beta1LocalizedObjectAnnotation>>,
+    pub localized_object_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1LocalizedObjectAnnotation>>,
+    >,
     /// If present, logo detection has completed successfully.
     #[serde(default, rename = "logoAnnotations")]
-    pub logo_annotations: Option<Vec<GoogleCloudVisionV1p1beta1EntityAnnotation>>,
+    pub logo_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1EntityAnnotation>>,
+    >,
     /// If present, product search has completed successfully.
     #[serde(default, rename = "productSearchResults")]
-    pub product_search_results: Option<GoogleCloudVisionV1p1beta1ProductSearchResults>,
+    pub product_search_results:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1ProductSearchResults>>,
     /// If present, safe-search annotation has completed successfully.
     #[serde(default, rename = "safeSearchAnnotation")]
-    pub safe_search_annotation: Option<GoogleCloudVisionV1p1beta1SafeSearchAnnotation>,
+    pub safe_search_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1SafeSearchAnnotation>>,
     /// If present, text (OCR) detection has completed successfully.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVisionV1p1beta1EntityAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1EntityAnnotation>>,
+    >,
     /// If present, web detection has completed successfully.
     #[serde(default, rename = "webDetection")]
-    pub web_detection: Option<GoogleCloudVisionV1p1beta1WebDetection>,
+    pub web_detection:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetection>>,
 }
 
 /// The response for a single offline file annotation request.
@@ -550,7 +582,8 @@ pub struct GoogleCloudVisionV1p1beta1AnnotateImageResponse {
 pub struct GoogleCloudVisionV1p1beta1AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudVisionV1p1beta1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1OutputConfig>>,
 }
 
 /// Response to an async batch file annotation request.
@@ -558,7 +591,9 @@ pub struct GoogleCloudVisionV1p1beta1AsyncAnnotateFileResponse {
 pub struct GoogleCloudVisionV1p1beta1AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p1beta1AsyncAnnotateFileResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1AsyncAnnotateFileResponse>>,
+    >,
 }
 
 /// Logical element on the page.
@@ -566,19 +601,24 @@ pub struct GoogleCloudVisionV1p1beta1AsyncBatchAnnotateFilesResponse {
 pub struct GoogleCloudVisionV1p1beta1Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
-    pub block_type: Option<String>,
+    pub block_type: ::core::option::Option<String>,
     /// The bounding box for the block. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// Confidence of the OCR results on the block. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// List of paragraphs in this block (if this blocks is of type text).
     #[serde(default)]
-    pub paragraphs: Option<Vec<GoogleCloudVisionV1p1beta1Paragraph>>,
+    pub paragraphs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1Paragraph>>,
+    >,
     /// Additional information detected for the block.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    >,
 }
 
 /// A bounding polygon for the detected image annotation.
@@ -586,10 +626,14 @@ pub struct GoogleCloudVisionV1p1beta1Block {
 pub struct GoogleCloudVisionV1p1beta1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices: Option<Vec<GoogleCloudVisionV1p1beta1NormalizedVertex>>,
+    pub normalized_vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1NormalizedVertex>>,
+    >,
     /// The bounding polygon vertices.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVisionV1p1beta1Vertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1Vertex>>,
+    >,
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
@@ -597,13 +641,13 @@ pub struct GoogleCloudVisionV1p1beta1BoundingPoly {
 pub struct GoogleCloudVisionV1p1beta1ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The fraction of pixels the color occupies in the image. Value in range [0, 1].
     #[serde(default, rename = "pixelFraction")]
-    pub pixel_fraction: Option<f32>,
+    pub pixel_fraction: ::core::option::Option<f32>,
     /// Image-specific score for this color. Value in range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
@@ -611,13 +655,14 @@ pub struct GoogleCloudVisionV1p1beta1ColorInfo {
 pub struct GoogleCloudVisionV1p1beta1CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// Confidence of this being a salient region. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Fraction of importance of this salient region with respect to the original image.
     #[serde(default, rename = "importanceFraction")]
-    pub importance_fraction: Option<f32>,
+    pub importance_fraction: ::core::option::Option<f32>,
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
@@ -625,7 +670,9 @@ pub struct GoogleCloudVisionV1p1beta1CropHint {
 pub struct GoogleCloudVisionV1p1beta1CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
-    pub crop_hints: Option<Vec<GoogleCloudVisionV1p1beta1CropHint>>,
+    pub crop_hints: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1CropHint>>,
+    >,
 }
 
 /// Set of dominant colors and their corresponding scores.
@@ -633,7 +680,9 @@ pub struct GoogleCloudVisionV1p1beta1CropHintsAnnotation {
 pub struct GoogleCloudVisionV1p1beta1DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
-    pub colors: Option<Vec<GoogleCloudVisionV1p1beta1ColorInfo>>,
+    pub colors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1ColorInfo>>,
+    >,
 }
 
 /// Set of detected entity features.
@@ -641,31 +690,36 @@ pub struct GoogleCloudVisionV1p1beta1DominantColorsAnnotation {
 pub struct GoogleCloudVisionV1p1beta1EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// **Deprecated. Use score instead.** The accuracy of the entity detection in an image. For example, for an image in which the "Eiffel Tower" entity is detected, this field represents the confidence that there is a tower in the query image. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity textual description, expressed in its locale language.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The language code for the locale in which the entity textual description is expressed.
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The location information for the detected entity. Multiple LocationInfo elements can be present because one location may indicate the location of the scene in the image, and another location may indicate the location of the place where the image was taken. Location information is usually present for landmarks.
     #[serde(default)]
-    pub locations: Option<Vec<GoogleCloudVisionV1p1beta1LocationInfo>>,
+    pub locations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1LocationInfo>>,
+    >,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Some entities may have optional user-supplied Property (name/value) fields, such a score or string that qualifies the entity.
     #[serde(default)]
-    pub properties: Option<Vec<GoogleCloudVisionV1p1beta1Property>>,
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1Property>>,
+    >,
     /// Overall score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The relevancy of the ICA (Image Content Annotation) label to the image. For example, the relevancy of "tower" is likely higher to an image containing the detected "Eiffel Tower" than to an image containing a detected distant towering building, even though the confidence that there is a tower in each image may be the same. Range [0, 1].
     #[serde(default)]
-    pub topicality: Option<f32>,
+    pub topicality: ::core::option::Option<f32>,
 }
 
 /// A face annotation object contains the results of face detection.
@@ -673,49 +727,53 @@ pub struct GoogleCloudVisionV1p1beta1EntityAnnotation {
 pub struct GoogleCloudVisionV1p1beta1FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
-    pub anger_likelihood: Option<String>,
+    pub anger_likelihood: ::core::option::Option<String>,
     /// Blurred likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "blurredLikelihood")]
-    pub blurred_likelihood: Option<String>,
+    pub blurred_likelihood: ::core::option::Option<String>,
     /// The bounding polygon around the face. The coordinates of the bounding box are in the original image''s scale. The bounding box is computed to "frame" the face in accordance with human expectations. It is based on the landmarker results. Note that one or more x and/or y coordinates may not be generated in the BoundingPoly (the polygon will be unbounded) if only a partial face appears in the image to be annotated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// Detection confidence. Range [0, 1].
     #[serde(default, rename = "detectionConfidence")]
-    pub detection_confidence: Option<f32>,
+    pub detection_confidence: ::core::option::Option<f32>,
     /// The fd_bounding_poly bounding polygon is tighter than the boundingPoly, and encloses only the skin part of the face. Typically, it is used to eliminate the face from any image analysis that detects the "amount of skin" visible in an image. It is not based on the landmarker results, only on the initial face detection, hence the fd (face detection) prefix.
     #[serde(default, rename = "fdBoundingPoly")]
-    pub fd_bounding_poly: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub fd_bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// Headwear likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "headwearLikelihood")]
-    pub headwear_likelihood: Option<String>,
+    pub headwear_likelihood: ::core::option::Option<String>,
     /// Joy likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "joyLikelihood")]
-    pub joy_likelihood: Option<String>,
+    pub joy_likelihood: ::core::option::Option<String>,
     /// Face landmarking confidence. Range [0, 1].
     #[serde(default, rename = "landmarkingConfidence")]
-    pub landmarking_confidence: Option<f32>,
+    pub landmarking_confidence: ::core::option::Option<f32>,
     /// Detected face landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVisionV1p1beta1FaceAnnotationLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1FaceAnnotationLandmark>>,
+    >,
     /// Yaw angle, which indicates the leftward/rightward angle that the face is pointing relative to the vertical plane perpendicular to the image. Range [-180,180].
     #[serde(default, rename = "panAngle")]
-    pub pan_angle: Option<f32>,
+    pub pan_angle: ::core::option::Option<f32>,
     /// Roll angle, which indicates the amount of clockwise/anti-clockwise rotation of the face relative to the image vertical about the axis perpendicular to the face. Range [-180,180].
     #[serde(default, rename = "rollAngle")]
-    pub roll_angle: Option<f32>,
+    pub roll_angle: ::core::option::Option<f32>,
     /// Sorrow likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "sorrowLikelihood")]
-    pub sorrow_likelihood: Option<String>,
+    pub sorrow_likelihood: ::core::option::Option<String>,
     /// Surprise likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "surpriseLikelihood")]
-    pub surprise_likelihood: Option<String>,
+    pub surprise_likelihood: ::core::option::Option<String>,
     /// Pitch angle, which indicates the upwards/downwards angle that the face is pointing relative to the image''s horizontal plane. Range [-180,180].
     #[serde(default, rename = "tiltAngle")]
-    pub tilt_angle: Option<f32>,
+    pub tilt_angle: ::core::option::Option<f32>,
     /// Under-exposed likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "underExposedLikelihood")]
-    pub under_exposed_likelihood: Option<String>,
+    pub under_exposed_likelihood: ::core::option::Option<String>,
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
@@ -723,10 +781,10 @@ pub struct GoogleCloudVisionV1p1beta1FaceAnnotation {
 pub struct GoogleCloudVisionV1p1beta1FaceAnnotationLandmark {
     /// Face landmark position.
     #[serde(default)]
-    pub position: Option<GoogleCloudVisionV1p1beta1Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1Position>>,
     /// Face landmark type. // TODO: enum values: ["UNKNOWN_LANDMARK", "LEFT_EYE", "RIGHT_EYE", "LEFT_OF_LEFT_EYEBROW", "RIGHT_OF_LEFT_EYEBROW", "LEFT_OF_RIGHT_EYEBROW", "RIGHT_OF_RIGHT_EYEBROW", "MIDPOINT_BETWEEN_EYES", "NOSE_TIP", "UPPER_LIP", "LOWER_LIP", "MOUTH_LEFT", "MOUTH_RIGHT", "MOUTH_CENTER", "NOSE_BOTTOM_RIGHT", "NOSE_BOTTOM_LEFT", "NOSE_BOTTOM_CENTER", "LEFT_EYE_TOP_BOUNDARY", "LEFT_EYE_RIGHT_CORNER", "LEFT_EYE_BOTTOM_BOUNDARY", "LEFT_EYE_LEFT_CORNER", "RIGHT_EYE_TOP_BOUNDARY", "RIGHT_EYE_RIGHT_CORNER", "RIGHT_EYE_BOTTOM_BOUNDARY", "RIGHT_EYE_LEFT_CORNER", "LEFT_EYEBROW_UPPER_MIDPOINT", "RIGHT_EYEBROW_UPPER_MIDPOINT", "LEFT_EAR_TRAGION", "RIGHT_EAR_TRAGION", "LEFT_EYE_PUPIL", "RIGHT_EYE_PUPIL", "FOREHEAD_GLABELLA", "CHIN_GNATHION", "CHIN_LEFT_GONION", "CHIN_RIGHT_GONION", "LEFT_CHEEK_CENTER", "RIGHT_CHEEK_CENTER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the output will be written to.
@@ -734,7 +792,7 @@ pub struct GoogleCloudVisionV1p1beta1FaceAnnotationLandmark {
 pub struct GoogleCloudVisionV1p1beta1GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the input will be read from.
@@ -742,7 +800,7 @@ pub struct GoogleCloudVisionV1p1beta1GcsDestination {
 pub struct GoogleCloudVisionV1p1beta1GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
@@ -750,10 +808,10 @@ pub struct GoogleCloudVisionV1p1beta1GcsSource {
 pub struct GoogleCloudVisionV1p1beta1ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
-    pub page_number: Option<i32>,
+    pub page_number: ::core::option::Option<i32>,
     /// The URI of the file used to produce the image.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Stores image properties, such as dominant colors.
@@ -761,7 +819,9 @@ pub struct GoogleCloudVisionV1p1beta1ImageAnnotationContext {
 pub struct GoogleCloudVisionV1p1beta1ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
-    pub dominant_colors: Option<GoogleCloudVisionV1p1beta1DominantColorsAnnotation>,
+    pub dominant_colors: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p1beta1DominantColorsAnnotation>,
+    >,
 }
 
 /// The desired input location and metadata.
@@ -769,13 +829,13 @@ pub struct GoogleCloudVisionV1p1beta1ImageProperties {
 pub struct GoogleCloudVisionV1p1beta1InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The Google Cloud Storage location to read the input from.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudVisionV1p1beta1GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1GcsSource>>,
     /// The type of the file. Currently only "application/pdf", "image/tiff" and "image/gif" are supported. Wildcards are not supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Set of detected objects with bounding boxes.
@@ -783,19 +843,20 @@ pub struct GoogleCloudVisionV1p1beta1InputConfig {
 pub struct GoogleCloudVisionV1p1beta1LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Detected entity location information.
@@ -803,7 +864,7 @@ pub struct GoogleCloudVisionV1p1beta1LocalizedObjectAnnotation {
 pub struct GoogleCloudVisionV1p1beta1LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
-    pub lat_lng: Option<LatLng>,
+    pub lat_lng: ::core::option::Option<::std::boxed::Box<LatLng>>,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -811,10 +872,10 @@ pub struct GoogleCloudVisionV1p1beta1LocationInfo {
 pub struct GoogleCloudVisionV1p1beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
@@ -822,13 +883,13 @@ pub struct GoogleCloudVisionV1p1beta1NormalizedVertex {
 pub struct GoogleCloudVisionV1p1beta1OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATED", "RUNNING", "DONE", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the operation result was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The desired output location and metadata.
@@ -836,10 +897,11 @@ pub struct GoogleCloudVisionV1p1beta1OperationMetadata {
 pub struct GoogleCloudVisionV1p1beta1OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
-    pub batch_size: Option<i32>,
+    pub batch_size: ::core::option::Option<i32>,
     /// The Google Cloud Storage location to write the output(s) to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudVisionV1p1beta1GcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1GcsDestination>>,
 }
 
 /// Detected page from OCR.
@@ -847,19 +909,22 @@ pub struct GoogleCloudVisionV1p1beta1OutputConfig {
 pub struct GoogleCloudVisionV1p1beta1Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
-    pub blocks: Option<Vec<GoogleCloudVisionV1p1beta1Block>>,
+    pub blocks:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1Block>>>,
     /// Confidence of the OCR results on the page. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Page height. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Additional information detected on the page.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    >,
     /// Page width. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Structural unit of text representing a number of words in certain order.
@@ -867,16 +932,20 @@ pub struct GoogleCloudVisionV1p1beta1Page {
 pub struct GoogleCloudVisionV1p1beta1Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// Confidence of the OCR results for the paragraph. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the paragraph.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    >,
     /// List of all words in this paragraph.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVisionV1p1beta1Word>>,
+    pub words:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1Word>>>,
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
@@ -884,13 +953,13 @@ pub struct GoogleCloudVisionV1p1beta1Paragraph {
 pub struct GoogleCloudVisionV1p1beta1Position {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
     /// Z coordinate (or depth).
     #[serde(default)]
-    pub z: Option<f32>,
+    pub z: ::core::option::Option<f32>,
 }
 
 /// A Product contains ReferenceImages.
@@ -898,19 +967,21 @@ pub struct GoogleCloudVisionV1p1beta1Position {
 pub struct GoogleCloudVisionV1p1beta1Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The user-provided name for this Product. Must not be empty. Must be at most 4096 characters long.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the product. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID. This field is ignored when creating a product.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The category for the product identified by the reference image. This should be one of "homegoods-v2", "apparel-v2", "toys-v2", "packagedgoods-v1" or "general-v1". The legacy categories "homegoods", "apparel", and "toys" are still supported, but these should not be used for new products.
     #[serde(default, rename = "productCategory")]
-    pub product_category: Option<String>,
+    pub product_category: ::core::option::Option<String>,
     /// Key-value pairs that can be attached to a product. At query time, constraints can be specified based on the product_labels. Note that integer values can be provided as strings, e.g. "1199". Only strings with integer values can match a range-based restriction which is to be supported soon. Multiple values can be assigned to the same key. One product may have up to 500 product_labels. Notice that the total number of distinct product_labels over all products in one ProductSet cannot exceed 1M, otherwise the product search pipeline will refuse to work for that ProductSet.
     #[serde(default, rename = "productLabels")]
-    pub product_labels: Option<Vec<GoogleCloudVisionV1p1beta1ProductKeyValue>>,
+    pub product_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1ProductKeyValue>>,
+    >,
 }
 
 /// A product label represented as a key-value pair.
@@ -918,10 +989,10 @@ pub struct GoogleCloudVisionV1p1beta1Product {
 pub struct GoogleCloudVisionV1p1beta1ProductKeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The value of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Results for a product search request.
@@ -929,14 +1000,19 @@ pub struct GoogleCloudVisionV1p1beta1ProductKeyValue {
 pub struct GoogleCloudVisionV1p1beta1ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
-    pub index_time: Option<String>,
+    pub index_time: ::core::option::Option<String>,
     /// List of results grouped by products detected in the query image. Each entry corresponds to one bounding polygon in the query image, and contains the matching products specific to that region. There may be duplicate product matches in the union of all the per-product results.
     #[serde(default, rename = "productGroupedResults")]
-    pub product_grouped_results:
-        Option<Vec<GoogleCloudVisionV1p1beta1ProductSearchResultsGroupedResult>>,
+    pub product_grouped_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p1beta1ProductSearchResultsGroupedResult>,
+        >,
+    >,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudVisionV1p1beta1ProductSearchResultsResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1ProductSearchResultsResult>>,
+    >,
 }
 
 /// Information about the products similar to a single product in a query image.
@@ -944,14 +1020,20 @@ pub struct GoogleCloudVisionV1p1beta1ProductSearchResults {
 pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsGroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// List of generic predictions for the object in the bounding box.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVisionV1p1beta1ProductSearchResultsObjectAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p1beta1ProductSearchResultsObjectAnnotation>,
+        >,
+    >,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudVisionV1p1beta1ProductSearchResultsResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1ProductSearchResultsResult>>,
+    >,
 }
 
 /// Prediction for what the object in the bounding box is.
@@ -959,16 +1041,16 @@ pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsGroupedResult {
 pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Information about a product.
@@ -976,13 +1058,13 @@ pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsObjectAnnotation {
 pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// The Product.
     #[serde(default)]
-    pub product: Option<GoogleCloudVisionV1p1beta1Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1Product>>,
     /// A confidence level on the match, ranging from 0 (no confidence) to 1 (full confidence).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// A Property consists of a user-supplied name/value pair.
@@ -990,13 +1072,13 @@ pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsResult {
 pub struct GoogleCloudVisionV1p1beta1Property {
     /// Name of the property.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Value of numeric properties.
     #[serde(default, rename = "uint64Value")]
-    pub uint64_value: Option<String>,
+    pub uint64_value: ::core::option::Option<String>,
     /// Value of the property.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
@@ -1004,19 +1086,19 @@ pub struct GoogleCloudVisionV1p1beta1Property {
 pub struct GoogleCloudVisionV1p1beta1SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub adult: Option<String>,
+    pub adult: ::core::option::Option<String>,
     /// Likelihood that this is a medical image. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub medical: Option<String>,
+    pub medical: ::core::option::Option<String>,
     /// Likelihood that the request image contains racy content. Racy content may include (but is not limited to) skimpy or sheer clothing, strategically covered nudity, lewd or provocative poses, or close-ups of sensitive body areas. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub racy: Option<String>,
+    pub racy: ::core::option::Option<String>,
     /// Spoof likelihood. The likelihood that an modification was made to the image''s canonical version to make it appear funny or offensive. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub spoof: Option<String>,
+    pub spoof: ::core::option::Option<String>,
     /// Likelihood that this image contains violent content. Violent content may include death, serious harm, or injury to individuals or groups of individuals. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub violence: Option<String>,
+    pub violence: ::core::option::Option<String>,
 }
 
 /// A single symbol representation.
@@ -1024,16 +1106,19 @@ pub struct GoogleCloudVisionV1p1beta1SafeSearchAnnotation {
 pub struct GoogleCloudVisionV1p1beta1Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// Confidence of the OCR results for the symbol. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the symbol.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    >,
     /// The actual UTF-8 representation of the symbol.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
@@ -1041,10 +1126,11 @@ pub struct GoogleCloudVisionV1p1beta1Symbol {
 pub struct GoogleCloudVisionV1p1beta1TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
-    pub pages: Option<Vec<GoogleCloudVisionV1p1beta1Page>>,
+    pub pages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1Page>>>,
     /// UTF-8 text detected on the pages.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Detected start or end of a structural component.
@@ -1052,10 +1138,10 @@ pub struct GoogleCloudVisionV1p1beta1TextAnnotation {
 pub struct GoogleCloudVisionV1p1beta1TextAnnotationDetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
-    pub is_prefix: Option<bool>,
+    pub is_prefix: ::core::option::Option<bool>,
     /// Detected break type. // TODO: enum values: ["UNKNOWN", "SPACE", "SURE_SPACE", "EOL_SURE_SPACE", "HYPHEN", "LINE_BREAK"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Detected language for a structural component.
@@ -1063,10 +1149,10 @@ pub struct GoogleCloudVisionV1p1beta1TextAnnotationDetectedBreak {
 pub struct GoogleCloudVisionV1p1beta1TextAnnotationDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Additional information detected on the structural component.
@@ -1074,10 +1160,16 @@ pub struct GoogleCloudVisionV1p1beta1TextAnnotationDetectedLanguage {
 pub struct GoogleCloudVisionV1p1beta1TextAnnotationTextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
-    pub detected_break: Option<GoogleCloudVisionV1p1beta1TextAnnotationDetectedBreak>,
+    pub detected_break: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p1beta1TextAnnotationDetectedBreak>,
+    >,
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: Option<Vec<GoogleCloudVisionV1p1beta1TextAnnotationDetectedLanguage>>,
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p1beta1TextAnnotationDetectedLanguage>,
+        >,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
@@ -1085,10 +1177,10 @@ pub struct GoogleCloudVisionV1p1beta1TextAnnotationTextProperty {
 pub struct GoogleCloudVisionV1p1beta1Vertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<i32>,
+    pub x: ::core::option::Option<i32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<i32>,
+    pub y: ::core::option::Option<i32>,
 }
 
 /// Relevant information for the image from the Internet.
@@ -1096,22 +1188,34 @@ pub struct GoogleCloudVisionV1p1beta1Vertex {
 pub struct GoogleCloudVisionV1p1beta1WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
-    pub best_guess_labels: Option<Vec<GoogleCloudVisionV1p1beta1WebDetectionWebLabel>>,
+    pub best_guess_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetectionWebLabel>>,
+    >,
     /// Fully matching images from the Internet. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    pub full_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    >,
     /// Web pages containing the matching images from the Internet.
     #[serde(default, rename = "pagesWithMatchingImages")]
-    pub pages_with_matching_images: Option<Vec<GoogleCloudVisionV1p1beta1WebDetectionWebPage>>,
+    pub pages_with_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetectionWebPage>>,
+    >,
     /// Partial matching images from the Internet. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    pub partial_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    >,
     /// The visually similar image results.
     #[serde(default, rename = "visuallySimilarImages")]
-    pub visually_similar_images: Option<Vec<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    pub visually_similar_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    >,
     /// Deduced entities from similar images on the Internet.
     #[serde(default, rename = "webEntities")]
-    pub web_entities: Option<Vec<GoogleCloudVisionV1p1beta1WebDetectionWebEntity>>,
+    pub web_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetectionWebEntity>>,
+    >,
 }
 
 /// Entity deduced from similar images on the Internet.
@@ -1119,13 +1223,13 @@ pub struct GoogleCloudVisionV1p1beta1WebDetection {
 pub struct GoogleCloudVisionV1p1beta1WebDetectionWebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID.
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Overall relevancy score for the entity. Not normalized and not comparable across different image queries.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Metadata for online images.
@@ -1133,10 +1237,10 @@ pub struct GoogleCloudVisionV1p1beta1WebDetectionWebEntity {
 pub struct GoogleCloudVisionV1p1beta1WebDetectionWebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result image URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Label to provide extra metadata for the web detection.
@@ -1144,10 +1248,10 @@ pub struct GoogleCloudVisionV1p1beta1WebDetectionWebImage {
 pub struct GoogleCloudVisionV1p1beta1WebDetectionWebLabel {
     /// Label for extra metadata.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The BCP-47 language code for label, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Metadata for web pages.
@@ -1155,19 +1259,23 @@ pub struct GoogleCloudVisionV1p1beta1WebDetectionWebLabel {
 pub struct GoogleCloudVisionV1p1beta1WebDetectionWebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    pub full_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    >,
     /// Title for the web page, may contain HTML markups.
     #[serde(default, rename = "pageTitle")]
-    pub page_title: Option<String>,
+    pub page_title: ::core::option::Option<String>,
     /// Partial matching images on the page. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    pub partial_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1WebDetectionWebImage>>,
+    >,
     /// (Deprecated) Overall relevancy score for the web page.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result web page URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A word representation.
@@ -1175,16 +1283,21 @@ pub struct GoogleCloudVisionV1p1beta1WebDetectionWebPage {
 pub struct GoogleCloudVisionV1p1beta1Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p1beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p1beta1BoundingPoly>>,
     /// Confidence of the OCR results for the word. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the word.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p1beta1TextAnnotationTextProperty>,
+    >,
     /// List of symbols in the word. The order of the symbols follows the natural reading order.
     #[serde(default)]
-    pub symbols: Option<Vec<GoogleCloudVisionV1p1beta1Symbol>>,
+    pub symbols: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p1beta1Symbol>>,
+    >,
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
@@ -1192,16 +1305,19 @@ pub struct GoogleCloudVisionV1p1beta1Word {
 pub struct GoogleCloudVisionV1p2beta1AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Information about the file for which this response is generated.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudVisionV1p2beta1InputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1InputConfig>>,
     /// Individual responses to images found within the file. This field will be empty if the error field is set.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p2beta1AnnotateImageResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1AnnotateImageResponse>>,
+    >,
     /// This field gives the total number of pages in the file.
     #[serde(default, rename = "totalPages")]
-    pub total_pages: Option<i32>,
+    pub total_pages: ::core::option::Option<i32>,
 }
 
 /// Response to an image annotation request.
@@ -1209,47 +1325,65 @@ pub struct GoogleCloudVisionV1p2beta1AnnotateFileResponse {
 pub struct GoogleCloudVisionV1p2beta1AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
-    pub context: Option<GoogleCloudVisionV1p2beta1ImageAnnotationContext>,
+    pub context:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1ImageAnnotationContext>>,
     /// If present, crop hints have completed successfully.
     #[serde(default, rename = "cropHintsAnnotation")]
-    pub crop_hints_annotation: Option<GoogleCloudVisionV1p2beta1CropHintsAnnotation>,
+    pub crop_hints_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1CropHintsAnnotation>>,
     /// If set, represents the error message for the operation. Note that filled-in image annotations are guaranteed to be correct, even when error is set.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// If present, face detection has completed successfully.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVisionV1p2beta1FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1FaceAnnotation>>,
+    >,
     /// If present, text (OCR) detection or document (OCR) text detection has completed successfully. This annotation provides the structural hierarchy for the OCR detected text.
     #[serde(default, rename = "fullTextAnnotation")]
-    pub full_text_annotation: Option<GoogleCloudVisionV1p2beta1TextAnnotation>,
+    pub full_text_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1TextAnnotation>>,
     /// If present, image properties were extracted successfully.
     #[serde(default, rename = "imagePropertiesAnnotation")]
-    pub image_properties_annotation: Option<GoogleCloudVisionV1p2beta1ImageProperties>,
+    pub image_properties_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1ImageProperties>>,
     /// If present, label detection has completed successfully.
     #[serde(default, rename = "labelAnnotations")]
-    pub label_annotations: Option<Vec<GoogleCloudVisionV1p2beta1EntityAnnotation>>,
+    pub label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1EntityAnnotation>>,
+    >,
     /// If present, landmark detection has completed successfully.
     #[serde(default, rename = "landmarkAnnotations")]
-    pub landmark_annotations: Option<Vec<GoogleCloudVisionV1p2beta1EntityAnnotation>>,
+    pub landmark_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1EntityAnnotation>>,
+    >,
     /// If present, localized object detection has completed successfully. This will be sorted descending by confidence score.
     #[serde(default, rename = "localizedObjectAnnotations")]
-    pub localized_object_annotations:
-        Option<Vec<GoogleCloudVisionV1p2beta1LocalizedObjectAnnotation>>,
+    pub localized_object_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1LocalizedObjectAnnotation>>,
+    >,
     /// If present, logo detection has completed successfully.
     #[serde(default, rename = "logoAnnotations")]
-    pub logo_annotations: Option<Vec<GoogleCloudVisionV1p2beta1EntityAnnotation>>,
+    pub logo_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1EntityAnnotation>>,
+    >,
     /// If present, product search has completed successfully.
     #[serde(default, rename = "productSearchResults")]
-    pub product_search_results: Option<GoogleCloudVisionV1p2beta1ProductSearchResults>,
+    pub product_search_results:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1ProductSearchResults>>,
     /// If present, safe-search annotation has completed successfully.
     #[serde(default, rename = "safeSearchAnnotation")]
-    pub safe_search_annotation: Option<GoogleCloudVisionV1p2beta1SafeSearchAnnotation>,
+    pub safe_search_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1SafeSearchAnnotation>>,
     /// If present, text (OCR) detection has completed successfully.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVisionV1p2beta1EntityAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1EntityAnnotation>>,
+    >,
     /// If present, web detection has completed successfully.
     #[serde(default, rename = "webDetection")]
-    pub web_detection: Option<GoogleCloudVisionV1p2beta1WebDetection>,
+    pub web_detection:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetection>>,
 }
 
 /// The response for a single offline file annotation request.
@@ -1257,7 +1391,8 @@ pub struct GoogleCloudVisionV1p2beta1AnnotateImageResponse {
 pub struct GoogleCloudVisionV1p2beta1AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudVisionV1p2beta1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1OutputConfig>>,
 }
 
 /// Response to an async batch file annotation request.
@@ -1265,7 +1400,9 @@ pub struct GoogleCloudVisionV1p2beta1AsyncAnnotateFileResponse {
 pub struct GoogleCloudVisionV1p2beta1AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p2beta1AsyncAnnotateFileResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1AsyncAnnotateFileResponse>>,
+    >,
 }
 
 /// Logical element on the page.
@@ -1273,19 +1410,24 @@ pub struct GoogleCloudVisionV1p2beta1AsyncBatchAnnotateFilesResponse {
 pub struct GoogleCloudVisionV1p2beta1Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
-    pub block_type: Option<String>,
+    pub block_type: ::core::option::Option<String>,
     /// The bounding box for the block. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// Confidence of the OCR results on the block. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// List of paragraphs in this block (if this blocks is of type text).
     #[serde(default)]
-    pub paragraphs: Option<Vec<GoogleCloudVisionV1p2beta1Paragraph>>,
+    pub paragraphs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1Paragraph>>,
+    >,
     /// Additional information detected for the block.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    >,
 }
 
 /// A bounding polygon for the detected image annotation.
@@ -1293,10 +1435,14 @@ pub struct GoogleCloudVisionV1p2beta1Block {
 pub struct GoogleCloudVisionV1p2beta1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices: Option<Vec<GoogleCloudVisionV1p2beta1NormalizedVertex>>,
+    pub normalized_vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1NormalizedVertex>>,
+    >,
     /// The bounding polygon vertices.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVisionV1p2beta1Vertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1Vertex>>,
+    >,
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
@@ -1304,13 +1450,13 @@ pub struct GoogleCloudVisionV1p2beta1BoundingPoly {
 pub struct GoogleCloudVisionV1p2beta1ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The fraction of pixels the color occupies in the image. Value in range [0, 1].
     #[serde(default, rename = "pixelFraction")]
-    pub pixel_fraction: Option<f32>,
+    pub pixel_fraction: ::core::option::Option<f32>,
     /// Image-specific score for this color. Value in range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
@@ -1318,13 +1464,14 @@ pub struct GoogleCloudVisionV1p2beta1ColorInfo {
 pub struct GoogleCloudVisionV1p2beta1CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// Confidence of this being a salient region. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Fraction of importance of this salient region with respect to the original image.
     #[serde(default, rename = "importanceFraction")]
-    pub importance_fraction: Option<f32>,
+    pub importance_fraction: ::core::option::Option<f32>,
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
@@ -1332,7 +1479,9 @@ pub struct GoogleCloudVisionV1p2beta1CropHint {
 pub struct GoogleCloudVisionV1p2beta1CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
-    pub crop_hints: Option<Vec<GoogleCloudVisionV1p2beta1CropHint>>,
+    pub crop_hints: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1CropHint>>,
+    >,
 }
 
 /// Set of dominant colors and their corresponding scores.
@@ -1340,7 +1489,9 @@ pub struct GoogleCloudVisionV1p2beta1CropHintsAnnotation {
 pub struct GoogleCloudVisionV1p2beta1DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
-    pub colors: Option<Vec<GoogleCloudVisionV1p2beta1ColorInfo>>,
+    pub colors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1ColorInfo>>,
+    >,
 }
 
 /// Set of detected entity features.
@@ -1348,31 +1499,36 @@ pub struct GoogleCloudVisionV1p2beta1DominantColorsAnnotation {
 pub struct GoogleCloudVisionV1p2beta1EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// **Deprecated. Use score instead.** The accuracy of the entity detection in an image. For example, for an image in which the "Eiffel Tower" entity is detected, this field represents the confidence that there is a tower in the query image. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity textual description, expressed in its locale language.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The language code for the locale in which the entity textual description is expressed.
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The location information for the detected entity. Multiple LocationInfo elements can be present because one location may indicate the location of the scene in the image, and another location may indicate the location of the place where the image was taken. Location information is usually present for landmarks.
     #[serde(default)]
-    pub locations: Option<Vec<GoogleCloudVisionV1p2beta1LocationInfo>>,
+    pub locations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1LocationInfo>>,
+    >,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Some entities may have optional user-supplied Property (name/value) fields, such a score or string that qualifies the entity.
     #[serde(default)]
-    pub properties: Option<Vec<GoogleCloudVisionV1p2beta1Property>>,
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1Property>>,
+    >,
     /// Overall score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The relevancy of the ICA (Image Content Annotation) label to the image. For example, the relevancy of "tower" is likely higher to an image containing the detected "Eiffel Tower" than to an image containing a detected distant towering building, even though the confidence that there is a tower in each image may be the same. Range [0, 1].
     #[serde(default)]
-    pub topicality: Option<f32>,
+    pub topicality: ::core::option::Option<f32>,
 }
 
 /// A face annotation object contains the results of face detection.
@@ -1380,49 +1536,53 @@ pub struct GoogleCloudVisionV1p2beta1EntityAnnotation {
 pub struct GoogleCloudVisionV1p2beta1FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
-    pub anger_likelihood: Option<String>,
+    pub anger_likelihood: ::core::option::Option<String>,
     /// Blurred likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "blurredLikelihood")]
-    pub blurred_likelihood: Option<String>,
+    pub blurred_likelihood: ::core::option::Option<String>,
     /// The bounding polygon around the face. The coordinates of the bounding box are in the original image''s scale. The bounding box is computed to "frame" the face in accordance with human expectations. It is based on the landmarker results. Note that one or more x and/or y coordinates may not be generated in the BoundingPoly (the polygon will be unbounded) if only a partial face appears in the image to be annotated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// Detection confidence. Range [0, 1].
     #[serde(default, rename = "detectionConfidence")]
-    pub detection_confidence: Option<f32>,
+    pub detection_confidence: ::core::option::Option<f32>,
     /// The fd_bounding_poly bounding polygon is tighter than the boundingPoly, and encloses only the skin part of the face. Typically, it is used to eliminate the face from any image analysis that detects the "amount of skin" visible in an image. It is not based on the landmarker results, only on the initial face detection, hence the fd (face detection) prefix.
     #[serde(default, rename = "fdBoundingPoly")]
-    pub fd_bounding_poly: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub fd_bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// Headwear likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "headwearLikelihood")]
-    pub headwear_likelihood: Option<String>,
+    pub headwear_likelihood: ::core::option::Option<String>,
     /// Joy likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "joyLikelihood")]
-    pub joy_likelihood: Option<String>,
+    pub joy_likelihood: ::core::option::Option<String>,
     /// Face landmarking confidence. Range [0, 1].
     #[serde(default, rename = "landmarkingConfidence")]
-    pub landmarking_confidence: Option<f32>,
+    pub landmarking_confidence: ::core::option::Option<f32>,
     /// Detected face landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVisionV1p2beta1FaceAnnotationLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1FaceAnnotationLandmark>>,
+    >,
     /// Yaw angle, which indicates the leftward/rightward angle that the face is pointing relative to the vertical plane perpendicular to the image. Range [-180,180].
     #[serde(default, rename = "panAngle")]
-    pub pan_angle: Option<f32>,
+    pub pan_angle: ::core::option::Option<f32>,
     /// Roll angle, which indicates the amount of clockwise/anti-clockwise rotation of the face relative to the image vertical about the axis perpendicular to the face. Range [-180,180].
     #[serde(default, rename = "rollAngle")]
-    pub roll_angle: Option<f32>,
+    pub roll_angle: ::core::option::Option<f32>,
     /// Sorrow likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "sorrowLikelihood")]
-    pub sorrow_likelihood: Option<String>,
+    pub sorrow_likelihood: ::core::option::Option<String>,
     /// Surprise likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "surpriseLikelihood")]
-    pub surprise_likelihood: Option<String>,
+    pub surprise_likelihood: ::core::option::Option<String>,
     /// Pitch angle, which indicates the upwards/downwards angle that the face is pointing relative to the image''s horizontal plane. Range [-180,180].
     #[serde(default, rename = "tiltAngle")]
-    pub tilt_angle: Option<f32>,
+    pub tilt_angle: ::core::option::Option<f32>,
     /// Under-exposed likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "underExposedLikelihood")]
-    pub under_exposed_likelihood: Option<String>,
+    pub under_exposed_likelihood: ::core::option::Option<String>,
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
@@ -1430,10 +1590,10 @@ pub struct GoogleCloudVisionV1p2beta1FaceAnnotation {
 pub struct GoogleCloudVisionV1p2beta1FaceAnnotationLandmark {
     /// Face landmark position.
     #[serde(default)]
-    pub position: Option<GoogleCloudVisionV1p2beta1Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1Position>>,
     /// Face landmark type. // TODO: enum values: ["UNKNOWN_LANDMARK", "LEFT_EYE", "RIGHT_EYE", "LEFT_OF_LEFT_EYEBROW", "RIGHT_OF_LEFT_EYEBROW", "LEFT_OF_RIGHT_EYEBROW", "RIGHT_OF_RIGHT_EYEBROW", "MIDPOINT_BETWEEN_EYES", "NOSE_TIP", "UPPER_LIP", "LOWER_LIP", "MOUTH_LEFT", "MOUTH_RIGHT", "MOUTH_CENTER", "NOSE_BOTTOM_RIGHT", "NOSE_BOTTOM_LEFT", "NOSE_BOTTOM_CENTER", "LEFT_EYE_TOP_BOUNDARY", "LEFT_EYE_RIGHT_CORNER", "LEFT_EYE_BOTTOM_BOUNDARY", "LEFT_EYE_LEFT_CORNER", "RIGHT_EYE_TOP_BOUNDARY", "RIGHT_EYE_RIGHT_CORNER", "RIGHT_EYE_BOTTOM_BOUNDARY", "RIGHT_EYE_LEFT_CORNER", "LEFT_EYEBROW_UPPER_MIDPOINT", "RIGHT_EYEBROW_UPPER_MIDPOINT", "LEFT_EAR_TRAGION", "RIGHT_EAR_TRAGION", "LEFT_EYE_PUPIL", "RIGHT_EYE_PUPIL", "FOREHEAD_GLABELLA", "CHIN_GNATHION", "CHIN_LEFT_GONION", "CHIN_RIGHT_GONION", "LEFT_CHEEK_CENTER", "RIGHT_CHEEK_CENTER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the output will be written to.
@@ -1441,7 +1601,7 @@ pub struct GoogleCloudVisionV1p2beta1FaceAnnotationLandmark {
 pub struct GoogleCloudVisionV1p2beta1GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the input will be read from.
@@ -1449,7 +1609,7 @@ pub struct GoogleCloudVisionV1p2beta1GcsDestination {
 pub struct GoogleCloudVisionV1p2beta1GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
@@ -1457,10 +1617,10 @@ pub struct GoogleCloudVisionV1p2beta1GcsSource {
 pub struct GoogleCloudVisionV1p2beta1ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
-    pub page_number: Option<i32>,
+    pub page_number: ::core::option::Option<i32>,
     /// The URI of the file used to produce the image.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Stores image properties, such as dominant colors.
@@ -1468,7 +1628,9 @@ pub struct GoogleCloudVisionV1p2beta1ImageAnnotationContext {
 pub struct GoogleCloudVisionV1p2beta1ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
-    pub dominant_colors: Option<GoogleCloudVisionV1p2beta1DominantColorsAnnotation>,
+    pub dominant_colors: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p2beta1DominantColorsAnnotation>,
+    >,
 }
 
 /// The desired input location and metadata.
@@ -1476,13 +1638,13 @@ pub struct GoogleCloudVisionV1p2beta1ImageProperties {
 pub struct GoogleCloudVisionV1p2beta1InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The Google Cloud Storage location to read the input from.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudVisionV1p2beta1GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1GcsSource>>,
     /// The type of the file. Currently only "application/pdf", "image/tiff" and "image/gif" are supported. Wildcards are not supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Set of detected objects with bounding boxes.
@@ -1490,19 +1652,20 @@ pub struct GoogleCloudVisionV1p2beta1InputConfig {
 pub struct GoogleCloudVisionV1p2beta1LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Detected entity location information.
@@ -1510,7 +1673,7 @@ pub struct GoogleCloudVisionV1p2beta1LocalizedObjectAnnotation {
 pub struct GoogleCloudVisionV1p2beta1LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
-    pub lat_lng: Option<LatLng>,
+    pub lat_lng: ::core::option::Option<::std::boxed::Box<LatLng>>,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -1518,10 +1681,10 @@ pub struct GoogleCloudVisionV1p2beta1LocationInfo {
 pub struct GoogleCloudVisionV1p2beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
@@ -1529,13 +1692,13 @@ pub struct GoogleCloudVisionV1p2beta1NormalizedVertex {
 pub struct GoogleCloudVisionV1p2beta1OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATED", "RUNNING", "DONE", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the operation result was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The desired output location and metadata.
@@ -1543,10 +1706,11 @@ pub struct GoogleCloudVisionV1p2beta1OperationMetadata {
 pub struct GoogleCloudVisionV1p2beta1OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
-    pub batch_size: Option<i32>,
+    pub batch_size: ::core::option::Option<i32>,
     /// The Google Cloud Storage location to write the output(s) to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudVisionV1p2beta1GcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1GcsDestination>>,
 }
 
 /// Detected page from OCR.
@@ -1554,19 +1718,22 @@ pub struct GoogleCloudVisionV1p2beta1OutputConfig {
 pub struct GoogleCloudVisionV1p2beta1Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
-    pub blocks: Option<Vec<GoogleCloudVisionV1p2beta1Block>>,
+    pub blocks:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1Block>>>,
     /// Confidence of the OCR results on the page. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Page height. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Additional information detected on the page.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    >,
     /// Page width. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Structural unit of text representing a number of words in certain order.
@@ -1574,16 +1741,20 @@ pub struct GoogleCloudVisionV1p2beta1Page {
 pub struct GoogleCloudVisionV1p2beta1Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// Confidence of the OCR results for the paragraph. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the paragraph.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    >,
     /// List of all words in this paragraph.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVisionV1p2beta1Word>>,
+    pub words:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1Word>>>,
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
@@ -1591,13 +1762,13 @@ pub struct GoogleCloudVisionV1p2beta1Paragraph {
 pub struct GoogleCloudVisionV1p2beta1Position {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
     /// Z coordinate (or depth).
     #[serde(default)]
-    pub z: Option<f32>,
+    pub z: ::core::option::Option<f32>,
 }
 
 /// A Product contains ReferenceImages.
@@ -1605,19 +1776,21 @@ pub struct GoogleCloudVisionV1p2beta1Position {
 pub struct GoogleCloudVisionV1p2beta1Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The user-provided name for this Product. Must not be empty. Must be at most 4096 characters long.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the product. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID. This field is ignored when creating a product.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The category for the product identified by the reference image. This should be one of "homegoods-v2", "apparel-v2", "toys-v2", "packagedgoods-v1" or "general-v1". The legacy categories "homegoods", "apparel", and "toys" are still supported, but these should not be used for new products.
     #[serde(default, rename = "productCategory")]
-    pub product_category: Option<String>,
+    pub product_category: ::core::option::Option<String>,
     /// Key-value pairs that can be attached to a product. At query time, constraints can be specified based on the product_labels. Note that integer values can be provided as strings, e.g. "1199". Only strings with integer values can match a range-based restriction which is to be supported soon. Multiple values can be assigned to the same key. One product may have up to 500 product_labels. Notice that the total number of distinct product_labels over all products in one ProductSet cannot exceed 1M, otherwise the product search pipeline will refuse to work for that ProductSet.
     #[serde(default, rename = "productLabels")]
-    pub product_labels: Option<Vec<GoogleCloudVisionV1p2beta1ProductKeyValue>>,
+    pub product_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1ProductKeyValue>>,
+    >,
 }
 
 /// A product label represented as a key-value pair.
@@ -1625,10 +1798,10 @@ pub struct GoogleCloudVisionV1p2beta1Product {
 pub struct GoogleCloudVisionV1p2beta1ProductKeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The value of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Results for a product search request.
@@ -1636,14 +1809,19 @@ pub struct GoogleCloudVisionV1p2beta1ProductKeyValue {
 pub struct GoogleCloudVisionV1p2beta1ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
-    pub index_time: Option<String>,
+    pub index_time: ::core::option::Option<String>,
     /// List of results grouped by products detected in the query image. Each entry corresponds to one bounding polygon in the query image, and contains the matching products specific to that region. There may be duplicate product matches in the union of all the per-product results.
     #[serde(default, rename = "productGroupedResults")]
-    pub product_grouped_results:
-        Option<Vec<GoogleCloudVisionV1p2beta1ProductSearchResultsGroupedResult>>,
+    pub product_grouped_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p2beta1ProductSearchResultsGroupedResult>,
+        >,
+    >,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudVisionV1p2beta1ProductSearchResultsResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1ProductSearchResultsResult>>,
+    >,
 }
 
 /// Information about the products similar to a single product in a query image.
@@ -1651,14 +1829,20 @@ pub struct GoogleCloudVisionV1p2beta1ProductSearchResults {
 pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsGroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// List of generic predictions for the object in the bounding box.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVisionV1p2beta1ProductSearchResultsObjectAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p2beta1ProductSearchResultsObjectAnnotation>,
+        >,
+    >,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudVisionV1p2beta1ProductSearchResultsResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1ProductSearchResultsResult>>,
+    >,
 }
 
 /// Prediction for what the object in the bounding box is.
@@ -1666,16 +1850,16 @@ pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsGroupedResult {
 pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Information about a product.
@@ -1683,13 +1867,13 @@ pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsObjectAnnotation {
 pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// The Product.
     #[serde(default)]
-    pub product: Option<GoogleCloudVisionV1p2beta1Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1Product>>,
     /// A confidence level on the match, ranging from 0 (no confidence) to 1 (full confidence).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// A Property consists of a user-supplied name/value pair.
@@ -1697,13 +1881,13 @@ pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsResult {
 pub struct GoogleCloudVisionV1p2beta1Property {
     /// Name of the property.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Value of numeric properties.
     #[serde(default, rename = "uint64Value")]
-    pub uint64_value: Option<String>,
+    pub uint64_value: ::core::option::Option<String>,
     /// Value of the property.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
@@ -1711,19 +1895,19 @@ pub struct GoogleCloudVisionV1p2beta1Property {
 pub struct GoogleCloudVisionV1p2beta1SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub adult: Option<String>,
+    pub adult: ::core::option::Option<String>,
     /// Likelihood that this is a medical image. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub medical: Option<String>,
+    pub medical: ::core::option::Option<String>,
     /// Likelihood that the request image contains racy content. Racy content may include (but is not limited to) skimpy or sheer clothing, strategically covered nudity, lewd or provocative poses, or close-ups of sensitive body areas. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub racy: Option<String>,
+    pub racy: ::core::option::Option<String>,
     /// Spoof likelihood. The likelihood that an modification was made to the image''s canonical version to make it appear funny or offensive. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub spoof: Option<String>,
+    pub spoof: ::core::option::Option<String>,
     /// Likelihood that this image contains violent content. Violent content may include death, serious harm, or injury to individuals or groups of individuals. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub violence: Option<String>,
+    pub violence: ::core::option::Option<String>,
 }
 
 /// A single symbol representation.
@@ -1731,16 +1915,19 @@ pub struct GoogleCloudVisionV1p2beta1SafeSearchAnnotation {
 pub struct GoogleCloudVisionV1p2beta1Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// Confidence of the OCR results for the symbol. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the symbol.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    >,
     /// The actual UTF-8 representation of the symbol.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
@@ -1748,10 +1935,11 @@ pub struct GoogleCloudVisionV1p2beta1Symbol {
 pub struct GoogleCloudVisionV1p2beta1TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
-    pub pages: Option<Vec<GoogleCloudVisionV1p2beta1Page>>,
+    pub pages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1Page>>>,
     /// UTF-8 text detected on the pages.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Detected start or end of a structural component.
@@ -1759,10 +1947,10 @@ pub struct GoogleCloudVisionV1p2beta1TextAnnotation {
 pub struct GoogleCloudVisionV1p2beta1TextAnnotationDetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
-    pub is_prefix: Option<bool>,
+    pub is_prefix: ::core::option::Option<bool>,
     /// Detected break type. // TODO: enum values: ["UNKNOWN", "SPACE", "SURE_SPACE", "EOL_SURE_SPACE", "HYPHEN", "LINE_BREAK"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Detected language for a structural component.
@@ -1770,10 +1958,10 @@ pub struct GoogleCloudVisionV1p2beta1TextAnnotationDetectedBreak {
 pub struct GoogleCloudVisionV1p2beta1TextAnnotationDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Additional information detected on the structural component.
@@ -1781,10 +1969,16 @@ pub struct GoogleCloudVisionV1p2beta1TextAnnotationDetectedLanguage {
 pub struct GoogleCloudVisionV1p2beta1TextAnnotationTextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
-    pub detected_break: Option<GoogleCloudVisionV1p2beta1TextAnnotationDetectedBreak>,
+    pub detected_break: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p2beta1TextAnnotationDetectedBreak>,
+    >,
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: Option<Vec<GoogleCloudVisionV1p2beta1TextAnnotationDetectedLanguage>>,
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p2beta1TextAnnotationDetectedLanguage>,
+        >,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
@@ -1792,10 +1986,10 @@ pub struct GoogleCloudVisionV1p2beta1TextAnnotationTextProperty {
 pub struct GoogleCloudVisionV1p2beta1Vertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<i32>,
+    pub x: ::core::option::Option<i32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<i32>,
+    pub y: ::core::option::Option<i32>,
 }
 
 /// Relevant information for the image from the Internet.
@@ -1803,22 +1997,34 @@ pub struct GoogleCloudVisionV1p2beta1Vertex {
 pub struct GoogleCloudVisionV1p2beta1WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
-    pub best_guess_labels: Option<Vec<GoogleCloudVisionV1p2beta1WebDetectionWebLabel>>,
+    pub best_guess_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetectionWebLabel>>,
+    >,
     /// Fully matching images from the Internet. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    pub full_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    >,
     /// Web pages containing the matching images from the Internet.
     #[serde(default, rename = "pagesWithMatchingImages")]
-    pub pages_with_matching_images: Option<Vec<GoogleCloudVisionV1p2beta1WebDetectionWebPage>>,
+    pub pages_with_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetectionWebPage>>,
+    >,
     /// Partial matching images from the Internet. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    pub partial_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    >,
     /// The visually similar image results.
     #[serde(default, rename = "visuallySimilarImages")]
-    pub visually_similar_images: Option<Vec<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    pub visually_similar_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    >,
     /// Deduced entities from similar images on the Internet.
     #[serde(default, rename = "webEntities")]
-    pub web_entities: Option<Vec<GoogleCloudVisionV1p2beta1WebDetectionWebEntity>>,
+    pub web_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetectionWebEntity>>,
+    >,
 }
 
 /// Entity deduced from similar images on the Internet.
@@ -1826,13 +2032,13 @@ pub struct GoogleCloudVisionV1p2beta1WebDetection {
 pub struct GoogleCloudVisionV1p2beta1WebDetectionWebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID.
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Overall relevancy score for the entity. Not normalized and not comparable across different image queries.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Metadata for online images.
@@ -1840,10 +2046,10 @@ pub struct GoogleCloudVisionV1p2beta1WebDetectionWebEntity {
 pub struct GoogleCloudVisionV1p2beta1WebDetectionWebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result image URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Label to provide extra metadata for the web detection.
@@ -1851,10 +2057,10 @@ pub struct GoogleCloudVisionV1p2beta1WebDetectionWebImage {
 pub struct GoogleCloudVisionV1p2beta1WebDetectionWebLabel {
     /// Label for extra metadata.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The BCP-47 language code for label, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Metadata for web pages.
@@ -1862,19 +2068,23 @@ pub struct GoogleCloudVisionV1p2beta1WebDetectionWebLabel {
 pub struct GoogleCloudVisionV1p2beta1WebDetectionWebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    pub full_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    >,
     /// Title for the web page, may contain HTML markups.
     #[serde(default, rename = "pageTitle")]
-    pub page_title: Option<String>,
+    pub page_title: ::core::option::Option<String>,
     /// Partial matching images on the page. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    pub partial_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1WebDetectionWebImage>>,
+    >,
     /// (Deprecated) Overall relevancy score for the web page.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result web page URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A word representation.
@@ -1882,16 +2092,21 @@ pub struct GoogleCloudVisionV1p2beta1WebDetectionWebPage {
 pub struct GoogleCloudVisionV1p2beta1Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p2beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p2beta1BoundingPoly>>,
     /// Confidence of the OCR results for the word. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the word.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p2beta1TextAnnotationTextProperty>,
+    >,
     /// List of symbols in the word. The order of the symbols follows the natural reading order.
     #[serde(default)]
-    pub symbols: Option<Vec<GoogleCloudVisionV1p2beta1Symbol>>,
+    pub symbols: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p2beta1Symbol>>,
+    >,
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
@@ -1899,16 +2114,19 @@ pub struct GoogleCloudVisionV1p2beta1Word {
 pub struct GoogleCloudVisionV1p3beta1AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Information about the file for which this response is generated.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudVisionV1p3beta1InputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1InputConfig>>,
     /// Individual responses to images found within the file. This field will be empty if the error field is set.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p3beta1AnnotateImageResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1AnnotateImageResponse>>,
+    >,
     /// This field gives the total number of pages in the file.
     #[serde(default, rename = "totalPages")]
-    pub total_pages: Option<i32>,
+    pub total_pages: ::core::option::Option<i32>,
 }
 
 /// Response to an image annotation request.
@@ -1916,47 +2134,65 @@ pub struct GoogleCloudVisionV1p3beta1AnnotateFileResponse {
 pub struct GoogleCloudVisionV1p3beta1AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
-    pub context: Option<GoogleCloudVisionV1p3beta1ImageAnnotationContext>,
+    pub context:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1ImageAnnotationContext>>,
     /// If present, crop hints have completed successfully.
     #[serde(default, rename = "cropHintsAnnotation")]
-    pub crop_hints_annotation: Option<GoogleCloudVisionV1p3beta1CropHintsAnnotation>,
+    pub crop_hints_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1CropHintsAnnotation>>,
     /// If set, represents the error message for the operation. Note that filled-in image annotations are guaranteed to be correct, even when error is set.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// If present, face detection has completed successfully.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVisionV1p3beta1FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1FaceAnnotation>>,
+    >,
     /// If present, text (OCR) detection or document (OCR) text detection has completed successfully. This annotation provides the structural hierarchy for the OCR detected text.
     #[serde(default, rename = "fullTextAnnotation")]
-    pub full_text_annotation: Option<GoogleCloudVisionV1p3beta1TextAnnotation>,
+    pub full_text_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1TextAnnotation>>,
     /// If present, image properties were extracted successfully.
     #[serde(default, rename = "imagePropertiesAnnotation")]
-    pub image_properties_annotation: Option<GoogleCloudVisionV1p3beta1ImageProperties>,
+    pub image_properties_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1ImageProperties>>,
     /// If present, label detection has completed successfully.
     #[serde(default, rename = "labelAnnotations")]
-    pub label_annotations: Option<Vec<GoogleCloudVisionV1p3beta1EntityAnnotation>>,
+    pub label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1EntityAnnotation>>,
+    >,
     /// If present, landmark detection has completed successfully.
     #[serde(default, rename = "landmarkAnnotations")]
-    pub landmark_annotations: Option<Vec<GoogleCloudVisionV1p3beta1EntityAnnotation>>,
+    pub landmark_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1EntityAnnotation>>,
+    >,
     /// If present, localized object detection has completed successfully. This will be sorted descending by confidence score.
     #[serde(default, rename = "localizedObjectAnnotations")]
-    pub localized_object_annotations:
-        Option<Vec<GoogleCloudVisionV1p3beta1LocalizedObjectAnnotation>>,
+    pub localized_object_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1LocalizedObjectAnnotation>>,
+    >,
     /// If present, logo detection has completed successfully.
     #[serde(default, rename = "logoAnnotations")]
-    pub logo_annotations: Option<Vec<GoogleCloudVisionV1p3beta1EntityAnnotation>>,
+    pub logo_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1EntityAnnotation>>,
+    >,
     /// If present, product search has completed successfully.
     #[serde(default, rename = "productSearchResults")]
-    pub product_search_results: Option<GoogleCloudVisionV1p3beta1ProductSearchResults>,
+    pub product_search_results:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1ProductSearchResults>>,
     /// If present, safe-search annotation has completed successfully.
     #[serde(default, rename = "safeSearchAnnotation")]
-    pub safe_search_annotation: Option<GoogleCloudVisionV1p3beta1SafeSearchAnnotation>,
+    pub safe_search_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1SafeSearchAnnotation>>,
     /// If present, text (OCR) detection has completed successfully.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVisionV1p3beta1EntityAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1EntityAnnotation>>,
+    >,
     /// If present, web detection has completed successfully.
     #[serde(default, rename = "webDetection")]
-    pub web_detection: Option<GoogleCloudVisionV1p3beta1WebDetection>,
+    pub web_detection:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetection>>,
 }
 
 /// The response for a single offline file annotation request.
@@ -1964,7 +2200,8 @@ pub struct GoogleCloudVisionV1p3beta1AnnotateImageResponse {
 pub struct GoogleCloudVisionV1p3beta1AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudVisionV1p3beta1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1OutputConfig>>,
 }
 
 /// Response to an async batch file annotation request.
@@ -1972,7 +2209,9 @@ pub struct GoogleCloudVisionV1p3beta1AsyncAnnotateFileResponse {
 pub struct GoogleCloudVisionV1p3beta1AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p3beta1AsyncAnnotateFileResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1AsyncAnnotateFileResponse>>,
+    >,
 }
 
 /// Metadata for the batch operations such as the current state. This is included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -1980,13 +2219,13 @@ pub struct GoogleCloudVisionV1p3beta1AsyncBatchAnnotateFilesResponse {
 pub struct GoogleCloudVisionV1p3beta1BatchOperationMetadata {
     /// The time when the batch request is finished and google.longrunning.Operation.done is set to true.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "PROCESSING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the batch request was submitted to the server.
     #[serde(default, rename = "submitTime")]
-    pub submit_time: Option<String>,
+    pub submit_time: ::core::option::Option<String>,
 }
 
 /// Logical element on the page.
@@ -1994,19 +2233,24 @@ pub struct GoogleCloudVisionV1p3beta1BatchOperationMetadata {
 pub struct GoogleCloudVisionV1p3beta1Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
-    pub block_type: Option<String>,
+    pub block_type: ::core::option::Option<String>,
     /// The bounding box for the block. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// Confidence of the OCR results on the block. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// List of paragraphs in this block (if this blocks is of type text).
     #[serde(default)]
-    pub paragraphs: Option<Vec<GoogleCloudVisionV1p3beta1Paragraph>>,
+    pub paragraphs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1Paragraph>>,
+    >,
     /// Additional information detected for the block.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    >,
 }
 
 /// A bounding polygon for the detected image annotation.
@@ -2014,10 +2258,14 @@ pub struct GoogleCloudVisionV1p3beta1Block {
 pub struct GoogleCloudVisionV1p3beta1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices: Option<Vec<GoogleCloudVisionV1p3beta1NormalizedVertex>>,
+    pub normalized_vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1NormalizedVertex>>,
+    >,
     /// The bounding polygon vertices.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVisionV1p3beta1Vertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1Vertex>>,
+    >,
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
@@ -2025,13 +2273,13 @@ pub struct GoogleCloudVisionV1p3beta1BoundingPoly {
 pub struct GoogleCloudVisionV1p3beta1ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The fraction of pixels the color occupies in the image. Value in range [0, 1].
     #[serde(default, rename = "pixelFraction")]
-    pub pixel_fraction: Option<f32>,
+    pub pixel_fraction: ::core::option::Option<f32>,
     /// Image-specific score for this color. Value in range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
@@ -2039,13 +2287,14 @@ pub struct GoogleCloudVisionV1p3beta1ColorInfo {
 pub struct GoogleCloudVisionV1p3beta1CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// Confidence of this being a salient region. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Fraction of importance of this salient region with respect to the original image.
     #[serde(default, rename = "importanceFraction")]
-    pub importance_fraction: Option<f32>,
+    pub importance_fraction: ::core::option::Option<f32>,
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
@@ -2053,7 +2302,9 @@ pub struct GoogleCloudVisionV1p3beta1CropHint {
 pub struct GoogleCloudVisionV1p3beta1CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
-    pub crop_hints: Option<Vec<GoogleCloudVisionV1p3beta1CropHint>>,
+    pub crop_hints: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1CropHint>>,
+    >,
 }
 
 /// Set of dominant colors and their corresponding scores.
@@ -2061,7 +2312,9 @@ pub struct GoogleCloudVisionV1p3beta1CropHintsAnnotation {
 pub struct GoogleCloudVisionV1p3beta1DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
-    pub colors: Option<Vec<GoogleCloudVisionV1p3beta1ColorInfo>>,
+    pub colors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1ColorInfo>>,
+    >,
 }
 
 /// Set of detected entity features.
@@ -2069,31 +2322,36 @@ pub struct GoogleCloudVisionV1p3beta1DominantColorsAnnotation {
 pub struct GoogleCloudVisionV1p3beta1EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// **Deprecated. Use score instead.** The accuracy of the entity detection in an image. For example, for an image in which the "Eiffel Tower" entity is detected, this field represents the confidence that there is a tower in the query image. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity textual description, expressed in its locale language.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The language code for the locale in which the entity textual description is expressed.
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The location information for the detected entity. Multiple LocationInfo elements can be present because one location may indicate the location of the scene in the image, and another location may indicate the location of the place where the image was taken. Location information is usually present for landmarks.
     #[serde(default)]
-    pub locations: Option<Vec<GoogleCloudVisionV1p3beta1LocationInfo>>,
+    pub locations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1LocationInfo>>,
+    >,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Some entities may have optional user-supplied Property (name/value) fields, such a score or string that qualifies the entity.
     #[serde(default)]
-    pub properties: Option<Vec<GoogleCloudVisionV1p3beta1Property>>,
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1Property>>,
+    >,
     /// Overall score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The relevancy of the ICA (Image Content Annotation) label to the image. For example, the relevancy of "tower" is likely higher to an image containing the detected "Eiffel Tower" than to an image containing a detected distant towering building, even though the confidence that there is a tower in each image may be the same. Range [0, 1].
     #[serde(default)]
-    pub topicality: Option<f32>,
+    pub topicality: ::core::option::Option<f32>,
 }
 
 /// A face annotation object contains the results of face detection.
@@ -2101,49 +2359,53 @@ pub struct GoogleCloudVisionV1p3beta1EntityAnnotation {
 pub struct GoogleCloudVisionV1p3beta1FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
-    pub anger_likelihood: Option<String>,
+    pub anger_likelihood: ::core::option::Option<String>,
     /// Blurred likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "blurredLikelihood")]
-    pub blurred_likelihood: Option<String>,
+    pub blurred_likelihood: ::core::option::Option<String>,
     /// The bounding polygon around the face. The coordinates of the bounding box are in the original image''s scale. The bounding box is computed to "frame" the face in accordance with human expectations. It is based on the landmarker results. Note that one or more x and/or y coordinates may not be generated in the BoundingPoly (the polygon will be unbounded) if only a partial face appears in the image to be annotated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// Detection confidence. Range [0, 1].
     #[serde(default, rename = "detectionConfidence")]
-    pub detection_confidence: Option<f32>,
+    pub detection_confidence: ::core::option::Option<f32>,
     /// The fd_bounding_poly bounding polygon is tighter than the boundingPoly, and encloses only the skin part of the face. Typically, it is used to eliminate the face from any image analysis that detects the "amount of skin" visible in an image. It is not based on the landmarker results, only on the initial face detection, hence the fd (face detection) prefix.
     #[serde(default, rename = "fdBoundingPoly")]
-    pub fd_bounding_poly: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub fd_bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// Headwear likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "headwearLikelihood")]
-    pub headwear_likelihood: Option<String>,
+    pub headwear_likelihood: ::core::option::Option<String>,
     /// Joy likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "joyLikelihood")]
-    pub joy_likelihood: Option<String>,
+    pub joy_likelihood: ::core::option::Option<String>,
     /// Face landmarking confidence. Range [0, 1].
     #[serde(default, rename = "landmarkingConfidence")]
-    pub landmarking_confidence: Option<f32>,
+    pub landmarking_confidence: ::core::option::Option<f32>,
     /// Detected face landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVisionV1p3beta1FaceAnnotationLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1FaceAnnotationLandmark>>,
+    >,
     /// Yaw angle, which indicates the leftward/rightward angle that the face is pointing relative to the vertical plane perpendicular to the image. Range [-180,180].
     #[serde(default, rename = "panAngle")]
-    pub pan_angle: Option<f32>,
+    pub pan_angle: ::core::option::Option<f32>,
     /// Roll angle, which indicates the amount of clockwise/anti-clockwise rotation of the face relative to the image vertical about the axis perpendicular to the face. Range [-180,180].
     #[serde(default, rename = "rollAngle")]
-    pub roll_angle: Option<f32>,
+    pub roll_angle: ::core::option::Option<f32>,
     /// Sorrow likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "sorrowLikelihood")]
-    pub sorrow_likelihood: Option<String>,
+    pub sorrow_likelihood: ::core::option::Option<String>,
     /// Surprise likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "surpriseLikelihood")]
-    pub surprise_likelihood: Option<String>,
+    pub surprise_likelihood: ::core::option::Option<String>,
     /// Pitch angle, which indicates the upwards/downwards angle that the face is pointing relative to the image''s horizontal plane. Range [-180,180].
     #[serde(default, rename = "tiltAngle")]
-    pub tilt_angle: Option<f32>,
+    pub tilt_angle: ::core::option::Option<f32>,
     /// Under-exposed likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "underExposedLikelihood")]
-    pub under_exposed_likelihood: Option<String>,
+    pub under_exposed_likelihood: ::core::option::Option<String>,
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
@@ -2151,10 +2413,10 @@ pub struct GoogleCloudVisionV1p3beta1FaceAnnotation {
 pub struct GoogleCloudVisionV1p3beta1FaceAnnotationLandmark {
     /// Face landmark position.
     #[serde(default)]
-    pub position: Option<GoogleCloudVisionV1p3beta1Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1Position>>,
     /// Face landmark type. // TODO: enum values: ["UNKNOWN_LANDMARK", "LEFT_EYE", "RIGHT_EYE", "LEFT_OF_LEFT_EYEBROW", "RIGHT_OF_LEFT_EYEBROW", "LEFT_OF_RIGHT_EYEBROW", "RIGHT_OF_RIGHT_EYEBROW", "MIDPOINT_BETWEEN_EYES", "NOSE_TIP", "UPPER_LIP", "LOWER_LIP", "MOUTH_LEFT", "MOUTH_RIGHT", "MOUTH_CENTER", "NOSE_BOTTOM_RIGHT", "NOSE_BOTTOM_LEFT", "NOSE_BOTTOM_CENTER", "LEFT_EYE_TOP_BOUNDARY", "LEFT_EYE_RIGHT_CORNER", "LEFT_EYE_BOTTOM_BOUNDARY", "LEFT_EYE_LEFT_CORNER", "RIGHT_EYE_TOP_BOUNDARY", "RIGHT_EYE_RIGHT_CORNER", "RIGHT_EYE_BOTTOM_BOUNDARY", "RIGHT_EYE_LEFT_CORNER", "LEFT_EYEBROW_UPPER_MIDPOINT", "RIGHT_EYEBROW_UPPER_MIDPOINT", "LEFT_EAR_TRAGION", "RIGHT_EAR_TRAGION", "LEFT_EYE_PUPIL", "RIGHT_EYE_PUPIL", "FOREHEAD_GLABELLA", "CHIN_GNATHION", "CHIN_LEFT_GONION", "CHIN_RIGHT_GONION", "LEFT_CHEEK_CENTER", "RIGHT_CHEEK_CENTER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the output will be written to.
@@ -2162,7 +2424,7 @@ pub struct GoogleCloudVisionV1p3beta1FaceAnnotationLandmark {
 pub struct GoogleCloudVisionV1p3beta1GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the input will be read from.
@@ -2170,7 +2432,7 @@ pub struct GoogleCloudVisionV1p3beta1GcsDestination {
 pub struct GoogleCloudVisionV1p3beta1GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
@@ -2178,10 +2440,10 @@ pub struct GoogleCloudVisionV1p3beta1GcsSource {
 pub struct GoogleCloudVisionV1p3beta1ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
-    pub page_number: Option<i32>,
+    pub page_number: ::core::option::Option<i32>,
     /// The URI of the file used to produce the image.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Stores image properties, such as dominant colors.
@@ -2189,7 +2451,9 @@ pub struct GoogleCloudVisionV1p3beta1ImageAnnotationContext {
 pub struct GoogleCloudVisionV1p3beta1ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
-    pub dominant_colors: Option<GoogleCloudVisionV1p3beta1DominantColorsAnnotation>,
+    pub dominant_colors: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p3beta1DominantColorsAnnotation>,
+    >,
 }
 
 /// Response message for the ImportProductSets method. This message is returned by the google.longrunning.Operations.GetOperation method in the returned google.longrunning.Operation.response field.
@@ -2197,10 +2461,12 @@ pub struct GoogleCloudVisionV1p3beta1ImageProperties {
 pub struct GoogleCloudVisionV1p3beta1ImportProductSetsResponse {
     /// The list of reference_images that are imported successfully.
     #[serde(default, rename = "referenceImages")]
-    pub reference_images: Option<Vec<GoogleCloudVisionV1p3beta1ReferenceImage>>,
+    pub reference_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1ReferenceImage>>,
+    >,
     /// The rpc status for each ImportProductSet request, including both successes and errors. The number of statuses here matches the number of lines in the csv file, and statuses[i] stores the success or failure status of processing the i-th line of the csv, starting from line 0.
     #[serde(default)]
-    pub statuses: Option<Vec<Status>>,
+    pub statuses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
 }
 
 /// The desired input location and metadata.
@@ -2208,13 +2474,13 @@ pub struct GoogleCloudVisionV1p3beta1ImportProductSetsResponse {
 pub struct GoogleCloudVisionV1p3beta1InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The Google Cloud Storage location to read the input from.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudVisionV1p3beta1GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1GcsSource>>,
     /// The type of the file. Currently only "application/pdf", "image/tiff" and "image/gif" are supported. Wildcards are not supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Set of detected objects with bounding boxes.
@@ -2222,19 +2488,20 @@ pub struct GoogleCloudVisionV1p3beta1InputConfig {
 pub struct GoogleCloudVisionV1p3beta1LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Detected entity location information.
@@ -2242,7 +2509,7 @@ pub struct GoogleCloudVisionV1p3beta1LocalizedObjectAnnotation {
 pub struct GoogleCloudVisionV1p3beta1LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
-    pub lat_lng: Option<LatLng>,
+    pub lat_lng: ::core::option::Option<::std::boxed::Box<LatLng>>,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -2250,10 +2517,10 @@ pub struct GoogleCloudVisionV1p3beta1LocationInfo {
 pub struct GoogleCloudVisionV1p3beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
@@ -2261,13 +2528,13 @@ pub struct GoogleCloudVisionV1p3beta1NormalizedVertex {
 pub struct GoogleCloudVisionV1p3beta1OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATED", "RUNNING", "DONE", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the operation result was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The desired output location and metadata.
@@ -2275,10 +2542,11 @@ pub struct GoogleCloudVisionV1p3beta1OperationMetadata {
 pub struct GoogleCloudVisionV1p3beta1OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
-    pub batch_size: Option<i32>,
+    pub batch_size: ::core::option::Option<i32>,
     /// The Google Cloud Storage location to write the output(s) to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudVisionV1p3beta1GcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1GcsDestination>>,
 }
 
 /// Detected page from OCR.
@@ -2286,19 +2554,22 @@ pub struct GoogleCloudVisionV1p3beta1OutputConfig {
 pub struct GoogleCloudVisionV1p3beta1Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
-    pub blocks: Option<Vec<GoogleCloudVisionV1p3beta1Block>>,
+    pub blocks:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1Block>>>,
     /// Confidence of the OCR results on the page. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Page height. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Additional information detected on the page.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    >,
     /// Page width. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Structural unit of text representing a number of words in certain order.
@@ -2306,16 +2577,20 @@ pub struct GoogleCloudVisionV1p3beta1Page {
 pub struct GoogleCloudVisionV1p3beta1Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// Confidence of the OCR results for the paragraph. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the paragraph.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    >,
     /// List of all words in this paragraph.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVisionV1p3beta1Word>>,
+    pub words:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1Word>>>,
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
@@ -2323,13 +2598,13 @@ pub struct GoogleCloudVisionV1p3beta1Paragraph {
 pub struct GoogleCloudVisionV1p3beta1Position {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
     /// Z coordinate (or depth).
     #[serde(default)]
-    pub z: Option<f32>,
+    pub z: ::core::option::Option<f32>,
 }
 
 /// A Product contains ReferenceImages.
@@ -2337,19 +2612,21 @@ pub struct GoogleCloudVisionV1p3beta1Position {
 pub struct GoogleCloudVisionV1p3beta1Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The user-provided name for this Product. Must not be empty. Must be at most 4096 characters long.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the product. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID. This field is ignored when creating a product.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The category for the product identified by the reference image. This should be one of "homegoods-v2", "apparel-v2", "toys-v2", "packagedgoods-v1" or "general-v1". The legacy categories "homegoods", "apparel", and "toys" are still supported, but these should not be used for new products.
     #[serde(default, rename = "productCategory")]
-    pub product_category: Option<String>,
+    pub product_category: ::core::option::Option<String>,
     /// Key-value pairs that can be attached to a product. At query time, constraints can be specified based on the product_labels. Note that integer values can be provided as strings, e.g. "1199". Only strings with integer values can match a range-based restriction which is to be supported soon. Multiple values can be assigned to the same key. One product may have up to 500 product_labels. Notice that the total number of distinct product_labels over all products in one ProductSet cannot exceed 1M, otherwise the product search pipeline will refuse to work for that ProductSet.
     #[serde(default, rename = "productLabels")]
-    pub product_labels: Option<Vec<GoogleCloudVisionV1p3beta1ProductKeyValue>>,
+    pub product_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1ProductKeyValue>>,
+    >,
 }
 
 /// A product label represented as a key-value pair.
@@ -2357,10 +2634,10 @@ pub struct GoogleCloudVisionV1p3beta1Product {
 pub struct GoogleCloudVisionV1p3beta1ProductKeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The value of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Results for a product search request.
@@ -2368,14 +2645,19 @@ pub struct GoogleCloudVisionV1p3beta1ProductKeyValue {
 pub struct GoogleCloudVisionV1p3beta1ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
-    pub index_time: Option<String>,
+    pub index_time: ::core::option::Option<String>,
     /// List of results grouped by products detected in the query image. Each entry corresponds to one bounding polygon in the query image, and contains the matching products specific to that region. There may be duplicate product matches in the union of all the per-product results.
     #[serde(default, rename = "productGroupedResults")]
-    pub product_grouped_results:
-        Option<Vec<GoogleCloudVisionV1p3beta1ProductSearchResultsGroupedResult>>,
+    pub product_grouped_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p3beta1ProductSearchResultsGroupedResult>,
+        >,
+    >,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudVisionV1p3beta1ProductSearchResultsResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1ProductSearchResultsResult>>,
+    >,
 }
 
 /// Information about the products similar to a single product in a query image.
@@ -2383,14 +2665,20 @@ pub struct GoogleCloudVisionV1p3beta1ProductSearchResults {
 pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsGroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// List of generic predictions for the object in the bounding box.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVisionV1p3beta1ProductSearchResultsObjectAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p3beta1ProductSearchResultsObjectAnnotation>,
+        >,
+    >,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudVisionV1p3beta1ProductSearchResultsResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1ProductSearchResultsResult>>,
+    >,
 }
 
 /// Prediction for what the object in the bounding box is.
@@ -2398,16 +2686,16 @@ pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsGroupedResult {
 pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Information about a product.
@@ -2415,13 +2703,13 @@ pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsObjectAnnotation {
 pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// The Product.
     #[serde(default)]
-    pub product: Option<GoogleCloudVisionV1p3beta1Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1Product>>,
     /// A confidence level on the match, ranging from 0 (no confidence) to 1 (full confidence).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// A Property consists of a user-supplied name/value pair.
@@ -2429,13 +2717,13 @@ pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsResult {
 pub struct GoogleCloudVisionV1p3beta1Property {
     /// Name of the property.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Value of numeric properties.
     #[serde(default, rename = "uint64Value")]
-    pub uint64_value: Option<String>,
+    pub uint64_value: ::core::option::Option<String>,
     /// Value of the property.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A ReferenceImage represents a product image and its associated metadata, such as bounding boxes.
@@ -2443,13 +2731,15 @@ pub struct GoogleCloudVisionV1p3beta1Property {
 pub struct GoogleCloudVisionV1p3beta1ReferenceImage {
     /// Optional. Bounding polygons around the areas of interest in the reference image. If this field is empty, the system will try to detect regions of interest. At most 10 bounding polygons will be used. The provided shape is converted into a non-rotated rectangle. Once converted, the small edge of the rectangle must be greater than or equal to 300 pixels. The aspect ratio must be 1:4 or less (i.e. 1:3 is ok; 1:5 is not).
     #[serde(default, rename = "boundingPolys")]
-    pub bounding_polys: Option<Vec<GoogleCloudVisionV1p3beta1BoundingPoly>>,
+    pub bounding_polys: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
+    >,
     /// The resource name of the reference image. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID/referenceImages/IMAGE_ID. This field is ignored when creating a reference image.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The Google Cloud Storage URI of the reference image. The URI must start with gs://.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
@@ -2457,19 +2747,19 @@ pub struct GoogleCloudVisionV1p3beta1ReferenceImage {
 pub struct GoogleCloudVisionV1p3beta1SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub adult: Option<String>,
+    pub adult: ::core::option::Option<String>,
     /// Likelihood that this is a medical image. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub medical: Option<String>,
+    pub medical: ::core::option::Option<String>,
     /// Likelihood that the request image contains racy content. Racy content may include (but is not limited to) skimpy or sheer clothing, strategically covered nudity, lewd or provocative poses, or close-ups of sensitive body areas. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub racy: Option<String>,
+    pub racy: ::core::option::Option<String>,
     /// Spoof likelihood. The likelihood that an modification was made to the image''s canonical version to make it appear funny or offensive. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub spoof: Option<String>,
+    pub spoof: ::core::option::Option<String>,
     /// Likelihood that this image contains violent content. Violent content may include death, serious harm, or injury to individuals or groups of individuals. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub violence: Option<String>,
+    pub violence: ::core::option::Option<String>,
 }
 
 /// A single symbol representation.
@@ -2477,16 +2767,19 @@ pub struct GoogleCloudVisionV1p3beta1SafeSearchAnnotation {
 pub struct GoogleCloudVisionV1p3beta1Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// Confidence of the OCR results for the symbol. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the symbol.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    >,
     /// The actual UTF-8 representation of the symbol.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
@@ -2494,10 +2787,11 @@ pub struct GoogleCloudVisionV1p3beta1Symbol {
 pub struct GoogleCloudVisionV1p3beta1TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
-    pub pages: Option<Vec<GoogleCloudVisionV1p3beta1Page>>,
+    pub pages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1Page>>>,
     /// UTF-8 text detected on the pages.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Detected start or end of a structural component.
@@ -2505,10 +2799,10 @@ pub struct GoogleCloudVisionV1p3beta1TextAnnotation {
 pub struct GoogleCloudVisionV1p3beta1TextAnnotationDetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
-    pub is_prefix: Option<bool>,
+    pub is_prefix: ::core::option::Option<bool>,
     /// Detected break type. // TODO: enum values: ["UNKNOWN", "SPACE", "SURE_SPACE", "EOL_SURE_SPACE", "HYPHEN", "LINE_BREAK"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Detected language for a structural component.
@@ -2516,10 +2810,10 @@ pub struct GoogleCloudVisionV1p3beta1TextAnnotationDetectedBreak {
 pub struct GoogleCloudVisionV1p3beta1TextAnnotationDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Additional information detected on the structural component.
@@ -2527,10 +2821,16 @@ pub struct GoogleCloudVisionV1p3beta1TextAnnotationDetectedLanguage {
 pub struct GoogleCloudVisionV1p3beta1TextAnnotationTextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
-    pub detected_break: Option<GoogleCloudVisionV1p3beta1TextAnnotationDetectedBreak>,
+    pub detected_break: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p3beta1TextAnnotationDetectedBreak>,
+    >,
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: Option<Vec<GoogleCloudVisionV1p3beta1TextAnnotationDetectedLanguage>>,
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p3beta1TextAnnotationDetectedLanguage>,
+        >,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
@@ -2538,10 +2838,10 @@ pub struct GoogleCloudVisionV1p3beta1TextAnnotationTextProperty {
 pub struct GoogleCloudVisionV1p3beta1Vertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<i32>,
+    pub x: ::core::option::Option<i32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<i32>,
+    pub y: ::core::option::Option<i32>,
 }
 
 /// Relevant information for the image from the Internet.
@@ -2549,22 +2849,34 @@ pub struct GoogleCloudVisionV1p3beta1Vertex {
 pub struct GoogleCloudVisionV1p3beta1WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
-    pub best_guess_labels: Option<Vec<GoogleCloudVisionV1p3beta1WebDetectionWebLabel>>,
+    pub best_guess_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetectionWebLabel>>,
+    >,
     /// Fully matching images from the Internet. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    pub full_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    >,
     /// Web pages containing the matching images from the Internet.
     #[serde(default, rename = "pagesWithMatchingImages")]
-    pub pages_with_matching_images: Option<Vec<GoogleCloudVisionV1p3beta1WebDetectionWebPage>>,
+    pub pages_with_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetectionWebPage>>,
+    >,
     /// Partial matching images from the Internet. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    pub partial_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    >,
     /// The visually similar image results.
     #[serde(default, rename = "visuallySimilarImages")]
-    pub visually_similar_images: Option<Vec<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    pub visually_similar_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    >,
     /// Deduced entities from similar images on the Internet.
     #[serde(default, rename = "webEntities")]
-    pub web_entities: Option<Vec<GoogleCloudVisionV1p3beta1WebDetectionWebEntity>>,
+    pub web_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetectionWebEntity>>,
+    >,
 }
 
 /// Entity deduced from similar images on the Internet.
@@ -2572,13 +2884,13 @@ pub struct GoogleCloudVisionV1p3beta1WebDetection {
 pub struct GoogleCloudVisionV1p3beta1WebDetectionWebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID.
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Overall relevancy score for the entity. Not normalized and not comparable across different image queries.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Metadata for online images.
@@ -2586,10 +2898,10 @@ pub struct GoogleCloudVisionV1p3beta1WebDetectionWebEntity {
 pub struct GoogleCloudVisionV1p3beta1WebDetectionWebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result image URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Label to provide extra metadata for the web detection.
@@ -2597,10 +2909,10 @@ pub struct GoogleCloudVisionV1p3beta1WebDetectionWebImage {
 pub struct GoogleCloudVisionV1p3beta1WebDetectionWebLabel {
     /// Label for extra metadata.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The BCP-47 language code for label, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Metadata for web pages.
@@ -2608,19 +2920,23 @@ pub struct GoogleCloudVisionV1p3beta1WebDetectionWebLabel {
 pub struct GoogleCloudVisionV1p3beta1WebDetectionWebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    pub full_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    >,
     /// Title for the web page, may contain HTML markups.
     #[serde(default, rename = "pageTitle")]
-    pub page_title: Option<String>,
+    pub page_title: ::core::option::Option<String>,
     /// Partial matching images on the page. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    pub partial_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1WebDetectionWebImage>>,
+    >,
     /// (Deprecated) Overall relevancy score for the web page.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result web page URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A word representation.
@@ -2628,16 +2944,21 @@ pub struct GoogleCloudVisionV1p3beta1WebDetectionWebPage {
 pub struct GoogleCloudVisionV1p3beta1Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p3beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p3beta1BoundingPoly>>,
     /// Confidence of the OCR results for the word. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the word.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p3beta1TextAnnotationTextProperty>,
+    >,
     /// List of symbols in the word. The order of the symbols follows the natural reading order.
     #[serde(default)]
-    pub symbols: Option<Vec<GoogleCloudVisionV1p3beta1Symbol>>,
+    pub symbols: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p3beta1Symbol>>,
+    >,
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
@@ -2645,16 +2966,19 @@ pub struct GoogleCloudVisionV1p3beta1Word {
 pub struct GoogleCloudVisionV1p4beta1AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Information about the file for which this response is generated.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<GoogleCloudVisionV1p4beta1InputConfig>,
+    pub input_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1InputConfig>>,
     /// Individual responses to images found within the file. This field will be empty if the error field is set.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p4beta1AnnotateImageResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1AnnotateImageResponse>>,
+    >,
     /// This field gives the total number of pages in the file.
     #[serde(default, rename = "totalPages")]
-    pub total_pages: Option<i32>,
+    pub total_pages: ::core::option::Option<i32>,
 }
 
 /// Response to an image annotation request.
@@ -2662,47 +2986,65 @@ pub struct GoogleCloudVisionV1p4beta1AnnotateFileResponse {
 pub struct GoogleCloudVisionV1p4beta1AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
-    pub context: Option<GoogleCloudVisionV1p4beta1ImageAnnotationContext>,
+    pub context:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1ImageAnnotationContext>>,
     /// If present, crop hints have completed successfully.
     #[serde(default, rename = "cropHintsAnnotation")]
-    pub crop_hints_annotation: Option<GoogleCloudVisionV1p4beta1CropHintsAnnotation>,
+    pub crop_hints_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1CropHintsAnnotation>>,
     /// If set, represents the error message for the operation. Note that filled-in image annotations are guaranteed to be correct, even when error is set.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// If present, face detection has completed successfully.
     #[serde(default, rename = "faceAnnotations")]
-    pub face_annotations: Option<Vec<GoogleCloudVisionV1p4beta1FaceAnnotation>>,
+    pub face_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1FaceAnnotation>>,
+    >,
     /// If present, text (OCR) detection or document (OCR) text detection has completed successfully. This annotation provides the structural hierarchy for the OCR detected text.
     #[serde(default, rename = "fullTextAnnotation")]
-    pub full_text_annotation: Option<GoogleCloudVisionV1p4beta1TextAnnotation>,
+    pub full_text_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1TextAnnotation>>,
     /// If present, image properties were extracted successfully.
     #[serde(default, rename = "imagePropertiesAnnotation")]
-    pub image_properties_annotation: Option<GoogleCloudVisionV1p4beta1ImageProperties>,
+    pub image_properties_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1ImageProperties>>,
     /// If present, label detection has completed successfully.
     #[serde(default, rename = "labelAnnotations")]
-    pub label_annotations: Option<Vec<GoogleCloudVisionV1p4beta1EntityAnnotation>>,
+    pub label_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1EntityAnnotation>>,
+    >,
     /// If present, landmark detection has completed successfully.
     #[serde(default, rename = "landmarkAnnotations")]
-    pub landmark_annotations: Option<Vec<GoogleCloudVisionV1p4beta1EntityAnnotation>>,
+    pub landmark_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1EntityAnnotation>>,
+    >,
     /// If present, localized object detection has completed successfully. This will be sorted descending by confidence score.
     #[serde(default, rename = "localizedObjectAnnotations")]
-    pub localized_object_annotations:
-        Option<Vec<GoogleCloudVisionV1p4beta1LocalizedObjectAnnotation>>,
+    pub localized_object_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1LocalizedObjectAnnotation>>,
+    >,
     /// If present, logo detection has completed successfully.
     #[serde(default, rename = "logoAnnotations")]
-    pub logo_annotations: Option<Vec<GoogleCloudVisionV1p4beta1EntityAnnotation>>,
+    pub logo_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1EntityAnnotation>>,
+    >,
     /// If present, product search has completed successfully.
     #[serde(default, rename = "productSearchResults")]
-    pub product_search_results: Option<GoogleCloudVisionV1p4beta1ProductSearchResults>,
+    pub product_search_results:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1ProductSearchResults>>,
     /// If present, safe-search annotation has completed successfully.
     #[serde(default, rename = "safeSearchAnnotation")]
-    pub safe_search_annotation: Option<GoogleCloudVisionV1p4beta1SafeSearchAnnotation>,
+    pub safe_search_annotation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1SafeSearchAnnotation>>,
     /// If present, text (OCR) detection has completed successfully.
     #[serde(default, rename = "textAnnotations")]
-    pub text_annotations: Option<Vec<GoogleCloudVisionV1p4beta1EntityAnnotation>>,
+    pub text_annotations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1EntityAnnotation>>,
+    >,
     /// If present, web detection has completed successfully.
     #[serde(default, rename = "webDetection")]
-    pub web_detection: Option<GoogleCloudVisionV1p4beta1WebDetection>,
+    pub web_detection:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetection>>,
 }
 
 /// The response for a single offline file annotation request.
@@ -2710,7 +3052,8 @@ pub struct GoogleCloudVisionV1p4beta1AnnotateImageResponse {
 pub struct GoogleCloudVisionV1p4beta1AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudVisionV1p4beta1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1OutputConfig>>,
 }
 
 /// Response to an async batch file annotation request.
@@ -2718,7 +3061,9 @@ pub struct GoogleCloudVisionV1p4beta1AsyncAnnotateFileResponse {
 pub struct GoogleCloudVisionV1p4beta1AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p4beta1AsyncAnnotateFileResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1AsyncAnnotateFileResponse>>,
+    >,
 }
 
 /// Response to an async batch image annotation request.
@@ -2726,7 +3071,8 @@ pub struct GoogleCloudVisionV1p4beta1AsyncBatchAnnotateFilesResponse {
 pub struct GoogleCloudVisionV1p4beta1AsyncBatchAnnotateImagesResponse {
     /// The output location and metadata from AsyncBatchAnnotateImagesRequest.
     #[serde(default, rename = "outputConfig")]
-    pub output_config: Option<GoogleCloudVisionV1p4beta1OutputConfig>,
+    pub output_config:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1OutputConfig>>,
 }
 
 /// A list of file annotation responses.
@@ -2734,7 +3080,9 @@ pub struct GoogleCloudVisionV1p4beta1AsyncBatchAnnotateImagesResponse {
 pub struct GoogleCloudVisionV1p4beta1BatchAnnotateFilesResponse {
     /// The list of file annotation responses, each response corresponding to each AnnotateFileRequest in BatchAnnotateFilesRequest.
     #[serde(default)]
-    pub responses: Option<Vec<GoogleCloudVisionV1p4beta1AnnotateFileResponse>>,
+    pub responses: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1AnnotateFileResponse>>,
+    >,
 }
 
 /// Metadata for the batch operations such as the current state. This is included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
@@ -2742,13 +3090,13 @@ pub struct GoogleCloudVisionV1p4beta1BatchAnnotateFilesResponse {
 pub struct GoogleCloudVisionV1p4beta1BatchOperationMetadata {
     /// The time when the batch request is finished and google.longrunning.Operation.done is set to true.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "PROCESSING", "SUCCESSFUL", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the batch request was submitted to the server.
     #[serde(default, rename = "submitTime")]
-    pub submit_time: Option<String>,
+    pub submit_time: ::core::option::Option<String>,
 }
 
 /// Logical element on the page.
@@ -2756,19 +3104,24 @@ pub struct GoogleCloudVisionV1p4beta1BatchOperationMetadata {
 pub struct GoogleCloudVisionV1p4beta1Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
-    pub block_type: Option<String>,
+    pub block_type: ::core::option::Option<String>,
     /// The bounding box for the block. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// Confidence of the OCR results on the block. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// List of paragraphs in this block (if this blocks is of type text).
     #[serde(default)]
-    pub paragraphs: Option<Vec<GoogleCloudVisionV1p4beta1Paragraph>>,
+    pub paragraphs: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1Paragraph>>,
+    >,
     /// Additional information detected for the block.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    >,
 }
 
 /// A bounding polygon for the detected image annotation.
@@ -2776,10 +3129,14 @@ pub struct GoogleCloudVisionV1p4beta1Block {
 pub struct GoogleCloudVisionV1p4beta1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices: Option<Vec<GoogleCloudVisionV1p4beta1NormalizedVertex>>,
+    pub normalized_vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1NormalizedVertex>>,
+    >,
     /// The bounding polygon vertices.
     #[serde(default)]
-    pub vertices: Option<Vec<GoogleCloudVisionV1p4beta1Vertex>>,
+    pub vertices: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1Vertex>>,
+    >,
 }
 
 /// A Celebrity is a group of Faces with an identity.
@@ -2787,13 +3144,13 @@ pub struct GoogleCloudVisionV1p4beta1BoundingPoly {
 pub struct GoogleCloudVisionV1p4beta1Celebrity {
     /// The Celebrity''s description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The Celebrity''s display name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the preloaded Celebrity. Has the format builtin/{mid}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
@@ -2801,13 +3158,13 @@ pub struct GoogleCloudVisionV1p4beta1Celebrity {
 pub struct GoogleCloudVisionV1p4beta1ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
-    pub color: Option<Color>,
+    pub color: ::core::option::Option<::std::boxed::Box<Color>>,
     /// The fraction of pixels the color occupies in the image. Value in range [0, 1].
     #[serde(default, rename = "pixelFraction")]
-    pub pixel_fraction: Option<f32>,
+    pub pixel_fraction: ::core::option::Option<f32>,
     /// Image-specific score for this color. Value in range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
@@ -2815,13 +3172,14 @@ pub struct GoogleCloudVisionV1p4beta1ColorInfo {
 pub struct GoogleCloudVisionV1p4beta1CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// Confidence of this being a salient region. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Fraction of importance of this salient region with respect to the original image.
     #[serde(default, rename = "importanceFraction")]
-    pub importance_fraction: Option<f32>,
+    pub importance_fraction: ::core::option::Option<f32>,
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
@@ -2829,7 +3187,9 @@ pub struct GoogleCloudVisionV1p4beta1CropHint {
 pub struct GoogleCloudVisionV1p4beta1CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
-    pub crop_hints: Option<Vec<GoogleCloudVisionV1p4beta1CropHint>>,
+    pub crop_hints: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1CropHint>>,
+    >,
 }
 
 /// Set of dominant colors and their corresponding scores.
@@ -2837,7 +3197,9 @@ pub struct GoogleCloudVisionV1p4beta1CropHintsAnnotation {
 pub struct GoogleCloudVisionV1p4beta1DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
-    pub colors: Option<Vec<GoogleCloudVisionV1p4beta1ColorInfo>>,
+    pub colors: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1ColorInfo>>,
+    >,
 }
 
 /// Set of detected entity features.
@@ -2845,31 +3207,36 @@ pub struct GoogleCloudVisionV1p4beta1DominantColorsAnnotation {
 pub struct GoogleCloudVisionV1p4beta1EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// **Deprecated. Use score instead.** The accuracy of the entity detection in an image. For example, for an image in which the "Eiffel Tower" entity is detected, this field represents the confidence that there is a tower in the query image. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Entity textual description, expressed in its locale language.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The language code for the locale in which the entity textual description is expressed.
     #[serde(default)]
-    pub locale: Option<String>,
+    pub locale: ::core::option::Option<String>,
     /// The location information for the detected entity. Multiple LocationInfo elements can be present because one location may indicate the location of the scene in the image, and another location may indicate the location of the place where the image was taken. Location information is usually present for landmarks.
     #[serde(default)]
-    pub locations: Option<Vec<GoogleCloudVisionV1p4beta1LocationInfo>>,
+    pub locations: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1LocationInfo>>,
+    >,
     /// Opaque entity ID. Some IDs may be available in [Google Knowledge Graph Search API](https://developers.google.com/knowledge-graph/).
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Some entities may have optional user-supplied Property (name/value) fields, such a score or string that qualifies the entity.
     #[serde(default)]
-    pub properties: Option<Vec<GoogleCloudVisionV1p4beta1Property>>,
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1Property>>,
+    >,
     /// Overall score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The relevancy of the ICA (Image Content Annotation) label to the image. For example, the relevancy of "tower" is likely higher to an image containing the detected "Eiffel Tower" than to an image containing a detected distant towering building, even though the confidence that there is a tower in each image may be the same. Range [0, 1].
     #[serde(default)]
-    pub topicality: Option<f32>,
+    pub topicality: ::core::option::Option<f32>,
 }
 
 /// A face annotation object contains the results of face detection.
@@ -2877,52 +3244,58 @@ pub struct GoogleCloudVisionV1p4beta1EntityAnnotation {
 pub struct GoogleCloudVisionV1p4beta1FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
-    pub anger_likelihood: Option<String>,
+    pub anger_likelihood: ::core::option::Option<String>,
     /// Blurred likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "blurredLikelihood")]
-    pub blurred_likelihood: Option<String>,
+    pub blurred_likelihood: ::core::option::Option<String>,
     /// The bounding polygon around the face. The coordinates of the bounding box are in the original image''s scale. The bounding box is computed to "frame" the face in accordance with human expectations. It is based on the landmarker results. Note that one or more x and/or y coordinates may not be generated in the BoundingPoly (the polygon will be unbounded) if only a partial face appears in the image to be annotated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// Detection confidence. Range [0, 1].
     #[serde(default, rename = "detectionConfidence")]
-    pub detection_confidence: Option<f32>,
+    pub detection_confidence: ::core::option::Option<f32>,
     /// The fd_bounding_poly bounding polygon is tighter than the boundingPoly, and encloses only the skin part of the face. Typically, it is used to eliminate the face from any image analysis that detects the "amount of skin" visible in an image. It is not based on the landmarker results, only on the initial face detection, hence the fd (face detection) prefix.
     #[serde(default, rename = "fdBoundingPoly")]
-    pub fd_bounding_poly: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub fd_bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// Headwear likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "headwearLikelihood")]
-    pub headwear_likelihood: Option<String>,
+    pub headwear_likelihood: ::core::option::Option<String>,
     /// Joy likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "joyLikelihood")]
-    pub joy_likelihood: Option<String>,
+    pub joy_likelihood: ::core::option::Option<String>,
     /// Face landmarking confidence. Range [0, 1].
     #[serde(default, rename = "landmarkingConfidence")]
-    pub landmarking_confidence: Option<f32>,
+    pub landmarking_confidence: ::core::option::Option<f32>,
     /// Detected face landmarks.
     #[serde(default)]
-    pub landmarks: Option<Vec<GoogleCloudVisionV1p4beta1FaceAnnotationLandmark>>,
+    pub landmarks: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1FaceAnnotationLandmark>>,
+    >,
     /// Yaw angle, which indicates the leftward/rightward angle that the face is pointing relative to the vertical plane perpendicular to the image. Range [-180,180].
     #[serde(default, rename = "panAngle")]
-    pub pan_angle: Option<f32>,
+    pub pan_angle: ::core::option::Option<f32>,
     /// Additional recognition information. Only computed if image_context.face_recognition_params is provided, **and** a match is found to a Celebrity in the input CelebritySet. This field is sorted in order of decreasing confidence values.
     #[serde(default, rename = "recognitionResult")]
-    pub recognition_result: Option<Vec<GoogleCloudVisionV1p4beta1FaceRecognitionResult>>,
+    pub recognition_result: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1FaceRecognitionResult>>,
+    >,
     /// Roll angle, which indicates the amount of clockwise/anti-clockwise rotation of the face relative to the image vertical about the axis perpendicular to the face. Range [-180,180].
     #[serde(default, rename = "rollAngle")]
-    pub roll_angle: Option<f32>,
+    pub roll_angle: ::core::option::Option<f32>,
     /// Sorrow likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "sorrowLikelihood")]
-    pub sorrow_likelihood: Option<String>,
+    pub sorrow_likelihood: ::core::option::Option<String>,
     /// Surprise likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "surpriseLikelihood")]
-    pub surprise_likelihood: Option<String>,
+    pub surprise_likelihood: ::core::option::Option<String>,
     /// Pitch angle, which indicates the upwards/downwards angle that the face is pointing relative to the image''s horizontal plane. Range [-180,180].
     #[serde(default, rename = "tiltAngle")]
-    pub tilt_angle: Option<f32>,
+    pub tilt_angle: ::core::option::Option<f32>,
     /// Under-exposed likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "underExposedLikelihood")]
-    pub under_exposed_likelihood: Option<String>,
+    pub under_exposed_likelihood: ::core::option::Option<String>,
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
@@ -2930,10 +3303,10 @@ pub struct GoogleCloudVisionV1p4beta1FaceAnnotation {
 pub struct GoogleCloudVisionV1p4beta1FaceAnnotationLandmark {
     /// Face landmark position.
     #[serde(default)]
-    pub position: Option<GoogleCloudVisionV1p4beta1Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1Position>>,
     /// Face landmark type. // TODO: enum values: ["UNKNOWN_LANDMARK", "LEFT_EYE", "RIGHT_EYE", "LEFT_OF_LEFT_EYEBROW", "RIGHT_OF_LEFT_EYEBROW", "LEFT_OF_RIGHT_EYEBROW", "RIGHT_OF_RIGHT_EYEBROW", "MIDPOINT_BETWEEN_EYES", "NOSE_TIP", "UPPER_LIP", "LOWER_LIP", "MOUTH_LEFT", "MOUTH_RIGHT", "MOUTH_CENTER", "NOSE_BOTTOM_RIGHT", "NOSE_BOTTOM_LEFT", "NOSE_BOTTOM_CENTER", "LEFT_EYE_TOP_BOUNDARY", "LEFT_EYE_RIGHT_CORNER", "LEFT_EYE_BOTTOM_BOUNDARY", "LEFT_EYE_LEFT_CORNER", "RIGHT_EYE_TOP_BOUNDARY", "RIGHT_EYE_RIGHT_CORNER", "RIGHT_EYE_BOTTOM_BOUNDARY", "RIGHT_EYE_LEFT_CORNER", "LEFT_EYEBROW_UPPER_MIDPOINT", "RIGHT_EYEBROW_UPPER_MIDPOINT", "LEFT_EAR_TRAGION", "RIGHT_EAR_TRAGION", "LEFT_EYE_PUPIL", "RIGHT_EYE_PUPIL", "FOREHEAD_GLABELLA", "CHIN_GNATHION", "CHIN_LEFT_GONION", "CHIN_RIGHT_GONION", "LEFT_CHEEK_CENTER", "RIGHT_CHEEK_CENTER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about a face''s identity.
@@ -2941,10 +3314,10 @@ pub struct GoogleCloudVisionV1p4beta1FaceAnnotationLandmark {
 pub struct GoogleCloudVisionV1p4beta1FaceRecognitionResult {
     /// The Celebrity that this face was matched to.
     #[serde(default)]
-    pub celebrity: Option<GoogleCloudVisionV1p4beta1Celebrity>,
+    pub celebrity: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1Celebrity>>,
     /// Recognition confidence. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
 }
 
 /// The Google Cloud Storage location where the output will be written to.
@@ -2952,7 +3325,7 @@ pub struct GoogleCloudVisionV1p4beta1FaceRecognitionResult {
 pub struct GoogleCloudVisionV1p4beta1GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location where the input will be read from.
@@ -2960,7 +3333,7 @@ pub struct GoogleCloudVisionV1p4beta1GcsDestination {
 pub struct GoogleCloudVisionV1p4beta1GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
@@ -2968,10 +3341,10 @@ pub struct GoogleCloudVisionV1p4beta1GcsSource {
 pub struct GoogleCloudVisionV1p4beta1ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
-    pub page_number: Option<i32>,
+    pub page_number: ::core::option::Option<i32>,
     /// The URI of the file used to produce the image.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Stores image properties, such as dominant colors.
@@ -2979,7 +3352,9 @@ pub struct GoogleCloudVisionV1p4beta1ImageAnnotationContext {
 pub struct GoogleCloudVisionV1p4beta1ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
-    pub dominant_colors: Option<GoogleCloudVisionV1p4beta1DominantColorsAnnotation>,
+    pub dominant_colors: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p4beta1DominantColorsAnnotation>,
+    >,
 }
 
 /// Response message for the ImportProductSets method. This message is returned by the google.longrunning.Operations.GetOperation method in the returned google.longrunning.Operation.response field.
@@ -2987,10 +3362,12 @@ pub struct GoogleCloudVisionV1p4beta1ImageProperties {
 pub struct GoogleCloudVisionV1p4beta1ImportProductSetsResponse {
     /// The list of reference_images that are imported successfully.
     #[serde(default, rename = "referenceImages")]
-    pub reference_images: Option<Vec<GoogleCloudVisionV1p4beta1ReferenceImage>>,
+    pub reference_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1ReferenceImage>>,
+    >,
     /// The rpc status for each ImportProductSet request, including both successes and errors. The number of statuses here matches the number of lines in the csv file, and statuses[i] stores the success or failure status of processing the i-th line of the csv, starting from line 0.
     #[serde(default)]
-    pub statuses: Option<Vec<Status>>,
+    pub statuses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
 }
 
 /// The desired input location and metadata.
@@ -2998,13 +3375,13 @@ pub struct GoogleCloudVisionV1p4beta1ImportProductSetsResponse {
 pub struct GoogleCloudVisionV1p4beta1InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The Google Cloud Storage location to read the input from.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GoogleCloudVisionV1p4beta1GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1GcsSource>>,
     /// The type of the file. Currently only "application/pdf", "image/tiff" and "image/gif" are supported. Wildcards are not supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// Set of detected objects with bounding boxes.
@@ -3012,19 +3389,20 @@ pub struct GoogleCloudVisionV1p4beta1InputConfig {
 pub struct GoogleCloudVisionV1p4beta1LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Detected entity location information.
@@ -3032,7 +3410,7 @@ pub struct GoogleCloudVisionV1p4beta1LocalizedObjectAnnotation {
 pub struct GoogleCloudVisionV1p4beta1LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
-    pub lat_lng: Option<LatLng>,
+    pub lat_lng: ::core::option::Option<::std::boxed::Box<LatLng>>,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -3040,10 +3418,10 @@ pub struct GoogleCloudVisionV1p4beta1LocationInfo {
 pub struct GoogleCloudVisionV1p4beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
@@ -3051,13 +3429,13 @@ pub struct GoogleCloudVisionV1p4beta1NormalizedVertex {
 pub struct GoogleCloudVisionV1p4beta1OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATED", "RUNNING", "DONE", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the operation result was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The desired output location and metadata.
@@ -3065,10 +3443,11 @@ pub struct GoogleCloudVisionV1p4beta1OperationMetadata {
 pub struct GoogleCloudVisionV1p4beta1OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
-    pub batch_size: Option<i32>,
+    pub batch_size: ::core::option::Option<i32>,
     /// The Google Cloud Storage location to write the output(s) to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GoogleCloudVisionV1p4beta1GcsDestination>,
+    pub gcs_destination:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1GcsDestination>>,
 }
 
 /// Detected page from OCR.
@@ -3076,19 +3455,22 @@ pub struct GoogleCloudVisionV1p4beta1OutputConfig {
 pub struct GoogleCloudVisionV1p4beta1Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
-    pub blocks: Option<Vec<GoogleCloudVisionV1p4beta1Block>>,
+    pub blocks:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1Block>>>,
     /// Confidence of the OCR results on the page. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Page height. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Additional information detected on the page.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    >,
     /// Page width. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Structural unit of text representing a number of words in certain order.
@@ -3096,16 +3478,20 @@ pub struct GoogleCloudVisionV1p4beta1Page {
 pub struct GoogleCloudVisionV1p4beta1Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// Confidence of the OCR results for the paragraph. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the paragraph.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    >,
     /// List of all words in this paragraph.
     #[serde(default)]
-    pub words: Option<Vec<GoogleCloudVisionV1p4beta1Word>>,
+    pub words:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1Word>>>,
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
@@ -3113,13 +3499,13 @@ pub struct GoogleCloudVisionV1p4beta1Paragraph {
 pub struct GoogleCloudVisionV1p4beta1Position {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
     /// Z coordinate (or depth).
     #[serde(default)]
-    pub z: Option<f32>,
+    pub z: ::core::option::Option<f32>,
 }
 
 /// A Product contains ReferenceImages.
@@ -3127,19 +3513,21 @@ pub struct GoogleCloudVisionV1p4beta1Position {
 pub struct GoogleCloudVisionV1p4beta1Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The user-provided name for this Product. Must not be empty. Must be at most 4096 characters long.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the product. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID. This field is ignored when creating a product.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The category for the product identified by the reference image. This should be one of "homegoods-v2", "apparel-v2", "toys-v2", "packagedgoods-v1" or "general-v1". The legacy categories "homegoods", "apparel", and "toys" are still supported, but these should not be used for new products.
     #[serde(default, rename = "productCategory")]
-    pub product_category: Option<String>,
+    pub product_category: ::core::option::Option<String>,
     /// Key-value pairs that can be attached to a product. At query time, constraints can be specified based on the product_labels. Note that integer values can be provided as strings, e.g. "1199". Only strings with integer values can match a range-based restriction which is to be supported soon. Multiple values can be assigned to the same key. One product may have up to 500 product_labels. Notice that the total number of distinct product_labels over all products in one ProductSet cannot exceed 1M, otherwise the product search pipeline will refuse to work for that ProductSet.
     #[serde(default, rename = "productLabels")]
-    pub product_labels: Option<Vec<GoogleCloudVisionV1p4beta1ProductKeyValue>>,
+    pub product_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1ProductKeyValue>>,
+    >,
 }
 
 /// A product label represented as a key-value pair.
@@ -3147,10 +3535,10 @@ pub struct GoogleCloudVisionV1p4beta1Product {
 pub struct GoogleCloudVisionV1p4beta1ProductKeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The value of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Results for a product search request.
@@ -3158,14 +3546,19 @@ pub struct GoogleCloudVisionV1p4beta1ProductKeyValue {
 pub struct GoogleCloudVisionV1p4beta1ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
-    pub index_time: Option<String>,
+    pub index_time: ::core::option::Option<String>,
     /// List of results grouped by products detected in the query image. Each entry corresponds to one bounding polygon in the query image, and contains the matching products specific to that region. There may be duplicate product matches in the union of all the per-product results.
     #[serde(default, rename = "productGroupedResults")]
-    pub product_grouped_results:
-        Option<Vec<GoogleCloudVisionV1p4beta1ProductSearchResultsGroupedResult>>,
+    pub product_grouped_results: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p4beta1ProductSearchResultsGroupedResult>,
+        >,
+    >,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudVisionV1p4beta1ProductSearchResultsResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1ProductSearchResultsResult>>,
+    >,
 }
 
 /// Information about the products similar to a single product in a query image.
@@ -3173,14 +3566,20 @@ pub struct GoogleCloudVisionV1p4beta1ProductSearchResults {
 pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsGroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_poly:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// List of generic predictions for the object in the bounding box.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations:
-        Option<Vec<GoogleCloudVisionV1p4beta1ProductSearchResultsObjectAnnotation>>,
+    pub object_annotations: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p4beta1ProductSearchResultsObjectAnnotation>,
+        >,
+    >,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<GoogleCloudVisionV1p4beta1ProductSearchResultsResult>>,
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1ProductSearchResultsResult>>,
+    >,
 }
 
 /// Prediction for what the object in the bounding box is.
@@ -3188,16 +3587,16 @@ pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsGroupedResult {
 pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Information about a product.
@@ -3205,13 +3604,13 @@ pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsObjectAnnotation {
 pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// The Product.
     #[serde(default)]
-    pub product: Option<GoogleCloudVisionV1p4beta1Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1Product>>,
     /// A confidence level on the match, ranging from 0 (no confidence) to 1 (full confidence).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// A Property consists of a user-supplied name/value pair.
@@ -3219,13 +3618,13 @@ pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsResult {
 pub struct GoogleCloudVisionV1p4beta1Property {
     /// Name of the property.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Value of numeric properties.
     #[serde(default, rename = "uint64Value")]
-    pub uint64_value: Option<String>,
+    pub uint64_value: ::core::option::Option<String>,
     /// Value of the property.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A ReferenceImage represents a product image and its associated metadata, such as bounding boxes.
@@ -3233,13 +3632,15 @@ pub struct GoogleCloudVisionV1p4beta1Property {
 pub struct GoogleCloudVisionV1p4beta1ReferenceImage {
     /// Optional. Bounding polygons around the areas of interest in the reference image. If this field is empty, the system will try to detect regions of interest. At most 10 bounding polygons will be used. The provided shape is converted into a non-rotated rectangle. Once converted, the small edge of the rectangle must be greater than or equal to 300 pixels. The aspect ratio must be 1:4 or less (i.e. 1:3 is ok; 1:5 is not).
     #[serde(default, rename = "boundingPolys")]
-    pub bounding_polys: Option<Vec<GoogleCloudVisionV1p4beta1BoundingPoly>>,
+    pub bounding_polys: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
+    >,
     /// The resource name of the reference image. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID/referenceImages/IMAGE_ID. This field is ignored when creating a reference image.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The Google Cloud Storage URI of the reference image. The URI must start with gs://.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
@@ -3247,19 +3648,19 @@ pub struct GoogleCloudVisionV1p4beta1ReferenceImage {
 pub struct GoogleCloudVisionV1p4beta1SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub adult: Option<String>,
+    pub adult: ::core::option::Option<String>,
     /// Likelihood that this is a medical image. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub medical: Option<String>,
+    pub medical: ::core::option::Option<String>,
     /// Likelihood that the request image contains racy content. Racy content may include (but is not limited to) skimpy or sheer clothing, strategically covered nudity, lewd or provocative poses, or close-ups of sensitive body areas. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub racy: Option<String>,
+    pub racy: ::core::option::Option<String>,
     /// Spoof likelihood. The likelihood that an modification was made to the image''s canonical version to make it appear funny or offensive. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub spoof: Option<String>,
+    pub spoof: ::core::option::Option<String>,
     /// Likelihood that this image contains violent content. Violent content may include death, serious harm, or injury to individuals or groups of individuals. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub violence: Option<String>,
+    pub violence: ::core::option::Option<String>,
 }
 
 /// A single symbol representation.
@@ -3267,16 +3668,19 @@ pub struct GoogleCloudVisionV1p4beta1SafeSearchAnnotation {
 pub struct GoogleCloudVisionV1p4beta1Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// Confidence of the OCR results for the symbol. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the symbol.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    >,
     /// The actual UTF-8 representation of the symbol.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
@@ -3284,10 +3688,11 @@ pub struct GoogleCloudVisionV1p4beta1Symbol {
 pub struct GoogleCloudVisionV1p4beta1TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
-    pub pages: Option<Vec<GoogleCloudVisionV1p4beta1Page>>,
+    pub pages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1Page>>>,
     /// UTF-8 text detected on the pages.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Detected start or end of a structural component.
@@ -3295,10 +3700,10 @@ pub struct GoogleCloudVisionV1p4beta1TextAnnotation {
 pub struct GoogleCloudVisionV1p4beta1TextAnnotationDetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
-    pub is_prefix: Option<bool>,
+    pub is_prefix: ::core::option::Option<bool>,
     /// Detected break type. // TODO: enum values: ["UNKNOWN", "SPACE", "SURE_SPACE", "EOL_SURE_SPACE", "HYPHEN", "LINE_BREAK"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Detected language for a structural component.
@@ -3306,10 +3711,10 @@ pub struct GoogleCloudVisionV1p4beta1TextAnnotationDetectedBreak {
 pub struct GoogleCloudVisionV1p4beta1TextAnnotationDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Additional information detected on the structural component.
@@ -3317,10 +3722,16 @@ pub struct GoogleCloudVisionV1p4beta1TextAnnotationDetectedLanguage {
 pub struct GoogleCloudVisionV1p4beta1TextAnnotationTextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
-    pub detected_break: Option<GoogleCloudVisionV1p4beta1TextAnnotationDetectedBreak>,
+    pub detected_break: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p4beta1TextAnnotationDetectedBreak>,
+    >,
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: Option<Vec<GoogleCloudVisionV1p4beta1TextAnnotationDetectedLanguage>>,
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<
+            ::std::boxed::Box<GoogleCloudVisionV1p4beta1TextAnnotationDetectedLanguage>,
+        >,
+    >,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
@@ -3328,10 +3739,10 @@ pub struct GoogleCloudVisionV1p4beta1TextAnnotationTextProperty {
 pub struct GoogleCloudVisionV1p4beta1Vertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<i32>,
+    pub x: ::core::option::Option<i32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<i32>,
+    pub y: ::core::option::Option<i32>,
 }
 
 /// Relevant information for the image from the Internet.
@@ -3339,22 +3750,34 @@ pub struct GoogleCloudVisionV1p4beta1Vertex {
 pub struct GoogleCloudVisionV1p4beta1WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
-    pub best_guess_labels: Option<Vec<GoogleCloudVisionV1p4beta1WebDetectionWebLabel>>,
+    pub best_guess_labels: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetectionWebLabel>>,
+    >,
     /// Fully matching images from the Internet. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    pub full_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    >,
     /// Web pages containing the matching images from the Internet.
     #[serde(default, rename = "pagesWithMatchingImages")]
-    pub pages_with_matching_images: Option<Vec<GoogleCloudVisionV1p4beta1WebDetectionWebPage>>,
+    pub pages_with_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetectionWebPage>>,
+    >,
     /// Partial matching images from the Internet. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    pub partial_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    >,
     /// The visually similar image results.
     #[serde(default, rename = "visuallySimilarImages")]
-    pub visually_similar_images: Option<Vec<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    pub visually_similar_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    >,
     /// Deduced entities from similar images on the Internet.
     #[serde(default, rename = "webEntities")]
-    pub web_entities: Option<Vec<GoogleCloudVisionV1p4beta1WebDetectionWebEntity>>,
+    pub web_entities: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetectionWebEntity>>,
+    >,
 }
 
 /// Entity deduced from similar images on the Internet.
@@ -3362,13 +3785,13 @@ pub struct GoogleCloudVisionV1p4beta1WebDetection {
 pub struct GoogleCloudVisionV1p4beta1WebDetectionWebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID.
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Overall relevancy score for the entity. Not normalized and not comparable across different image queries.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Metadata for online images.
@@ -3376,10 +3799,10 @@ pub struct GoogleCloudVisionV1p4beta1WebDetectionWebEntity {
 pub struct GoogleCloudVisionV1p4beta1WebDetectionWebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result image URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Label to provide extra metadata for the web detection.
@@ -3387,10 +3810,10 @@ pub struct GoogleCloudVisionV1p4beta1WebDetectionWebImage {
 pub struct GoogleCloudVisionV1p4beta1WebDetectionWebLabel {
     /// Label for extra metadata.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The BCP-47 language code for label, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Metadata for web pages.
@@ -3398,19 +3821,23 @@ pub struct GoogleCloudVisionV1p4beta1WebDetectionWebLabel {
 pub struct GoogleCloudVisionV1p4beta1WebDetectionWebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    pub full_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    >,
     /// Title for the web page, may contain HTML markups.
     #[serde(default, rename = "pageTitle")]
-    pub page_title: Option<String>,
+    pub page_title: ::core::option::Option<String>,
     /// Partial matching images on the page. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    pub partial_matching_images: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1WebDetectionWebImage>>,
+    >,
     /// (Deprecated) Overall relevancy score for the web page.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result web page URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A word representation.
@@ -3418,16 +3845,21 @@ pub struct GoogleCloudVisionV1p4beta1WebDetectionWebPage {
 pub struct GoogleCloudVisionV1p4beta1Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<GoogleCloudVisionV1p4beta1BoundingPoly>,
+    pub bounding_box:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudVisionV1p4beta1BoundingPoly>>,
     /// Confidence of the OCR results for the word. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the word.
     #[serde(default)]
-    pub property: Option<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    pub property: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudVisionV1p4beta1TextAnnotationTextProperty>,
+    >,
     /// List of symbols in the word. The order of the symbols follows the natural reading order.
     #[serde(default)]
-    pub symbols: Option<Vec<GoogleCloudVisionV1p4beta1Symbol>>,
+    pub symbols: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudVisionV1p4beta1Symbol>>,
+    >,
 }
 
 /// Information about the products similar to a single product in a query image.
@@ -3435,13 +3867,14 @@ pub struct GoogleCloudVisionV1p4beta1Word {
 pub struct GroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<BoundingPoly>,
+    pub bounding_poly: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// List of generic predictions for the object in the bounding box.
     #[serde(default, rename = "objectAnnotations")]
-    pub object_annotations: Option<Vec<ObjectAnnotation>>,
+    pub object_annotations:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ObjectAnnotation>>>,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<Result>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiResult>>>,
 }
 
 /// Client image to perform Google Cloud Vision API tasks over.
@@ -3449,10 +3882,10 @@ pub struct GroupedResult {
 pub struct Image {
     /// Image content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateImages requests. It does not work for AsyncBatchAnnotateImages requests.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// Google Cloud Storage image location, or publicly-accessible image URL. If both content and source are provided for an image, content takes precedence and is used to perform the image annotation request.
     #[serde(default)]
-    pub source: Option<ImageSource>,
+    pub source: ::core::option::Option<::std::boxed::Box<ImageSource>>,
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
@@ -3460,10 +3893,10 @@ pub struct Image {
 pub struct ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
-    pub page_number: Option<i32>,
+    pub page_number: ::core::option::Option<i32>,
     /// The URI of the file used to produce the image.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Image context and/or feature-specific parameters.
@@ -3471,22 +3904,22 @@ pub struct ImageAnnotationContext {
 pub struct ImageContext {
     /// Parameters for crop hints annotation request.
     #[serde(default, rename = "cropHintsParams")]
-    pub crop_hints_params: Option<CropHintsParams>,
+    pub crop_hints_params: ::core::option::Option<::std::boxed::Box<CropHintsParams>>,
     /// List of languages to use for TEXT_DETECTION. In most cases, an empty value yields the best results since it enables automatic language detection. For languages based on the Latin alphabet, setting language_hints is not needed. In rare cases, when the language of the text in the image is known, setting a hint will help get better results (although it will be a significant hindrance if the hint is wrong). Text detection returns an error if one or more of the specified languages is not one of the [supported languages](https://cloud.google.com/vision/docs/languages).
     #[serde(default, rename = "languageHints")]
-    pub language_hints: Option<Vec<String>>,
+    pub language_hints: ::core::option::Option<::std::vec::Vec<String>>,
     /// Not used.
     #[serde(default, rename = "latLongRect")]
-    pub lat_long_rect: Option<LatLongRect>,
+    pub lat_long_rect: ::core::option::Option<::std::boxed::Box<LatLongRect>>,
     /// Parameters for product search.
     #[serde(default, rename = "productSearchParams")]
-    pub product_search_params: Option<ProductSearchParams>,
+    pub product_search_params: ::core::option::Option<::std::boxed::Box<ProductSearchParams>>,
     /// Parameters for text detection and document text detection.
     #[serde(default, rename = "textDetectionParams")]
-    pub text_detection_params: Option<TextDetectionParams>,
+    pub text_detection_params: ::core::option::Option<::std::boxed::Box<TextDetectionParams>>,
     /// Parameters for web detection.
     #[serde(default, rename = "webDetectionParams")]
-    pub web_detection_params: Option<WebDetectionParams>,
+    pub web_detection_params: ::core::option::Option<::std::boxed::Box<WebDetectionParams>>,
 }
 
 /// Stores image properties, such as dominant colors.
@@ -3494,7 +3927,7 @@ pub struct ImageContext {
 pub struct ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
-    pub dominant_colors: Option<DominantColorsAnnotation>,
+    pub dominant_colors: ::core::option::Option<::std::boxed::Box<DominantColorsAnnotation>>,
 }
 
 /// External image source (Google Cloud Storage or web URL image location).
@@ -3502,10 +3935,10 @@ pub struct ImageProperties {
 pub struct ImageSource {
     /// **Use image_uri instead.** The Google Cloud Storage URI of the form gs://bucket_name/object_name. Object versioning is not supported. See [Google Cloud Storage Request URIs](https://cloud.google.com/storage/docs/reference-uris) for more info.
     #[serde(default, rename = "gcsImageUri")]
-    pub gcs_image_uri: Option<String>,
+    pub gcs_image_uri: ::core::option::Option<String>,
     /// The URI of the source image. Can be either: 1. A Google Cloud Storage URI of the form gs://bucket_name/object_name. Object versioning is not supported. See [Google Cloud Storage Request URIs](https://cloud.google.com/storage/docs/reference-uris) for more info. 2. A publicly-accessible image HTTP/HTTPS URL. When fetching images from HTTP/HTTPS URLs, Google cannot guarantee that the request will be completed. Your request may fail if the specified host denies the request (e.g. due to request throttling or DOS prevention), or if Google throttles requests to the site for abuse prevention. You should not depend on externally-hosted images for production applications. When both gcs_image_uri and image_uri are specified, image_uri takes precedence.
     #[serde(default, rename = "imageUri")]
-    pub image_uri: Option<String>,
+    pub image_uri: ::core::option::Option<String>,
 }
 
 /// The Google Cloud Storage location for a csv file which preserves a list of ImportProductSetRequests in each line.
@@ -3513,7 +3946,7 @@ pub struct ImageSource {
 pub struct ImportProductSetsGcsSource {
     /// The Google Cloud Storage URI of the input csv file. The URI must start with gs://. The format of the input csv file should be one image per line. In each line, there are 8 columns. 1. image-uri 2. image-id 3. product-set-id 4. product-id 5. product-category 6. product-display-name 7. labels 8. bounding-poly The image-uri, product-set-id, product-id, and product-category columns are required. All other columns are optional. If the ProductSet or Product specified by the product-set-id and product-id values does not exist, then the system will create a new ProductSet or Product for the image. In this case, the product-display-name column refers to display_name, the product-category column refers to product_category, and the labels column refers to product_labels. The image-id column is optional but must be unique if provided. If it is empty, the system will automatically assign a unique id to the image. The product-display-name column is optional. If it is empty, the system sets the display_name field for the product to a space (" "). You can update the display_name later by using the API. If a Product with the specified product-id already exists, then the system ignores the product-display-name, product-category, and labels columns. The labels column (optional) is a line containing a list of comma-separated key-value pairs, in the following format: "key_1=value_1,key_2=value_2,...,key_n=value_n" The bounding-poly column (optional) identifies one region of interest from the image in the same manner as CreateReferenceImage. If you do not specify the bounding-poly column, then the system will try to detect regions of interest automatically. At most one bounding-poly column is allowed per line. If the image contains multiple regions of interest, add a line to the CSV file that includes the same product information, and the bounding-poly values for each region of interest. The bounding-poly column must contain an even number of comma-separated numbers, in the format "p1_x,p1_y,p2_x,p2_y,...,pn_x,pn_y". Use non-negative integers for absolute bounding polygons, and float values in [0, 1] for normalized bounding polygons. The system will resize the image if the image resolution is too large to process (larger than 20MP).
     #[serde(default, rename = "csvFileUri")]
-    pub csv_file_uri: Option<String>,
+    pub csv_file_uri: ::core::option::Option<String>,
 }
 
 /// The input content for the ImportProductSets method.
@@ -3521,7 +3954,7 @@ pub struct ImportProductSetsGcsSource {
 pub struct ImportProductSetsInputConfig {
     /// The Google Cloud Storage location for a csv file which preserves a list of ImportProductSetRequests in each line.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<ImportProductSetsGcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<ImportProductSetsGcsSource>>,
 }
 
 /// Request message for the ImportProductSets method.
@@ -3529,7 +3962,7 @@ pub struct ImportProductSetsInputConfig {
 pub struct ImportProductSetsRequest {
     /// Required. The input content for the list of requests.
     #[serde(default, rename = "inputConfig")]
-    pub input_config: Option<ImportProductSetsInputConfig>,
+    pub input_config: ::core::option::Option<::std::boxed::Box<ImportProductSetsInputConfig>>,
 }
 
 /// Response message for the ImportProductSets method. This message is returned by the google.longrunning.Operations.GetOperation method in the returned google.longrunning.Operation.response field.
@@ -3537,10 +3970,11 @@ pub struct ImportProductSetsRequest {
 pub struct ImportProductSetsResponse {
     /// The list of reference_images that are imported successfully.
     #[serde(default, rename = "referenceImages")]
-    pub reference_images: Option<Vec<ReferenceImage>>,
+    pub reference_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReferenceImage>>>,
     /// The rpc status for each ImportProductSet request, including both successes and errors. The number of statuses here matches the number of lines in the csv file, and statuses[i] stores the success or failure status of processing the i-th line of the csv, starting from line 0.
     #[serde(default)]
-    pub statuses: Option<Vec<Status>>,
+    pub statuses: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Status>>>,
 }
 
 /// The desired input location and metadata.
@@ -3548,13 +3982,13 @@ pub struct ImportProductSetsResponse {
 pub struct InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
-    pub content: Option<String>,
+    pub content: ::core::option::Option<String>,
     /// The Google Cloud Storage location to read the input from.
     #[serde(default, rename = "gcsSource")]
-    pub gcs_source: Option<GcsSource>,
+    pub gcs_source: ::core::option::Option<::std::boxed::Box<GcsSource>>,
     /// The type of the file. Currently only "application/pdf", "image/tiff" and "image/gif" are supported. Wildcards are not supported.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
 }
 
 /// A product label represented as a key-value pair.
@@ -3562,10 +3996,10 @@ pub struct InputConfig {
 pub struct KeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// The value of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
@@ -3573,10 +4007,10 @@ pub struct KeyValue {
 pub struct Landmark {
     /// Face landmark position.
     #[serde(default)]
-    pub position: Option<Position>,
+    pub position: ::core::option::Option<::std::boxed::Box<Position>>,
     /// Face landmark type. // TODO: enum values: ["UNKNOWN_LANDMARK", "LEFT_EYE", "RIGHT_EYE", "LEFT_OF_LEFT_EYEBROW", "RIGHT_OF_LEFT_EYEBROW", "LEFT_OF_RIGHT_EYEBROW", "RIGHT_OF_RIGHT_EYEBROW", "MIDPOINT_BETWEEN_EYES", "NOSE_TIP", "UPPER_LIP", "LOWER_LIP", "MOUTH_LEFT", "MOUTH_RIGHT", "MOUTH_CENTER", "NOSE_BOTTOM_RIGHT", "NOSE_BOTTOM_LEFT", "NOSE_BOTTOM_CENTER", "LEFT_EYE_TOP_BOUNDARY", "LEFT_EYE_RIGHT_CORNER", "LEFT_EYE_BOTTOM_BOUNDARY", "LEFT_EYE_LEFT_CORNER", "RIGHT_EYE_TOP_BOUNDARY", "RIGHT_EYE_RIGHT_CORNER", "RIGHT_EYE_BOTTOM_BOUNDARY", "RIGHT_EYE_LEFT_CORNER", "LEFT_EYEBROW_UPPER_MIDPOINT", "RIGHT_EYEBROW_UPPER_MIDPOINT", "LEFT_EAR_TRAGION", "RIGHT_EAR_TRAGION", "LEFT_EYE_PUPIL", "RIGHT_EYE_PUPIL", "FOREHEAD_GLABELLA", "CHIN_GNATHION", "CHIN_LEFT_GONION", "CHIN_RIGHT_GONION", "LEFT_CHEEK_CENTER", "RIGHT_CHEEK_CENTER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
@@ -3584,10 +4018,10 @@ pub struct Landmark {
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
-    pub latitude: Option<f64>,
+    pub latitude: ::core::option::Option<f64>,
     /// The longitude in degrees. It must be in the range [-180.0, +180.0].
     #[serde(default)]
-    pub longitude: Option<f64>,
+    pub longitude: ::core::option::Option<f64>,
 }
 
 /// Rectangle determined by min and max LatLng pairs.
@@ -3595,10 +4029,10 @@ pub struct LatLng {
 pub struct LatLongRect {
     /// Max lat/long pair.
     #[serde(default, rename = "maxLatLng")]
-    pub max_lat_lng: Option<LatLng>,
+    pub max_lat_lng: ::core::option::Option<::std::boxed::Box<LatLng>>,
     /// Min lat/long pair.
     #[serde(default, rename = "minLatLng")]
-    pub min_lat_lng: Option<LatLng>,
+    pub min_lat_lng: ::core::option::Option<::std::boxed::Box<LatLng>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -3606,13 +4040,13 @@ pub struct LatLongRect {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for the ListProductSets method.
@@ -3620,10 +4054,10 @@ pub struct ListOperationsResponse {
 pub struct ListProductSetsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of ProductSets.
     #[serde(default, rename = "productSets")]
-    pub product_sets: Option<Vec<ProductSet>>,
+    pub product_sets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ProductSet>>>,
 }
 
 /// Response message for the ListProductsInProductSet method.
@@ -3631,10 +4065,10 @@ pub struct ListProductSetsResponse {
 pub struct ListProductsInProductSetResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of Products.
     #[serde(default)]
-    pub products: Option<Vec<Product>>,
+    pub products: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Product>>>,
 }
 
 /// Response message for the ListProducts method.
@@ -3642,10 +4076,10 @@ pub struct ListProductsInProductSetResponse {
 pub struct ListProductsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// List of products.
     #[serde(default)]
-    pub products: Option<Vec<Product>>,
+    pub products: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Product>>>,
 }
 
 /// Response message for the ListReferenceImages method.
@@ -3653,13 +4087,14 @@ pub struct ListProductsResponse {
 pub struct ListReferenceImagesResponse {
     /// The next_page_token returned from a previous List request, if any.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The maximum number of items to return. Default 10, maximum 100.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// The list of reference images.
     #[serde(default, rename = "referenceImages")]
-    pub reference_images: Option<Vec<ReferenceImage>>,
+    pub reference_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ReferenceImage>>>,
 }
 
 /// Set of detected objects with bounding boxes.
@@ -3667,19 +4102,19 @@ pub struct ListReferenceImagesResponse {
 pub struct LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<BoundingPoly>,
+    pub bounding_poly: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Detected entity location information.
@@ -3687,7 +4122,7 @@ pub struct LocalizedObjectAnnotation {
 pub struct LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
-    pub lat_lng: Option<LatLng>,
+    pub lat_lng: ::core::option::Option<::std::boxed::Box<LatLng>>,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
@@ -3695,10 +4130,10 @@ pub struct LocationInfo {
 pub struct NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
 }
 
 /// Prediction for what the object in the bounding box is.
@@ -3706,16 +4141,16 @@ pub struct NormalizedVertex {
 pub struct ObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
     /// Object ID that should align with EntityAnnotation mid.
     #[serde(default)]
-    pub mid: Option<String>,
+    pub mid: ::core::option::Option<String>,
     /// Object name, expressed in its language_code language.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Score of the result. Range [0, 1].
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -3723,19 +4158,19 @@ pub struct ObjectAnnotation {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
@@ -3743,13 +4178,13 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Current state of the batch operation. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATED", "RUNNING", "DONE", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The time when the operation result was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The desired output location and metadata.
@@ -3757,10 +4192,10 @@ pub struct OperationMetadata {
 pub struct OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
-    pub batch_size: Option<i32>,
+    pub batch_size: ::core::option::Option<i32>,
     /// The Google Cloud Storage location to write the output(s) to.
     #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: Option<GcsDestination>,
+    pub gcs_destination: ::core::option::Option<::std::boxed::Box<GcsDestination>>,
 }
 
 /// Detected page from OCR.
@@ -3768,19 +4203,19 @@ pub struct OutputConfig {
 pub struct Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
-    pub blocks: Option<Vec<Block>>,
+    pub blocks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Block>>>,
     /// Confidence of the OCR results on the page. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Page height. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub height: Option<i32>,
+    pub height: ::core::option::Option<i32>,
     /// Additional information detected on the page.
     #[serde(default)]
-    pub property: Option<TextProperty>,
+    pub property: ::core::option::Option<::std::boxed::Box<TextProperty>>,
     /// Page width. For PDFs the unit is points. For images (including TIFFs) the unit is pixels.
     #[serde(default)]
-    pub width: Option<i32>,
+    pub width: ::core::option::Option<i32>,
 }
 
 /// Structural unit of text representing a number of words in certain order.
@@ -3788,16 +4223,16 @@ pub struct Page {
 pub struct Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<BoundingPoly>,
+    pub bounding_box: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// Confidence of the OCR results for the paragraph. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the paragraph.
     #[serde(default)]
-    pub property: Option<TextProperty>,
+    pub property: ::core::option::Option<::std::boxed::Box<TextProperty>>,
     /// List of all words in this paragraph.
     #[serde(default)]
-    pub words: Option<Vec<Word>>,
+    pub words: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Word>>>,
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
@@ -3805,13 +4240,13 @@ pub struct Paragraph {
 pub struct Position {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<f32>,
+    pub x: ::core::option::Option<f32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<f32>,
+    pub y: ::core::option::Option<f32>,
     /// Z coordinate (or depth).
     #[serde(default)]
-    pub z: Option<f32>,
+    pub z: ::core::option::Option<f32>,
 }
 
 /// A Product contains ReferenceImages.
@@ -3819,19 +4254,19 @@ pub struct Position {
 pub struct Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// The user-provided name for this Product. Must not be empty. Must be at most 4096 characters long.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The resource name of the product. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID. This field is ignored when creating a product.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Immutable. The category for the product identified by the reference image. This should be one of "homegoods-v2", "apparel-v2", "toys-v2", "packagedgoods-v1" or "general-v1". The legacy categories "homegoods", "apparel", and "toys" are still supported, but these should not be used for new products.
     #[serde(default, rename = "productCategory")]
-    pub product_category: Option<String>,
+    pub product_category: ::core::option::Option<String>,
     /// Key-value pairs that can be attached to a product. At query time, constraints can be specified based on the product_labels. Note that integer values can be provided as strings, e.g. "1199". Only strings with integer values can match a range-based restriction which is to be supported soon. Multiple values can be assigned to the same key. One product may have up to 500 product_labels. Notice that the total number of distinct product_labels over all products in one ProductSet cannot exceed 1M, otherwise the product search pipeline will refuse to work for that ProductSet.
     #[serde(default, rename = "productLabels")]
-    pub product_labels: Option<Vec<KeyValue>>,
+    pub product_labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<KeyValue>>>,
 }
 
 /// Parameters for a product search request.
@@ -3839,16 +4274,16 @@ pub struct Product {
 pub struct ProductSearchParams {
     /// The bounding polygon around the area of interest in the image. If it is not specified, system discretion will be applied.
     #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: Option<BoundingPoly>,
+    pub bounding_poly: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// The filtering expression. This can be used to restrict search results based on Product labels. We currently support an AND of OR of key-value expressions, where each expression within an OR must have the same key. An ''='' should be used to connect the key and value. For example, "(color = red OR color = blue) AND brand = Google" is acceptable, but "(color = red OR brand = Google)" is not acceptable. "color: red" is not acceptable because it uses a '':'' instead of an ''=''.
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// The list of product categories to search in. Currently, we only consider the first category, and either "homegoods-v2", "apparel-v2", "toys-v2", "packagedgoods-v1", or "general-v1" should be specified. The legacy categories "homegoods", "apparel", and "toys" are still supported but will be deprecated. For new products, please use "homegoods-v2", "apparel-v2", or "toys-v2" for better product search accuracy. It is recommended to migrate existing products to these categories as well.
     #[serde(default, rename = "productCategories")]
-    pub product_categories: Option<Vec<String>>,
+    pub product_categories: ::core::option::Option<::std::vec::Vec<String>>,
     /// The resource name of a ProductSet to be searched for similar images. Format is: projects/PROJECT_ID/locations/LOC_ID/productSets/PRODUCT_SET_ID.
     #[serde(default, rename = "productSet")]
-    pub product_set: Option<String>,
+    pub product_set: ::core::option::Option<String>,
 }
 
 /// Results for a product search request.
@@ -3856,13 +4291,14 @@ pub struct ProductSearchParams {
 pub struct ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
-    pub index_time: Option<String>,
+    pub index_time: ::core::option::Option<String>,
     /// List of results grouped by products detected in the query image. Each entry corresponds to one bounding polygon in the query image, and contains the matching products specific to that region. There may be duplicate product matches in the union of all the per-product results.
     #[serde(default, rename = "productGroupedResults")]
-    pub product_grouped_results: Option<Vec<GroupedResult>>,
+    pub product_grouped_results:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GroupedResult>>>,
     /// List of results, one for each product match.
     #[serde(default)]
-    pub results: Option<Vec<Result>>,
+    pub results: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApiResult>>>,
 }
 
 /// A ProductSet contains Products. A ProductSet can contain a maximum of 1 million reference images. If the limit is exceeded, periodic indexing will fail.
@@ -3870,16 +4306,16 @@ pub struct ProductSearchResults {
 pub struct ProductSet {
     /// The user-provided name for this ProductSet. Must not be empty. Must be at most 4096 characters long.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. If there was an error with indexing the product set, the field is populated. This field is ignored when creating a ProductSet.
     #[serde(default, rename = "indexError")]
-    pub index_error: Option<Status>,
+    pub index_error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Output only. The time at which this ProductSet was last indexed. Query results will reflect all updates before this time. If this ProductSet has never been indexed, this timestamp is the default value "1970-01-01T00:00:00Z". This field is ignored when creating a ProductSet.
     #[serde(default, rename = "indexTime")]
-    pub index_time: Option<String>,
+    pub index_time: ::core::option::Option<String>,
     /// The resource name of the ProductSet. Format is: projects/PROJECT_ID/locations/LOC_ID/productSets/PRODUCT_SET_ID. This field is ignored when creating a ProductSet.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Config to control which ProductSet contains the Products to be deleted.
@@ -3887,7 +4323,7 @@ pub struct ProductSet {
 pub struct ProductSetPurgeConfig {
     /// The ProductSet that contains the Products to delete. If a Product is a member of product_set_id in addition to other ProductSets, the Product will still be deleted.
     #[serde(default, rename = "productSetId")]
-    pub product_set_id: Option<String>,
+    pub product_set_id: ::core::option::Option<String>,
 }
 
 /// A Property consists of a user-supplied name/value pair.
@@ -3895,13 +4331,13 @@ pub struct ProductSetPurgeConfig {
 pub struct Property {
     /// Name of the property.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Value of numeric properties.
     #[serde(default, rename = "uint64Value")]
-    pub uint64_value: Option<String>,
+    pub uint64_value: ::core::option::Option<String>,
     /// Value of the property.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Request message for the PurgeProducts method.
@@ -3909,13 +4345,13 @@ pub struct Property {
 pub struct PurgeProductsRequest {
     /// If delete_orphan_products is true, all Products that are not in any ProductSet will be deleted.
     #[serde(default, rename = "deleteOrphanProducts")]
-    pub delete_orphan_products: Option<bool>,
+    pub delete_orphan_products: ::core::option::Option<bool>,
     /// The default value is false. Override this value to true to actually perform the purge.
     #[serde(default)]
-    pub force: Option<bool>,
+    pub force: ::core::option::Option<bool>,
     /// Specify which ProductSet contains the Products to be deleted.
     #[serde(default, rename = "productSetPurgeConfig")]
-    pub product_set_purge_config: Option<ProductSetPurgeConfig>,
+    pub product_set_purge_config: ::core::option::Option<::std::boxed::Box<ProductSetPurgeConfig>>,
 }
 
 /// A ReferenceImage represents a product image and its associated metadata, such as bounding boxes.
@@ -3923,13 +4359,13 @@ pub struct PurgeProductsRequest {
 pub struct ReferenceImage {
     /// Optional. Bounding polygons around the areas of interest in the reference image. If this field is empty, the system will try to detect regions of interest. At most 10 bounding polygons will be used. The provided shape is converted into a non-rotated rectangle. Once converted, the small edge of the rectangle must be greater than or equal to 300 pixels. The aspect ratio must be 1:4 or less (i.e. 1:3 is ok; 1:5 is not).
     #[serde(default, rename = "boundingPolys")]
-    pub bounding_polys: Option<Vec<BoundingPoly>>,
+    pub bounding_polys: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BoundingPoly>>>,
     /// The resource name of the reference image. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID/referenceImages/IMAGE_ID. This field is ignored when creating a reference image.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The Google Cloud Storage URI of the reference image. The URI must start with gs://.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Request message for the RemoveProductFromProductSet method.
@@ -3937,21 +4373,21 @@ pub struct ReferenceImage {
 pub struct RemoveProductFromProductSetRequest {
     /// Required. The resource name for the Product to be removed from this ProductSet. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID
     #[serde(default)]
-    pub product: Option<String>,
+    pub product: ::core::option::Option<String>,
 }
 
 /// Information about a product.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Result {
+pub struct ApiResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
-    pub image: Option<String>,
+    pub image: ::core::option::Option<String>,
     /// The Product.
     #[serde(default)]
-    pub product: Option<Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<Product>>,
     /// A confidence level on the match, ranging from 0 (no confidence) to 1 (full confidence).
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
@@ -3959,19 +4395,19 @@ pub struct Result {
 pub struct SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub adult: Option<String>,
+    pub adult: ::core::option::Option<String>,
     /// Likelihood that this is a medical image. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub medical: Option<String>,
+    pub medical: ::core::option::Option<String>,
     /// Likelihood that the request image contains racy content. Racy content may include (but is not limited to) skimpy or sheer clothing, strategically covered nudity, lewd or provocative poses, or close-ups of sensitive body areas. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub racy: Option<String>,
+    pub racy: ::core::option::Option<String>,
     /// Spoof likelihood. The likelihood that an modification was made to the image''s canonical version to make it appear funny or offensive. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub spoof: Option<String>,
+    pub spoof: ::core::option::Option<String>,
     /// Likelihood that this image contains violent content. Violent content may include death, serious harm, or injury to individuals or groups of individuals. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
-    pub violence: Option<String>,
+    pub violence: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -3979,13 +4415,13 @@ pub struct SafeSearchAnnotation {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A single symbol representation.
@@ -3993,16 +4429,16 @@ pub struct Status {
 pub struct Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<BoundingPoly>,
+    pub bounding_box: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// Confidence of the OCR results for the symbol. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the symbol.
     #[serde(default)]
-    pub property: Option<TextProperty>,
+    pub property: ::core::option::Option<::std::boxed::Box<TextProperty>>,
     /// The actual UTF-8 representation of the symbol.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
@@ -4010,10 +4446,10 @@ pub struct Symbol {
 pub struct TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
-    pub pages: Option<Vec<Page>>,
+    pub pages: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Page>>>,
     /// UTF-8 text detected on the pages.
     #[serde(default)]
-    pub text: Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// Parameters for text detections. This is used to control TEXT_DETECTION and DOCUMENT_TEXT_DETECTION features.
@@ -4021,10 +4457,10 @@ pub struct TextAnnotation {
 pub struct TextDetectionParams {
     /// A list of advanced OCR options to further fine-tune OCR behavior. Current valid values are: - legacy_layout: a heuristics layout detection algorithm, which serves as an alternative to the current ML-based layout detection algorithm. Customers can choose the best suitable layout algorithm based on their situation.
     #[serde(default, rename = "advancedOcrOptions")]
-    pub advanced_ocr_options: Option<Vec<String>>,
+    pub advanced_ocr_options: ::core::option::Option<::std::vec::Vec<String>>,
     /// By default, Cloud Vision API only includes confidence score for DOCUMENT_TEXT_DETECTION result. Set the flag to true to include confidence score for TEXT_DETECTION as well.
     #[serde(default, rename = "enableTextDetectionConfidenceScore")]
-    pub enable_text_detection_confidence_score: Option<bool>,
+    pub enable_text_detection_confidence_score: ::core::option::Option<bool>,
 }
 
 /// Additional information detected on the structural component.
@@ -4032,10 +4468,11 @@ pub struct TextDetectionParams {
 pub struct TextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
-    pub detected_break: Option<DetectedBreak>,
+    pub detected_break: ::core::option::Option<::std::boxed::Box<DetectedBreak>>,
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: Option<Vec<DetectedLanguage>>,
+    pub detected_languages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DetectedLanguage>>>,
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
@@ -4043,10 +4480,10 @@ pub struct TextProperty {
 pub struct Vertex {
     /// X coordinate.
     #[serde(default)]
-    pub x: Option<i32>,
+    pub x: ::core::option::Option<i32>,
     /// Y coordinate.
     #[serde(default)]
-    pub y: Option<i32>,
+    pub y: ::core::option::Option<i32>,
 }
 
 /// Relevant information for the image from the Internet.
@@ -4054,22 +4491,25 @@ pub struct Vertex {
 pub struct WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
-    pub best_guess_labels: Option<Vec<WebLabel>>,
+    pub best_guess_labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebLabel>>>,
     /// Fully matching images from the Internet. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<WebImage>>,
+    pub full_matching_images: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebImage>>>,
     /// Web pages containing the matching images from the Internet.
     #[serde(default, rename = "pagesWithMatchingImages")]
-    pub pages_with_matching_images: Option<Vec<WebPage>>,
+    pub pages_with_matching_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebPage>>>,
     /// Partial matching images from the Internet. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<WebImage>>,
+    pub partial_matching_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebImage>>>,
     /// The visually similar image results.
     #[serde(default, rename = "visuallySimilarImages")]
-    pub visually_similar_images: Option<Vec<WebImage>>,
+    pub visually_similar_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebImage>>>,
     /// Deduced entities from similar images on the Internet.
     #[serde(default, rename = "webEntities")]
-    pub web_entities: Option<Vec<WebEntity>>,
+    pub web_entities: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebEntity>>>,
 }
 
 /// Parameters for web detection request.
@@ -4077,7 +4517,7 @@ pub struct WebDetection {
 pub struct WebDetectionParams {
     /// This field has no effect on results.
     #[serde(default, rename = "includeGeoResults")]
-    pub include_geo_results: Option<bool>,
+    pub include_geo_results: ::core::option::Option<bool>,
 }
 
 /// Entity deduced from similar images on the Internet.
@@ -4085,13 +4525,13 @@ pub struct WebDetectionParams {
 pub struct WebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Opaque entity ID.
     #[serde(default, rename = "entityId")]
-    pub entity_id: Option<String>,
+    pub entity_id: ::core::option::Option<String>,
     /// Overall relevancy score for the entity. Not normalized and not comparable across different image queries.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
 }
 
 /// Metadata for online images.
@@ -4099,10 +4539,10 @@ pub struct WebEntity {
 pub struct WebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result image URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// Label to provide extra metadata for the web detection.
@@ -4110,10 +4550,10 @@ pub struct WebImage {
 pub struct WebLabel {
     /// Label for extra metadata.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The BCP-47 language code for label, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
-    pub language_code: Option<String>,
+    pub language_code: ::core::option::Option<String>,
 }
 
 /// Metadata for web pages.
@@ -4121,19 +4561,20 @@ pub struct WebLabel {
 pub struct WebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
-    pub full_matching_images: Option<Vec<WebImage>>,
+    pub full_matching_images: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebImage>>>,
     /// Title for the web page, may contain HTML markups.
     #[serde(default, rename = "pageTitle")]
-    pub page_title: Option<String>,
+    pub page_title: ::core::option::Option<String>,
     /// Partial matching images on the page. Those images are similar enough to share some key-point features. For example an original image will likely have partial matching for its crops.
     #[serde(default, rename = "partialMatchingImages")]
-    pub partial_matching_images: Option<Vec<WebImage>>,
+    pub partial_matching_images:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<WebImage>>>,
     /// (Deprecated) Overall relevancy score for the web page.
     #[serde(default)]
-    pub score: Option<f32>,
+    pub score: ::core::option::Option<f32>,
     /// The result web page URL.
     #[serde(default)]
-    pub url: Option<String>,
+    pub url: ::core::option::Option<String>,
 }
 
 /// A word representation.
@@ -4141,14 +4582,14 @@ pub struct WebPage {
 pub struct Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
-    pub bounding_box: Option<BoundingPoly>,
+    pub bounding_box: ::core::option::Option<::std::boxed::Box<BoundingPoly>>,
     /// Confidence of the OCR results for the word. Range [0, 1].
     #[serde(default)]
-    pub confidence: Option<f32>,
+    pub confidence: ::core::option::Option<f32>,
     /// Additional information detected for the word.
     #[serde(default)]
-    pub property: Option<TextProperty>,
+    pub property: ::core::option::Option<::std::boxed::Box<TextProperty>>,
     /// List of symbols in the word. The order of the symbols follows the natural reading order.
     #[serde(default)]
-    pub symbols: Option<Vec<Symbol>>,
+    pub symbols: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Symbol>>>,
 }

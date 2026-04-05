@@ -10,30 +10,30 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// CustomerLicense resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomerLicense {
     /// The ID of the application corresponding to this license query.
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     /// The domain name of the customer.
     #[serde(default, rename = "customerId")]
-    pub customer_id: Option<String>,
+    pub customer_id: ::core::option::Option<String>,
     /// (Deprecated)
     #[serde(default)]
-    pub editions: Option<Vec<Editions>>,
+    pub editions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Editions>>>,
     /// The ID of the customer license.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The type of API resource. This is always appsmarket#customerLicense.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The customer''s license status. One of: - ACTIVE: The customer has a valid license. - UNLICENSED: There is no license. Either this customer has never installed your application or has deleted it.
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Editions resource type.
@@ -41,13 +41,13 @@ pub struct CustomerLicense {
 pub struct Editions {
     /// (Deprecated)
     #[serde(default, rename = "assignedSeats")]
-    pub assigned_seats: Option<i32>,
+    pub assigned_seats: ::core::option::Option<i32>,
     /// (Deprecated)
     #[serde(default, rename = "editionId")]
-    pub edition_id: Option<String>,
+    pub edition_id: ::core::option::Option<String>,
     /// (Deprecated)
     #[serde(default, rename = "seatCount")]
-    pub seat_count: Option<i32>,
+    pub seat_count: ::core::option::Option<i32>,
 }
 
 /// UserLicense resource type.
@@ -55,26 +55,26 @@ pub struct Editions {
 pub struct UserLicense {
     /// The ID of the application corresponding to the license query.
     #[serde(default, rename = "applicationId")]
-    pub application_id: Option<String>,
+    pub application_id: ::core::option::Option<String>,
     /// The domain name of the user.
     #[serde(default, rename = "customerId")]
-    pub customer_id: Option<String>,
+    pub customer_id: ::core::option::Option<String>,
     /// (Deprecated)
     #[serde(default, rename = "editionId")]
-    pub edition_id: Option<String>,
+    pub edition_id: ::core::option::Option<String>,
     /// The domain administrator has activated the application for this domain.
     #[serde(default)]
-    pub enabled: Option<bool>,
+    pub enabled: ::core::option::Option<bool>,
     /// The ID of the user license.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The type of API resource. This is always appsmarket#userLicense.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The user''s licensing status. One of: - ACTIVE: The user has a valid license and should be permitted to use the application. - UNLICENSED: The administrator of this user''s domain never assigned a seat for the application to this user. - EXPIRED: The administrator assigned a seat to this user, but the license is expired.
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// The email address of the user.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }

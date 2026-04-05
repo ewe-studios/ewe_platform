@@ -10,27 +10,27 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Information about the action.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Action {
     /// The actor responsible for this action (or empty if all actors are responsible).
     #[serde(default)]
-    pub actor: Option<Actor>,
+    pub actor: ::core::option::Option<::std::boxed::Box<Actor>>,
     /// The type and detailed information about the action.
     #[serde(default)]
-    pub detail: Option<ActionDetail>,
+    pub detail: ::core::option::Option<::std::boxed::Box<ActionDetail>>,
     /// The target this action affects (or empty if affecting all targets). This represents the state of the target immediately after this action occurred.
     #[serde(default)]
-    pub target: Option<Target>,
+    pub target: ::core::option::Option<::std::boxed::Box<Target>>,
     /// The action occurred over this time range.
     #[serde(default, rename = "timeRange")]
-    pub time_range: Option<TimeRange>,
+    pub time_range: ::core::option::Option<::std::boxed::Box<TimeRange>>,
     /// The action occurred at this specific time.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
 }
 
 /// Data describing the type and additional information of an action.
@@ -38,40 +38,40 @@ pub struct Action {
 pub struct ActionDetail {
     /// Label was changed.
     #[serde(default, rename = "appliedLabelChange")]
-    pub applied_label_change: Option<AppliedLabelChange>,
+    pub applied_label_change: ::core::option::Option<::std::boxed::Box<AppliedLabelChange>>,
     /// A change about comments was made.
     #[serde(default)]
-    pub comment: Option<Comment>,
+    pub comment: ::core::option::Option<::std::boxed::Box<Comment>>,
     /// An object was created.
     #[serde(default)]
-    pub create: Option<Create>,
+    pub create: ::core::option::Option<::std::boxed::Box<Create>>,
     /// An object was deleted.
     #[serde(default)]
-    pub delete: Option<Delete>,
+    pub delete: ::core::option::Option<::std::boxed::Box<Delete>>,
     /// A change happened in data leak prevention status.
     #[serde(default, rename = "dlpChange")]
-    pub dlp_change: Option<DataLeakPreventionChange>,
+    pub dlp_change: ::core::option::Option<::std::boxed::Box<DataLeakPreventionChange>>,
     /// An object was edited.
     #[serde(default)]
-    pub edit: Option<serde_json::Value>,
+    pub edit: ::core::option::Option<serde_json::Value>,
     /// An object was moved.
     #[serde(default, rename = "move")]
-    pub move_: Option<Move>,
+    pub move_: ::core::option::Option<::std::boxed::Box<Move>>,
     /// The permission on an object was changed.
     #[serde(default, rename = "permissionChange")]
-    pub permission_change: Option<PermissionChange>,
+    pub permission_change: ::core::option::Option<::std::boxed::Box<PermissionChange>>,
     /// An object was referenced in an application outside of Drive/Docs.
     #[serde(default)]
-    pub reference: Option<ApplicationReference>,
+    pub reference: ::core::option::Option<::std::boxed::Box<ApplicationReference>>,
     /// An object was renamed.
     #[serde(default)]
-    pub rename: Option<Rename>,
+    pub rename: ::core::option::Option<::std::boxed::Box<Rename>>,
     /// A deleted object was restored.
     #[serde(default)]
-    pub restore: Option<Restore>,
+    pub restore: ::core::option::Option<::std::boxed::Box<Restore>>,
     /// Settings were changed.
     #[serde(default, rename = "settingsChange")]
-    pub settings_change: Option<SettingsChange>,
+    pub settings_change: ::core::option::Option<::std::boxed::Box<SettingsChange>>,
 }
 
 /// The actor of a Drive activity.
@@ -79,19 +79,19 @@ pub struct ActionDetail {
 pub struct Actor {
     /// An administrator.
     #[serde(default)]
-    pub administrator: Option<serde_json::Value>,
+    pub administrator: ::core::option::Option<serde_json::Value>,
     /// An anonymous user.
     #[serde(default)]
-    pub anonymous: Option<serde_json::Value>,
+    pub anonymous: ::core::option::Option<serde_json::Value>,
     /// An account acting on behalf of another.
     #[serde(default)]
-    pub impersonation: Option<Impersonation>,
+    pub impersonation: ::core::option::Option<::std::boxed::Box<Impersonation>>,
     /// A non-user actor (i.e. system triggered).
     #[serde(default)]
-    pub system: Option<SystemEvent>,
+    pub system: ::core::option::Option<::std::boxed::Box<SystemEvent>>,
     /// An end user.
     #[serde(default)]
-    pub user: Option<User>,
+    pub user: ::core::option::Option<::std::boxed::Box<User>>,
 }
 
 /// Activity in applications other than Drive.
@@ -99,7 +99,7 @@ pub struct Actor {
 pub struct ApplicationReference {
     /// The reference type corresponding to this event. // TODO: enum values: ["UNSPECIFIED_REFERENCE_TYPE", "LINK", "DISCUSS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Label changes that were made on the Target.
@@ -107,7 +107,8 @@ pub struct ApplicationReference {
 pub struct AppliedLabelChange {
     /// Changes that were made to the Label on the Target.
     #[serde(default)]
-    pub changes: Option<Vec<AppliedLabelChangeDetail>>,
+    pub changes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AppliedLabelChangeDetail>>>,
 }
 
 /// A change made to a Label on the Target.
@@ -115,16 +116,16 @@ pub struct AppliedLabelChange {
 pub struct AppliedLabelChangeDetail {
     /// Field Changes. Only present if types contains LABEL_FIELD_VALUE_CHANGED.
     #[serde(default, rename = "fieldChanges")]
-    pub field_changes: Option<Vec<FieldValueChange>>,
+    pub field_changes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldValueChange>>>,
     /// The Label name representing the Label that changed. This name always contains the revision of the Label that was used when this Action occurred. The format is labels/id@revision.
     #[serde(default)]
-    pub label: Option<String>,
+    pub label: ::core::option::Option<String>,
     /// The human-readable title of the label that changed.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// The types of changes made to the Label on the Target.
     #[serde(default)]
-    pub types: Option<Vec<String>>,
+    pub types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A comment with an assignment.
@@ -132,10 +133,10 @@ pub struct AppliedLabelChangeDetail {
 pub struct Assignment {
     /// The user to whom the comment was assigned.
     #[serde(default, rename = "assignedUser")]
-    pub assigned_user: Option<User>,
+    pub assigned_user: ::core::option::Option<::std::boxed::Box<User>>,
     /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "RESOLVED", "REOPENED", "REASSIGNED"]
     #[serde(default)]
-    pub subtype: Option<String>,
+    pub subtype: ::core::option::Option<String>,
 }
 
 /// A change about comments on an object.
@@ -143,16 +144,16 @@ pub struct Assignment {
 pub struct Comment {
     /// A change on an assignment.
     #[serde(default)]
-    pub assignment: Option<Assignment>,
+    pub assignment: ::core::option::Option<::std::boxed::Box<Assignment>>,
     /// Users who are mentioned in this comment.
     #[serde(default, rename = "mentionedUsers")]
-    pub mentioned_users: Option<Vec<User>>,
+    pub mentioned_users: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<User>>>,
     /// A change on a regular posted comment.
     #[serde(default)]
-    pub post: Option<Post>,
+    pub post: ::core::option::Option<::std::boxed::Box<Post>>,
     /// A change on a suggestion.
     #[serde(default)]
-    pub suggestion: Option<Suggestion>,
+    pub suggestion: ::core::option::Option<::std::boxed::Box<Suggestion>>,
 }
 
 /// How the individual activities are consolidated. If a set of activities is related they can be consolidated into one combined activity, such as one actor performing the same action on multiple targets, or multiple actors performing the same action on a single target. The strategy defines the rules for which activities are related.
@@ -160,10 +161,10 @@ pub struct Comment {
 pub struct ConsolidationStrategy {
     /// The individual activities are consolidated using the legacy strategy.
     #[serde(default)]
-    pub legacy: Option<serde_json::Value>,
+    pub legacy: ::core::option::Option<serde_json::Value>,
     /// The individual activities are not consolidated.
     #[serde(default)]
-    pub none: Option<serde_json::Value>,
+    pub none: ::core::option::Option<serde_json::Value>,
 }
 
 /// An object was created by copying an existing object.
@@ -171,7 +172,7 @@ pub struct ConsolidationStrategy {
 pub struct Copy {
     /// The original object.
     #[serde(default, rename = "originalObject")]
-    pub original_object: Option<TargetReference>,
+    pub original_object: ::core::option::Option<::std::boxed::Box<TargetReference>>,
 }
 
 /// An object was created.
@@ -179,13 +180,13 @@ pub struct Copy {
 pub struct Create {
     /// If present, indicates the object was created by copying an existing Drive object.
     #[serde(default)]
-    pub copy: Option<Copy>,
+    pub copy: ::core::option::Option<::std::boxed::Box<Copy>>,
     /// If present, indicates the object was newly created (e.g. as a blank document), not derived from a Drive object or external object.
     #[serde(default)]
-    pub new: Option<serde_json::Value>,
+    pub new: ::core::option::Option<serde_json::Value>,
     /// If present, indicates the object originated externally and was uploaded to Drive.
     #[serde(default)]
-    pub upload: Option<serde_json::Value>,
+    pub upload: ::core::option::Option<serde_json::Value>,
 }
 
 /// A change in the object''s data leak prevention status.
@@ -193,7 +194,7 @@ pub struct Create {
 pub struct DataLeakPreventionChange {
     /// The type of Data Leak Prevention (DLP) change. // TODO: enum values: ["TYPE_UNSPECIFIED", "FLAGGED", "CLEARED"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Wrapper for Date Field value.
@@ -201,7 +202,7 @@ pub struct DataLeakPreventionChange {
 pub struct Date {
     /// Date value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// An object was deleted.
@@ -209,7 +210,7 @@ pub struct Date {
 pub struct Delete {
     /// The type of delete action taken. // TODO: enum values: ["TYPE_UNSPECIFIED", "TRASH", "PERMANENT_DELETE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about a domain.
@@ -217,10 +218,10 @@ pub struct Delete {
 pub struct Domain {
     /// An opaque string used to identify this domain.
     #[serde(default, rename = "legacyId")]
-    pub legacy_id: Option<String>,
+    pub legacy_id: ::core::option::Option<String>,
     /// The name of the domain, e.g. google.com.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Information about a shared drive.
@@ -228,13 +229,13 @@ pub struct Domain {
 pub struct Drive {
     /// The resource name of the shared drive. The format is COLLECTION_ID/DRIVE_ID. Clients should not assume a specific collection ID for this resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The root of this shared drive.
     #[serde(default)]
-    pub root: Option<DriveItem>,
+    pub root: ::core::option::Option<::std::boxed::Box<DriveItem>>,
     /// The title of the shared drive.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A single Drive activity comprising one or more Actions by one or more Actors on one or more Targets. Some Action groupings occur spontaneously, such as moving an item into a shared folder triggering a permission change. Other groupings of related Actions, such as multiple Actors editing one item or moving multiple files into a new folder, are controlled by the selection of a ConsolidationStrategy in the QueryDriveActivityRequest.
@@ -242,22 +243,22 @@ pub struct Drive {
 pub struct DriveActivity {
     /// Details on all actions in this activity.
     #[serde(default)]
-    pub actions: Option<Vec<Action>>,
+    pub actions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Action>>>,
     /// All actor(s) responsible for the activity.
     #[serde(default)]
-    pub actors: Option<Vec<Actor>>,
+    pub actors: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Actor>>>,
     /// Key information about the primary action for this activity. This is either representative, or the most important, of all actions in the activity, according to the ConsolidationStrategy in the request.
     #[serde(default, rename = "primaryActionDetail")]
-    pub primary_action_detail: Option<ActionDetail>,
+    pub primary_action_detail: ::core::option::Option<::std::boxed::Box<ActionDetail>>,
     /// All Google Drive objects this activity is about (e.g. file, folder, drive). This represents the state of the target immediately after the actions occurred.
     #[serde(default)]
-    pub targets: Option<Vec<Target>>,
+    pub targets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Target>>>,
     /// The activity occurred over this time range.
     #[serde(default, rename = "timeRange")]
-    pub time_range: Option<TimeRange>,
+    pub time_range: ::core::option::Option<::std::boxed::Box<TimeRange>>,
     /// The activity occurred at this specific time.
     #[serde(default)]
-    pub timestamp: Option<String>,
+    pub timestamp: ::core::option::Option<String>,
 }
 
 /// A Drive item which is a folder.
@@ -265,7 +266,7 @@ pub struct DriveActivity {
 pub struct DriveFolder {
     /// The type of Drive folder. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "SHARED_DRIVE_ROOT", "STANDARD_FOLDER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A Drive item, such as a file or folder.
@@ -273,28 +274,28 @@ pub struct DriveFolder {
 pub struct DriveItem {
     /// The Drive item is a file.
     #[serde(default, rename = "driveFile")]
-    pub drive_file: Option<serde_json::Value>,
+    pub drive_file: ::core::option::Option<serde_json::Value>,
     /// The Drive item is a folder. Includes information about the type of folder.
     #[serde(default, rename = "driveFolder")]
-    pub drive_folder: Option<DriveFolder>,
+    pub drive_folder: ::core::option::Option<::std::boxed::Box<DriveFolder>>,
     /// This field is deprecated; please use the driveFile field instead.
     #[serde(default)]
-    pub file: Option<serde_json::Value>,
+    pub file: ::core::option::Option<serde_json::Value>,
     /// This field is deprecated; please use the driveFolder field instead.
     #[serde(default)]
-    pub folder: Option<Folder>,
+    pub folder: ::core::option::Option<::std::boxed::Box<Folder>>,
     /// The MIME type of the Drive item. See https://developers.google.com/workspace/drive/v3/web/mime-types.
     #[serde(default, rename = "mimeType")]
-    pub mime_type: Option<String>,
+    pub mime_type: ::core::option::Option<String>,
     /// The target Drive item. The format is items/ITEM_ID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Information about the owner of this Drive item.
     #[serde(default)]
-    pub owner: Option<Owner>,
+    pub owner: ::core::option::Option<::std::boxed::Box<Owner>>,
     /// The title of the Drive item.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A lightweight reference to a Drive item, such as a file or folder.
@@ -302,22 +303,22 @@ pub struct DriveItem {
 pub struct DriveItemReference {
     /// The Drive item is a file.
     #[serde(default, rename = "driveFile")]
-    pub drive_file: Option<serde_json::Value>,
+    pub drive_file: ::core::option::Option<serde_json::Value>,
     /// The Drive item is a folder. Includes information about the type of folder.
     #[serde(default, rename = "driveFolder")]
-    pub drive_folder: Option<DriveFolder>,
+    pub drive_folder: ::core::option::Option<::std::boxed::Box<DriveFolder>>,
     /// This field is deprecated; please use the driveFile field instead.
     #[serde(default)]
-    pub file: Option<serde_json::Value>,
+    pub file: ::core::option::Option<serde_json::Value>,
     /// This field is deprecated; please use the driveFolder field instead.
     #[serde(default)]
-    pub folder: Option<Folder>,
+    pub folder: ::core::option::Option<::std::boxed::Box<Folder>>,
     /// The target Drive item. The format is items/ITEM_ID.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The title of the Drive item.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A lightweight reference to a shared drive.
@@ -325,10 +326,10 @@ pub struct DriveItemReference {
 pub struct DriveReference {
     /// The resource name of the shared drive. The format is COLLECTION_ID/DRIVE_ID. Clients should not assume a specific collection ID for this resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The title of the shared drive.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Contains a value of a Field.
@@ -336,28 +337,28 @@ pub struct DriveReference {
 pub struct FieldValue {
     /// Date Field value.
     #[serde(default)]
-    pub date: Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Integer Field value.
     #[serde(default)]
-    pub integer: Option<Integer>,
+    pub integer: ::core::option::Option<::std::boxed::Box<Integer>>,
     /// Selection Field value.
     #[serde(default)]
-    pub selection: Option<Selection>,
+    pub selection: ::core::option::Option<::std::boxed::Box<Selection>>,
     /// Selection List Field value.
     #[serde(default, rename = "selectionList")]
-    pub selection_list: Option<SelectionList>,
+    pub selection_list: ::core::option::Option<::std::boxed::Box<SelectionList>>,
     /// Text Field value.
     #[serde(default)]
-    pub text: Option<Text>,
+    pub text: ::core::option::Option<::std::boxed::Box<Text>>,
     /// Text List Field value.
     #[serde(default, rename = "textList")]
-    pub text_list: Option<TextList>,
+    pub text_list: ::core::option::Option<::std::boxed::Box<TextList>>,
     /// User Field value.
     #[serde(default)]
-    pub user: Option<SingleUser>,
+    pub user: ::core::option::Option<::std::boxed::Box<SingleUser>>,
     /// User List Field value.
     #[serde(default, rename = "userList")]
-    pub user_list: Option<UserList>,
+    pub user_list: ::core::option::Option<::std::boxed::Box<UserList>>,
 }
 
 /// Change to a Field value.
@@ -365,16 +366,16 @@ pub struct FieldValue {
 pub struct FieldValueChange {
     /// The human-readable display name for this field.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// The ID of this field. Field IDs are unique within a Label.
     #[serde(default, rename = "fieldId")]
-    pub field_id: Option<String>,
+    pub field_id: ::core::option::Option<String>,
     /// The value that is now set on the field. If not present, the field was cleared. At least one of {old_value|new_value} is always set.
     #[serde(default, rename = "newValue")]
-    pub new_value: Option<FieldValue>,
+    pub new_value: ::core::option::Option<::std::boxed::Box<FieldValue>>,
     /// The value that was previously set on the field. If not present, the field was newly set. At least one of {old_value|new_value} is always set.
     #[serde(default, rename = "oldValue")]
-    pub old_value: Option<FieldValue>,
+    pub old_value: ::core::option::Option<::std::boxed::Box<FieldValue>>,
 }
 
 /// A comment on a file.
@@ -382,16 +383,16 @@ pub struct FieldValueChange {
 pub struct FileComment {
     /// The comment in the discussion thread. This identifier is an opaque string compatible with the Drive API; see https://developers.google.com/workspace/drive/v3/reference/comments/get
     #[serde(default, rename = "legacyCommentId")]
-    pub legacy_comment_id: Option<String>,
+    pub legacy_comment_id: ::core::option::Option<String>,
     /// The discussion thread to which the comment was added. This identifier is an opaque string compatible with the Drive API and references the first comment in a discussion; see https://developers.google.com/workspace/drive/v3/reference/comments/get
     #[serde(default, rename = "legacyDiscussionId")]
-    pub legacy_discussion_id: Option<String>,
+    pub legacy_discussion_id: ::core::option::Option<String>,
     /// The link to the discussion thread containing this comment, for example, https://docs.google.com/DOCUMENT_ID/edit?disco=THREAD_ID.
     #[serde(default, rename = "linkToDiscussion")]
-    pub link_to_discussion: Option<String>,
+    pub link_to_discussion: ::core::option::Option<String>,
     /// The Drive item containing this comment.
     #[serde(default)]
-    pub parent: Option<DriveItem>,
+    pub parent: ::core::option::Option<::std::boxed::Box<DriveItem>>,
 }
 
 /// This item is deprecated; please see DriveFolder instead.
@@ -399,7 +400,7 @@ pub struct FileComment {
 pub struct Folder {
     /// This field is deprecated; please see DriveFolder.type instead. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "TEAM_DRIVE_ROOT", "STANDARD_FOLDER"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about a group.
@@ -407,10 +408,10 @@ pub struct Folder {
 pub struct Group {
     /// The email address of the group.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// The title of the group.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Information about an impersonation, where an admin acts on behalf of an end user. Information about the acting admin is not currently available.
@@ -418,7 +419,7 @@ pub struct Group {
 pub struct Impersonation {
     /// The impersonated user.
     #[serde(default, rename = "impersonatedUser")]
-    pub impersonated_user: Option<User>,
+    pub impersonated_user: ::core::option::Option<::std::boxed::Box<User>>,
 }
 
 /// Wrapper for Integer Field value.
@@ -426,7 +427,7 @@ pub struct Impersonation {
 pub struct Integer {
     /// Integer value.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A known user.
@@ -434,10 +435,10 @@ pub struct Integer {
 pub struct KnownUser {
     /// True if this is the user making the request.
     #[serde(default, rename = "isCurrentUser")]
-    pub is_current_user: Option<bool>,
+    pub is_current_user: ::core::option::Option<bool>,
     /// The identifier for this user that can be used with the People API to get more information. The format is people/ACCOUNT_ID. See https://developers.google.com/people/.
     #[serde(default, rename = "personName")]
-    pub person_name: Option<String>,
+    pub person_name: ::core::option::Option<String>,
 }
 
 /// An object was moved.
@@ -445,10 +446,11 @@ pub struct KnownUser {
 pub struct Move {
     /// The added parent object(s).
     #[serde(default, rename = "addedParents")]
-    pub added_parents: Option<Vec<TargetReference>>,
+    pub added_parents: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetReference>>>,
     /// The removed parent object(s).
     #[serde(default, rename = "removedParents")]
-    pub removed_parents: Option<Vec<TargetReference>>,
+    pub removed_parents:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TargetReference>>>,
 }
 
 /// Information about the owner of a Drive item.
@@ -456,16 +458,16 @@ pub struct Move {
 pub struct Owner {
     /// The domain of the Drive item owner.
     #[serde(default)]
-    pub domain: Option<Domain>,
+    pub domain: ::core::option::Option<::std::boxed::Box<Domain>>,
     /// The drive that owns the item.
     #[serde(default)]
-    pub drive: Option<DriveReference>,
+    pub drive: ::core::option::Option<::std::boxed::Box<DriveReference>>,
     /// This field is deprecated; please use the drive field instead.
     #[serde(default, rename = "teamDrive")]
-    pub team_drive: Option<TeamDriveReference>,
+    pub team_drive: ::core::option::Option<::std::boxed::Box<TeamDriveReference>>,
     /// The user that owns the Drive item.
     #[serde(default)]
-    pub user: Option<User>,
+    pub user: ::core::option::Option<::std::boxed::Box<User>>,
 }
 
 /// The permission setting of an object.
@@ -473,22 +475,22 @@ pub struct Owner {
 pub struct Permission {
     /// If true, the item can be discovered (e.g. in the user''s "Shared with me" collection) without needing a link to the item.
     #[serde(default, rename = "allowDiscovery")]
-    pub allow_discovery: Option<bool>,
+    pub allow_discovery: ::core::option::Option<bool>,
     /// If set, this permission applies to anyone, even logged out users.
     #[serde(default)]
-    pub anyone: Option<serde_json::Value>,
+    pub anyone: ::core::option::Option<serde_json::Value>,
     /// The domain to whom this permission applies.
     #[serde(default)]
-    pub domain: Option<Domain>,
+    pub domain: ::core::option::Option<::std::boxed::Box<Domain>>,
     /// The group to whom this permission applies.
     #[serde(default)]
-    pub group: Option<Group>,
+    pub group: ::core::option::Option<::std::boxed::Box<Group>>,
     /// Indicates the [Google Drive permissions role](https://developers.google.com/workspace/drive/web/manage-sharing#roles). The role determines a user''s ability to read, write, and comment on items. // TODO: enum values: ["ROLE_UNSPECIFIED", "OWNER", "ORGANIZER", "FILE_ORGANIZER", "EDITOR", "COMMENTER", "VIEWER", "PUBLISHED_VIEWER"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// The user to whom this permission applies.
     #[serde(default)]
-    pub user: Option<User>,
+    pub user: ::core::option::Option<::std::boxed::Box<User>>,
 }
 
 /// A change of the permission setting on an item.
@@ -496,10 +498,10 @@ pub struct Permission {
 pub struct PermissionChange {
     /// The set of permissions added by this change.
     #[serde(default, rename = "addedPermissions")]
-    pub added_permissions: Option<Vec<Permission>>,
+    pub added_permissions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Permission>>>,
     /// The set of permissions removed by this change.
     #[serde(default, rename = "removedPermissions")]
-    pub removed_permissions: Option<Vec<Permission>>,
+    pub removed_permissions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Permission>>>,
 }
 
 /// A regular posted comment.
@@ -507,7 +509,7 @@ pub struct PermissionChange {
 pub struct Post {
     /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "RESOLVED", "REOPENED"]
     #[serde(default)]
-    pub subtype: Option<String>,
+    pub subtype: ::core::option::Option<String>,
 }
 
 /// The request message for querying Drive activity.
@@ -515,22 +517,22 @@ pub struct Post {
 pub struct QueryDriveActivityRequest {
     /// Return activities for this Drive folder, plus all children and descendants. The format is items/ITEM_ID.
     #[serde(default, rename = "ancestorName")]
-    pub ancestor_name: Option<String>,
+    pub ancestor_name: ::core::option::Option<String>,
     /// Details on how to consolidate related actions that make up the activity. If not set, then related actions aren''t consolidated.
     #[serde(default, rename = "consolidationStrategy")]
-    pub consolidation_strategy: Option<ConsolidationStrategy>,
+    pub consolidation_strategy: ::core::option::Option<::std::boxed::Box<ConsolidationStrategy>>,
     /// The filtering for items returned from this query request. The format of the filter string is a sequence of expressions, joined by an optional "AND", where each expression is of the form "field operator value". Supported fields: - time: Uses numerical operators on date values either in terms of milliseconds since Jan 1, 1970 or in RFC 3339 format. Examples: - time &gt; 1452409200000 AND time &lt;= 1492812924310 - time &gt;= "2016-01-10T01:02:03-05:00" - detail.action_detail_case: Uses the "has" operator (:) and either a singular value or a list of allowed action types enclosed in parentheses, separated by a space. To exclude a result from the response, prepend a hyphen (-) to the beginning of the filter string. Examples: - detail.action_detail_case:RENAME - detail.action_detail_case:(CREATE RESTORE) - -detail.action_detail_case:MOVE
     #[serde(default)]
-    pub filter: Option<String>,
+    pub filter: ::core::option::Option<String>,
     /// Return activities for this Drive item. The format is items/ITEM_ID.
     #[serde(default, rename = "itemName")]
-    pub item_name: Option<String>,
+    pub item_name: ::core::option::Option<String>,
     /// The minimum number of activities desired in the response; the server attempts to return at least this quantity. The server may also return fewer activities if it has a partial response ready before the request times out. If not set, a default value is used.
     #[serde(default, rename = "pageSize")]
-    pub page_size: Option<i32>,
+    pub page_size: ::core::option::Option<i32>,
     /// The token identifies which page of results to return. Set this to the next_page_token value returned from a previous query to obtain the following page of results. If not set, the first page of results is returned.
     #[serde(default, rename = "pageToken")]
-    pub page_token: Option<String>,
+    pub page_token: ::core::option::Option<String>,
 }
 
 /// Response message for querying Drive activity.
@@ -538,10 +540,10 @@ pub struct QueryDriveActivityRequest {
 pub struct QueryDriveActivityResponse {
     /// List of activity requested.
     #[serde(default)]
-    pub activities: Option<Vec<DriveActivity>>,
+    pub activities: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DriveActivity>>>,
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// An object was renamed.
@@ -549,10 +551,10 @@ pub struct QueryDriveActivityResponse {
 pub struct Rename {
     /// The new title of the drive object.
     #[serde(default, rename = "newTitle")]
-    pub new_title: Option<String>,
+    pub new_title: ::core::option::Option<String>,
     /// The previous title of the drive object.
     #[serde(default, rename = "oldTitle")]
-    pub old_title: Option<String>,
+    pub old_title: ::core::option::Option<String>,
 }
 
 /// A deleted object was restored.
@@ -560,7 +562,7 @@ pub struct Rename {
 pub struct Restore {
     /// The type of restore action taken. // TODO: enum values: ["TYPE_UNSPECIFIED", "UNTRASH"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about restriction policy changes to a feature.
@@ -568,10 +570,10 @@ pub struct Restore {
 pub struct RestrictionChange {
     /// The feature which had a change in restriction policy. // TODO: enum values: ["FEATURE_UNSPECIFIED", "SHARING_OUTSIDE_DOMAIN", "DIRECT_SHARING", "ITEM_DUPLICATION", "DRIVE_FILE_STREAM", "FILE_ORGANIZER_CAN_SHARE_FOLDERS", "READERS_CAN_DOWNLOAD", "WRITERS_CAN_DOWNLOAD"]
     #[serde(default)]
-    pub feature: Option<String>,
+    pub feature: ::core::option::Option<String>,
     /// The restriction in place after the change. // TODO: enum values: ["RESTRICTION_UNSPECIFIED", "UNRESTRICTED", "FULLY_RESTRICTED"]
     #[serde(default, rename = "newRestriction")]
-    pub new_restriction: Option<String>,
+    pub new_restriction: ::core::option::Option<String>,
 }
 
 /// Wrapper for Selection Field value as combined value/display_name pair for selected choice.
@@ -579,10 +581,10 @@ pub struct RestrictionChange {
 pub struct Selection {
     /// Selection value as human-readable display string.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Selection value as Field Choice ID.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Wrapper for SelectionList Field value.
@@ -590,7 +592,7 @@ pub struct Selection {
 pub struct SelectionList {
     /// Selection values.
     #[serde(default)]
-    pub values: Option<Vec<Selection>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Selection>>>,
 }
 
 /// Information about settings changes.
@@ -598,7 +600,8 @@ pub struct SelectionList {
 pub struct SettingsChange {
     /// The set of changes made to restrictions.
     #[serde(default, rename = "restrictionChanges")]
-    pub restriction_changes: Option<Vec<RestrictionChange>>,
+    pub restriction_changes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<RestrictionChange>>>,
 }
 
 /// Wrapper for User Field value.
@@ -606,7 +609,7 @@ pub struct SettingsChange {
 pub struct SingleUser {
     /// User value as email.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A suggestion.
@@ -614,7 +617,7 @@ pub struct SingleUser {
 pub struct Suggestion {
     /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "ACCEPTED", "REJECTED", "ACCEPT_DELETED", "REJECT_DELETED"]
     #[serde(default)]
-    pub subtype: Option<String>,
+    pub subtype: ::core::option::Option<String>,
 }
 
 /// Event triggered by system operations instead of end users.
@@ -622,7 +625,7 @@ pub struct Suggestion {
 pub struct SystemEvent {
     /// The type of the system event that may triggered activity. // TODO: enum values: ["TYPE_UNSPECIFIED", "USER_DELETION", "TRASH_AUTO_PURGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Information about the target of activity. For more information on how activity history is shared with users, see [Activity history visibility](https://developers.google.com/workspace/drive/activity/v2#activityhistory).
@@ -630,16 +633,16 @@ pub struct SystemEvent {
 pub struct Target {
     /// The target is a shared drive.
     #[serde(default)]
-    pub drive: Option<Drive>,
+    pub drive: ::core::option::Option<::std::boxed::Box<Drive>>,
     /// The target is a Drive item.
     #[serde(default, rename = "driveItem")]
-    pub drive_item: Option<DriveItem>,
+    pub drive_item: ::core::option::Option<::std::boxed::Box<DriveItem>>,
     /// The target is a comment on a Drive file.
     #[serde(default, rename = "fileComment")]
-    pub file_comment: Option<FileComment>,
+    pub file_comment: ::core::option::Option<::std::boxed::Box<FileComment>>,
     /// This field is deprecated; please use the drive field instead.
     #[serde(default, rename = "teamDrive")]
-    pub team_drive: Option<TeamDrive>,
+    pub team_drive: ::core::option::Option<::std::boxed::Box<TeamDrive>>,
 }
 
 /// A lightweight reference to the target of activity.
@@ -647,13 +650,13 @@ pub struct Target {
 pub struct TargetReference {
     /// The target is a shared drive.
     #[serde(default)]
-    pub drive: Option<DriveReference>,
+    pub drive: ::core::option::Option<::std::boxed::Box<DriveReference>>,
     /// The target is a Drive item.
     #[serde(default, rename = "driveItem")]
-    pub drive_item: Option<DriveItemReference>,
+    pub drive_item: ::core::option::Option<::std::boxed::Box<DriveItemReference>>,
     /// This field is deprecated; please use the drive field instead.
     #[serde(default, rename = "teamDrive")]
-    pub team_drive: Option<TeamDriveReference>,
+    pub team_drive: ::core::option::Option<::std::boxed::Box<TeamDriveReference>>,
 }
 
 /// This item is deprecated; please see Drive instead.
@@ -661,13 +664,13 @@ pub struct TargetReference {
 pub struct TeamDrive {
     /// This field is deprecated; please see Drive.name instead.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// This field is deprecated; please see Drive.root instead.
     #[serde(default)]
-    pub root: Option<DriveItem>,
+    pub root: ::core::option::Option<::std::boxed::Box<DriveItem>>,
     /// This field is deprecated; please see Drive.title instead.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// This item is deprecated; please see DriveReference instead.
@@ -675,10 +678,10 @@ pub struct TeamDrive {
 pub struct TeamDriveReference {
     /// This field is deprecated; please see DriveReference.name instead.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// This field is deprecated; please see DriveReference.title instead.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// Wrapper for Text Field value.
@@ -686,7 +689,7 @@ pub struct TeamDriveReference {
 pub struct Text {
     /// Value of Text Field.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Wrapper for Text List Field value.
@@ -694,7 +697,7 @@ pub struct Text {
 pub struct TextList {
     /// Text values.
     #[serde(default)]
-    pub values: Option<Vec<Text>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Text>>>,
 }
 
 /// Information about time ranges.
@@ -702,10 +705,10 @@ pub struct TextList {
 pub struct TimeRange {
     /// The end of the time range.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// The start of the time range.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Information about an end user.
@@ -713,13 +716,13 @@ pub struct TimeRange {
 pub struct User {
     /// A user whose account has since been deleted.
     #[serde(default, rename = "deletedUser")]
-    pub deleted_user: Option<serde_json::Value>,
+    pub deleted_user: ::core::option::Option<serde_json::Value>,
     /// A known user.
     #[serde(default, rename = "knownUser")]
-    pub known_user: Option<KnownUser>,
+    pub known_user: ::core::option::Option<::std::boxed::Box<KnownUser>>,
     /// A user about whom nothing is currently known.
     #[serde(default, rename = "unknownUser")]
-    pub unknown_user: Option<serde_json::Value>,
+    pub unknown_user: ::core::option::Option<serde_json::Value>,
 }
 
 /// Wrapper for UserList Field value.
@@ -727,5 +730,5 @@ pub struct User {
 pub struct UserList {
     /// User values.
     #[serde(default)]
-    pub values: Option<Vec<SingleUser>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<SingleUser>>>,
 }

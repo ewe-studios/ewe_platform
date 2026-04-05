@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A response indicating whether the credentials exist and are valid.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckValidCredsResponse {
     /// If set to true, the credentials exist and are valid.
     #[serde(default, rename = "hasValidCreds")]
-    pub has_valid_creds: Option<bool>,
+    pub has_valid_creds: ::core::option::Option<bool>,
 }
 
 /// Defines the properties and custom parameters for a data source.
@@ -26,58 +26,58 @@ pub struct CheckValidCredsResponse {
 pub struct DataSource {
     /// Indicates the type of authorization. // TODO: enum values: ["AUTHORIZATION_TYPE_UNSPECIFIED", "AUTHORIZATION_CODE", "GOOGLE_PLUS_AUTHORIZATION_CODE", "FIRST_PARTY_OAUTH"]
     #[serde(default, rename = "authorizationType")]
-    pub authorization_type: Option<String>,
+    pub authorization_type: ::core::option::Option<String>,
     /// Data source client id which should be used to receive refresh token.
     #[serde(default, rename = "clientId")]
-    pub client_id: Option<String>,
+    pub client_id: ::core::option::Option<String>,
     /// Specifies whether the data source supports automatic data refresh for the past few days, and how it''s supported. For some data sources, data might not be complete until a few days later, so it''s useful to refresh data automatically. // TODO: enum values: ["DATA_REFRESH_TYPE_UNSPECIFIED", "SLIDING_WINDOW", "CUSTOM_SLIDING_WINDOW"]
     #[serde(default, rename = "dataRefreshType")]
-    pub data_refresh_type: Option<String>,
+    pub data_refresh_type: ::core::option::Option<String>,
     /// Data source id.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// Default data refresh window on days. Only meaningful when data_refresh_type = SLIDING_WINDOW.
     #[serde(default, rename = "defaultDataRefreshWindowDays")]
-    pub default_data_refresh_window_days: Option<i32>,
+    pub default_data_refresh_window_days: ::core::option::Option<i32>,
     /// Default data transfer schedule. Examples of valid schedules include: 1st,3rd monday of month 15:30, every wed,fri of jan,jun 13:15, and first sunday of quarter 00:00.
     #[serde(default, rename = "defaultSchedule")]
-    pub default_schedule: Option<String>,
+    pub default_schedule: ::core::option::Option<String>,
     /// User friendly data source description string.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// User friendly data source name.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Url for the help document for this data source.
     #[serde(default, rename = "helpUrl")]
-    pub help_url: Option<String>,
+    pub help_url: ::core::option::Option<String>,
     /// Disables backfilling and manual run scheduling for the data source.
     #[serde(default, rename = "manualRunsDisabled")]
-    pub manual_runs_disabled: Option<bool>,
+    pub manual_runs_disabled: ::core::option::Option<bool>,
     /// The minimum interval for scheduler to schedule runs.
     #[serde(default, rename = "minimumScheduleInterval")]
-    pub minimum_schedule_interval: Option<String>,
+    pub minimum_schedule_interval: ::core::option::Option<String>,
     /// Output only. Data source resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Data source parameters.
     #[serde(default)]
-    pub parameters: Option<Vec<DataSourceParameter>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceParameter>>>,
     /// Api auth scopes for which refresh token needs to be obtained. These are scopes needed by a data source to prepare data and ingest them into BigQuery, e.g., https://www.googleapis.com/auth/bigquery
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Specifies whether the data source supports a user defined schedule, or operates on the default schedule. When set to true, user can override default schedule.
     #[serde(default, rename = "supportsCustomSchedule")]
-    pub supports_custom_schedule: Option<bool>,
+    pub supports_custom_schedule: ::core::option::Option<bool>,
     /// Deprecated. This field has no effect.
     #[serde(default, rename = "supportsMultipleTransfers")]
-    pub supports_multiple_transfers: Option<bool>,
+    pub supports_multiple_transfers: ::core::option::Option<bool>,
     /// Deprecated. This field has no effect. // TODO: enum values: ["TRANSFER_TYPE_UNSPECIFIED", "BATCH", "STREAMING"]
     #[serde(default, rename = "transferType")]
-    pub transfer_type: Option<String>,
+    pub transfer_type: ::core::option::Option<String>,
     /// The number of seconds to wait for an update from the data source before the Data Transfer Service marks the transfer as FAILED.
     #[serde(default, rename = "updateDeadlineSeconds")]
-    pub update_deadline_seconds: Option<i32>,
+    pub update_deadline_seconds: ::core::option::Option<i32>,
 }
 
 /// A parameter used to define custom fields in a data source definition.
@@ -85,55 +85,55 @@ pub struct DataSource {
 pub struct DataSourceParameter {
     /// All possible values for the parameter.
     #[serde(default, rename = "allowedValues")]
-    pub allowed_values: Option<Vec<String>>,
+    pub allowed_values: ::core::option::Option<::std::vec::Vec<String>>,
     /// If true, it should not be used in new transfers, and it should not be visible to users.
     #[serde(default)]
-    pub deprecated: Option<bool>,
+    pub deprecated: ::core::option::Option<bool>,
     /// Parameter description.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Parameter display name in the user interface.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Deprecated. This field has no effect.
     #[serde(default)]
-    pub fields: Option<Vec<DataSourceParameter>>,
+    pub fields: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSourceParameter>>>,
     /// Cannot be changed after initial creation.
     #[serde(default)]
-    pub immutable: Option<bool>,
+    pub immutable: ::core::option::Option<bool>,
     /// For list parameters, the max size of the list.
     #[serde(default, rename = "maxListSize")]
-    pub max_list_size: Option<String>,
+    pub max_list_size: ::core::option::Option<String>,
     /// For integer and double values specifies maximum allowed value.
     #[serde(default, rename = "maxValue")]
-    pub max_value: Option<f64>,
+    pub max_value: ::core::option::Option<f64>,
     /// For integer and double values specifies minimum allowed value.
     #[serde(default, rename = "minValue")]
-    pub min_value: Option<f64>,
+    pub min_value: ::core::option::Option<f64>,
     /// Parameter identifier.
     #[serde(default, rename = "paramId")]
-    pub param_id: Option<String>,
+    pub param_id: ::core::option::Option<String>,
     /// Deprecated. This field has no effect.
     #[serde(default)]
-    pub recurse: Option<bool>,
+    pub recurse: ::core::option::Option<bool>,
     /// Deprecated. This field has no effect.
     #[serde(default)]
-    pub repeated: Option<bool>,
+    pub repeated: ::core::option::Option<bool>,
     /// Is parameter required.
     #[serde(default)]
-    pub required: Option<bool>,
+    pub required: ::core::option::Option<bool>,
     /// Parameter type. // TODO: enum values: ["TYPE_UNSPECIFIED", "STRING", "INTEGER", "DOUBLE", "BOOLEAN", "RECORD", "PLUS_PAGE", "LIST"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Description of the requirements for this field, in case the user input does not fulfill the regex pattern or min/max values.
     #[serde(default, rename = "validationDescription")]
-    pub validation_description: Option<String>,
+    pub validation_description: ::core::option::Option<String>,
     /// URL to a help document to further explain the naming requirements.
     #[serde(default, rename = "validationHelpUrl")]
-    pub validation_help_url: Option<String>,
+    pub validation_help_url: ::core::option::Option<String>,
     /// Regular expression which can be used for parameter validation.
     #[serde(default, rename = "validationRegex")]
-    pub validation_regex: Option<String>,
+    pub validation_regex: ::core::option::Option<String>,
 }
 
 /// Represents preferences for sending email notifications for transfer run events.
@@ -141,7 +141,7 @@ pub struct DataSourceParameter {
 pub struct EmailPreferences {
     /// If true, email notifications will be sent on transfer run failures.
     #[serde(default, rename = "enableFailureEmail")]
-    pub enable_failure_email: Option<bool>,
+    pub enable_failure_email: ::core::option::Option<bool>,
 }
 
 /// Represents the encryption configuration for a transfer.
@@ -149,7 +149,7 @@ pub struct EmailPreferences {
 pub struct EncryptionConfiguration {
     /// The name of the KMS key used for encrypting BigQuery data.
     #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: Option<String>,
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// A request to enroll a set of data sources so they are visible in the BigQuery UI''s Transfer tab.
@@ -157,7 +157,7 @@ pub struct EncryptionConfiguration {
 pub struct EnrollDataSourcesRequest {
     /// Data sources that are enrolled. It is required to provide at least one data source id.
     #[serde(default, rename = "dataSourceIds")]
-    pub data_source_ids: Option<Vec<String>>,
+    pub data_source_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Options customizing EventDriven transfers schedule.
@@ -165,7 +165,7 @@ pub struct EnrollDataSourcesRequest {
 pub struct EventDrivenSchedule {
     /// Pub/Sub subscription name used to receive events. Only Google Cloud Storage data source support this option. Format: projects/{project}/subscriptions/{subscription}
     #[serde(default, rename = "pubsubSubscription")]
-    pub pubsub_subscription: Option<String>,
+    pub pubsub_subscription: ::core::option::Option<String>,
 }
 
 /// Details about the hierarchy.
@@ -173,10 +173,10 @@ pub struct EventDrivenSchedule {
 pub struct HierarchyDetail {
     /// Optional. Partition details related to hierarchy.
     #[serde(default, rename = "partitionDetail")]
-    pub partition_detail: Option<PartitionDetail>,
+    pub partition_detail: ::core::option::Option<::std::boxed::Box<PartitionDetail>>,
     /// Optional. Table details related to hierarchy.
     #[serde(default, rename = "tableDetail")]
-    pub table_detail: Option<TableDetail>,
+    pub table_detail: ::core::option::Option<::std::boxed::Box<TableDetail>>,
 }
 
 /// Returns list of supported data sources and their metadata.
@@ -184,10 +184,10 @@ pub struct HierarchyDetail {
 pub struct ListDataSourcesResponse {
     /// List of supported data sources and their transfer settings.
     #[serde(default, rename = "dataSources")]
-    pub data_sources: Option<Vec<DataSource>>,
+    pub data_sources: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataSource>>>,
     /// Output only. The next-pagination token. For multiple-page list results, this token can be used as the ListDataSourcesRequest.page_token to request the next page of list results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -195,10 +195,10 @@ pub struct ListDataSourcesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The returned list of pipelines in the project.
@@ -206,10 +206,11 @@ pub struct ListLocationsResponse {
 pub struct ListTransferConfigsResponse {
     /// Output only. The next-pagination token. For multiple-page list results, this token can be used as the ListTransferConfigsRequest.page_token to request the next page of list results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The stored pipeline transfer configurations.
     #[serde(default, rename = "transferConfigs")]
-    pub transfer_configs: Option<Vec<TransferConfig>>,
+    pub transfer_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransferConfig>>>,
 }
 
 /// The returned list transfer run messages.
@@ -217,10 +218,11 @@ pub struct ListTransferConfigsResponse {
 pub struct ListTransferLogsResponse {
     /// Output only. The next-pagination token. For multiple-page list results, this token can be used as the GetTransferRunLogRequest.page_token to request the next page of list results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The stored pipeline transfer messages.
     #[serde(default, rename = "transferMessages")]
-    pub transfer_messages: Option<Vec<TransferMessage>>,
+    pub transfer_messages:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransferMessage>>>,
 }
 
 /// Response for the ListTransferResources RPC.
@@ -228,10 +230,11 @@ pub struct ListTransferLogsResponse {
 pub struct ListTransferResourcesResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The transfer resources.
     #[serde(default, rename = "transferResources")]
-    pub transfer_resources: Option<Vec<TransferResource>>,
+    pub transfer_resources:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransferResource>>>,
 }
 
 /// The returned list of pipelines in the project.
@@ -239,10 +242,10 @@ pub struct ListTransferResourcesResponse {
 pub struct ListTransferRunsResponse {
     /// Output only. The next-pagination token. For multiple-page list results, this token can be used as the ListTransferRunsRequest.page_token to request the next page of list results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Output only. The stored pipeline transfer runs.
     #[serde(default, rename = "transferRuns")]
-    pub transfer_runs: Option<Vec<TransferRun>>,
+    pub transfer_runs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransferRun>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -250,19 +253,19 @@ pub struct ListTransferRunsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Partition details related to hierarchy.
@@ -270,7 +273,7 @@ pub struct Location {
 pub struct PartitionDetail {
     /// Optional. Name of the table which has the partitions.
     #[serde(default)]
-    pub table: Option<String>,
+    pub table: ::core::option::Option<String>,
 }
 
 /// Options customizing the data transfer schedule.
@@ -278,13 +281,13 @@ pub struct PartitionDetail {
 pub struct ScheduleOptions {
     /// If true, automatic scheduling of data transfer runs for this configuration will be disabled. The runs can be started on ad-hoc basis using StartManualTransferRuns API. When automatic scheduling is disabled, the TransferConfig.schedule field will be ignored.
     #[serde(default, rename = "disableAutoScheduling")]
-    pub disable_auto_scheduling: Option<bool>,
+    pub disable_auto_scheduling: ::core::option::Option<bool>,
     /// Defines time to stop scheduling transfer runs. A transfer run cannot be scheduled at or after the end time. The end time can be changed at any moment. The time when a data transfer can be triggered manually is not limited by this option.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Specifies time to start scheduling transfer runs. The first run will be scheduled at or after the start time according to a recurrence pattern defined in the schedule string. The start time can be changed at any moment. The time when a data transfer can be triggered manually is not limited by this option.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// V2 options customizing different types of data transfer schedule. This field supports existing time-based and manual transfer schedule. Also supports Event-Driven transfer schedule. ScheduleOptionsV2 cannot be used together with ScheduleOptions/Schedule.
@@ -292,13 +295,13 @@ pub struct ScheduleOptions {
 pub struct ScheduleOptionsV2 {
     /// Event driven transfer schedule options. If set, the transfer will be scheduled upon events arrial.
     #[serde(default, rename = "eventDrivenSchedule")]
-    pub event_driven_schedule: Option<EventDrivenSchedule>,
+    pub event_driven_schedule: ::core::option::Option<::std::boxed::Box<EventDrivenSchedule>>,
     /// Manual transfer schedule. If set, the transfer run will not be auto-scheduled by the system, unless the client invokes StartManualTransferRuns. This is equivalent to disable_auto_scheduling = true.
     #[serde(default, rename = "manualSchedule")]
-    pub manual_schedule: Option<serde_json::Value>,
+    pub manual_schedule: ::core::option::Option<serde_json::Value>,
     /// Time based transfer schedule options. This is the default schedule option.
     #[serde(default, rename = "timeBasedSchedule")]
-    pub time_based_schedule: Option<TimeBasedSchedule>,
+    pub time_based_schedule: ::core::option::Option<::std::boxed::Box<TimeBasedSchedule>>,
 }
 
 /// A request to schedule transfer runs for a time range.
@@ -306,10 +309,10 @@ pub struct ScheduleOptionsV2 {
 pub struct ScheduleTransferRunsRequest {
     /// Required. End time of the range of transfer runs. For example, "2017-05-30T00:00:00+00:00".
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Required. Start time of the range of transfer runs. For example, "2017-05-25T00:00:00+00:00".
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// A response to schedule transfer runs for a time range.
@@ -317,7 +320,7 @@ pub struct ScheduleTransferRunsRequest {
 pub struct ScheduleTransferRunsResponse {
     /// The transfer runs that were scheduled.
     #[serde(default)]
-    pub runs: Option<Vec<TransferRun>>,
+    pub runs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransferRun>>>,
 }
 
 /// A request to start manual transfer runs.
@@ -325,10 +328,10 @@ pub struct ScheduleTransferRunsResponse {
 pub struct StartManualTransferRunsRequest {
     /// A run_time timestamp for historical data files or reports that are scheduled to be transferred by the scheduled transfer run. requested_run_time must be a past time and cannot include future time values.
     #[serde(default, rename = "requestedRunTime")]
-    pub requested_run_time: Option<String>,
+    pub requested_run_time: ::core::option::Option<String>,
     /// A time_range start and end timestamp for historical data files or reports that are scheduled to be transferred by the scheduled transfer run. requested_time_range must be a past time and cannot include future time values.
     #[serde(default, rename = "requestedTimeRange")]
-    pub requested_time_range: Option<TimeRange>,
+    pub requested_time_range: ::core::option::Option<::std::boxed::Box<TimeRange>>,
 }
 
 /// A response to start manual transfer runs.
@@ -336,7 +339,7 @@ pub struct StartManualTransferRunsRequest {
 pub struct StartManualTransferRunsResponse {
     /// The transfer runs that were created.
     #[serde(default)]
-    pub runs: Option<Vec<TransferRun>>,
+    pub runs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransferRun>>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -344,13 +347,13 @@ pub struct StartManualTransferRunsResponse {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Table details related to hierarchy.
@@ -358,7 +361,7 @@ pub struct Status {
 pub struct TableDetail {
     /// Optional. Total number of partitions being tracked within the table.
     #[serde(default, rename = "partitionCount")]
-    pub partition_count: Option<String>,
+    pub partition_count: ::core::option::Option<String>,
 }
 
 /// Options customizing the time based transfer schedule. Options are migrated from the original ScheduleOptions message.
@@ -366,13 +369,13 @@ pub struct TableDetail {
 pub struct TimeBasedSchedule {
     /// Defines time to stop scheduling transfer runs. A transfer run cannot be scheduled at or after the end time. The end time can be changed at any moment.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Data transfer schedule. If the data source does not support a custom schedule, this should be empty. If it is empty, the default value for the data source will be used. The specified times are in UTC. Examples of valid format: 1st,3rd monday of month 15:30, every wed,fri of jan,jun 13:15, and first sunday of quarter 00:00. See more explanation about the format here: https://cloud.google.com/appengine/docs/flexible/python/scheduling-jobs-with-cron-yaml#the_schedule_format NOTE: The minimum interval time between recurring transfers depends on the data source; refer to the documentation for your data source.
     #[serde(default)]
-    pub schedule: Option<String>,
+    pub schedule: ::core::option::Option<String>,
     /// Specifies time to start scheduling transfer runs. The first run will be scheduled at or after the start time according to a recurrence pattern defined in the schedule string. The start time can be changed at any moment.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// A specification for a time range, this will request transfer runs with run_time between start_time (inclusive) and end_time (exclusive).
@@ -380,10 +383,10 @@ pub struct TimeBasedSchedule {
 pub struct TimeRange {
     /// End time of the range of transfer runs. For example, "2017-05-30T00:00:00+00:00". The end_time must not be in the future. Creates transfer runs where run_time is in the range between start_time (inclusive) and end_time (exclusive).
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Start time of the range of transfer runs. For example, "2017-05-25T00:00:00+00:00". The start_time must be strictly less than the end_time. Creates transfer runs where run_time is in the range between start_time (inclusive) and end_time (exclusive).
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Represents a data transfer configuration. A transfer configuration contains all metadata needed to perform a data transfer. For example, destination_dataset_id specifies where data should be stored. When a new transfer configuration is created, the specified destination_dataset_id is created when needed and shared with the appropriate data source service account.
@@ -391,67 +394,68 @@ pub struct TimeRange {
 pub struct TransferConfig {
     /// The number of days to look back to automatically refresh the data. For example, if data_refresh_window_days = 10, then every day BigQuery reingests data for [today-10, today-1], rather than ingesting data for just [today-1]. Only valid if the data source supports the feature. Set the value to 0 to use the default value.
     #[serde(default, rename = "dataRefreshWindowDays")]
-    pub data_refresh_window_days: Option<i32>,
+    pub data_refresh_window_days: ::core::option::Option<i32>,
     /// Data source ID. This cannot be changed once data transfer is created. The full list of available data source IDs can be returned through an API call: https://cloud.google.com/bigquery-transfer/docs/reference/datatransfer/rest/v1/projects.locations.dataSources/list
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// Output only. Region in which BigQuery dataset is located.
     #[serde(default, rename = "datasetRegion")]
-    pub dataset_region: Option<String>,
+    pub dataset_region: ::core::option::Option<String>,
     /// The BigQuery target dataset id.
     #[serde(default, rename = "destinationDatasetId")]
-    pub destination_dataset_id: Option<String>,
+    pub destination_dataset_id: ::core::option::Option<String>,
     /// Is this config disabled. When set to true, no runs will be scheduled for this transfer config.
     #[serde(default)]
-    pub disabled: Option<bool>,
+    pub disabled: ::core::option::Option<bool>,
     /// User specified display name for the data transfer.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Email notifications will be sent according to these preferences to the email address of the user who owns this transfer config.
     #[serde(default, rename = "emailPreferences")]
-    pub email_preferences: Option<EmailPreferences>,
+    pub email_preferences: ::core::option::Option<::std::boxed::Box<EmailPreferences>>,
     /// The encryption configuration part. Currently, it is only used for the optional KMS key name. The BigQuery service account of your project must be granted permissions to use the key. Read methods will return the key name applied in effect. Write methods will apply the key if it is present, or otherwise try to apply project default keys if it is absent.
     #[serde(default, rename = "encryptionConfiguration")]
-    pub encryption_configuration: Option<EncryptionConfiguration>,
+    pub encryption_configuration:
+        ::core::option::Option<::std::boxed::Box<EncryptionConfiguration>>,
     /// Output only. Error code with detailed information about reason of the latest config failure.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// The classification of the destination table. // TODO: enum values: ["MANAGED_TABLE_TYPE_UNSPECIFIED", "NATIVE", "BIGLAKE"]
     #[serde(default, rename = "managedTableType")]
-    pub managed_table_type: Option<String>,
+    pub managed_table_type: ::core::option::Option<String>,
     /// Identifier. The resource name of the transfer config. Transfer config names have the form either projects/{project_id}/locations/{region}/transferConfigs/{config_id} or projects/{project_id}/transferConfigs/{config_id}, where config_id is usually a UUID, even though it is not guaranteed or required. The name is ignored when creating a transfer config.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Next time when data transfer will run.
     #[serde(default, rename = "nextRunTime")]
-    pub next_run_time: Option<String>,
+    pub next_run_time: ::core::option::Option<String>,
     /// Pub/Sub topic where notifications will be sent after transfer runs associated with this transfer config finish. The format for specifying a pubsub topic is: projects/{project_id}/topics/{topic_id}
     #[serde(default, rename = "notificationPubsubTopic")]
-    pub notification_pubsub_topic: Option<String>,
+    pub notification_pubsub_topic: ::core::option::Option<String>,
     /// Output only. Information about the user whose credentials are used to transfer data. Populated only for transferConfigs.get requests. In case the user information is not available, this field will not be populated.
     #[serde(default, rename = "ownerInfo")]
-    pub owner_info: Option<UserInfo>,
+    pub owner_info: ::core::option::Option<::std::boxed::Box<UserInfo>>,
     /// Parameters specific to each data source. For more information see the bq tab in the ''Setting up a data transfer'' section for each data source. For example the parameters for Cloud Storage transfers are listed here: https://cloud.google.com/bigquery-transfer/docs/cloud-storage-transfer#bq
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// Data transfer schedule. If the data source does not support a custom schedule, this should be empty. If it is empty, the default value for the data source will be used. The specified times are in UTC. Examples of valid format: 1st,3rd monday of month 15:30, every wed,fri of jan,jun 13:15, and first sunday of quarter 00:00. See more explanation about the format here: https://cloud.google.com/appengine/docs/flexible/python/scheduling-jobs-with-cron-yaml#the_schedule_format NOTE: The minimum interval time between recurring transfers depends on the data source; refer to the documentation for your data source.
     #[serde(default)]
-    pub schedule: Option<String>,
+    pub schedule: ::core::option::Option<String>,
     /// Options customizing the data transfer schedule.
     #[serde(default, rename = "scheduleOptions")]
-    pub schedule_options: Option<ScheduleOptions>,
+    pub schedule_options: ::core::option::Option<::std::boxed::Box<ScheduleOptions>>,
     /// Options customizing different types of data transfer schedule. This field replaces "schedule" and "schedule_options" fields. ScheduleOptionsV2 cannot be used together with ScheduleOptions/Schedule.
     #[serde(default, rename = "scheduleOptionsV2")]
-    pub schedule_options_v2: Option<ScheduleOptionsV2>,
+    pub schedule_options_v2: ::core::option::Option<::std::boxed::Box<ScheduleOptionsV2>>,
     /// Output only. State of the most recently updated transfer run. // TODO: enum values: ["TRANSFER_STATE_UNSPECIFIED", "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Data transfer modification time. Ignored by server on input.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Deprecated. Unique ID of the user on whose behalf transfer is done.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Represents a user facing message for a particular data transfer run.
@@ -459,13 +463,13 @@ pub struct TransferConfig {
 pub struct TransferMessage {
     /// Message text.
     #[serde(default, rename = "messageText")]
-    pub message_text: Option<String>,
+    pub message_text: ::core::option::Option<String>,
     /// Time when message was logged.
     #[serde(default, rename = "messageTime")]
-    pub message_time: Option<String>,
+    pub message_time: ::core::option::Option<String>,
     /// Message severity. // TODO: enum values: ["MESSAGE_SEVERITY_UNSPECIFIED", "INFO", "WARNING", "ERROR"]
     #[serde(default)]
-    pub severity: Option<String>,
+    pub severity: ::core::option::Option<String>,
 }
 
 /// Resource(table/partition) that is being transferred.
@@ -473,28 +477,29 @@ pub struct TransferMessage {
 pub struct TransferResource {
     /// Optional. Resource destination. // TODO: enum values: ["RESOURCE_DESTINATION_UNSPECIFIED", "RESOURCE_DESTINATION_BIGQUERY", "RESOURCE_DESTINATION_DATAPROC_METASTORE", "RESOURCE_DESTINATION_BIGLAKE_METASTORE", "RESOURCE_DESTINATION_BIGLAKE_REST_CATALOG", "RESOURCE_DESTINATION_BIGLAKE_HIVE_CATALOG"]
     #[serde(default)]
-    pub destination: Option<String>,
+    pub destination: ::core::option::Option<String>,
     /// Optional. Details about the hierarchy.
     #[serde(default, rename = "hierarchyDetail")]
-    pub hierarchy_detail: Option<HierarchyDetail>,
+    pub hierarchy_detail: ::core::option::Option<::std::boxed::Box<HierarchyDetail>>,
     /// Output only. Run details for the last successful run.
     #[serde(default, rename = "lastSuccessfulRun")]
-    pub last_successful_run: Option<TransferRunBrief>,
+    pub last_successful_run: ::core::option::Option<::std::boxed::Box<TransferRunBrief>>,
     /// Optional. Run details for the latest run.
     #[serde(default, rename = "latestRun")]
-    pub latest_run: Option<TransferRunBrief>,
+    pub latest_run: ::core::option::Option<::std::boxed::Box<TransferRunBrief>>,
     /// Optional. Status details for the latest run.
     #[serde(default, rename = "latestStatusDetail")]
-    pub latest_status_detail: Option<TransferResourceStatusDetail>,
+    pub latest_status_detail:
+        ::core::option::Option<::std::boxed::Box<TransferResourceStatusDetail>>,
     /// Identifier. Resource name.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Resource type. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "RESOURCE_TYPE_TABLE", "RESOURCE_TYPE_PARTITION"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Output only. Time when the resource was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Status details of the resource being transferred.
@@ -502,16 +507,16 @@ pub struct TransferResource {
 pub struct TransferResourceStatusDetail {
     /// Output only. Percentage of the transfer completed. Valid values: 0-100.
     #[serde(default, rename = "completedPercentage")]
-    pub completed_percentage: Option<f64>,
+    pub completed_percentage: ::core::option::Option<f64>,
     /// Optional. Transfer error details for the resource.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Optional. Transfer state of the resource. // TODO: enum values: ["RESOURCE_TRANSFER_STATE_UNSPECIFIED", "RESOURCE_TRANSFER_PENDING", "RESOURCE_TRANSFER_RUNNING", "RESOURCE_TRANSFER_SUCCEEDED", "RESOURCE_TRANSFER_FAILED", "RESOURCE_TRANSFER_CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. Transfer status summary of the resource.
     #[serde(default)]
-    pub summary: Option<TransferStatusSummary>,
+    pub summary: ::core::option::Option<::std::boxed::Box<TransferStatusSummary>>,
 }
 
 /// Represents a data transfer run.
@@ -519,49 +524,49 @@ pub struct TransferResourceStatusDetail {
 pub struct TransferRun {
     /// Output only. Data source id.
     #[serde(default, rename = "dataSourceId")]
-    pub data_source_id: Option<String>,
+    pub data_source_id: ::core::option::Option<String>,
     /// Output only. The BigQuery target dataset id.
     #[serde(default, rename = "destinationDatasetId")]
-    pub destination_dataset_id: Option<String>,
+    pub destination_dataset_id: ::core::option::Option<String>,
     /// Output only. Email notifications will be sent according to these preferences to the email address of the user who owns the transfer config this run was derived from.
     #[serde(default, rename = "emailPreferences")]
-    pub email_preferences: Option<EmailPreferences>,
+    pub email_preferences: ::core::option::Option<::std::boxed::Box<EmailPreferences>>,
     /// Output only. Time when transfer run ended. Parameter ignored by server for input requests.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Status of the transfer run.
     #[serde(default, rename = "errorStatus")]
-    pub error_status: Option<Status>,
+    pub error_status: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Identifier. The resource name of the transfer run. Transfer run names have the form projects/{project_id}/locations/{location}/transferConfigs/{config_id}/runs/{run_id}. The name is ignored when creating a transfer run.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Pub/Sub topic where a notification will be sent after this transfer run finishes. The format for specifying a pubsub topic is: projects/{project_id}/topics/{topic_id}
     #[serde(default, rename = "notificationPubsubTopic")]
-    pub notification_pubsub_topic: Option<String>,
+    pub notification_pubsub_topic: ::core::option::Option<String>,
     /// Output only. Parameters specific to each data source. For more information see the bq tab in the ''Setting up a data transfer'' section for each data source. For example the parameters for Cloud Storage transfers are listed here: https://cloud.google.com/bigquery-transfer/docs/cloud-storage-transfer#bq
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// For batch transfer runs, specifies the date and time of the data should be ingested.
     #[serde(default, rename = "runTime")]
-    pub run_time: Option<String>,
+    pub run_time: ::core::option::Option<String>,
     /// Output only. Describes the schedule of this transfer run if it was created as part of a regular schedule. For batch transfer runs that are scheduled manually, this is empty. NOTE: the system might choose to delay the schedule depending on the current load, so schedule_time doesn''t always match this.
     #[serde(default)]
-    pub schedule: Option<String>,
+    pub schedule: ::core::option::Option<String>,
     /// Minimum time after which a transfer run can be started.
     #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: Option<String>,
+    pub schedule_time: ::core::option::Option<String>,
     /// Output only. Time when transfer run was started. Parameter ignored by server for input requests.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Data transfer run state. Ignored for input requests. // TODO: enum values: ["TRANSFER_STATE_UNSPECIFIED", "PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. Last time the data transfer run state was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Deprecated. Unique ID of the user on whose behalf transfer is done.
     #[serde(default, rename = "userId")]
-    pub user_id: Option<String>,
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Basic information about a transfer run.
@@ -569,10 +574,10 @@ pub struct TransferRun {
 pub struct TransferRunBrief {
     /// Optional. Run URI. Format projects/{project}/locations/{location}/transferConfigs/{config}/run/{run}
     #[serde(default)]
-    pub run: Option<String>,
+    pub run: ::core::option::Option<String>,
     /// Optional. Start time of the transfer run.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Metrics for tracking the transfer status.
@@ -580,19 +585,19 @@ pub struct TransferRunBrief {
 pub struct TransferStatusMetric {
     /// Optional. Number of units transferred successfully.
     #[serde(default)]
-    pub completed: Option<String>,
+    pub completed: ::core::option::Option<String>,
     /// Optional. Number of units that failed to transfer.
     #[serde(default)]
-    pub failed: Option<String>,
+    pub failed: ::core::option::Option<String>,
     /// Optional. Number of units pending transfer.
     #[serde(default)]
-    pub pending: Option<String>,
+    pub pending: ::core::option::Option<String>,
     /// Optional. Total number of units for the transfer.
     #[serde(default)]
-    pub total: Option<String>,
+    pub total: ::core::option::Option<String>,
     /// Optional. Unit for measuring progress (e.g., BYTES). // TODO: enum values: ["TRANSFER_STATUS_UNIT_UNSPECIFIED", "TRANSFER_STATUS_UNIT_BYTES", "TRANSFER_STATUS_UNIT_OBJECTS"]
     #[serde(default)]
-    pub unit: Option<String>,
+    pub unit: ::core::option::Option<String>,
 }
 
 /// Status summary of the resource being transferred.
@@ -600,10 +605,10 @@ pub struct TransferStatusMetric {
 pub struct TransferStatusSummary {
     /// Optional. List of transfer status metrics.
     #[serde(default)]
-    pub metrics: Option<Vec<TransferStatusMetric>>,
+    pub metrics: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<TransferStatusMetric>>>,
     /// Input only. Unit based on which transfer status progress should be calculated. // TODO: enum values: ["TRANSFER_STATUS_UNIT_UNSPECIFIED", "TRANSFER_STATUS_UNIT_BYTES", "TRANSFER_STATUS_UNIT_OBJECTS"]
     #[serde(default, rename = "progressUnit")]
-    pub progress_unit: Option<String>,
+    pub progress_unit: ::core::option::Option<String>,
 }
 
 /// A request to unenroll a set of data sources so they are no longer visible in the BigQuery UI''s Transfer tab.
@@ -611,7 +616,7 @@ pub struct TransferStatusSummary {
 pub struct UnenrollDataSourcesRequest {
     /// Data sources that are unenrolled. It is required to provide at least one data source id.
     #[serde(default, rename = "dataSourceIds")]
-    pub data_source_ids: Option<Vec<String>>,
+    pub data_source_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Information about a user.
@@ -619,5 +624,5 @@ pub struct UnenrollDataSourcesRequest {
 pub struct UserInfo {
     /// E-mail address of the user.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }

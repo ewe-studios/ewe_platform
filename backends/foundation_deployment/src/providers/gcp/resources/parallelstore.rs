@@ -10,15 +10,15 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Cloud Storage as the destination of a data transfer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DestinationGcsBucket {
     /// Required. URI to a Cloud Storage bucket in the format: gs:///. The path inside the bucket is optional.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Parallelstore as the destination of a data transfer.
@@ -26,7 +26,7 @@ pub struct DestinationGcsBucket {
 pub struct DestinationParallelstore {
     /// Optional. Root directory path to the Paralellstore filesystem, starting with /. Defaults to / if unset.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// Export data from Parallelstore to Cloud Storage.
@@ -34,19 +34,19 @@ pub struct DestinationParallelstore {
 pub struct ExportDataRequest {
     /// Cloud Storage destination.
     #[serde(default, rename = "destinationGcsBucket")]
-    pub destination_gcs_bucket: Option<DestinationGcsBucket>,
+    pub destination_gcs_bucket: ::core::option::Option<::std::boxed::Box<DestinationGcsBucket>>,
     /// Optional. The metadata options for the export data.
     #[serde(default, rename = "metadataOptions")]
-    pub metadata_options: Option<TransferMetadataOptions>,
+    pub metadata_options: ::core::option::Option<::std::boxed::Box<TransferMetadataOptions>>,
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Optional. User-specified Service Account (SA) credentials to be used when performing the transfer. Use one of the following formats: * {EMAIL_ADDRESS_OR_UNIQUE_ID} * projects/{PROJECT_ID_OR_NUMBER}/serviceAccounts/{EMAIL_ADDRESS_OR_UNIQUE_ID} * projects/-/serviceAccounts/{EMAIL_ADDRESS_OR_UNIQUE_ID} If unspecified, the Parallelstore service agent is used: service-@gcp-sa-parallelstore.iam.gserviceaccount.com
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// Parallelstore source.
     #[serde(default, rename = "sourceParallelstore")]
-    pub source_parallelstore: Option<SourceParallelstore>,
+    pub source_parallelstore: ::core::option::Option<::std::boxed::Box<SourceParallelstore>>,
 }
 
 /// Import data from Cloud Storage into a Parallelstore instance.
@@ -54,19 +54,20 @@ pub struct ExportDataRequest {
 pub struct ImportDataRequest {
     /// Parallelstore destination.
     #[serde(default, rename = "destinationParallelstore")]
-    pub destination_parallelstore: Option<DestinationParallelstore>,
+    pub destination_parallelstore:
+        ::core::option::Option<::std::boxed::Box<DestinationParallelstore>>,
     /// Optional. The transfer metadata options for the import data.
     #[serde(default, rename = "metadataOptions")]
-    pub metadata_options: Option<TransferMetadataOptions>,
+    pub metadata_options: ::core::option::Option<::std::boxed::Box<TransferMetadataOptions>>,
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
     /// Optional. User-specified service account credentials to be used when performing the transfer. Use one of the following formats: * {EMAIL_ADDRESS_OR_UNIQUE_ID} * projects/{PROJECT_ID_OR_NUMBER}/serviceAccounts/{EMAIL_ADDRESS_OR_UNIQUE_ID} * projects/-/serviceAccounts/{EMAIL_ADDRESS_OR_UNIQUE_ID} If unspecified, the Parallelstore service agent is used: service-@gcp-sa-parallelstore.iam.gserviceaccount.com
     #[serde(default, rename = "serviceAccount")]
-    pub service_account: Option<String>,
+    pub service_account: ::core::option::Option<String>,
     /// The Cloud Storage source bucket and, optionally, path inside the bucket.
     #[serde(default, rename = "sourceGcsBucket")]
-    pub source_gcs_bucket: Option<SourceGcsBucket>,
+    pub source_gcs_bucket: ::core::option::Option<::std::boxed::Box<SourceGcsBucket>>,
 }
 
 /// A Parallelstore instance.
@@ -74,49 +75,49 @@ pub struct ImportDataRequest {
 pub struct Instance {
     /// Output only. A list of IPv4 addresses used for client side configuration.
     #[serde(default, rename = "accessPoints")]
-    pub access_points: Option<Vec<String>>,
+    pub access_points: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Immutable. The instance''s storage capacity in Gibibytes (GiB). Allowed values are between 12000 and 100000, in multiples of 4000; e.g., 12000, 16000, 20000, ...
     #[serde(default, rename = "capacityGib")]
-    pub capacity_gib: Option<String>,
+    pub capacity_gib: ::core::option::Option<String>,
     /// Output only. The time when the instance was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Deprecated: The version of DAOS software running in the instance.
     #[serde(default, rename = "daosVersion")]
-    pub daos_version: Option<String>,
+    pub daos_version: ::core::option::Option<String>,
     /// Optional. Immutable. The deployment type of the instance. Allowed values are: * SCRATCH: the instance is a scratch instance. * PERSISTENT: the instance is a persistent instance. // TODO: enum values: ["DEPLOYMENT_TYPE_UNSPECIFIED", "SCRATCH", "PERSISTENT"]
     #[serde(default, rename = "deploymentType")]
-    pub deployment_type: Option<String>,
+    pub deployment_type: ::core::option::Option<String>,
     /// Optional. The description of the instance. 2048 characters or less.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Optional. Immutable. Stripe level for directories. Allowed values are: * DIRECTORY_STRIPE_LEVEL_MIN: recommended when directories contain a small number of files. * DIRECTORY_STRIPE_LEVEL_BALANCED: balances performance for workloads involving a mix of small and large directories. * DIRECTORY_STRIPE_LEVEL_MAX: recommended for directories with a large number of files. // TODO: enum values: ["DIRECTORY_STRIPE_LEVEL_UNSPECIFIED", "DIRECTORY_STRIPE_LEVEL_MIN", "DIRECTORY_STRIPE_LEVEL_BALANCED", "DIRECTORY_STRIPE_LEVEL_MAX"]
     #[serde(default, rename = "directoryStripeLevel")]
-    pub directory_stripe_level: Option<String>,
+    pub directory_stripe_level: ::core::option::Option<String>,
     /// Output only. Immutable. The ID of the IP address range being used by the instance''s VPC network. This field is populated by the service and contains the value currently used by the service.
     #[serde(default, rename = "effectiveReservedIpRange")]
-    pub effective_reserved_ip_range: Option<String>,
+    pub effective_reserved_ip_range: ::core::option::Option<String>,
     /// Optional. Immutable. Stripe level for files. Allowed values are: * FILE_STRIPE_LEVEL_MIN: offers the best performance for small size files. * FILE_STRIPE_LEVEL_BALANCED: balances performance for workloads involving a mix of small and large files. * FILE_STRIPE_LEVEL_MAX: higher throughput performance for larger files. // TODO: enum values: ["FILE_STRIPE_LEVEL_UNSPECIFIED", "FILE_STRIPE_LEVEL_MIN", "FILE_STRIPE_LEVEL_BALANCED", "FILE_STRIPE_LEVEL_MAX"]
     #[serde(default, rename = "fileStripeLevel")]
-    pub file_stripe_level: Option<String>,
+    pub file_stripe_level: ::core::option::Option<String>,
     /// Optional. Cloud Labels are a flexible and lightweight mechanism for organizing cloud resources into groups that reflect a customer''s organizational needs and deployment strategies. See https://cloud.google.com/resource-manager/docs/labels-overview for details.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name of the instance, in the format projects/{project}/locations/{location}/instances/{instance_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Immutable. The name of the Compute Engine [VPC network](https://cloud.google.com/vpc/docs/vpc) to which the instance is connected.
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Optional. Immutable. The ID of the IP address range being used by the instance''s VPC network. See [Configure a VPC network](https://cloud.google.com/parallelstore/docs/vpc#create_and_configure_the_vpc). If no ID is provided, all ranges are considered.
     #[serde(default, rename = "reservedIpRange")]
-    pub reserved_ip_range: Option<String>,
+    pub reserved_ip_range: ::core::option::Option<String>,
     /// Output only. The instance state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "FAILED", "UPGRADING", "REPAIRING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time when the instance was updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Response from ListInstances.
@@ -124,13 +125,13 @@ pub struct Instance {
 pub struct ListInstancesResponse {
     /// The list of Parallelstore instances.
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -138,10 +139,10 @@ pub struct ListInstancesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -149,13 +150,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections e.g. when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -163,19 +164,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -183,19 +184,19 @@ pub struct Location {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Long-running operation metadata.
@@ -203,25 +204,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// Operation metadata returned by the CLH during resource state reconciliation.
@@ -229,10 +230,10 @@ pub struct OperationMetadata {
 pub struct ReconciliationOperationMetadata {
     /// DEPRECATED. Use exclusive_action instead.
     #[serde(default, rename = "deleteResource")]
-    pub delete_resource: Option<bool>,
+    pub delete_resource: ::core::option::Option<bool>,
     /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
     #[serde(default, rename = "exclusiveAction")]
-    pub exclusive_action: Option<String>,
+    pub exclusive_action: ::core::option::Option<String>,
 }
 
 /// Cloud Storage as the source of a data transfer.
@@ -240,7 +241,7 @@ pub struct ReconciliationOperationMetadata {
 pub struct SourceGcsBucket {
     /// Required. URI to a Cloud Storage bucket in the format: gs:///. The path inside the bucket is optional.
     #[serde(default)]
-    pub uri: Option<String>,
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Parallelstore as the source of a data transfer.
@@ -248,7 +249,7 @@ pub struct SourceGcsBucket {
 pub struct SourceParallelstore {
     /// Optional. Root directory path to the Paralellstore filesystem, starting with /. Defaults to / if unset.
     #[serde(default)]
-    pub path: Option<String>,
+    pub path: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -256,13 +257,13 @@ pub struct SourceParallelstore {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Transfer metadata options for the instance.
@@ -270,11 +271,11 @@ pub struct Status {
 pub struct TransferMetadataOptions {
     /// Optional. The GID preservation behavior. // TODO: enum values: ["GID_UNSPECIFIED", "GID_SKIP", "GID_NUMBER_PRESERVE"]
     #[serde(default)]
-    pub gid: Option<String>,
+    pub gid: ::core::option::Option<String>,
     /// Optional. The mode preservation behavior. // TODO: enum values: ["MODE_UNSPECIFIED", "MODE_SKIP", "MODE_PRESERVE"]
     #[serde(default)]
-    pub mode: Option<String>,
+    pub mode: ::core::option::Option<String>,
     /// Optional. The UID preservation behavior. // TODO: enum values: ["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER_PRESERVE"]
     #[serde(default)]
-    pub uid: Option<String>,
+    pub uid: ::core::option::Option<String>,
 }

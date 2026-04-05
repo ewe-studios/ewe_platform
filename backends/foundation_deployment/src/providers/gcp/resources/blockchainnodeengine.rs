@@ -10,39 +10,39 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A representation of a blockchain node.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockchainNode {
     /// Immutable. The blockchain type of the node. // TODO: enum values: ["BLOCKCHAIN_TYPE_UNSPECIFIED", "ETHEREUM"]
     #[serde(default, rename = "blockchainType")]
-    pub blockchain_type: Option<String>,
+    pub blockchain_type: ::core::option::Option<String>,
     /// Output only. The connection information used to interact with a blockchain node.
     #[serde(default, rename = "connectionInfo")]
-    pub connection_info: Option<ConnectionInfo>,
+    pub connection_info: ::core::option::Option<::std::boxed::Box<ConnectionInfo>>,
     /// Output only. The timestamp at which the blockchain node was first created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Ethereum-specific blockchain node details.
     #[serde(default, rename = "ethereumDetails")]
-    pub ethereum_details: Option<EthereumDetails>,
+    pub ethereum_details: ::core::option::Option<::std::boxed::Box<EthereumDetails>>,
     /// User-provided key-value pairs.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. The fully qualified name of the blockchain node. e.g. projects/my-project/locations/us-central1/blockchainNodes/my-node.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. When true, the node is only accessible via Private Service Connect; no public endpoints are exposed. Otherwise, the node is only accessible via public endpoints. Warning: These nodes are deprecated, please use public endpoints instead.
     #[serde(default, rename = "privateServiceConnectEnabled")]
-    pub private_service_connect_enabled: Option<bool>,
+    pub private_service_connect_enabled: ::core::option::Option<bool>,
     /// Output only. A status representing the state of the node. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "DELETING", "RUNNING", "ERROR", "UPDATING", "REPAIRING", "RECONCILING", "SYNCING"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The timestamp at which the blockchain node was last updated.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// The connection information through which to interact with a blockchain node.
@@ -50,10 +50,10 @@ pub struct BlockchainNode {
 pub struct ConnectionInfo {
     /// Output only. The endpoint information through which to interact with a blockchain node.
     #[serde(default, rename = "endpointInfo")]
-    pub endpoint_info: Option<EndpointInfo>,
+    pub endpoint_info: ::core::option::Option<::std::boxed::Box<EndpointInfo>>,
     /// Output only. A service attachment that exposes a node, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}
     #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: Option<String>,
+    pub service_attachment: ::core::option::Option<String>,
 }
 
 /// Contains endpoint information through which to interact with a blockchain node.
@@ -61,10 +61,10 @@ pub struct ConnectionInfo {
 pub struct EndpointInfo {
     /// Output only. The assigned URL for the node JSON-RPC API endpoint.
     #[serde(default, rename = "jsonRpcApiEndpoint")]
-    pub json_rpc_api_endpoint: Option<String>,
+    pub json_rpc_api_endpoint: ::core::option::Option<String>,
     /// Output only. The assigned URL for the node WebSockets API endpoint.
     #[serde(default, rename = "websocketsApiEndpoint")]
-    pub websockets_api_endpoint: Option<String>,
+    pub websockets_api_endpoint: ::core::option::Option<String>,
 }
 
 /// Ethereum-specific blockchain node details.
@@ -72,31 +72,31 @@ pub struct EndpointInfo {
 pub struct EthereumDetails {
     /// Output only. Ethereum-specific endpoint information.
     #[serde(default, rename = "additionalEndpoints")]
-    pub additional_endpoints: Option<EthereumEndpoints>,
+    pub additional_endpoints: ::core::option::Option<::std::boxed::Box<EthereumEndpoints>>,
     /// Immutable. Enables JSON-RPC access to functions in the admin namespace. Defaults to false.
     #[serde(default, rename = "apiEnableAdmin")]
-    pub api_enable_admin: Option<bool>,
+    pub api_enable_admin: ::core::option::Option<bool>,
     /// Immutable. Enables JSON-RPC access to functions in the debug namespace. Defaults to false.
     #[serde(default, rename = "apiEnableDebug")]
-    pub api_enable_debug: Option<bool>,
+    pub api_enable_debug: ::core::option::Option<bool>,
     /// Immutable. The consensus client. // TODO: enum values: ["CONSENSUS_CLIENT_UNSPECIFIED", "LIGHTHOUSE", "ERIGON_EMBEDDED_CONSENSUS_LAYER"]
     #[serde(default, rename = "consensusClient")]
-    pub consensus_client: Option<String>,
+    pub consensus_client: ::core::option::Option<String>,
     /// Immutable. The execution client // TODO: enum values: ["EXECUTION_CLIENT_UNSPECIFIED", "GETH", "ERIGON"]
     #[serde(default, rename = "executionClient")]
-    pub execution_client: Option<String>,
+    pub execution_client: ::core::option::Option<String>,
     /// Details for the Geth execution client.
     #[serde(default, rename = "gethDetails")]
-    pub geth_details: Option<GethDetails>,
+    pub geth_details: ::core::option::Option<::std::boxed::Box<GethDetails>>,
     /// Immutable. The Ethereum environment being accessed. // TODO: enum values: ["NETWORK_UNSPECIFIED", "MAINNET", "TESTNET_GOERLI_PRATER", "TESTNET_SEPOLIA", "TESTNET_HOLESKY"]
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Immutable. The type of Ethereum node. // TODO: enum values: ["NODE_TYPE_UNSPECIFIED", "LIGHT", "FULL", "ARCHIVE"]
     #[serde(default, rename = "nodeType")]
-    pub node_type: Option<String>,
+    pub node_type: ::core::option::Option<String>,
     /// Configuration for validator-related parameters on the beacon client, and for any GCP-managed validator client.
     #[serde(default, rename = "validatorConfig")]
-    pub validator_config: Option<ValidatorConfig>,
+    pub validator_config: ::core::option::Option<::std::boxed::Box<ValidatorConfig>>,
 }
 
 /// Contains endpoint information specific to Ethereum nodes.
@@ -104,13 +104,13 @@ pub struct EthereumDetails {
 pub struct EthereumEndpoints {
     /// Output only. The assigned URL for the node''s Beacon API endpoint.
     #[serde(default, rename = "beaconApiEndpoint")]
-    pub beacon_api_endpoint: Option<String>,
+    pub beacon_api_endpoint: ::core::option::Option<String>,
     /// Output only. The assigned URL for the node''s Beacon Prometheus metrics endpoint. See [Prometheus Metrics](https://lighthouse-book.sigmaprime.io/advanced_metrics.html) for more details.
     #[serde(default, rename = "beaconPrometheusMetricsApiEndpoint")]
-    pub beacon_prometheus_metrics_api_endpoint: Option<String>,
+    pub beacon_prometheus_metrics_api_endpoint: ::core::option::Option<String>,
     /// Output only. The assigned URL for the node''s execution client''s Prometheus metrics endpoint.
     #[serde(default, rename = "executionClientPrometheusMetricsApiEndpoint")]
-    pub execution_client_prometheus_metrics_api_endpoint: Option<String>,
+    pub execution_client_prometheus_metrics_api_endpoint: ::core::option::Option<String>,
 }
 
 /// Options for the Geth execution client. See [Command-line Options](https://geth.ethereum.org/docs/fundamentals/command-line-options) for more details.
@@ -118,7 +118,7 @@ pub struct EthereumEndpoints {
 pub struct GethDetails {
     /// Immutable. Blockchain garbage collection mode. // TODO: enum values: ["GARBAGE_COLLECTION_MODE_UNSPECIFIED", "FULL", "ARCHIVE"]
     #[serde(default, rename = "garbageCollectionMode")]
-    pub garbage_collection_mode: Option<String>,
+    pub garbage_collection_mode: ::core::option::Option<String>,
 }
 
 /// Message for response to listing blockchain nodes.
@@ -126,13 +126,14 @@ pub struct GethDetails {
 pub struct ListBlockchainNodesResponse {
     /// The list of nodes
     #[serde(default, rename = "blockchainNodes")]
-    pub blockchain_nodes: Option<Vec<BlockchainNode>>,
+    pub blockchain_nodes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BlockchainNode>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Locations that could not be reached.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -140,10 +141,10 @@ pub struct ListBlockchainNodesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -151,10 +152,10 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -162,19 +163,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -182,19 +183,19 @@ pub struct Location {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -202,25 +203,25 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -228,13 +229,13 @@ pub struct OperationMetadata {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// Configuration for validator-related parameters on the beacon client, and for any GCP-managed validator client.
@@ -242,11 +243,11 @@ pub struct Status {
 pub struct ValidatorConfig {
     /// An Ethereum address which the beacon client will send fee rewards to if no recipient is configured in the validator client. See https://lighthouse-book.sigmaprime.io/suggested-fee-recipient.html or https://docs.prylabs.network/docs/execution-node/fee-recipient for examples of how this is used. Note that while this is often described as "suggested", as we run the execution node we can trust the execution node, and therefore this is considered enforced.
     #[serde(default, rename = "beaconFeeRecipient")]
-    pub beacon_fee_recipient: Option<String>,
+    pub beacon_fee_recipient: ::core::option::Option<String>,
     /// Immutable. When true, deploys a GCP-managed validator client alongside the beacon client.
     #[serde(default, rename = "managedValidatorClient")]
-    pub managed_validator_client: Option<bool>,
+    pub managed_validator_client: ::core::option::Option<bool>,
     /// URLs for MEV-relay services to use for block building. When set, a GCP-managed MEV-boost service is configured on the beacon client.
     #[serde(default, rename = "mevRelayUrls")]
-    pub mev_relay_urls: Option<Vec<String>>,
+    pub mev_relay_urls: ::core::option::Option<::std::vec::Vec<String>>,
 }

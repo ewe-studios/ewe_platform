@@ -10,16 +10,16 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// JSON response template for groups migration API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Groups {
     /// The kind of insert resource this is.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// The status of the insert request.
     #[serde(default, rename = "responseCode")]
-    pub response_code: Option<String>,
+    pub response_code: ::core::option::Option<String>,
 }

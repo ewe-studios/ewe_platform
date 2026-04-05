@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Access Approval service account related to a project/folder/organization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessApprovalServiceAccount {
     /// Email address of the service account.
     #[serde(default, rename = "accountEmail")]
-    pub account_email: Option<String>,
+    pub account_email: ::core::option::Option<String>,
     /// The resource name of the Access Approval service account. Format is one of: * "projects/{project}/serviceAccount" * "folders/{folder}/serviceAccount" * "organizations/{organization}/serviceAccount"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Settings on a Project/Folder/Organization related to Access Approval.
@@ -29,49 +29,52 @@ pub struct AccessApprovalServiceAccount {
 pub struct AccessApprovalSettings {
     /// The asymmetric crypto key version to use for signing approval requests. Empty active_key_version indicates that a Google-managed key should be used for signing. This property will be ignored if set by an ancestor of this resource, and new non-empty values may not be set.
     #[serde(default, rename = "activeKeyVersion")]
-    pub active_key_version: Option<String>,
+    pub active_key_version: ::core::option::Option<String>,
     /// Output only. This field is read only (not settable via UpdateAccessApprovalSettings method). If the field is true, that indicates that an ancestor of this Project or Folder has set active_key_version (this field will always be unset for the organization since organizations do not have ancestors).
     #[serde(default, rename = "ancestorHasActiveKeyVersion")]
-    pub ancestor_has_active_key_version: Option<bool>,
+    pub ancestor_has_active_key_version: ::core::option::Option<bool>,
     /// Output only. Field to differentiate ancestor enrolled services from locally enrolled services.
     #[serde(default, rename = "ancestorsEnrolledServices")]
-    pub ancestors_enrolled_services: Option<Vec<EnrolledService>>,
+    pub ancestors_enrolled_services:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnrolledService>>>,
     /// Optional. Policy configuration for Access Approval that sets the operating mode. The available policies are Transparency, Streamlined Support, and Approval Required.
     #[serde(default, rename = "approvalPolicy")]
-    pub approval_policy: Option<CustomerApprovalApprovalPolicy>,
+    pub approval_policy: ::core::option::Option<::std::boxed::Box<CustomerApprovalApprovalPolicy>>,
     /// Output only. Effective policy applied for Access Approval, inclusive of inheritance.
     #[serde(default, rename = "effectiveApprovalPolicy")]
-    pub effective_approval_policy: Option<CustomerApprovalApprovalPolicy>,
+    pub effective_approval_policy:
+        ::core::option::Option<::std::boxed::Box<CustomerApprovalApprovalPolicy>>,
     /// Output only. This field is read only (not settable via UpdateAccessApprovalSettings method). If the field is true, that indicates that at least one service is enrolled for Access Approval in one or more ancestors of the Project or Folder (this field will always be unset for the organization since organizations do not have ancestors).
     #[serde(default, rename = "enrolledAncestor")]
-    pub enrolled_ancestor: Option<bool>,
+    pub enrolled_ancestor: ::core::option::Option<bool>,
     /// A list of Google Cloud Services for which the given resource has Access Approval enrolled. Access requests for the resource given by name against any of these services contained here will be required to have explicit approval. If name refers to an organization, enrollment can be done for individual services. If name refers to a folder or project, enrollment can only be done on an all or nothing basis. If a cloud_product is repeated in this list, the first entry will be honored and all following entries will be discarded.
     #[serde(default, rename = "enrolledServices")]
-    pub enrolled_services: Option<Vec<EnrolledService>>,
+    pub enrolled_services:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EnrolledService>>>,
     /// Output only. This field is read only (not settable via UpdateAccessApprovalSettings method). If the field is true, that indicates that there is some configuration issue with the active_key_version configured at this level in the resource hierarchy (e.g. it doesn''t exist or the Access Approval service account doesn''t have the correct permissions on it, etc.) This key version is not necessarily the effective key version at this level, as key versions are inherited top-down.
     #[serde(default, rename = "invalidKeyVersion")]
-    pub invalid_key_version: Option<bool>,
+    pub invalid_key_version: ::core::option::Option<bool>,
     /// The resource name of the settings. Format is one of: * "projects/{project}/accessApprovalSettings" * "folders/{folder}/accessApprovalSettings" * "organizations/{organization}/accessApprovalSettings"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// A list of email addresses to which notifications relating to approval requests should be sent. Notifications relating to a resource will be sent to all emails in the settings of ancestor resources of that resource. A maximum of 50 email addresses are allowed.
     #[serde(default, rename = "notificationEmails")]
-    pub notification_emails: Option<Vec<String>>,
+    pub notification_emails: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. A pubsub topic that notifications relating to access approval are published to. Notifications include pre-approved accesses.
     #[serde(default, rename = "notificationPubsubTopic")]
-    pub notification_pubsub_topic: Option<String>,
+    pub notification_pubsub_topic: ::core::option::Option<String>,
     /// This field is used to set a preference for granularity of an access approval request. If true, Google personnel will be asked to send resource-level requests when possible. If false, Google personnel will be asked to send requests at the project level.
     #[serde(default, rename = "preferNoBroadApprovalRequests")]
-    pub prefer_no_broad_approval_requests: Option<bool>,
+    pub prefer_no_broad_approval_requests: ::core::option::Option<bool>,
     /// Set the default access approval request expiration time. This value is able to be set directly by the customer at the time of approval, overriding this suggested value. We recommend setting this value to 30 days.
     #[serde(default, rename = "preferredRequestExpirationDays")]
-    pub preferred_request_expiration_days: Option<i32>,
+    pub preferred_request_expiration_days: ::core::option::Option<i32>,
     /// Optional. A setting that indicates the maximum scope of an Access Approval request: either organization, folder, or project. Google administrators will be asked to send requests no broader than the configured scope. // TODO: enum values: ["REQUEST_SCOPE_MAX_WIDTH_PREFERENCE_UNSPECIFIED", "ORGANIZATION", "FOLDER", "PROJECT"]
     #[serde(default, rename = "requestScopeMaxWidthPreference")]
-    pub request_scope_max_width_preference: Option<String>,
+    pub request_scope_max_width_preference: ::core::option::Option<String>,
     /// Optional. When enabled, Google will only be able to send approval requests for access reasons with a customer accessible case ID in the reason detail. Also known as "Require customer initiated support case justification"
     #[serde(default, rename = "requireCustomerVisibleJustification")]
-    pub require_customer_visible_justification: Option<bool>,
+    pub require_customer_visible_justification: ::core::option::Option<bool>,
 }
 
 /// Physical assigned office and physical location of the Google administrator performing the access.
@@ -79,10 +82,10 @@ pub struct AccessApprovalSettings {
 pub struct AccessLocations {
     /// The "home office" location of the Google administrator. A two-letter country code (ISO 3166-1 alpha-2), such as "US", "DE" or "GB" or a region code. In some limited situations Google systems may refer refer to a region code instead of a country code. Possible Region Codes: * ASI: Asia * EUR: Europe * OCE: Oceania * AFR: Africa * NAM: North America * SAM: South America * ANT: Antarctica * ANY: Any location
     #[serde(default, rename = "principalOfficeCountry")]
-    pub principal_office_country: Option<String>,
+    pub principal_office_country: ::core::option::Option<String>,
     /// Physical location of the Google administrator at the time of the access. A two-letter country code (ISO 3166-1 alpha-2), such as "US", "DE" or "GB" or a region code. In some limited situations Google systems may refer refer to a region code instead of a country code. Possible Region Codes: * ASI: Asia * EUR: Europe * OCE: Oceania * AFR: Africa * NAM: North America * SAM: South America * ANT: Antarctica * ANY: Any location
     #[serde(default, rename = "principalPhysicalLocationCountry")]
-    pub principal_physical_location_country: Option<String>,
+    pub principal_physical_location_country: ::core::option::Option<String>,
 }
 
 /// AccessReason resource type.
@@ -90,10 +93,10 @@ pub struct AccessLocations {
 pub struct AccessReason {
     /// More detail about certain reason types. See comments for each type above.
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     /// Type of access reason. // TODO: enum values: ["TYPE_UNSPECIFIED", "CUSTOMER_INITIATED_SUPPORT", "GOOGLE_INITIATED_SERVICE", "GOOGLE_INITIATED_REVIEW", "THIRD_PARTY_DATA_REQUEST", "GOOGLE_RESPONSE_TO_PRODUCTION_ALERT", "CLOUD_INITIATED_ACCESS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// A request for the customer to approve access to a resource.
@@ -101,37 +104,38 @@ pub struct AccessReason {
 pub struct ApprovalRequest {
     /// Access was approved.
     #[serde(default)]
-    pub approve: Option<ApproveDecision>,
+    pub approve: ::core::option::Option<::std::boxed::Box<ApproveDecision>>,
     /// The request was dismissed.
     #[serde(default)]
-    pub dismiss: Option<DismissDecision>,
+    pub dismiss: ::core::option::Option<::std::boxed::Box<DismissDecision>>,
     /// The resource name of the request. Format is "{projects|folders|organizations}/{id}/approvalRequests/{approval_request}".
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The time at which approval was requested.
     #[serde(default, rename = "requestTime")]
-    pub request_time: Option<String>,
+    pub request_time: ::core::option::Option<String>,
     /// This field contains the augmented information of the request.
     #[serde(default, rename = "requestedAugmentedInfo")]
-    pub requested_augmented_info: Option<AugmentedInfo>,
+    pub requested_augmented_info: ::core::option::Option<::std::boxed::Box<AugmentedInfo>>,
     /// The requested access duration.
     #[serde(default, rename = "requestedDuration")]
-    pub requested_duration: Option<String>,
+    pub requested_duration: ::core::option::Option<String>,
     /// The original requested expiration for the approval. Calculated by adding the requested_duration to the request_time.
     #[serde(default, rename = "requestedExpiration")]
-    pub requested_expiration: Option<String>,
+    pub requested_expiration: ::core::option::Option<String>,
     /// The locations for which approval is being requested.
     #[serde(default, rename = "requestedLocations")]
-    pub requested_locations: Option<AccessLocations>,
+    pub requested_locations: ::core::option::Option<::std::boxed::Box<AccessLocations>>,
     /// The access reason for which approval is being requested.
     #[serde(default, rename = "requestedReason")]
-    pub requested_reason: Option<AccessReason>,
+    pub requested_reason: ::core::option::Option<::std::boxed::Box<AccessReason>>,
     /// The resource for which approval is being requested. The format of the resource name is defined at https://cloud.google.com/apis/design/resource_names. The resource name here may either be a "full" resource name (e.g. "//library.googleapis.com/shelves/shelf1/books/book2") or a "relative" resource name (e.g. "shelves/shelf1/books/book2") as described in the resource name specification.
     #[serde(default, rename = "requestedResourceName")]
-    pub requested_resource_name: Option<String>,
+    pub requested_resource_name: ::core::option::Option<String>,
     /// Properties related to the resource represented by requested_resource_name.
     #[serde(default, rename = "requestedResourceProperties")]
-    pub requested_resource_properties: Option<ResourceProperties>,
+    pub requested_resource_properties:
+        ::core::option::Option<::std::boxed::Box<ResourceProperties>>,
 }
 
 /// Request to approve an ApprovalRequest.
@@ -139,7 +143,7 @@ pub struct ApprovalRequest {
 pub struct ApproveApprovalRequestMessage {
     /// The expiration time of this approval.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
 }
 
 /// A decision that has been made to approve access to a resource.
@@ -147,22 +151,22 @@ pub struct ApproveApprovalRequestMessage {
 pub struct ApproveDecision {
     /// The time at which approval was granted.
     #[serde(default, rename = "approveTime")]
-    pub approve_time: Option<String>,
+    pub approve_time: ::core::option::Option<String>,
     /// True when the request has been auto-approved.
     #[serde(default, rename = "autoApproved")]
-    pub auto_approved: Option<bool>,
+    pub auto_approved: ::core::option::Option<bool>,
     /// The time at which the approval expires.
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// If set, denotes the timestamp at which the approval is invalidated.
     #[serde(default, rename = "invalidateTime")]
-    pub invalidate_time: Option<String>,
+    pub invalidate_time: ::core::option::Option<String>,
     /// True when the request has been approved by the customer''s defined policy.
     #[serde(default, rename = "policyApproved")]
-    pub policy_approved: Option<bool>,
+    pub policy_approved: ::core::option::Option<bool>,
     /// The signature for the ApprovalRequest and details on how it was signed.
     #[serde(default, rename = "signatureInfo")]
-    pub signature_info: Option<SignatureInfo>,
+    pub signature_info: ::core::option::Option<::std::boxed::Box<SignatureInfo>>,
 }
 
 /// This field contains the augmented information of the request. Requires augmented administrative access to be enabled.
@@ -170,7 +174,7 @@ pub struct ApproveDecision {
 pub struct AugmentedInfo {
     /// For command-line tools, the full command-line exactly as entered by the actor without adding any additional characters (such as quotation marks).
     #[serde(default)]
-    pub command: Option<String>,
+    pub command: ::core::option::Option<String>,
 }
 
 /// Represents all the policies that can be set for Customer Approval.
@@ -178,7 +182,7 @@ pub struct AugmentedInfo {
 pub struct CustomerApprovalApprovalPolicy {
     /// Optional. Policy for approval based on the justification given. // TODO: enum values: ["JUSTIFICATION_BASED_APPROVAL_POLICY_UNSPECIFIED", "JUSTIFICATION_BASED_APPROVAL_ENABLED_ALL", "JUSTIFICATION_BASED_APPROVAL_ENABLED_EXTERNAL_JUSTIFICATIONS", "JUSTIFICATION_BASED_APPROVAL_NOT_ENABLED", "JUSTIFICATION_BASED_APPROVAL_INHERITED"]
     #[serde(default, rename = "justificationBasedApprovalPolicy")]
-    pub justification_based_approval_policy: Option<String>,
+    pub justification_based_approval_policy: ::core::option::Option<String>,
 }
 
 /// A decision that has been made to dismiss an approval request.
@@ -186,10 +190,10 @@ pub struct CustomerApprovalApprovalPolicy {
 pub struct DismissDecision {
     /// The time at which the approval request was dismissed.
     #[serde(default, rename = "dismissTime")]
-    pub dismiss_time: Option<String>,
+    pub dismiss_time: ::core::option::Option<String>,
     /// This field will be true if the ApprovalRequest was implicitly dismissed due to inaction by the access approval approvers (the request is not acted on by the approvers before the exiration time).
     #[serde(default)]
-    pub implicit: Option<bool>,
+    pub implicit: ::core::option::Option<bool>,
 }
 
 /// Represents the enrollment of a cloud resource into a specific service.
@@ -197,10 +201,10 @@ pub struct DismissDecision {
 pub struct EnrolledService {
     /// The product for which Access Approval will be enrolled. Allowed values are listed below (case-sensitive): * all * GA * Access Context Manager * Anthos Identity Service * AlloyDB for PostgreSQL * Apigee * Application Integration * App Hub * Artifact Registry * Anthos Service Mesh * Access Transparency * BigQuery * Certificate Authority Service * Cloud Bigtable * CCAI Assist and Knowledge * Cloud Dataflow * Cloud Dataproc * CEP Security Gateway * Compliance Evaluation Service * Cloud Firestore * Cloud Healthcare API * Chronicle * Cloud AI Companion Gateway - Titan * Google Cloud Armor * Cloud Asset Inventory * Cloud Asset Search * Cloud Deploy * Cloud DNS * Cloud Latency * Cloud Memorystore for Redis * CloudNet Control * Cloud Riptide * Cloud Tasks * Cloud Trace * Cloud Data Transfer * Cloud Composer * Integration Connectors * Contact Center AI Insights * Cloud Pub/Sub * Cloud Run * Resource Manager * Cloud Spanner * Database Center * Cloud Dataform * Cloud Data Fusion * Dataplex * Dialogflow Customer Experience Edition * Cloud DLP * Document AI * Edge Container * Edge Network * Cloud EKM * Eventarc * Firebase Data Connect * Firebase Rules * App Engine * Cloud Build * Compute Engine * Cloud Functions (2nd Gen) * Cloud Filestore * Cloud Interconnect * Cloud NetApp Volumes * Cloud Storage * Generative AI App Builder * Google Kubernetes Engine * Backup for GKE API * GKE Connect * GKE Hub * Hoverboard * Cloud HSM * Cloud Identity and Access Management * Cloud Identity-Aware Proxy * Infrastructure Manager * Identity Storage Service * Key Access Justifications * Cloud Key Management Service * Cloud Logging * Looker (Google Cloud core) * Looker Studio * Management Hub * Model Armor * Cloud Monitoring * Cloud NAT * Connectivity Hub * External passthrough Network Load Balancer * OIDC One * Organization Policy Service * Org Lifecycle * Persistent Disk * Parameter Manager * Private Services Access * Regional Internal Application Load Balancer * Storage Batch Operations * Cloud Security Command Center * Secure Source Manager * Seeker * Service Provisioning * Speaker ID * Secret Manager * Cloud SQL * Cloud Speech-to-Text * Traffic Director * Cloud Text-to-Speech * USPS Andromeda * Vertex AI * Virtual Private Cloud (VPC) * VPC Access * VPC Service Controls Troubleshooter * VPC virtnet * Cloud Workstations * Web Risk Note: These values are supported as input for legacy purposes, but will not be returned from the API. * all * ga-only * appengine.googleapis.com * artifactregistry.googleapis.com * bigquery.googleapis.com * bigtable.googleapis.com * container.googleapis.com * cloudkms.googleapis.com * cloudresourcemanager.googleapis.com * cloudsql.googleapis.com * compute.googleapis.com * dataflow.googleapis.com * dataproc.googleapis.com * dlp.googleapis.com * iam.googleapis.com * logging.googleapis.com * orgpolicy.googleapis.com * pubsub.googleapis.com * spanner.googleapis.com * secretmanager.googleapis.com * speakerid.googleapis.com * storage.googleapis.com Calls to UpdateAccessApprovalSettings using ''all'' or any of the XXX.googleapis.com will be translated to the associated product name (''all'', ''App Engine'', etc.). Note: ''all'' will enroll the resource in all products supported at both ''GA'' and ''Preview'' levels. More information about levels of support is available at https://cloud.google.com/access-approval/docs/supported-services
     #[serde(default, rename = "cloudProduct")]
-    pub cloud_product: Option<String>,
+    pub cloud_product: ::core::option::Option<String>,
     /// The enrollment level of the service. // TODO: enum values: ["ENROLLMENT_LEVEL_UNSPECIFIED", "BLOCK_ALL"]
     #[serde(default, rename = "enrollmentLevel")]
-    pub enrollment_level: Option<String>,
+    pub enrollment_level: ::core::option::Option<String>,
 }
 
 /// Response to listing of ApprovalRequest objects.
@@ -208,10 +212,11 @@ pub struct EnrolledService {
 pub struct ListApprovalRequestsResponse {
     /// Approval request details.
     #[serde(default, rename = "approvalRequests")]
-    pub approval_requests: Option<Vec<ApprovalRequest>>,
+    pub approval_requests:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ApprovalRequest>>>,
     /// Token to retrieve the next page of results, or empty if there are no more.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The properties associated with the resource of the request.
@@ -219,7 +224,7 @@ pub struct ListApprovalRequestsResponse {
 pub struct ResourceProperties {
     /// Whether an approval will exclude the descendants of the resource being requested.
     #[serde(default, rename = "excludesDescendants")]
-    pub excludes_descendants: Option<bool>,
+    pub excludes_descendants: ::core::option::Option<bool>,
 }
 
 /// Information about the digital signature of the resource.
@@ -227,17 +232,17 @@ pub struct ResourceProperties {
 pub struct SignatureInfo {
     /// The resource name of the customer CryptoKeyVersion used for signing.
     #[serde(default, rename = "customerKmsKeyVersion")]
-    pub customer_kms_key_version: Option<String>,
+    pub customer_kms_key_version: ::core::option::Option<String>,
     /// The hashing algorithm used for signature verification. It will only be present in the case of Google managed keys. // TODO: enum values: ["CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED", "GOOGLE_SYMMETRIC_ENCRYPTION", "AES_128_GCM", "AES_256_GCM", "AES_128_CBC", "AES_256_CBC", "AES_128_CTR", "AES_256_CTR", "RSA_SIGN_PSS_2048_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "RSA_SIGN_RAW_PKCS1_2048", "RSA_SIGN_RAW_PKCS1_3072", "RSA_SIGN_RAW_PKCS1_4096", "RSA_DECRYPT_OAEP_2048_SHA256", "RSA_DECRYPT_OAEP_3072_SHA256", "RSA_DECRYPT_OAEP_4096_SHA256", "RSA_DECRYPT_OAEP_4096_SHA512", "RSA_DECRYPT_OAEP_2048_SHA1", "RSA_DECRYPT_OAEP_3072_SHA1", "RSA_DECRYPT_OAEP_4096_SHA1", "EC_SIGN_P256_SHA256", "EC_SIGN_P384_SHA384", "EC_SIGN_SECP256K1_SHA256", "EC_SIGN_ED25519", "HMAC_SHA256", "HMAC_SHA1", "HMAC_SHA384", "HMAC_SHA512", "HMAC_SHA224", "EXTERNAL_SYMMETRIC_ENCRYPTION", "ML_KEM_768", "ML_KEM_1024", "KEM_XWING", "PQ_SIGN_ML_DSA_44", "PQ_SIGN_ML_DSA_65", "PQ_SIGN_ML_DSA_87", "PQ_SIGN_SLH_DSA_SHA2_128S", "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256", "PQ_SIGN_ML_DSA_44_EXTERNAL_MU", "PQ_SIGN_ML_DSA_65_EXTERNAL_MU", "PQ_SIGN_ML_DSA_87_EXTERNAL_MU"]
     #[serde(default, rename = "googleKeyAlgorithm")]
-    pub google_key_algorithm: Option<String>,
+    pub google_key_algorithm: ::core::option::Option<String>,
     /// The public key for the Google default signing, encoded in PEM format. The signature was created using a private key which may be verified using this public key.
     #[serde(default, rename = "googlePublicKeyPem")]
-    pub google_public_key_pem: Option<String>,
+    pub google_public_key_pem: ::core::option::Option<String>,
     /// The ApprovalRequest that is serialized without the SignatureInfo message field. This data is used with the hashing algorithm to generate the digital signature, and it can be used for signature verification.
     #[serde(default, rename = "serializedApprovalRequest")]
-    pub serialized_approval_request: Option<String>,
+    pub serialized_approval_request: ::core::option::Option<String>,
     /// The digital signature.
     #[serde(default)]
-    pub signature: Option<String>,
+    pub signature: ::core::option::Option<String>,
 }

@@ -10,18 +10,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An accelerator configuration for a VM instance Definition of a hardware accelerator. Note that there is no check on type and core_count combinations. TPUs are not supported. See [GPUs on Compute Engine](https://cloud.google.com/compute/docs/gpus/#gpus-list) to find a valid combination.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AcceleratorConfig {
     /// Optional. Count of cores of this accelerator.
     #[serde(default, rename = "coreCount")]
-    pub core_count: Option<String>,
+    pub core_count: ::core::option::Option<String>,
     /// Optional. Type of this accelerator. // TODO: enum values: ["ACCELERATOR_TYPE_UNSPECIFIED", "NVIDIA_TESLA_P100", "NVIDIA_TESLA_V100", "NVIDIA_TESLA_P4", "NVIDIA_TESLA_T4", "NVIDIA_TESLA_A100", "NVIDIA_A100_80GB", "NVIDIA_L4", "NVIDIA_H100_80GB", "NVIDIA_H100_MEGA_80GB", "NVIDIA_H200_141GB", "NVIDIA_TESLA_T4_VWS", "NVIDIA_TESLA_P100_VWS", "NVIDIA_TESLA_P4_VWS", "NVIDIA_B200"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// An access configuration attached to an instance''s network interface.
@@ -29,7 +29,7 @@ pub struct AcceleratorConfig {
 pub struct AccessConfig {
     /// An external IP address associated with this instance. Specify an unused static external IP address available to the project or leave this field undefined to use an IP from a shared ephemeral IP address pool. If you specify a static external IP address, it must live in the same region as the zone of the instance.
     #[serde(default, rename = "externalIp")]
-    pub external_ip: Option<String>,
+    pub external_ip: ::core::option::Option<String>,
 }
 
 /// Associates members, or principals, with a role.
@@ -37,13 +37,13 @@ pub struct AccessConfig {
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub condition: Option<Expr>,
+    pub condition: ::core::option::Option<::std::boxed::Box<Expr>>,
     /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub members: Option<Vec<String>>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
 }
 
 /// The definition of a boot disk.
@@ -51,16 +51,16 @@ pub struct Binding {
 pub struct BootDisk {
     /// Optional. Input only. Disk encryption method used on the boot and data disks, defaults to GMEK. // TODO: enum values: ["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"]
     #[serde(default, rename = "diskEncryption")]
-    pub disk_encryption: Option<String>,
+    pub disk_encryption: ::core::option::Option<String>,
     /// Optional. The size of the boot disk in GB attached to this instance, up to a maximum of 64000 GB (64 TB). If not specified, this defaults to the recommended value of 150GB.
     #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: Option<String>,
+    pub disk_size_gb: ::core::option::Option<String>,
     /// Optional. Indicates the type of the disk. // TODO: enum values: ["DISK_TYPE_UNSPECIFIED", "PD_STANDARD", "PD_SSD", "PD_BALANCED", "PD_EXTREME", "HYPERDISK_BALANCED"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id} Learn more about using your own encryption keys.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
 }
 
 /// Response message for checking authorization for the instance owner.
@@ -68,13 +68,13 @@ pub struct BootDisk {
 pub struct CheckAuthorizationResponse {
     /// Output only. Timestamp when this Authorization request was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// If the user has not completed OAuth consent, then the oauth_url is returned. Otherwise, this field is not set.
     #[serde(default)]
-    pub oauth_uri: Option<String>,
+    pub oauth_uri: ::core::option::Option<String>,
     /// Success indicates that the user completed OAuth consent and access tokens can be generated.
     #[serde(default)]
-    pub success: Option<bool>,
+    pub success: ::core::option::Option<bool>,
 }
 
 /// Response for checking if a notebook instance is upgradeable.
@@ -82,16 +82,16 @@ pub struct CheckAuthorizationResponse {
 pub struct CheckInstanceUpgradabilityResponse {
     /// The new image self link this instance will be upgraded to if calling the upgrade endpoint. This field will only be populated if field upgradeable is true.
     #[serde(default, rename = "upgradeImage")]
-    pub upgrade_image: Option<String>,
+    pub upgrade_image: ::core::option::Option<String>,
     /// Additional information about upgrade.
     #[serde(default, rename = "upgradeInfo")]
-    pub upgrade_info: Option<String>,
+    pub upgrade_info: ::core::option::Option<String>,
     /// The version this instance will be upgraded to if calling the upgrade endpoint. This field will only be populated if field upgradeable is true.
     #[serde(default, rename = "upgradeVersion")]
-    pub upgrade_version: Option<String>,
+    pub upgrade_version: ::core::option::Option<String>,
     /// If an instance is upgradeable.
     #[serde(default)]
-    pub upgradeable: Option<bool>,
+    pub upgradeable: ::core::option::Option<bool>,
 }
 
 /// A set of Confidential Instance options.
@@ -99,7 +99,7 @@ pub struct CheckInstanceUpgradabilityResponse {
 pub struct ConfidentialInstanceConfig {
     /// Optional. Defines the type of technology used by the confidential instance. // TODO: enum values: ["CONFIDENTIAL_INSTANCE_TYPE_UNSPECIFIED", "SEV"]
     #[serde(default, rename = "confidentialInstanceType")]
-    pub confidential_instance_type: Option<String>,
+    pub confidential_instance_type: ::core::option::Option<String>,
 }
 
 /// Response for getting WbI configurations in a location
@@ -107,16 +107,16 @@ pub struct ConfidentialInstanceConfig {
 pub struct Config {
     /// Output only. The list of available images to create a WbI.
     #[serde(default, rename = "availableImages")]
-    pub available_images: Option<Vec<ImageRelease>>,
+    pub available_images: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ImageRelease>>>,
     /// Output only. The default values for configuration.
     #[serde(default, rename = "defaultValues")]
-    pub default_values: Option<DefaultValues>,
+    pub default_values: ::core::option::Option<::std::boxed::Box<DefaultValues>>,
     /// Output only. Flag to disable the creation of legacy Workbench notebooks (User-managed notebooks and Google-managed notebooks).
     #[serde(default, rename = "disableWorkbenchLegacyCreation")]
-    pub disable_workbench_legacy_creation: Option<bool>,
+    pub disable_workbench_legacy_creation: ::core::option::Option<bool>,
     /// Output only. The supported values for configuration.
     #[serde(default, rename = "supportedValues")]
-    pub supported_values: Option<SupportedValues>,
+    pub supported_values: ::core::option::Option<::std::boxed::Box<SupportedValues>>,
 }
 
 /// Definition of a container image for starting a notebook instance with the environment installed in a container.
@@ -124,10 +124,10 @@ pub struct Config {
 pub struct ContainerImage {
     /// Required. The path to the container image repository. For example: gcr.io/{project_id}/{image_name}
     #[serde(default)]
-    pub repository: Option<String>,
+    pub repository: ::core::option::Option<String>,
     /// Optional. The tag of the container image. If not specified, this defaults to the latest tag.
     #[serde(default)]
-    pub tag: Option<String>,
+    pub tag: ::core::option::Option<String>,
 }
 
 /// An instance-attached disk resource.
@@ -135,19 +135,19 @@ pub struct ContainerImage {
 pub struct DataDisk {
     /// Optional. Input only. Disk encryption method used on the boot and data disks, defaults to GMEK. // TODO: enum values: ["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"]
     #[serde(default, rename = "diskEncryption")]
-    pub disk_encryption: Option<String>,
+    pub disk_encryption: ::core::option::Option<String>,
     /// Optional. The size of the disk in GB attached to this VM instance, up to a maximum of 64000 GB (64 TB). If not specified, this defaults to 100.
     #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: Option<String>,
+    pub disk_size_gb: ::core::option::Option<String>,
     /// Optional. Input only. Indicates the type of the disk. // TODO: enum values: ["DISK_TYPE_UNSPECIFIED", "PD_STANDARD", "PD_SSD", "PD_BALANCED", "PD_EXTREME", "HYPERDISK_BALANCED"]
     #[serde(default, rename = "diskType")]
-    pub disk_type: Option<String>,
+    pub disk_type: ::core::option::Option<String>,
     /// Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id} Learn more about using your own encryption keys.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Optional. The resource policies to apply to the data disk.
     #[serde(default, rename = "resourcePolicies")]
-    pub resource_policies: Option<Vec<String>>,
+    pub resource_policies: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// DefaultValues represents the default configuration values.
@@ -155,7 +155,7 @@ pub struct DataDisk {
 pub struct DefaultValues {
     /// Output only. The default machine type used by the backend if not provided by the user.
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
 }
 
 /// Request for creating a notebook instance diagnostic file.
@@ -163,10 +163,10 @@ pub struct DefaultValues {
 pub struct DiagnoseInstanceRequest {
     /// Required. Defines flags that are used to run the diagnostic tool
     #[serde(default, rename = "diagnosticConfig")]
-    pub diagnostic_config: Option<DiagnosticConfig>,
+    pub diagnostic_config: ::core::option::Option<::std::boxed::Box<DiagnosticConfig>>,
     /// Optional. Maximum amount of time in minutes before the operation times out.
     #[serde(default, rename = "timeoutMinutes")]
-    pub timeout_minutes: Option<i32>,
+    pub timeout_minutes: ::core::option::Option<i32>,
 }
 
 /// Defines flags that are used to run the diagnostic tool
@@ -174,19 +174,19 @@ pub struct DiagnoseInstanceRequest {
 pub struct DiagnosticConfig {
     /// Optional. Enables flag to copy all /home/jupyter folder contents
     #[serde(default, rename = "enableCopyHomeFilesFlag")]
-    pub enable_copy_home_files_flag: Option<bool>,
+    pub enable_copy_home_files_flag: ::core::option::Option<bool>,
     /// Optional. Enables flag to capture packets from the instance for 30 seconds
     #[serde(default, rename = "enablePacketCaptureFlag")]
-    pub enable_packet_capture_flag: Option<bool>,
+    pub enable_packet_capture_flag: ::core::option::Option<bool>,
     /// Optional. Enables flag to repair service for instance
     #[serde(default, rename = "enableRepairFlag")]
-    pub enable_repair_flag: Option<bool>,
+    pub enable_repair_flag: ::core::option::Option<bool>,
     /// Required. User Cloud Storage bucket location (REQUIRED). Must be formatted with path prefix (gs://$GCS_BUCKET). Permissions: User Managed Notebooks: - storage.buckets.writer: Must be given to the project''s service account attached to VM. Google Managed Notebooks: - storage.buckets.writer: Must be given to the project''s service account or user credentials attached to VM depending on authentication mode. Cloud Storage bucket Log file will be written to gs://$GCS_BUCKET/$RELATIVE_PATH/$VM_DATE_$TIME.tar.gz
     #[serde(default, rename = "gcsBucket")]
-    pub gcs_bucket: Option<String>,
+    pub gcs_bucket: ::core::option::Option<String>,
     /// Optional. Defines the relative storage path in the Cloud Storage bucket where the diagnostic logs will be written: Default path will be the root directory of the Cloud Storage bucket (gs://$GCS_BUCKET/$DATE_$TIME.tar.gz) Example of full path where Log file will be written: gs://$GCS_BUCKET/$RELATIVE_PATH/
     #[serde(default, rename = "relativePath")]
-    pub relative_path: Option<String>,
+    pub relative_path: ::core::option::Option<String>,
 }
 
 /// The definition of an Event for a managed / semi-managed notebook instance.
@@ -194,13 +194,13 @@ pub struct DiagnosticConfig {
 pub struct Event {
     /// Optional. Event details. This field is used to pass event information.
     #[serde(default)]
-    pub details: Option<serde_json::Value>,
+    pub details: ::core::option::Option<serde_json::Value>,
     /// Optional. Event report time.
     #[serde(default, rename = "reportTime")]
-    pub report_time: Option<String>,
+    pub report_time: ::core::option::Option<String>,
     /// Optional. Event type. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "IDLE", "HEARTBEAT", "HEALTH", "MAINTENANCE", "METADATA_CHANGE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -208,16 +208,16 @@ pub struct Event {
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub expression: Option<String>,
+    pub expression: ::core::option::Option<String>,
     /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub location: Option<String>,
+    pub location: ::core::option::Option<String>,
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A GPU driver configuration
@@ -225,10 +225,10 @@ pub struct Expr {
 pub struct GPUDriverConfig {
     /// Optional. Specify a custom Cloud Storage path where the GPU driver is stored. If not specified, we''ll automatically choose from official GPU drivers.
     #[serde(default, rename = "customGpuDriverPath")]
-    pub custom_gpu_driver_path: Option<String>,
+    pub custom_gpu_driver_path: ::core::option::Option<String>,
     /// Optional. Whether the end user authorizes Google Cloud to install GPU driver on this VM instance. If this field is empty or set to false, the GPU driver won''t be installed. Only applicable to instances with GPUs.
     #[serde(default, rename = "enableGpuDriver")]
-    pub enable_gpu_driver: Option<bool>,
+    pub enable_gpu_driver: ::core::option::Option<bool>,
 }
 
 /// The definition of how to configure a VM instance outside of Resources and Identity.
@@ -236,58 +236,62 @@ pub struct GPUDriverConfig {
 pub struct GceSetup {
     /// Optional. The hardware accelerators used on this instance. If you use accelerators, make sure that your configuration has [enough vCPUs and memory to support the machine_type you have selected](https://cloud.google.com/compute/docs/gpus/#gpus-list). Currently supports only one accelerator configuration.
     #[serde(default, rename = "acceleratorConfigs")]
-    pub accelerator_configs: Option<Vec<AcceleratorConfig>>,
+    pub accelerator_configs:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AcceleratorConfig>>>,
     /// Optional. The boot disk for the VM.
     #[serde(default, rename = "bootDisk")]
-    pub boot_disk: Option<BootDisk>,
+    pub boot_disk: ::core::option::Option<::std::boxed::Box<BootDisk>>,
     /// Optional. Confidential instance configuration.
     #[serde(default, rename = "confidentialInstanceConfig")]
-    pub confidential_instance_config: Option<ConfidentialInstanceConfig>,
+    pub confidential_instance_config:
+        ::core::option::Option<::std::boxed::Box<ConfidentialInstanceConfig>>,
     /// Optional. Use a container image to start the notebook instance.
     #[serde(default, rename = "containerImage")]
-    pub container_image: Option<ContainerImage>,
+    pub container_image: ::core::option::Option<::std::boxed::Box<ContainerImage>>,
     /// Optional. Data disks attached to the VM instance. Currently supports only one data disk.
     #[serde(default, rename = "dataDisks")]
-    pub data_disks: Option<Vec<DataDisk>>,
+    pub data_disks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DataDisk>>>,
     /// Optional. If true, no external IP will be assigned to this VM instance.
     #[serde(default, rename = "disablePublicIp")]
-    pub disable_public_ip: Option<bool>,
+    pub disable_public_ip: ::core::option::Option<bool>,
     /// Optional. Flag to enable ip forwarding or not, default false/off. https://cloud.google.com/vpc/docs/using-routes#canipforward
     #[serde(default, rename = "enableIpForwarding")]
-    pub enable_ip_forwarding: Option<bool>,
+    pub enable_ip_forwarding: ::core::option::Option<bool>,
     /// Optional. Configuration for GPU drivers.
     #[serde(default, rename = "gpuDriverConfig")]
-    pub gpu_driver_config: Option<GPUDriverConfig>,
+    pub gpu_driver_config: ::core::option::Option<::std::boxed::Box<GPUDriverConfig>>,
     /// Output only. The unique ID of the Compute Engine instance resource.
     #[serde(default, rename = "instanceId")]
-    pub instance_id: Option<String>,
+    pub instance_id: ::core::option::Option<String>,
     /// Optional. The machine type of the VM instance. https://cloud.google.com/compute/docs/machine-resource
     #[serde(default, rename = "machineType")]
-    pub machine_type: Option<String>,
+    pub machine_type: ::core::option::Option<String>,
     /// Optional. Custom metadata to apply to this instance.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Optional. The minimum CPU platform to use for this instance. The list of valid values can be found in https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform#availablezones
     #[serde(default, rename = "minCpuPlatform")]
-    pub min_cpu_platform: Option<String>,
+    pub min_cpu_platform: ::core::option::Option<String>,
     /// Optional. The network interfaces for the VM. Supports only one interface.
     #[serde(default, rename = "networkInterfaces")]
-    pub network_interfaces: Option<Vec<NetworkInterface>>,
+    pub network_interfaces:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<NetworkInterface>>>,
     /// Optional. Specifies the reservations that this instance can consume from.
     #[serde(default, rename = "reservationAffinity")]
-    pub reservation_affinity: Option<ReservationAffinity>,
+    pub reservation_affinity: ::core::option::Option<::std::boxed::Box<ReservationAffinity>>,
     /// Optional. The service account that serves as an identity for the VM instance. Currently supports only one service account.
     #[serde(default, rename = "serviceAccounts")]
-    pub service_accounts: Option<Vec<ServiceAccount>>,
+    pub service_accounts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ServiceAccount>>>,
     /// Optional. Shielded VM configuration. [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm).
     #[serde(default, rename = "shieldedInstanceConfig")]
-    pub shielded_instance_config: Option<ShieldedInstanceConfig>,
+    pub shielded_instance_config: ::core::option::Option<::std::boxed::Box<ShieldedInstanceConfig>>,
     /// Optional. The Compute Engine network tags to add to runtime (see [Add network tags](https://cloud.google.com/vpc/docs/add-remove-network-tags)).
     #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Use a Compute Engine VM image to start the notebook instance.
     #[serde(default, rename = "vmImage")]
-    pub vm_image: Option<VmImage>,
+    pub vm_image: ::core::option::Option<::std::boxed::Box<VmImage>>,
 }
 
 /// Request message for generating an EUC for the instance owner.
@@ -295,7 +299,7 @@ pub struct GceSetup {
 pub struct GenerateAccessTokenRequest {
     /// Required. The VM identity token (a JWT) for authenticating the VM. https://cloud.google.com/compute/docs/instances/verifying-instance-identity
     #[serde(default, rename = "vmToken")]
-    pub vm_token: Option<String>,
+    pub vm_token: ::core::option::Option<String>,
 }
 
 /// Response message for generating an EUC for the instance owner.
@@ -303,16 +307,16 @@ pub struct GenerateAccessTokenRequest {
 pub struct GenerateAccessTokenResponse {
     /// Short-lived access token string which may be used to access Google APIs.
     #[serde(default)]
-    pub access_token: Option<String>,
+    pub access_token: ::core::option::Option<String>,
     /// The time in seconds when the access token expires. Typically that''s 3600.
     #[serde(default)]
-    pub expires_in: Option<i32>,
+    pub expires_in: ::core::option::Option<i32>,
     /// Space-separated list of scopes contained in the returned token. https://cloud.google.com/docs/authentication/token-types#access-contents
     #[serde(default)]
-    pub scope: Option<String>,
+    pub scope: ::core::option::Option<String>,
     /// Type of the returned access token (e.g. "Bearer"). It specifies how the token must be used. Bearer tokens may be used by any entity without proof of identity.
     #[serde(default)]
-    pub token_type: Option<String>,
+    pub token_type: ::core::option::Option<String>,
 }
 
 /// ConfigImage represents an image release available to create a WbI
@@ -320,10 +324,10 @@ pub struct GenerateAccessTokenResponse {
 pub struct ImageRelease {
     /// Output only. The name of the image of the form workbench-instances-vYYYYmmdd--
     #[serde(default, rename = "imageName")]
-    pub image_name: Option<String>,
+    pub image_name: ::core::option::Option<String>,
     /// Output only. The release of the image of the form m123
     #[serde(default, rename = "releaseName")]
-    pub release_name: Option<String>,
+    pub release_name: ::core::option::Option<String>,
 }
 
 /// The definition of a notebook instance.
@@ -331,64 +335,65 @@ pub struct ImageRelease {
 pub struct Instance {
     /// Output only. Instance creation time.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. Email address of entity that sent original CreateInstance request.
     #[serde(default)]
-    pub creator: Option<String>,
+    pub creator: ::core::option::Option<String>,
     /// Optional. If true, the notebook instance will not register with the proxy.
     #[serde(default, rename = "disableProxyAccess")]
-    pub disable_proxy_access: Option<bool>,
+    pub disable_proxy_access: ::core::option::Option<bool>,
     /// Optional. If true, deletion protection will be enabled for this Workbench Instance. If false, deletion protection will be disabled for this Workbench Instance.
     #[serde(default, rename = "enableDeletionProtection")]
-    pub enable_deletion_protection: Option<bool>,
+    pub enable_deletion_protection: ::core::option::Option<bool>,
     /// Optional. Flag to enable managed end user credentials for the instance.
     #[serde(default, rename = "enableManagedEuc")]
-    pub enable_managed_euc: Option<bool>,
+    pub enable_managed_euc: ::core::option::Option<bool>,
     /// Optional. Flag that specifies that a notebook can be accessed with third party identity provider.
     #[serde(default, rename = "enableThirdPartyIdentity")]
-    pub enable_third_party_identity: Option<bool>,
+    pub enable_third_party_identity: ::core::option::Option<bool>,
     /// Optional. Compute Engine setup for the notebook. Uses notebook-defined fields.
     #[serde(default, rename = "gceSetup")]
-    pub gce_setup: Option<GceSetup>,
+    pub gce_setup: ::core::option::Option<::std::boxed::Box<GceSetup>>,
     /// Output only. Additional information about instance health. Example: healthInfo": { "docker_proxy_agent_status": "1", "docker_status": "1", "jupyterlab_api_status": "-1", "jupyterlab_status": "-1", "updated": "2020-10-18 09:40:03.573409" }
     #[serde(default, rename = "healthInfo")]
-    pub health_info: Option<serde_json::Value>,
+    pub health_info: ::core::option::Option<serde_json::Value>,
     /// Output only. Instance health_state. // TODO: enum values: ["HEALTH_STATE_UNSPECIFIED", "HEALTHY", "UNHEALTHY", "AGENT_NOT_INSTALLED", "AGENT_NOT_RUNNING"]
     #[serde(default, rename = "healthState")]
-    pub health_state: Option<String>,
+    pub health_state: ::core::option::Option<String>,
     /// Output only. Unique ID of the resource.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. The owner of this instance after creation. Format: alias@example.com Currently supports one owner only. If not specified, all of the service account users of your VM instance''s service account can use the instance.
     #[serde(default, rename = "instanceOwners")]
-    pub instance_owners: Option<Vec<String>>,
+    pub instance_owners: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Labels to apply to this instance. These can be later modified by the UpdateInstance method.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Output only. Identifier. The name of this notebook instance. Format: projects/{project_id}/locations/{location}/instances/{instance_id}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The proxy endpoint that is used to access the Jupyter notebook.
     #[serde(default, rename = "proxyUri")]
-    pub proxy_uri: Option<String>,
+    pub proxy_uri: ::core::option::Option<String>,
     /// Output only. Reserved for future use for Zone Isolation.
     #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: Option<bool>,
+    pub satisfies_pzi: ::core::option::Option<bool>,
     /// Output only. Reserved for future use for Zone Separation.
     #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: Option<bool>,
+    pub satisfies_pzs: ::core::option::Option<bool>,
     /// Output only. The state of this instance. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTING", "PROVISIONING", "ACTIVE", "STOPPING", "STOPPED", "DELETED", "UPGRADING", "INITIALIZING", "SUSPENDING", "SUSPENDED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The workforce pools proxy endpoint that is used to access the Jupyter notebook.
     #[serde(default, rename = "thirdPartyProxyUrl")]
-    pub third_party_proxy_url: Option<String>,
+    pub third_party_proxy_url: ::core::option::Option<String>,
     /// Output only. Instance update time.
     #[serde(default, rename = "updateTime")]
-    pub update_time: Option<String>,
+    pub update_time: ::core::option::Option<String>,
     /// Output only. The upgrade history of this instance.
     #[serde(default, rename = "upgradeHistory")]
-    pub upgrade_history: Option<Vec<UpgradeHistoryEntry>>,
+    pub upgrade_history:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UpgradeHistoryEntry>>>,
 }
 
 /// Response for listing notebook instances.
@@ -396,13 +401,13 @@ pub struct Instance {
 pub struct ListInstancesResponse {
     /// A list of returned instances.
     #[serde(default)]
-    pub instances: Option<Vec<Instance>>,
+    pub instances: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Instance>>>,
     /// Page token that can be used to continue listing from the last result in the next list call.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Unordered list. Locations that could not be reached. For example, [''projects/{project_id}/locations/us-west1-a'', ''projects/{project_id}/locations/us-central1-b'']. A ListInstancesResponse will only contain either instances or unreachables,
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -410,10 +415,10 @@ pub struct ListInstancesResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -421,13 +426,13 @@ pub struct ListLocationsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -435,19 +440,19 @@ pub struct ListOperationsResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The definition of a network interface resource attached to a VM.
@@ -455,16 +460,16 @@ pub struct Location {
 pub struct NetworkInterface {
     /// Optional. An array of configurations for this interface. Currently, only one access config, ONE_TO_ONE_NAT, is supported. If no accessConfigs specified, the instance will have an external internet access through an ephemeral external IP address.
     #[serde(default, rename = "accessConfigs")]
-    pub access_configs: Option<Vec<AccessConfig>>,
+    pub access_configs: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AccessConfig>>>,
     /// Optional. The name of the VPC that this VM instance is in. Format: projects/{project_id}/global/networks/{network_id}
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Optional. The type of vNIC to be used on this interface. This may be gVNIC or VirtioNet. // TODO: enum values: ["NIC_TYPE_UNSPECIFIED", "VIRTIO_NET", "GVNIC"]
     #[serde(default, rename = "nicType")]
-    pub nic_type: Option<String>,
+    pub nic_type: ::core::option::Option<String>,
     /// Optional. The name of the subnet that this VM instance is in. Format: projects/{project_id}/regions/{region}/subnetworks/{subnetwork_id}
     #[serde(default)]
-    pub subnet: Option<String>,
+    pub subnet: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -472,19 +477,19 @@ pub struct NetworkInterface {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -492,28 +497,28 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// API endpoint name of this operation.
     #[serde(default)]
-    pub endpoint: Option<String>,
+    pub endpoint: ::core::option::Option<String>,
     /// Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Human-readable status of the operation, if any.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
@@ -521,13 +526,13 @@ pub struct OperationMetadata {
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
-    pub bindings: Option<Vec<Binding>>,
+    pub bindings: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Binding>>>,
     /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub version: Option<i32>,
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Request for notebook instances to report information to Notebooks API.
@@ -535,10 +540,10 @@ pub struct Policy {
 pub struct ReportInstanceInfoSystemRequest {
     /// Required. The Event to be reported.
     #[serde(default)]
-    pub event: Option<Event>,
+    pub event: ::core::option::Option<::std::boxed::Box<Event>>,
     /// Required. The VM hardware token for authenticating the VM. https://cloud.google.com/compute/docs/instances/verifying-instance-identity
     #[serde(default, rename = "vmId")]
-    pub vm_id: Option<String>,
+    pub vm_id: ::core::option::Option<String>,
 }
 
 /// A reservation that an instance can consume from.
@@ -546,13 +551,13 @@ pub struct ReportInstanceInfoSystemRequest {
 pub struct ReservationAffinity {
     /// Required. Specifies the type of reservation from which this instance can consume resources: RESERVATION_ANY (default), RESERVATION_SPECIFIC, or RESERVATION_NONE. See Consuming reserved instances for examples. // TODO: enum values: ["RESERVATION_UNSPECIFIED", "RESERVATION_NONE", "RESERVATION_ANY", "RESERVATION_SPECIFIC"]
     #[serde(default, rename = "consumeReservationType")]
-    pub consume_reservation_type: Option<String>,
+    pub consume_reservation_type: ::core::option::Option<String>,
     /// Optional. Corresponds to the label key of a reservation resource. To target a RESERVATION_SPECIFIC by name, use compute.googleapis.com/reservation-name as the key and specify the name of your reservation as its value.
     #[serde(default)]
-    pub key: Option<String>,
+    pub key: ::core::option::Option<String>,
     /// Optional. Corresponds to the label values of a reservation resource. This can be either a name to a reservation in the same project or "projects/different-project/reservations/some-reservation-name" to target a shared reservation in the same zone but in a different project.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request for resizing the notebook instance disks
@@ -560,10 +565,10 @@ pub struct ReservationAffinity {
 pub struct ResizeDiskRequest {
     /// Required. The boot disk to be resized. Only disk_size_gb will be used.
     #[serde(default, rename = "bootDisk")]
-    pub boot_disk: Option<BootDisk>,
+    pub boot_disk: ::core::option::Option<::std::boxed::Box<BootDisk>>,
     /// Required. The data disk to be resized. Only disk_size_gb will be used.
     #[serde(default, rename = "dataDisk")]
-    pub data_disk: Option<DataDisk>,
+    pub data_disk: ::core::option::Option<::std::boxed::Box<DataDisk>>,
 }
 
 /// Request for restoring the notebook instance from a BackupSource.
@@ -571,7 +576,7 @@ pub struct ResizeDiskRequest {
 pub struct RestoreInstanceRequest {
     /// Snapshot to be used for restore.
     #[serde(default)]
-    pub snapshot: Option<Snapshot>,
+    pub snapshot: ::core::option::Option<::std::boxed::Box<Snapshot>>,
 }
 
 /// Request for rollbacking a notebook instance
@@ -579,10 +584,10 @@ pub struct RestoreInstanceRequest {
 pub struct RollbackInstanceRequest {
     /// Required. Output only. Revision Id
     #[serde(default, rename = "revisionId")]
-    pub revision_id: Option<String>,
+    pub revision_id: ::core::option::Option<String>,
     /// Required. The snapshot for rollback. Example: "projects/test-project/global/snapshots/krwlzipynril".
     #[serde(default, rename = "targetSnapshot")]
-    pub target_snapshot: Option<String>,
+    pub target_snapshot: ::core::option::Option<String>,
 }
 
 /// A service account that acts as an identity.
@@ -590,10 +595,10 @@ pub struct RollbackInstanceRequest {
 pub struct ServiceAccount {
     /// Optional. Email address of the service account.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
     /// Output only. The list of scopes to be made available for this service account. Set by the CLH to https://www.googleapis.com/auth/cloud-platform
     #[serde(default)]
-    pub scopes: Option<Vec<String>>,
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for SetIamPolicy method.
@@ -601,7 +606,7 @@ pub struct ServiceAccount {
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
-    pub policy: Option<Policy>,
+    pub policy: ::core::option::Option<::std::boxed::Box<Policy>>,
 }
 
 /// A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm). Not all combinations are valid.
@@ -609,13 +614,13 @@ pub struct SetIamPolicyRequest {
 pub struct ShieldedInstanceConfig {
     /// Optional. Defines whether the VM instance has integrity monitoring enabled. Enables monitoring and attestation of the boot integrity of the VM instance. The attestation is performed against the integrity policy baseline. This baseline is initially derived from the implicitly trusted boot image when the VM instance is created.
     #[serde(default, rename = "enableIntegrityMonitoring")]
-    pub enable_integrity_monitoring: Option<bool>,
+    pub enable_integrity_monitoring: ::core::option::Option<bool>,
     /// Optional. Defines whether the VM instance has Secure Boot enabled. Secure Boot helps ensure that the system only runs authentic software by verifying the digital signature of all boot components, and halting the boot process if signature verification fails. Disabled by default.
     #[serde(default, rename = "enableSecureBoot")]
-    pub enable_secure_boot: Option<bool>,
+    pub enable_secure_boot: ::core::option::Option<bool>,
     /// Optional. Defines whether the VM instance has the vTPM enabled.
     #[serde(default, rename = "enableVtpm")]
-    pub enable_vtpm: Option<bool>,
+    pub enable_vtpm: ::core::option::Option<bool>,
 }
 
 /// Snapshot represents the snapshot of the data disk used to restore the Workbench Instance from. Refers to: compute/v1/projects/{project_id}/global/snapshots/{snapshot_id}
@@ -623,10 +628,10 @@ pub struct ShieldedInstanceConfig {
 pub struct Snapshot {
     /// Required. The project ID of the snapshot.
     #[serde(default, rename = "projectId")]
-    pub project_id: Option<String>,
+    pub project_id: ::core::option::Option<String>,
     /// Required. The ID of the snapshot.
     #[serde(default, rename = "snapshotId")]
-    pub snapshot_id: Option<String>,
+    pub snapshot_id: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -634,13 +639,13 @@ pub struct Snapshot {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// SupportedValues represents the values supported by the configuration.
@@ -648,10 +653,10 @@ pub struct Status {
 pub struct SupportedValues {
     /// Output only. The accelerator types supported by WbI.
     #[serde(default, rename = "acceleratorTypes")]
-    pub accelerator_types: Option<Vec<String>>,
+    pub accelerator_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The machine types supported by WbI.
     #[serde(default, rename = "machineTypes")]
-    pub machine_types: Option<Vec<String>>,
+    pub machine_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for TestIamPermissions method.
@@ -659,7 +664,7 @@ pub struct SupportedValues {
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for TestIamPermissions method.
@@ -667,7 +672,7 @@ pub struct TestIamPermissionsRequest {
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
-    pub permissions: Option<Vec<String>>,
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The entry of VM image upgrade history.
@@ -675,31 +680,31 @@ pub struct TestIamPermissionsResponse {
 pub struct UpgradeHistoryEntry {
     /// Optional. Action. Rolloback or Upgrade. // TODO: enum values: ["ACTION_UNSPECIFIED", "UPGRADE", "ROLLBACK"]
     #[serde(default)]
-    pub action: Option<String>,
+    pub action: ::core::option::Option<String>,
     /// Optional. The container image before this instance upgrade.
     #[serde(default, rename = "containerImage")]
-    pub container_image: Option<String>,
+    pub container_image: ::core::option::Option<String>,
     /// Immutable. The time that this instance upgrade history entry is created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. The framework of this notebook instance.
     #[serde(default)]
-    pub framework: Option<String>,
+    pub framework: ::core::option::Option<String>,
     /// Optional. The snapshot of the boot disk of this notebook instance before upgrade.
     #[serde(default)]
-    pub snapshot: Option<String>,
+    pub snapshot: ::core::option::Option<String>,
     /// Output only. The state of this instance upgrade history entry. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. Target VM Version, like m63.
     #[serde(default, rename = "targetVersion")]
-    pub target_version: Option<String>,
+    pub target_version: ::core::option::Option<String>,
     /// Optional. The version of the notebook instance before this upgrade.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// Optional. The VM image before this instance upgrade.
     #[serde(default, rename = "vmImage")]
-    pub vm_image: Option<String>,
+    pub vm_image: ::core::option::Option<String>,
 }
 
 /// Request for upgrading a notebook instance from within the VM
@@ -707,7 +712,7 @@ pub struct UpgradeHistoryEntry {
 pub struct UpgradeInstanceSystemRequest {
     /// Required. The VM hardware token for authenticating the VM. https://cloud.google.com/compute/docs/instances/verifying-instance-identity
     #[serde(default, rename = "vmId")]
-    pub vm_id: Option<String>,
+    pub vm_id: ::core::option::Option<String>,
 }
 
 /// Definition of a custom Compute Engine virtual machine image for starting a notebook instance with the environment installed directly on the VM.
@@ -715,11 +720,11 @@ pub struct UpgradeInstanceSystemRequest {
 pub struct VmImage {
     /// Optional. Use this VM image family to find the image; the newest image in this family will be used.
     #[serde(default)]
-    pub family: Option<String>,
+    pub family: ::core::option::Option<String>,
     /// Optional. Use VM image name to find the image.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The name of the Google Cloud project that this VM image belongs to. Format: {project_id}
     #[serde(default)]
-    pub project: Option<String>,
+    pub project: ::core::option::Option<String>,
 }

@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A single entitlement for a publication reader
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Entitlement {
     /// The detail field can carry a description of the SKU that corresponds to what the user has been granted access to. This description, which is opaque to Google, can be displayed in the Google user subscription console for users who linked the subscription to a Google Account. Max 80 character limit.
     #[serde(default)]
-    pub detail: Option<String>,
+    pub detail: ::core::option::Option<String>,
     /// Required. Expiration time of the entitlement. Entitlements that have expired over 30 days will be purged. The max expire_time is 398 days from now().
     #[serde(default, rename = "expireTime")]
-    pub expire_time: Option<String>,
+    pub expire_time: ::core::option::Option<String>,
     /// Required. The publication''s product ID that the user has access to. This is the same product ID as can be found in Schema.org markup (http://schema.org/productID). E.g. "dailybugle.com:basic"
     #[serde(default, rename = "productId")]
-    pub product_id: Option<String>,
+    pub product_id: ::core::option::Option<String>,
     /// A source-specific subscription token. This is an opaque string that the publisher provides to Google. This token is opaque and has no meaning to Google.
     #[serde(default, rename = "subscriptionToken")]
-    pub subscription_token: Option<String>,
+    pub subscription_token: ::core::option::Option<String>,
 }
 
 /// A reader of a publication.
@@ -35,19 +35,19 @@ pub struct Entitlement {
 pub struct Reader {
     /// Output only. Time the publication reader was created and associated with a Google user.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The resource name of the reader. The last part of ppid in the resource name is the publisher provided id.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The SwG publication id that the reader''s subscription linking was originating from.
     #[serde(default, rename = "originatingPublicationId")]
-    pub originating_publication_id: Option<String>,
+    pub originating_publication_id: ::core::option::Option<String>,
     /// Output only. The publisher provided id of the reader.
     #[serde(default)]
-    pub ppid: Option<String>,
+    pub ppid: ::core::option::Option<String>,
     /// Output only. The SwG publication id that the reader has linked their subscription to.
     #[serde(default, rename = "publicationId")]
-    pub publication_id: Option<String>,
+    pub publication_id: ::core::option::Option<String>,
 }
 
 /// A singleton containing all of a reader''s entitlements for a publication.
@@ -55,8 +55,8 @@ pub struct Reader {
 pub struct ReaderEntitlements {
     /// All of the entitlements for a publication reader.
     #[serde(default)]
-    pub entitlements: Option<Vec<Entitlement>>,
+    pub entitlements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entitlement>>>,
     /// Output only. The resource name of the singleton.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }

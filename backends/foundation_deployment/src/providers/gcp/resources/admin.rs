@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// JSON template for a collection of activities.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Activities {
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Each activity record in the response.
     #[serde(default)]
-    pub items: Option<Vec<Activity>>,
+    pub items: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Activity>>>,
     /// The type of API resource. For an activity report, the value is reports#activities.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token for retrieving the follow-on next page of the report. The nextPageToken value is used in the request''s pageToken query string.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// JSON template for the activity resource.
@@ -35,31 +35,32 @@ pub struct Activities {
 pub struct Activity {
     /// User doing the action.
     #[serde(default)]
-    pub actor: Option<serde_json::Value>,
+    pub actor: ::core::option::Option<serde_json::Value>,
     /// ETag of the entry.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// Activity events in the report.
     #[serde(default)]
-    pub events: Option<Vec<serde_json::Value>>,
+    pub events: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// Unique identifier for each activity record.
     #[serde(default)]
-    pub id: Option<serde_json::Value>,
+    pub id: ::core::option::Option<serde_json::Value>,
     /// IP address of the user doing the action. This is the Internet Protocol (IP) address of the user when logging into Google Workspace, which may or may not reflect the user''s physical location. For example, the IP address can be the user''s proxy server''s address or a virtual private network (VPN) address. The API supports IPv4 and IPv6.
     #[serde(default, rename = "ipAddress")]
-    pub ip_address: Option<String>,
+    pub ip_address: ::core::option::Option<String>,
     /// The type of API resource. For an activity report, the value is audit#activity.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Network information of the user doing the action.
     #[serde(default, rename = "networkInfo")]
-    pub network_info: Option<ActivityNetworkInfo>,
+    pub network_info: ::core::option::Option<::std::boxed::Box<ActivityNetworkInfo>>,
     /// This is the domain that is affected by the report''s event. For example domain of Admin console or the Drive application''s document owner.
     #[serde(default, rename = "ownerDomain")]
-    pub owner_domain: Option<String>,
+    pub owner_domain: ::core::option::Option<String>,
     /// Details of the resource on which the action was performed.
     #[serde(default, rename = "resourceDetails")]
-    pub resource_details: Option<Vec<ResourceDetails>>,
+    pub resource_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ResourceDetails>>>,
 }
 
 /// Status of the event. Note: Not all events have status.
@@ -67,16 +68,16 @@ pub struct Activity {
 pub struct ActivityEventsStatus {
     /// Error code of the event. Note: Field can be empty.
     #[serde(default, rename = "errorCode")]
-    pub error_code: Option<String>,
+    pub error_code: ::core::option::Option<String>,
     /// Error message of the event. Note: Field can be empty.
     #[serde(default, rename = "errorMessage")]
-    pub error_message: Option<String>,
+    pub error_message: ::core::option::Option<String>,
     /// Status of the event. Possible values if not empty: - UNKNOWN_EVENT_STATUS - SUCCEEDED - SUCCEEDED_WITH_WARNINGS - FAILED - SKIPPED
     #[serde(default, rename = "eventStatus")]
-    pub event_status: Option<String>,
+    pub event_status: ::core::option::Option<String>,
     /// Status code of the event. Note: Field can be empty.
     #[serde(default, rename = "httpStatusCode")]
-    pub http_status_code: Option<i32>,
+    pub http_status_code: ::core::option::Option<i32>,
 }
 
 /// Network information of the user doing the action.
@@ -84,13 +85,13 @@ pub struct ActivityEventsStatus {
 pub struct ActivityNetworkInfo {
     /// IP Address of the user doing the action.
     #[serde(default, rename = "ipAsn")]
-    pub ip_asn: Option<Vec<i32>>,
+    pub ip_asn: ::core::option::Option<::std::vec::Vec<i32>>,
     /// ISO 3166-1 alpha-2 region code of the user doing the action.
     #[serde(default, rename = "regionCode")]
-    pub region_code: Option<String>,
+    pub region_code: ::core::option::Option<String>,
     /// ISO 3166-2 region code (states and provinces) for countries of the user doing the action.
     #[serde(default, rename = "subdivisionCode")]
-    pub subdivision_code: Option<String>,
+    pub subdivision_code: ::core::option::Option<String>,
 }
 
 /// Details of the label applied on the resource.
@@ -98,16 +99,16 @@ pub struct ActivityNetworkInfo {
 pub struct AppliedLabel {
     /// List of fields which are part of the label and have been set by the user. If label has a field which was not set by the user, it would not be present in this list.
     #[serde(default, rename = "fieldValues")]
-    pub field_values: Option<Vec<FieldValue>>,
+    pub field_values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldValue>>>,
     /// Identifier of the label - Only the label id, not the full OnePlatform resource name.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// The reason why the label was applied on the resource.
     #[serde(default)]
-    pub reason: Option<Reason>,
+    pub reason: ::core::option::Option<::std::boxed::Box<Reason>>,
     /// Title of the label
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
 }
 
 /// A notification channel used to watch for resource changes.
@@ -115,34 +116,34 @@ pub struct AppliedLabel {
 pub struct Channel {
     /// The address where notifications are delivered for this channel.
     #[serde(default)]
-    pub address: Option<String>,
+    pub address: ::core::option::Option<String>,
     /// Date and time of notification channel expiration, expressed as a Unix timestamp, in milliseconds. Optional.
     #[serde(default)]
-    pub expiration: Option<String>,
+    pub expiration: ::core::option::Option<String>,
     /// A UUID or similar unique string that identifies this channel.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Identifies this as a notification channel used to watch for changes to a resource, which is "api#channel".
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Additional parameters controlling delivery channel behavior. Optional.
     #[serde(default)]
-    pub params: Option<serde_json::Value>,
+    pub params: ::core::option::Option<serde_json::Value>,
     /// A Boolean value to indicate whether payload is wanted. A payload is data that is sent in the body of an HTTP POST, PUT, or PATCH message and contains important information about the request. Optional.
     #[serde(default)]
-    pub payload: Option<bool>,
+    pub payload: ::core::option::Option<bool>,
     /// An opaque ID that identifies the resource being watched on this channel. Stable across different API versions.
     #[serde(default, rename = "resourceId")]
-    pub resource_id: Option<String>,
+    pub resource_id: ::core::option::Option<String>,
     /// A version-specific identifier for the watched resource.
     #[serde(default, rename = "resourceUri")]
-    pub resource_uri: Option<String>,
+    pub resource_uri: ::core::option::Option<String>,
     /// An arbitrary string delivered to the target address with each notification delivered over this channel. Optional.
     #[serde(default)]
-    pub token: Option<String>,
+    pub token: ::core::option::Option<String>,
     /// The type of delivery mechanism used for this channel. The value should be set to "web_hook".
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Identity of the Google Workspace customer who owns the resource.
@@ -150,7 +151,7 @@ pub struct Channel {
 pub struct CustomerIdentity {
     /// Customer id.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -158,13 +159,13 @@ pub struct CustomerIdentity {
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Details of the field value set by the user for the particular label.
@@ -172,46 +173,47 @@ pub struct Date {
 pub struct FieldValue {
     /// Setting a date value.
     #[serde(default, rename = "dateValue")]
-    pub date_value: Option<Date>,
+    pub date_value: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Display name of the field
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier of the field
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Setting an integer value.
     #[serde(default, rename = "integerValue")]
-    pub integer_value: Option<String>,
+    pub integer_value: ::core::option::Option<String>,
     /// Setting a long text value.
     #[serde(default, rename = "longTextValue")]
-    pub long_text_value: Option<String>,
+    pub long_text_value: ::core::option::Option<String>,
     /// The reason why the field was applied to the label.
     #[serde(default)]
-    pub reason: Option<Reason>,
+    pub reason: ::core::option::Option<::std::boxed::Box<Reason>>,
     /// Setting a selection list value by selecting multiple values from a dropdown.
     #[serde(default, rename = "selectionListValue")]
-    pub selection_list_value: Option<FieldValueSelectionListValue>,
+    pub selection_list_value:
+        ::core::option::Option<::std::boxed::Box<FieldValueSelectionListValue>>,
     /// Setting a selection value by selecting a single value from a dropdown.
     #[serde(default, rename = "selectionValue")]
-    pub selection_value: Option<FieldValueSelectionValue>,
+    pub selection_value: ::core::option::Option<::std::boxed::Box<FieldValueSelectionValue>>,
     /// Setting a text list value.
     #[serde(default, rename = "textListValue")]
-    pub text_list_value: Option<FieldValueTextListValue>,
+    pub text_list_value: ::core::option::Option<::std::boxed::Box<FieldValueTextListValue>>,
     /// Setting a text value.
     #[serde(default, rename = "textValue")]
-    pub text_value: Option<String>,
+    pub text_value: ::core::option::Option<String>,
     /// Type of the field
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// If the field is unset, this will be true.
     #[serde(default, rename = "unsetValue")]
-    pub unset_value: Option<bool>,
+    pub unset_value: ::core::option::Option<bool>,
     /// Setting a user list value by selecting multiple users.
     #[serde(default, rename = "userListValue")]
-    pub user_list_value: Option<FieldValueUserListValue>,
+    pub user_list_value: ::core::option::Option<::std::boxed::Box<FieldValueUserListValue>>,
     /// Setting a user value by selecting a single user.
     #[serde(default, rename = "userValue")]
-    pub user_value: Option<FieldValueUserValue>,
+    pub user_value: ::core::option::Option<::std::boxed::Box<FieldValueUserValue>>,
 }
 
 /// Setting a selection list value by selecting multiple values from a dropdown.
@@ -219,7 +221,8 @@ pub struct FieldValue {
 pub struct FieldValueSelectionListValue {
     /// List of selections.
     #[serde(default)]
-    pub values: Option<Vec<FieldValueSelectionValue>>,
+    pub values:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldValueSelectionValue>>>,
 }
 
 /// Setting a selection value by selecting a single value from a dropdown.
@@ -227,13 +230,13 @@ pub struct FieldValueSelectionListValue {
 pub struct FieldValueSelectionValue {
     /// Whether the selection is badged.
     #[serde(default)]
-    pub badged: Option<bool>,
+    pub badged: ::core::option::Option<bool>,
     /// Display name of the selection.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier of the selection.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Setting a text list value.
@@ -241,7 +244,7 @@ pub struct FieldValueSelectionValue {
 pub struct FieldValueTextListValue {
     /// List of text values.
     #[serde(default)]
-    pub values: Option<Vec<String>>,
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Setting a user list value by selecting multiple users.
@@ -249,7 +252,7 @@ pub struct FieldValueTextListValue {
 pub struct FieldValueUserListValue {
     /// List of users.
     #[serde(default)]
-    pub values: Option<Vec<FieldValueUserValue>>,
+    pub values: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<FieldValueUserValue>>>,
 }
 
 /// Setting a user value by selecting a single user.
@@ -257,7 +260,7 @@ pub struct FieldValueUserListValue {
 pub struct FieldValueUserValue {
     /// Email of the user.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// Identity of the group who owns the resource.
@@ -265,10 +268,10 @@ pub struct FieldValueUserValue {
 pub struct GroupIdentity {
     /// Group email.
     #[serde(default, rename = "groupEmail")]
-    pub group_email: Option<String>,
+    pub group_email: ::core::option::Option<String>,
     /// Group gaia id.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// JSON template for a parameter used in various reports.
@@ -276,25 +279,25 @@ pub struct GroupIdentity {
 pub struct NestedParameter {
     /// Boolean value of the parameter.
     #[serde(default, rename = "boolValue")]
-    pub bool_value: Option<bool>,
+    pub bool_value: ::core::option::Option<bool>,
     /// Integer value of the parameter.
     #[serde(default, rename = "intValue")]
-    pub int_value: Option<String>,
+    pub int_value: ::core::option::Option<String>,
     /// Multiple boolean values of the parameter.
     #[serde(default, rename = "multiBoolValue")]
-    pub multi_bool_value: Option<Vec<bool>>,
+    pub multi_bool_value: ::core::option::Option<::std::vec::Vec<bool>>,
     /// Multiple integer values of the parameter.
     #[serde(default, rename = "multiIntValue")]
-    pub multi_int_value: Option<Vec<String>>,
+    pub multi_int_value: ::core::option::Option<::std::vec::Vec<String>>,
     /// Multiple string values of the parameter.
     #[serde(default, rename = "multiValue")]
-    pub multi_value: Option<Vec<String>>,
+    pub multi_value: ::core::option::Option<::std::vec::Vec<String>>,
     /// The name of the parameter.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// String value of the parameter.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// Details of the owner of the resource.
@@ -302,10 +305,10 @@ pub struct NestedParameter {
 pub struct OwnerDetails {
     /// Identity details of the owner(s) of the resource.
     #[serde(default, rename = "ownerIdentity")]
-    pub owner_identity: Option<Vec<OwnerIdentity>>,
+    pub owner_identity: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OwnerIdentity>>>,
     /// Type of the owner of the resource.
     #[serde(default, rename = "ownerType")]
-    pub owner_type: Option<String>,
+    pub owner_type: ::core::option::Option<String>,
 }
 
 /// Identity details of the owner of the resource.
@@ -313,13 +316,13 @@ pub struct OwnerDetails {
 pub struct OwnerIdentity {
     /// Identity of the Google Workspace customer who owns the resource.
     #[serde(default, rename = "customerIdentity")]
-    pub customer_identity: Option<CustomerIdentity>,
+    pub customer_identity: ::core::option::Option<::std::boxed::Box<CustomerIdentity>>,
     /// Identity of the group who owns the resource.
     #[serde(default, rename = "groupIdentity")]
-    pub group_identity: Option<GroupIdentity>,
+    pub group_identity: ::core::option::Option<::std::boxed::Box<GroupIdentity>>,
     /// Identity of the user who owns the resource.
     #[serde(default, rename = "userIdentity")]
-    pub user_identity: Option<UserIdentity>,
+    pub user_identity: ::core::option::Option<::std::boxed::Box<UserIdentity>>,
 }
 
 /// The reason why the label/field was applied.
@@ -327,7 +330,7 @@ pub struct OwnerIdentity {
 pub struct Reason {
     /// The type of the reason.
     #[serde(default, rename = "reasonType")]
-    pub reason_type: Option<String>,
+    pub reason_type: ::core::option::Option<String>,
 }
 
 /// Details of the resource on which the action was performed.
@@ -335,22 +338,22 @@ pub struct Reason {
 pub struct ResourceDetails {
     /// List of labels applied on the resource
     #[serde(default, rename = "appliedLabels")]
-    pub applied_labels: Option<Vec<AppliedLabel>>,
+    pub applied_labels: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AppliedLabel>>>,
     /// Identifier of the resource, such as a doc_id for a Drive document, a conference_id for a Meet conference, or a "gaia_id/rfc2822_message_id" for an email.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Owner details of the resource.
     #[serde(default, rename = "ownerDetails")]
-    pub owner_details: Option<OwnerDetails>,
+    pub owner_details: ::core::option::Option<::std::boxed::Box<OwnerDetails>>,
     /// Defines relationship of the resource to the events
     #[serde(default)]
-    pub relation: Option<String>,
+    pub relation: ::core::option::Option<String>,
     /// Title of the resource. For instance, in case of a drive document, this would be the title of the document. In case of an email, this would be the subject.
     #[serde(default)]
-    pub title: Option<String>,
+    pub title: ::core::option::Option<String>,
     /// Type of the resource - document, email, chat message
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// JSON template for a usage report.
@@ -358,19 +361,19 @@ pub struct ResourceDetails {
 pub struct UsageReport {
     /// Output only. The date of the report request.
     #[serde(default)]
-    pub date: Option<String>,
+    pub date: ::core::option::Option<String>,
     /// Output only. Information about the type of the item.
     #[serde(default)]
-    pub entity: Option<serde_json::Value>,
+    pub entity: ::core::option::Option<serde_json::Value>,
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The type of API resource. For a usage report, the value is admin#reports#usageReport.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Output only. Parameter value pairs for various applications. For the Entity Usage Report parameters and values, see [the Entity Usage parameters reference](https://developers.google.com/workspace/admin/reports/v1/reference/usage-ref-appendix-a/entities).
     #[serde(default)]
-    pub parameters: Option<Vec<serde_json::Value>>,
+    pub parameters: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// UsageReports resource type.
@@ -378,19 +381,19 @@ pub struct UsageReport {
 pub struct UsageReports {
     /// ETag of the resource.
     #[serde(default)]
-    pub etag: Option<String>,
+    pub etag: ::core::option::Option<String>,
     /// The type of API resource. For a usage report, the value is admin#reports#usageReports.
     #[serde(default)]
-    pub kind: Option<String>,
+    pub kind: ::core::option::Option<String>,
     /// Token to specify next page. A report with multiple pages has a nextPageToken property in the response. For your follow-on requests getting all of the report''s pages, enter the nextPageToken value in the pageToken query string.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// Various application parameter records.
     #[serde(default, rename = "usageReports")]
-    pub usage_reports: Option<Vec<UsageReport>>,
+    pub usage_reports: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<UsageReport>>>,
     /// Warnings, if any.
     #[serde(default)]
-    pub warnings: Option<Vec<serde_json::Value>>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// Identity of the user who owns the resource.
@@ -398,8 +401,8 @@ pub struct UsageReports {
 pub struct UserIdentity {
     /// User gaia id.
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// User email.
     #[serde(default, rename = "userEmail")]
-    pub user_email: Option<String>,
+    pub user_email: ::core::option::Option<String>,
 }

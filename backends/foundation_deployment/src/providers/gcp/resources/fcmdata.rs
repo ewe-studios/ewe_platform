@@ -10,24 +10,24 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// Message delivery data for a given date, app, and analytics label combination.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirebaseFcmDataV1beta1AndroidDeliveryData {
     /// The analytics label associated with the messages sent. All messages sent without an analytics label will be grouped together in a single entry.
     #[serde(default, rename = "analyticsLabel")]
-    pub analytics_label: Option<String>,
+    pub analytics_label: ::core::option::Option<String>,
     /// The app ID to which the messages were sent.
     #[serde(default, rename = "appId")]
-    pub app_id: Option<String>,
+    pub app_id: ::core::option::Option<String>,
     /// The data for the specified appId, date, and analyticsLabel.
     #[serde(default)]
-    pub data: Option<GoogleFirebaseFcmDataV1beta1Data>,
+    pub data: ::core::option::Option<::std::boxed::Box<GoogleFirebaseFcmDataV1beta1Data>>,
     /// The date represented by this entry.
     #[serde(default)]
-    pub date: Option<GoogleTypeDate>,
+    pub date: ::core::option::Option<::std::boxed::Box<GoogleTypeDate>>,
 }
 
 /// Data detailing messaging delivery
@@ -35,24 +35,30 @@ pub struct GoogleFirebaseFcmDataV1beta1AndroidDeliveryData {
 pub struct GoogleFirebaseFcmDataV1beta1Data {
     /// Count of messages accepted by FCM intended for Android devices. The targeted device must have opted in to the collection of usage and diagnostic information.
     #[serde(default, rename = "countMessagesAccepted")]
-    pub count_messages_accepted: Option<String>,
+    pub count_messages_accepted: ::core::option::Option<String>,
     /// Count of notifications accepted by FCM intended for Android devices. The targeted device must have opted in to the collection of usage and diagnostic information.
     #[serde(default, rename = "countNotificationsAccepted")]
-    pub count_notifications_accepted: Option<String>,
+    pub count_notifications_accepted: ::core::option::Option<String>,
     /// Additional information about delivery performance for messages that were successfully delivered.
     #[serde(default, rename = "deliveryPerformancePercents")]
-    pub delivery_performance_percents:
-        Option<GoogleFirebaseFcmDataV1beta1DeliveryPerformancePercents>,
+    pub delivery_performance_percents: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirebaseFcmDataV1beta1DeliveryPerformancePercents>,
+    >,
     /// Additional general insights about message delivery.
     #[serde(default, rename = "messageInsightPercents")]
-    pub message_insight_percents: Option<GoogleFirebaseFcmDataV1beta1MessageInsightPercents>,
+    pub message_insight_percents: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirebaseFcmDataV1beta1MessageInsightPercents>,
+    >,
     /// Mutually exclusive breakdown of message delivery outcomes.
     #[serde(default, rename = "messageOutcomePercents")]
-    pub message_outcome_percents: Option<GoogleFirebaseFcmDataV1beta1MessageOutcomePercents>,
+    pub message_outcome_percents: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirebaseFcmDataV1beta1MessageOutcomePercents>,
+    >,
     /// Additional insights about proxy notification delivery.
     #[serde(default, rename = "proxyNotificationInsightPercents")]
-    pub proxy_notification_insight_percents:
-        Option<GoogleFirebaseFcmDataV1beta1ProxyNotificationInsightPercents>,
+    pub proxy_notification_insight_percents: ::core::option::Option<
+        ::std::boxed::Box<GoogleFirebaseFcmDataV1beta1ProxyNotificationInsightPercents>,
+    >,
 }
 
 /// Overview of delivery performance for messages that were successfully delivered. All percentages are calculated with countMessagesAccepted as the denominator. These categories are not mutually exclusive; a message can be delayed for multiple reasons.
@@ -60,19 +66,19 @@ pub struct GoogleFirebaseFcmDataV1beta1Data {
 pub struct GoogleFirebaseFcmDataV1beta1DeliveryPerformancePercents {
     /// The percentage of accepted messages that were delayed because the device was in doze mode. Only [normal priority messages](https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message) should be delayed due to doze mode.
     #[serde(default, rename = "delayedDeviceDoze")]
-    pub delayed_device_doze: Option<f32>,
+    pub delayed_device_doze: ::core::option::Option<f32>,
     /// The percentage of accepted messages that were delayed because the target device was not connected at the time of sending. These messages were eventually delivered when the device reconnected.
     #[serde(default, rename = "delayedDeviceOffline")]
-    pub delayed_device_offline: Option<f32>,
+    pub delayed_device_offline: ::core::option::Option<f32>,
     /// The percentage of accepted messages that were delayed due to message throttling, such as [collapsible message throttling](https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_throttling) or [maximum message rate throttling](https://firebase.google.com/docs/cloud-messaging/concept-options#device_throttling).
     #[serde(default, rename = "delayedMessageThrottled")]
-    pub delayed_message_throttled: Option<f32>,
+    pub delayed_message_throttled: ::core::option::Option<f32>,
     /// The percentage of accepted messages that were delayed because the intended device user-profile was [stopped](https://firebase.google.com/docs/cloud-messaging/android/receive#handling_messages) on the target device at the time of the send. The messages were eventually delivered when the user-profile was started again.
     #[serde(default, rename = "delayedUserStopped")]
-    pub delayed_user_stopped: Option<f32>,
+    pub delayed_user_stopped: ::core::option::Option<f32>,
     /// The percentage of accepted messages that were delivered to the device without delay from the FCM system.
     #[serde(default, rename = "deliveredNoDelay")]
-    pub delivered_no_delay: Option<f32>,
+    pub delivered_no_delay: ::core::option::Option<f32>,
 }
 
 /// Response message for ListAndroidDeliveryData.
@@ -80,10 +86,12 @@ pub struct GoogleFirebaseFcmDataV1beta1DeliveryPerformancePercents {
 pub struct GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse {
     /// The delivery data for the provided app. There will be one entry per combination of app, date, and analytics label.
     #[serde(default, rename = "androidDeliveryData")]
-    pub android_delivery_data: Option<Vec<GoogleFirebaseFcmDataV1beta1AndroidDeliveryData>>,
+    pub android_delivery_data: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<GoogleFirebaseFcmDataV1beta1AndroidDeliveryData>>,
+    >,
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Additional information about message delivery. All percentages are calculated with countMessagesAccepted as the denominator.
@@ -91,7 +99,7 @@ pub struct GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse {
 pub struct GoogleFirebaseFcmDataV1beta1MessageInsightPercents {
     /// The percentage of accepted messages that had their priority lowered from high to normal. See [documentation for setting message priority](https://firebase.google.com/docs/cloud-messaging/android/message-priority).
     #[serde(default, rename = "priorityLowered")]
-    pub priority_lowered: Option<f32>,
+    pub priority_lowered: ::core::option::Option<f32>,
 }
 
 /// Percentage breakdown of message delivery outcomes. These categories are mutually exclusive. All percentages are calculated with countMessagesAccepted as the denominator. These categories may not account for all message outcomes.
@@ -99,25 +107,25 @@ pub struct GoogleFirebaseFcmDataV1beta1MessageInsightPercents {
 pub struct GoogleFirebaseFcmDataV1beta1MessageOutcomePercents {
     /// The percentage of accepted messages that were [collapsed](https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages) by another message.
     #[serde(default)]
-    pub collapsed: Option<f32>,
+    pub collapsed: ::core::option::Option<f32>,
     /// The percentage of all accepted messages that were successfully delivered to the device.
     #[serde(default)]
-    pub delivered: Option<f32>,
+    pub delivered: ::core::option::Option<f32>,
     /// The percentage of accepted messages that were dropped because the application was force stopped on the device at the time of delivery and retries were unsuccessful.
     #[serde(default, rename = "droppedAppForceStopped")]
-    pub dropped_app_force_stopped: Option<f32>,
+    pub dropped_app_force_stopped: ::core::option::Option<f32>,
     /// The percentage of accepted messages that were dropped because the target device is inactive. FCM will drop messages if the target device is deemed inactive by our servers. If a device does reconnect, we call [OnDeletedMessages()](https://firebase.google.com/docs/cloud-messaging/android/receive#override-ondeletedmessages) in our SDK instead of delivering the messages.
     #[serde(default, rename = "droppedDeviceInactive")]
-    pub dropped_device_inactive: Option<f32>,
+    pub dropped_device_inactive: ::core::option::Option<f32>,
     /// The percentage of accepted messages that were dropped due to [too many undelivered non-collapsible messages](https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages). Specifically, each app instance can only have 100 pending messages stored on our servers for a device which is disconnected. When that device reconnects, those messages are delivered. When there are more than the maximum pending messages, we call [OnDeletedMessages()](https://firebase.google.com/docs/cloud-messaging/android/receive#override-ondeletedmessages) in our SDK instead of delivering the messages.
     #[serde(default, rename = "droppedTooManyPendingMessages")]
-    pub dropped_too_many_pending_messages: Option<f32>,
+    pub dropped_too_many_pending_messages: ::core::option::Option<f32>,
     /// The percentage of accepted messages that expired because [Time To Live (TTL)](https://firebase.google.com/docs/cloud-messaging/concept-options#ttl) elapsed before the target device reconnected.
     #[serde(default, rename = "droppedTtlExpired")]
-    pub dropped_ttl_expired: Option<f32>,
+    pub dropped_ttl_expired: ::core::option::Option<f32>,
     /// The percentage of messages accepted on this day that were not dropped and not delivered, due to the device being disconnected (as of the end of the America/Los_Angeles day when the message was sent to FCM). A portion of these messages will be delivered the next day when the device connects but others may be destined to devices that ultimately never reconnect.
     #[serde(default)]
-    pub pending: Option<f32>,
+    pub pending: ::core::option::Option<f32>,
 }
 
 /// Additional information about [proxy notification](https://firebase.google.com/docs/cloud-messaging/android/message-priority#proxy) delivery. All percentages are calculated with countNotificationsAccepted as the denominator.
@@ -125,22 +133,22 @@ pub struct GoogleFirebaseFcmDataV1beta1MessageOutcomePercents {
 pub struct GoogleFirebaseFcmDataV1beta1ProxyNotificationInsightPercents {
     /// The percentage of accepted notifications that failed to be proxied. This is usually caused by exceptions that occurred while calling [notifyAsPackage](https://developer.android.com/reference/android/app/NotificationManager#notifyAsPackage%28java.lang.String,%20java.lang.String,%20int,%20android.app.Notification%29).
     #[serde(default)]
-    pub failed: Option<f32>,
+    pub failed: ::core::option::Option<f32>,
     /// The percentage of accepted notifications that were successfully proxied by [Google Play services](https://developers.google.com/android/guides/overview).
     #[serde(default)]
-    pub proxied: Option<f32>,
+    pub proxied: ::core::option::Option<f32>,
     /// The percentage of accepted notifications that were skipped because the messages were not throttled.
     #[serde(default, rename = "skippedNotThrottled")]
-    pub skipped_not_throttled: Option<f32>,
+    pub skipped_not_throttled: ::core::option::Option<f32>,
     /// The percentage of accepted notifications that were skipped because the app disallowed these messages to be proxied.
     #[serde(default, rename = "skippedOptedOut")]
-    pub skipped_opted_out: Option<f32>,
+    pub skipped_opted_out: ::core::option::Option<f32>,
     /// The percentage of accepted notifications that were skipped because configurations required for notifications to be proxied were missing.
     #[serde(default, rename = "skippedUnconfigured")]
-    pub skipped_unconfigured: Option<f32>,
+    pub skipped_unconfigured: ::core::option::Option<f32>,
     /// The percentage of accepted notifications that were skipped because proxy notification is unsupported for the recipient.
     #[serde(default, rename = "skippedUnsupported")]
-    pub skipped_unsupported: Option<f32>,
+    pub skipped_unsupported: ::core::option::Option<f32>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -148,11 +156,11 @@ pub struct GoogleFirebaseFcmDataV1beta1ProxyNotificationInsightPercents {
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
-    pub day: Option<i32>,
+    pub day: ::core::option::Option<i32>,
     /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
     #[serde(default)]
-    pub month: Option<i32>,
+    pub month: ::core::option::Option<i32>,
     /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
     #[serde(default)]
-    pub year: Option<i32>,
+    pub year: ::core::option::Option<i32>,
 }

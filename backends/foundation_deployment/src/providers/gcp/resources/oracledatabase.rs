@@ -10,21 +10,21 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use super::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// A list of all connection strings that can be used to connect to the Autonomous Database.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AllConnectionStrings {
     /// Output only. The database service provides the highest level of resources to each SQL statement.
     #[serde(default)]
-    pub high: Option<String>,
+    pub high: ::core::option::Option<String>,
     /// Output only. The database service provides the least level of resources to each SQL statement.
     #[serde(default)]
-    pub low: Option<String>,
+    pub low: ::core::option::Option<String>,
     /// Output only. The database service provides a lower level of resources to each SQL statement.
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
 }
 
 /// Details of the Autonomous Database resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/AutonomousDatabase/
@@ -32,52 +32,52 @@ pub struct AllConnectionStrings {
 pub struct AutonomousDatabase {
     /// Optional. Immutable. The password for the default ADMIN user. Note: Only one of admin_password_secret_version or admin_password can be populated.
     #[serde(default, rename = "adminPassword")]
-    pub admin_password: Option<String>,
+    pub admin_password: ::core::option::Option<String>,
     /// Optional. Immutable. The resource name of a secret version in Secret Manager which contains the database admin user''s password. Format: projects/{project}/secrets/{secret}/versions/{version}. Note: Only one of admin_password_secret_version or admin_password can be populated.
     #[serde(default, rename = "adminPasswordSecretVersion")]
-    pub admin_password_secret_version: Option<String>,
+    pub admin_password_secret_version: ::core::option::Option<String>,
     /// Optional. Immutable. The subnet CIDR range for the Autonomous Database.
     #[serde(default)]
-    pub cidr: Option<String>,
+    pub cidr: ::core::option::Option<String>,
     /// Output only. The date and time that the Autonomous Database was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Immutable. The name of the Autonomous Database. The database name must be unique in the project. The name must begin with a letter and can contain a maximum of 30 alphanumeric characters.
     #[serde(default)]
-    pub database: Option<String>,
+    pub database: ::core::option::Option<String>,
     /// Output only. List of supported GCP region to clone the Autonomous Database for disaster recovery. Format: project/{project}/locations/{location}.
     #[serde(default, rename = "disasterRecoverySupportedLocations")]
-    pub disaster_recovery_supported_locations: Option<Vec<String>>,
+    pub disaster_recovery_supported_locations: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Immutable. The display name for the Autonomous Database. The name does not have to be unique within your project.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The ID of the subscription entitlement associated with the Autonomous Database.
     #[serde(default, rename = "entitlementId")]
-    pub entitlement_id: Option<String>,
+    pub entitlement_id: ::core::option::Option<String>,
     /// Optional. The labels or tags associated with the Autonomous Database.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the Autonomous Database resource in the following format: projects/{project}/locations/{region}/autonomousDatabases/{autonomous_database}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Immutable. The name of the VPC network used by the Autonomous Database in the following format: projects/{project}/global/networks/{network}
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Optional. Immutable. The name of the OdbNetwork associated with the Autonomous Database. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network} It is optional but if specified, this should match the parent ODBNetwork of the OdbSubnet.
     #[serde(default, rename = "odbNetwork")]
-    pub odb_network: Option<String>,
+    pub odb_network: ::core::option::Option<String>,
     /// Optional. Immutable. The name of the OdbSubnet associated with the Autonomous Database. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default, rename = "odbSubnet")]
-    pub odb_subnet: Option<String>,
+    pub odb_subnet: ::core::option::Option<String>,
     /// Output only. The peer Autonomous Database names of the given Autonomous Database.
     #[serde(default, rename = "peerAutonomousDatabases")]
-    pub peer_autonomous_databases: Option<Vec<String>>,
+    pub peer_autonomous_databases: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The properties of the Autonomous Database.
     #[serde(default)]
-    pub properties: Option<AutonomousDatabaseProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<AutonomousDatabaseProperties>>,
     /// Optional. Immutable. The source Autonomous Database configuration for the standby Autonomous Database. The source Autonomous Database is configured while creating the Peer Autonomous Database and can''t be updated after creation.
     #[serde(default, rename = "sourceConfig")]
-    pub source_config: Option<SourceConfig>,
+    pub source_config: ::core::option::Option<::std::boxed::Box<SourceConfig>>,
 }
 
 /// Oracle APEX Application Development. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseApex
@@ -85,10 +85,10 @@ pub struct AutonomousDatabase {
 pub struct AutonomousDatabaseApex {
     /// Output only. The Oracle APEX Application Development version.
     #[serde(default, rename = "apexVersion")]
-    pub apex_version: Option<String>,
+    pub apex_version: ::core::option::Option<String>,
     /// Output only. The Oracle REST Data Services (ORDS) version.
     #[serde(default, rename = "ordsVersion")]
-    pub ords_version: Option<String>,
+    pub ords_version: ::core::option::Option<String>,
 }
 
 /// Details of the Autonomous Database Backup resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/AutonomousDatabaseBackup/
@@ -96,19 +96,19 @@ pub struct AutonomousDatabaseApex {
 pub struct AutonomousDatabaseBackup {
     /// Required. The name of the Autonomous Database resource for which the backup is being created. Format: projects/{project}/locations/{region}/autonomousDatabases/{autonomous_database}
     #[serde(default, rename = "autonomousDatabase")]
-    pub autonomous_database: Option<String>,
+    pub autonomous_database: ::core::option::Option<String>,
     /// Optional. User friendly name for the Backup. The name does not have to be unique.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. labels or tags associated with the resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the Autonomous Database Backup resource with the format: projects/{project}/locations/{region}/autonomousDatabaseBackups/{autonomous_database_backup}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Various properties of the backup.
     #[serde(default)]
-    pub properties: Option<AutonomousDatabaseBackupProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<AutonomousDatabaseBackupProperties>>,
 }
 
 /// Properties of the Autonomous Database Backup resource.
@@ -116,64 +116,64 @@ pub struct AutonomousDatabaseBackup {
 pub struct AutonomousDatabaseBackupProperties {
     /// Output only. Timestamp until when the backup will be available.
     #[serde(default, rename = "availableTillTime")]
-    pub available_till_time: Option<String>,
+    pub available_till_time: ::core::option::Option<String>,
     /// Output only. The OCID of the compartment.
     #[serde(default, rename = "compartmentId")]
-    pub compartment_id: Option<String>,
+    pub compartment_id: ::core::option::Option<String>,
     /// Output only. The quantity of data in the database, in terabytes.
     #[serde(default, rename = "databaseSizeTb")]
-    pub database_size_tb: Option<f32>,
+    pub database_size_tb: ::core::option::Option<f32>,
     /// Output only. A valid Oracle Database version for Autonomous Database.
     #[serde(default, rename = "dbVersion")]
-    pub db_version: Option<String>,
+    pub db_version: ::core::option::Option<String>,
     /// Output only. The date and time the backup completed.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. Indicates if the backup is automatic or user initiated.
     #[serde(default, rename = "isAutomaticBackup")]
-    pub is_automatic_backup: Option<bool>,
+    pub is_automatic_backup: ::core::option::Option<bool>,
     /// Output only. Indicates if the backup is long term backup.
     #[serde(default, rename = "isLongTermBackup")]
-    pub is_long_term_backup: Option<bool>,
+    pub is_long_term_backup: ::core::option::Option<bool>,
     /// Output only. Indicates if the backup can be used to restore the Autonomous Database.
     #[serde(default, rename = "isRestorable")]
-    pub is_restorable: Option<bool>,
+    pub is_restorable: ::core::option::Option<bool>,
     /// Optional. The OCID of the key store of Oracle Vault.
     #[serde(default, rename = "keyStoreId")]
-    pub key_store_id: Option<String>,
+    pub key_store_id: ::core::option::Option<String>,
     /// Optional. The wallet name for Oracle Key Vault.
     #[serde(default, rename = "keyStoreWallet")]
-    pub key_store_wallet: Option<String>,
+    pub key_store_wallet: ::core::option::Option<String>,
     /// Optional. The OCID of the key container that is used as the master encryption key in database transparent data encryption (TDE) operations.
     #[serde(default, rename = "kmsKeyId")]
-    pub kms_key_id: Option<String>,
+    pub kms_key_id: ::core::option::Option<String>,
     /// Optional. The OCID of the key container version that is used in database transparent data encryption (TDE) operations KMS Key can have multiple key versions. If none is specified, the current key version (latest) of the Key Id is used for the operation. Autonomous Database Serverless does not use key versions, hence is not applicable for Autonomous Database Serverless instances.
     #[serde(default, rename = "kmsKeyVersionId")]
-    pub kms_key_version_id: Option<String>,
+    pub kms_key_version_id: ::core::option::Option<String>,
     /// Output only. Additional information about the current lifecycle state.
     #[serde(default, rename = "lifecycleDetails")]
-    pub lifecycle_details: Option<String>,
+    pub lifecycle_details: ::core::option::Option<String>,
     /// Output only. The lifecycle state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "DELETED", "FAILED", "UPDATING"]
     #[serde(default, rename = "lifecycleState")]
-    pub lifecycle_state: Option<String>,
+    pub lifecycle_state: ::core::option::Option<String>,
     /// Output only. OCID of the Autonomous Database backup. https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm#Oracle
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Optional. Retention period in days for the backup.
     #[serde(default, rename = "retentionPeriodDays")]
-    pub retention_period_days: Option<i32>,
+    pub retention_period_days: ::core::option::Option<i32>,
     /// Output only. The backup size in terabytes.
     #[serde(default, rename = "sizeTb")]
-    pub size_tb: Option<f32>,
+    pub size_tb: ::core::option::Option<f32>,
     /// Output only. The date and time the backup started.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<String>,
+    pub start_time: ::core::option::Option<String>,
     /// Output only. The type of the backup. // TODO: enum values: ["TYPE_UNSPECIFIED", "INCREMENTAL", "FULL", "LONG_TERM"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
     /// Optional. The OCID of the vault.
     #[serde(default, rename = "vaultId")]
-    pub vault_id: Option<String>,
+    pub vault_id: ::core::option::Option<String>,
 }
 
 /// Details of the Autonomous Database character set resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/AutonomousDatabaseCharacterSets/
@@ -181,13 +181,13 @@ pub struct AutonomousDatabaseBackupProperties {
 pub struct AutonomousDatabaseCharacterSet {
     /// Output only. The character set name for the Autonomous Database which is the ID in the resource name.
     #[serde(default, rename = "characterSet")]
-    pub character_set: Option<String>,
+    pub character_set: ::core::option::Option<String>,
     /// Output only. The character set type for the Autonomous Database. // TODO: enum values: ["CHARACTER_SET_TYPE_UNSPECIFIED", "DATABASE", "NATIONAL"]
     #[serde(default, rename = "characterSetType")]
-    pub character_set_type: Option<String>,
+    pub character_set_type: ::core::option::Option<String>,
     /// Identifier. The name of the Autonomous Database Character Set resource in the following format: projects/{project}/locations/{region}/autonomousDatabaseCharacterSets/{autonomous_database_character_set}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The connection string used to connect to the Autonomous Database. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseConnectionStrings
@@ -195,22 +195,23 @@ pub struct AutonomousDatabaseCharacterSet {
 pub struct AutonomousDatabaseConnectionStrings {
     /// Output only. Returns all connection strings that can be used to connect to the Autonomous Database.
     #[serde(default, rename = "allConnectionStrings")]
-    pub all_connection_strings: Option<AllConnectionStrings>,
+    pub all_connection_strings: ::core::option::Option<::std::boxed::Box<AllConnectionStrings>>,
     /// Output only. The database service provides the least level of resources to each SQL statement, but supports the most number of concurrent SQL statements.
     #[serde(default)]
-    pub dedicated: Option<String>,
+    pub dedicated: ::core::option::Option<String>,
     /// Output only. The database service provides the highest level of resources to each SQL statement.
     #[serde(default)]
-    pub high: Option<String>,
+    pub high: ::core::option::Option<String>,
     /// Output only. The database service provides the least level of resources to each SQL statement.
     #[serde(default)]
-    pub low: Option<String>,
+    pub low: ::core::option::Option<String>,
     /// Output only. The database service provides a lower level of resources to each SQL statement.
     #[serde(default)]
-    pub medium: Option<String>,
+    pub medium: ::core::option::Option<String>,
     /// Output only. A list of connection string profiles to allow clients to group, filter, and select values based on the structured metadata.
     #[serde(default)]
-    pub profiles: Option<Vec<DatabaseConnectionStringProfile>>,
+    pub profiles:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseConnectionStringProfile>>>,
 }
 
 /// The URLs for accessing Oracle Application Express (APEX) and SQL Developer Web with a browser from a Compute instance. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseConnectionUrls
@@ -218,28 +219,28 @@ pub struct AutonomousDatabaseConnectionStrings {
 pub struct AutonomousDatabaseConnectionUrls {
     /// Output only. Oracle Application Express (APEX) URL.
     #[serde(default, rename = "apexUri")]
-    pub apex_uri: Option<String>,
+    pub apex_uri: ::core::option::Option<String>,
     /// Output only. The URL of the Database Transforms for the Autonomous Database.
     #[serde(default, rename = "databaseTransformsUri")]
-    pub database_transforms_uri: Option<String>,
+    pub database_transforms_uri: ::core::option::Option<String>,
     /// Output only. The URL of the Graph Studio for the Autonomous Database.
     #[serde(default, rename = "graphStudioUri")]
-    pub graph_studio_uri: Option<String>,
+    pub graph_studio_uri: ::core::option::Option<String>,
     /// Output only. The URL of the Oracle Machine Learning (OML) Notebook for the Autonomous Database.
     #[serde(default, rename = "machineLearningNotebookUri")]
-    pub machine_learning_notebook_uri: Option<String>,
+    pub machine_learning_notebook_uri: ::core::option::Option<String>,
     /// Output only. The URL of Machine Learning user management the Autonomous Database.
     #[serde(default, rename = "machineLearningUserManagementUri")]
-    pub machine_learning_user_management_uri: Option<String>,
+    pub machine_learning_user_management_uri: ::core::option::Option<String>,
     /// Output only. The URL of the MongoDB API for the Autonomous Database.
     #[serde(default, rename = "mongoDbUri")]
-    pub mongo_db_uri: Option<String>,
+    pub mongo_db_uri: ::core::option::Option<String>,
     /// Output only. The Oracle REST Data Services (ORDS) URL of the Web Access for the Autonomous Database.
     #[serde(default, rename = "ordsUri")]
-    pub ords_uri: Option<String>,
+    pub ords_uri: ::core::option::Option<String>,
     /// Output only. The URL of the Oracle SQL Developer Web for the Autonomous Database.
     #[serde(default, rename = "sqlDevWebUri")]
-    pub sql_dev_web_uri: Option<String>,
+    pub sql_dev_web_uri: ::core::option::Option<String>,
 }
 
 /// The properties of an Autonomous Database.
@@ -247,199 +248,205 @@ pub struct AutonomousDatabaseConnectionUrls {
 pub struct AutonomousDatabaseProperties {
     /// Output only. The amount of storage currently being used for user and system data, in terabytes.
     #[serde(default, rename = "actualUsedDataStorageSizeTb")]
-    pub actual_used_data_storage_size_tb: Option<f64>,
+    pub actual_used_data_storage_size_tb: ::core::option::Option<f64>,
     /// Output only. The amount of storage currently allocated for the database tables and billed for, rounded up in terabytes.
     #[serde(default, rename = "allocatedStorageSizeTb")]
-    pub allocated_storage_size_tb: Option<f64>,
+    pub allocated_storage_size_tb: ::core::option::Option<f64>,
     /// Optional. Immutable. The list of allowlisted IP addresses for the Autonomous Database.
     #[serde(default, rename = "allowlistedIps")]
-    pub allowlisted_ips: Option<Vec<String>>,
+    pub allowlisted_ips: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The details for the Oracle APEX Application Development.
     #[serde(default, rename = "apexDetails")]
-    pub apex_details: Option<AutonomousDatabaseApex>,
+    pub apex_details: ::core::option::Option<::std::boxed::Box<AutonomousDatabaseApex>>,
     /// Output only. This field indicates the status of Data Guard and Access control for the Autonomous Database. The field''s value is null if Data Guard is disabled or Access Control is disabled. The field''s value is TRUE if both Data Guard and Access Control are enabled, and the Autonomous Database is using primary IP access control list (ACL) for standby. The field''s value is FALSE if both Data Guard and Access Control are enabled, and the Autonomous Database is using a different IP access control list (ACL) for standby compared to primary.
     #[serde(default, rename = "arePrimaryAllowlistedIpsUsed")]
-    pub are_primary_allowlisted_ips_used: Option<bool>,
+    pub are_primary_allowlisted_ips_used: ::core::option::Option<bool>,
     /// Output only. The Autonomous Container Database OCID.
     #[serde(default, rename = "autonomousContainerDatabaseId")]
-    pub autonomous_container_database_id: Option<String>,
+    pub autonomous_container_database_id: ::core::option::Option<String>,
     /// Output only. The list of available Oracle Database upgrade versions for an Autonomous Database.
     #[serde(default, rename = "availableUpgradeVersions")]
-    pub available_upgrade_versions: Option<Vec<String>>,
+    pub available_upgrade_versions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Immutable. The retention period for the Autonomous Database. This field is specified in days, can range from 1 day to 60 days, and has a default value of 60 days.
     #[serde(default, rename = "backupRetentionPeriodDays")]
-    pub backup_retention_period_days: Option<i32>,
+    pub backup_retention_period_days: ::core::option::Option<i32>,
     /// Optional. Immutable. The character set for the Autonomous Database. The default is AL32UTF8.
     #[serde(default, rename = "characterSet")]
-    pub character_set: Option<String>,
+    pub character_set: ::core::option::Option<String>,
     /// Optional. Immutable. The number of compute servers for the Autonomous Database.
     #[serde(default, rename = "computeCount")]
-    pub compute_count: Option<f32>,
+    pub compute_count: ::core::option::Option<f32>,
     /// Output only. The connection strings used to connect to an Autonomous Database.
     #[serde(default, rename = "connectionStrings")]
-    pub connection_strings: Option<AutonomousDatabaseConnectionStrings>,
+    pub connection_strings:
+        ::core::option::Option<::std::boxed::Box<AutonomousDatabaseConnectionStrings>>,
     /// Output only. The Oracle Connection URLs for an Autonomous Database.
     #[serde(default, rename = "connectionUrls")]
-    pub connection_urls: Option<AutonomousDatabaseConnectionUrls>,
+    pub connection_urls:
+        ::core::option::Option<::std::boxed::Box<AutonomousDatabaseConnectionUrls>>,
     /// Optional. Immutable. The number of CPU cores to be made available to the database.
     #[serde(default, rename = "cpuCoreCount")]
-    pub cpu_core_count: Option<i32>,
+    pub cpu_core_count: ::core::option::Option<i32>,
     /// Optional. Immutable. The list of customer contacts.
     #[serde(default, rename = "customerContacts")]
-    pub customer_contacts: Option<Vec<CustomerContact>>,
+    pub customer_contacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomerContact>>>,
     /// Output only. The date and time the Autonomous Data Guard role was changed for the standby Autonomous Database.
     #[serde(default, rename = "dataGuardRoleChangedTime")]
-    pub data_guard_role_changed_time: Option<String>,
+    pub data_guard_role_changed_time: ::core::option::Option<String>,
     /// Output only. The current state of the Data Safe registration for the Autonomous Database. // TODO: enum values: ["DATA_SAFE_STATE_UNSPECIFIED", "REGISTERING", "REGISTERED", "DEREGISTERING", "NOT_REGISTERED", "FAILED"]
     #[serde(default, rename = "dataSafeState")]
-    pub data_safe_state: Option<String>,
+    pub data_safe_state: ::core::option::Option<String>,
     /// Optional. Immutable. The size of the data stored in the database, in gigabytes.
     #[serde(default, rename = "dataStorageSizeGb")]
-    pub data_storage_size_gb: Option<i32>,
+    pub data_storage_size_gb: ::core::option::Option<i32>,
     /// Optional. Immutable. The size of the data stored in the database, in terabytes.
     #[serde(default, rename = "dataStorageSizeTb")]
-    pub data_storage_size_tb: Option<i32>,
+    pub data_storage_size_tb: ::core::option::Option<i32>,
     /// Output only. The current state of database management for the Autonomous Database. // TODO: enum values: ["DATABASE_MANAGEMENT_STATE_UNSPECIFIED", "ENABLING", "ENABLED", "DISABLING", "NOT_ENABLED", "FAILED_ENABLING", "FAILED_DISABLING"]
     #[serde(default, rename = "databaseManagementState")]
-    pub database_management_state: Option<String>,
+    pub database_management_state: ::core::option::Option<String>,
     /// Optional. Immutable. The edition of the Autonomous Databases. // TODO: enum values: ["DATABASE_EDITION_UNSPECIFIED", "STANDARD_EDITION", "ENTERPRISE_EDITION"]
     #[serde(default, rename = "dbEdition")]
-    pub db_edition: Option<String>,
+    pub db_edition: ::core::option::Option<String>,
     /// Optional. Immutable. The Oracle Database version for the Autonomous Database.
     #[serde(default, rename = "dbVersion")]
-    pub db_version: Option<String>,
+    pub db_version: ::core::option::Option<String>,
     /// Required. Immutable. The workload type of the Autonomous Database. // TODO: enum values: ["DB_WORKLOAD_UNSPECIFIED", "OLTP", "DW", "AJD", "APEX"]
     #[serde(default, rename = "dbWorkload")]
-    pub db_workload: Option<String>,
+    pub db_workload: ::core::option::Option<String>,
     /// Output only. The date and time the Disaster Recovery role was changed for the standby Autonomous Database.
     #[serde(default, rename = "disasterRecoveryRoleChangedTime")]
-    pub disaster_recovery_role_changed_time: Option<String>,
+    pub disaster_recovery_role_changed_time: ::core::option::Option<String>,
     /// Optional. The encryption key used to encrypt the Autonomous Database. Updating this field will add a new entry in the encryption_key_history_entries field with the former version.
     #[serde(default, rename = "encryptionKey")]
-    pub encryption_key: Option<EncryptionKey>,
+    pub encryption_key: ::core::option::Option<::std::boxed::Box<EncryptionKey>>,
     /// Output only. The history of the encryption keys used to encrypt the Autonomous Database.
     #[serde(default, rename = "encryptionKeyHistoryEntries")]
-    pub encryption_key_history_entries: Option<Vec<EncryptionKeyHistoryEntry>>,
+    pub encryption_key_history_entries:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<EncryptionKeyHistoryEntry>>>,
     /// Output only. This field indicates the number of seconds of data loss during a Data Guard failover.
     #[serde(default, rename = "failedDataRecoveryDuration")]
-    pub failed_data_recovery_duration: Option<String>,
+    pub failed_data_recovery_duration: ::core::option::Option<String>,
     /// Optional. Immutable. This field indicates if auto scaling is enabled for the Autonomous Database CPU core count.
     #[serde(default, rename = "isAutoScalingEnabled")]
-    pub is_auto_scaling_enabled: Option<bool>,
+    pub is_auto_scaling_enabled: ::core::option::Option<bool>,
     /// Output only. Deprecated: Please use local_data_guard_enabled instead. This field indicates whether the Autonomous Database has local (in-region) Data Guard enabled.
     #[serde(default, rename = "isLocalDataGuardEnabled")]
-    pub is_local_data_guard_enabled: Option<bool>,
+    pub is_local_data_guard_enabled: ::core::option::Option<bool>,
     /// Optional. Immutable. This field indicates if auto scaling is enabled for the Autonomous Database storage.
     #[serde(default, rename = "isStorageAutoScalingEnabled")]
-    pub is_storage_auto_scaling_enabled: Option<bool>,
+    pub is_storage_auto_scaling_enabled: ::core::option::Option<bool>,
     /// Required. Immutable. The license type used for the Autonomous Database. // TODO: enum values: ["LICENSE_TYPE_UNSPECIFIED", "LICENSE_INCLUDED", "BRING_YOUR_OWN_LICENSE"]
     #[serde(default, rename = "licenseType")]
-    pub license_type: Option<String>,
+    pub license_type: ::core::option::Option<String>,
     /// Output only. The details of the current lifestyle state of the Autonomous Database.
     #[serde(default, rename = "lifecycleDetails")]
-    pub lifecycle_details: Option<String>,
+    pub lifecycle_details: ::core::option::Option<String>,
     /// Output only. Deprecated: Please use local_adg_auto_failover_max_data_loss_limit_duration instead. This field indicates the maximum data loss limit for an Autonomous Database, in seconds.
     #[serde(default, rename = "localAdgAutoFailoverMaxDataLossLimit")]
-    pub local_adg_auto_failover_max_data_loss_limit: Option<i32>,
+    pub local_adg_auto_failover_max_data_loss_limit: ::core::option::Option<i32>,
     /// Optional. This field indicates the maximum data loss limit for an Autonomous Database, in seconds.
     #[serde(default, rename = "localAdgAutoFailoverMaxDataLossLimitDuration")]
-    pub local_adg_auto_failover_max_data_loss_limit_duration: Option<i32>,
+    pub local_adg_auto_failover_max_data_loss_limit_duration: ::core::option::Option<i32>,
     /// Optional. Indicates whether the Autonomous Database has a local (in-region) standby database. Not applicable to cross-region Data Guard or dedicated Exadata infrastructure.
     #[serde(default, rename = "localDataGuardEnabled")]
-    pub local_data_guard_enabled: Option<bool>,
+    pub local_data_guard_enabled: ::core::option::Option<bool>,
     /// Output only. This field indicates the local disaster recovery (DR) type of an Autonomous Database. // TODO: enum values: ["LOCAL_DISASTER_RECOVERY_TYPE_UNSPECIFIED", "ADG", "BACKUP_BASED", "NOT_AVAILABLE"]
     #[serde(default, rename = "localDisasterRecoveryType")]
-    pub local_disaster_recovery_type: Option<String>,
+    pub local_disaster_recovery_type: ::core::option::Option<String>,
     /// Output only. The details of the Autonomous Data Guard standby database.
     #[serde(default, rename = "localStandbyDb")]
-    pub local_standby_db: Option<AutonomousDatabaseStandbySummary>,
+    pub local_standby_db:
+        ::core::option::Option<::std::boxed::Box<AutonomousDatabaseStandbySummary>>,
     /// Output only. The date and time when maintenance will begin.
     #[serde(default, rename = "maintenanceBeginTime")]
-    pub maintenance_begin_time: Option<String>,
+    pub maintenance_begin_time: ::core::option::Option<String>,
     /// Output only. The date and time when maintenance will end.
     #[serde(default, rename = "maintenanceEndTime")]
-    pub maintenance_end_time: Option<String>,
+    pub maintenance_end_time: ::core::option::Option<String>,
     /// Optional. Immutable. The maintenance schedule of the Autonomous Database. // TODO: enum values: ["MAINTENANCE_SCHEDULE_TYPE_UNSPECIFIED", "EARLY", "REGULAR"]
     #[serde(default, rename = "maintenanceScheduleType")]
-    pub maintenance_schedule_type: Option<String>,
+    pub maintenance_schedule_type: ::core::option::Option<String>,
     /// Output only. The amount of memory enabled per ECPU, in gigabytes.
     #[serde(default, rename = "memoryPerOracleComputeUnitGbs")]
-    pub memory_per_oracle_compute_unit_gbs: Option<i32>,
+    pub memory_per_oracle_compute_unit_gbs: ::core::option::Option<i32>,
     /// Output only. The memory assigned to in-memory tables in an Autonomous Database.
     #[serde(default, rename = "memoryTableGbs")]
-    pub memory_table_gbs: Option<i32>,
+    pub memory_table_gbs: ::core::option::Option<i32>,
     /// Optional. Immutable. This field specifies if the Autonomous Database requires mTLS connections.
     #[serde(default, rename = "mtlsConnectionRequired")]
-    pub mtls_connection_required: Option<bool>,
+    pub mtls_connection_required: ::core::option::Option<bool>,
     /// Optional. Immutable. The national character set for the Autonomous Database. The default is AL16UTF16.
     #[serde(default, rename = "nCharacterSet")]
-    pub n_character_set: Option<String>,
+    pub n_character_set: ::core::option::Option<String>,
     /// Output only. The long term backup schedule of the Autonomous Database.
     #[serde(default, rename = "nextLongTermBackupTime")]
-    pub next_long_term_backup_time: Option<String>,
+    pub next_long_term_backup_time: ::core::option::Option<String>,
     /// Output only. The Oracle Cloud Infrastructure link for the Autonomous Database.
     #[serde(default, rename = "ociUrl")]
-    pub oci_url: Option<String>,
+    pub oci_url: ::core::option::Option<String>,
     /// Output only. OCID of the Autonomous Database. https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm#Oracle
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Output only. This field indicates the current mode of the Autonomous Database. // TODO: enum values: ["OPEN_MODE_UNSPECIFIED", "READ_ONLY", "READ_WRITE"]
     #[serde(default, rename = "openMode")]
-    pub open_mode: Option<String>,
+    pub open_mode: ::core::option::Option<String>,
     /// Output only. This field indicates the state of Operations Insights for the Autonomous Database. // TODO: enum values: ["OPERATIONS_INSIGHTS_STATE_UNSPECIFIED", "ENABLING", "ENABLED", "DISABLING", "NOT_ENABLED", "FAILED_ENABLING", "FAILED_DISABLING"]
     #[serde(default, rename = "operationsInsightsState")]
-    pub operations_insights_state: Option<String>,
+    pub operations_insights_state: ::core::option::Option<String>,
     /// Output only. The list of OCIDs of standby databases located in Autonomous Data Guard remote regions that are associated with the source database.
     #[serde(default, rename = "peerDbIds")]
-    pub peer_db_ids: Option<Vec<String>>,
+    pub peer_db_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The permission level of the Autonomous Database. // TODO: enum values: ["PERMISSION_LEVEL_UNSPECIFIED", "RESTRICTED", "UNRESTRICTED"]
     #[serde(default, rename = "permissionLevel")]
-    pub permission_level: Option<String>,
+    pub permission_level: ::core::option::Option<String>,
     /// Output only. The private endpoint for the Autonomous Database.
     #[serde(default, rename = "privateEndpoint")]
-    pub private_endpoint: Option<String>,
+    pub private_endpoint: ::core::option::Option<String>,
     /// Optional. Immutable. The private endpoint IP address for the Autonomous Database.
     #[serde(default, rename = "privateEndpointIp")]
-    pub private_endpoint_ip: Option<String>,
+    pub private_endpoint_ip: ::core::option::Option<String>,
     /// Optional. Immutable. The private endpoint label for the Autonomous Database.
     #[serde(default, rename = "privateEndpointLabel")]
-    pub private_endpoint_label: Option<String>,
+    pub private_endpoint_label: ::core::option::Option<String>,
     /// Output only. The refresh mode of the cloned Autonomous Database. // TODO: enum values: ["REFRESHABLE_MODE_UNSPECIFIED", "AUTOMATIC", "MANUAL"]
     #[serde(default, rename = "refreshableMode")]
-    pub refreshable_mode: Option<String>,
+    pub refreshable_mode: ::core::option::Option<String>,
     /// Output only. The refresh State of the clone. // TODO: enum values: ["REFRESHABLE_STATE_UNSPECIFIED", "REFRESHING", "NOT_REFRESHING"]
     #[serde(default, rename = "refreshableState")]
-    pub refreshable_state: Option<String>,
+    pub refreshable_state: ::core::option::Option<String>,
     /// Output only. The Data Guard role of the Autonomous Database. // TODO: enum values: ["ROLE_UNSPECIFIED", "PRIMARY", "STANDBY", "DISABLED_STANDBY", "BACKUP_COPY", "SNAPSHOT_STANDBY"]
     #[serde(default)]
-    pub role: Option<String>,
+    pub role: ::core::option::Option<String>,
     /// Output only. The list and details of the scheduled operations of the Autonomous Database.
     #[serde(default, rename = "scheduledOperationDetails")]
-    pub scheduled_operation_details: Option<Vec<ScheduledOperationDetails>>,
+    pub scheduled_operation_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ScheduledOperationDetails>>>,
     /// Optional. Immutable. The ID of the Oracle Cloud Infrastructure vault secret.
     #[serde(default, rename = "secretId")]
-    pub secret_id: Option<String>,
+    pub secret_id: ::core::option::Option<String>,
     /// Output only. An Oracle-managed Google Cloud service account on which customers can grant roles to access resources in the customer project.
     #[serde(default, rename = "serviceAgentEmail")]
-    pub service_agent_email: Option<String>,
+    pub service_agent_email: ::core::option::Option<String>,
     /// Output only. The SQL Web Developer URL for the Autonomous Database.
     #[serde(default, rename = "sqlWebDeveloperUrl")]
-    pub sql_web_developer_url: Option<String>,
+    pub sql_web_developer_url: ::core::option::Option<String>,
     /// Output only. The current lifecycle state of the Autonomous Database. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "STOPPING", "STOPPED", "STARTING", "TERMINATING", "TERMINATED", "UNAVAILABLE", "RESTORE_IN_PROGRESS", "RESTORE_FAILED", "BACKUP_IN_PROGRESS", "SCALE_IN_PROGRESS", "AVAILABLE_NEEDS_ATTENTION", "UPDATING", "MAINTENANCE_IN_PROGRESS", "RESTARTING", "RECREATING", "ROLE_CHANGE_IN_PROGRESS", "UPGRADING", "INACCESSIBLE", "STANDBY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The list of available regions that can be used to create a clone for the Autonomous Database.
     #[serde(default, rename = "supportedCloneRegions")]
-    pub supported_clone_regions: Option<Vec<String>>,
+    pub supported_clone_regions: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The storage space used by automatic backups of Autonomous Database, in gigabytes.
     #[serde(default, rename = "totalAutoBackupStorageSizeGbs")]
-    pub total_auto_backup_storage_size_gbs: Option<f32>,
+    pub total_auto_backup_storage_size_gbs: ::core::option::Option<f32>,
     /// Output only. The storage space used by Autonomous Database, in gigabytes.
     #[serde(default, rename = "usedDataStorageSizeTbs")]
-    pub used_data_storage_size_tbs: Option<i32>,
+    pub used_data_storage_size_tbs: ::core::option::Option<i32>,
     /// Optional. Immutable. The ID of the Oracle Cloud Infrastructure vault.
     #[serde(default, rename = "vaultId")]
-    pub vault_id: Option<String>,
+    pub vault_id: ::core::option::Option<String>,
 }
 
 /// Autonomous Data Guard standby database details. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseStandbySummary
@@ -447,19 +454,19 @@ pub struct AutonomousDatabaseProperties {
 pub struct AutonomousDatabaseStandbySummary {
     /// Output only. The date and time the Autonomous Data Guard role was switched for the standby Autonomous Database.
     #[serde(default, rename = "dataGuardRoleChangedTime")]
-    pub data_guard_role_changed_time: Option<String>,
+    pub data_guard_role_changed_time: ::core::option::Option<String>,
     /// Output only. The date and time the Disaster Recovery role was switched for the standby Autonomous Database.
     #[serde(default, rename = "disasterRecoveryRoleChangedTime")]
-    pub disaster_recovery_role_changed_time: Option<String>,
+    pub disaster_recovery_role_changed_time: ::core::option::Option<String>,
     /// Output only. The amount of time, in seconds, that the data of the standby database lags in comparison to the data of the primary database.
     #[serde(default, rename = "lagTimeDuration")]
-    pub lag_time_duration: Option<String>,
+    pub lag_time_duration: ::core::option::Option<String>,
     /// Output only. The additional details about the current lifecycle state of the Autonomous Database.
     #[serde(default, rename = "lifecycleDetails")]
-    pub lifecycle_details: Option<String>,
+    pub lifecycle_details: ::core::option::Option<String>,
     /// Output only. The current lifecycle state of the Autonomous Database. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "STOPPING", "STOPPED", "STARTING", "TERMINATING", "TERMINATED", "UNAVAILABLE", "RESTORE_IN_PROGRESS", "RESTORE_FAILED", "BACKUP_IN_PROGRESS", "SCALE_IN_PROGRESS", "AVAILABLE_NEEDS_ATTENTION", "UPDATING", "MAINTENANCE_IN_PROGRESS", "RESTARTING", "RECREATING", "ROLE_CHANGE_IN_PROGRESS", "UPGRADING", "INACCESSIBLE", "STANDBY"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Details of the Autonomous Database version. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/AutonomousDbVersionSummary/
@@ -467,16 +474,16 @@ pub struct AutonomousDatabaseStandbySummary {
 pub struct AutonomousDbVersion {
     /// Output only. The Autonomous Database workload type. // TODO: enum values: ["DB_WORKLOAD_UNSPECIFIED", "OLTP", "DW", "AJD", "APEX"]
     #[serde(default, rename = "dbWorkload")]
-    pub db_workload: Option<String>,
+    pub db_workload: ::core::option::Option<String>,
     /// Identifier. The name of the Autonomous Database Version resource with the format: projects/{project}/locations/{region}/autonomousDbVersions/{autonomous_db_version}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. An Oracle Database version for Autonomous Database.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
     /// Output only. A URL that points to a detailed description of the Autonomous Database version.
     #[serde(default, rename = "workloadUri")]
-    pub workload_uri: Option<String>,
+    pub workload_uri: ::core::option::Option<String>,
 }
 
 /// The details of the database backup destination.
@@ -484,7 +491,7 @@ pub struct AutonomousDbVersion {
 pub struct BackupDestinationDetails {
     /// Optional. The type of the database backup destination. // TODO: enum values: ["BACKUP_DESTINATION_TYPE_UNSPECIFIED", "NFS", "RECOVERY_APPLIANCE", "OBJECT_STORE", "LOCAL", "DBRS"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Details of the OCI Cloud Account.
@@ -492,16 +499,16 @@ pub struct BackupDestinationDetails {
 pub struct CloudAccountDetails {
     /// Output only. URL to create a new account and link.
     #[serde(default, rename = "accountCreationUri")]
-    pub account_creation_uri: Option<String>,
+    pub account_creation_uri: ::core::option::Option<String>,
     /// Output only. OCI account name.
     #[serde(default, rename = "cloudAccount")]
-    pub cloud_account: Option<String>,
+    pub cloud_account: ::core::option::Option<String>,
     /// Output only. OCI account home region.
     #[serde(default, rename = "cloudAccountHomeRegion")]
-    pub cloud_account_home_region: Option<String>,
+    pub cloud_account_home_region: ::core::option::Option<String>,
     /// Output only. URL to link an existing account.
     #[serde(default, rename = "linkExistingAccountUri")]
-    pub link_existing_account_uri: Option<String>,
+    pub link_existing_account_uri: ::core::option::Option<String>,
 }
 
 /// Represents CloudExadataInfrastructure resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/CloudExadataInfrastructure/
@@ -509,25 +516,25 @@ pub struct CloudAccountDetails {
 pub struct CloudExadataInfrastructure {
     /// Output only. The date and time that the Exadata Infrastructure was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User friendly name for this resource.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. Entitlement ID of the private offer against which this infrastructure resource is provisioned.
     #[serde(default, rename = "entitlementId")]
-    pub entitlement_id: Option<String>,
+    pub entitlement_id: ::core::option::Option<String>,
     /// Optional. The GCP Oracle zone where Oracle Exadata Infrastructure is hosted. Example: us-east4-b-r2. If not specified, the system will pick a zone based on availability.
     #[serde(default, rename = "gcpOracleZone")]
-    pub gcp_oracle_zone: Option<String>,
+    pub gcp_oracle_zone: ::core::option::Option<String>,
     /// Optional. Labels or tags associated with the resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the Exadata Infrastructure resource with the format: projects/{project}/locations/{region}/cloudExadataInfrastructures/{cloud_exadata_infrastructure}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Various properties of the infra.
     #[serde(default)]
-    pub properties: Option<CloudExadataInfrastructureProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<CloudExadataInfrastructureProperties>>,
 }
 
 /// Various properties of Exadata Infrastructure.
@@ -535,94 +542,95 @@ pub struct CloudExadataInfrastructure {
 pub struct CloudExadataInfrastructureProperties {
     /// Output only. The requested number of additional storage servers activated for the Exadata Infrastructure.
     #[serde(default, rename = "activatedStorageCount")]
-    pub activated_storage_count: Option<i32>,
+    pub activated_storage_count: ::core::option::Option<i32>,
     /// Output only. The requested number of additional storage servers for the Exadata Infrastructure.
     #[serde(default, rename = "additionalStorageCount")]
-    pub additional_storage_count: Option<i32>,
+    pub additional_storage_count: ::core::option::Option<i32>,
     /// Output only. The available storage can be allocated to the Exadata Infrastructure resource, in gigabytes (GB).
     #[serde(default, rename = "availableStorageSizeGb")]
-    pub available_storage_size_gb: Option<i32>,
+    pub available_storage_size_gb: ::core::option::Option<i32>,
     /// Optional. The number of compute servers for the Exadata Infrastructure.
     #[serde(default, rename = "computeCount")]
-    pub compute_count: Option<i32>,
+    pub compute_count: ::core::option::Option<i32>,
     /// Output only. The compute model of the Exadata Infrastructure. // TODO: enum values: ["COMPUTE_MODEL_UNSPECIFIED", "COMPUTE_MODEL_ECPU", "COMPUTE_MODEL_OCPU"]
     #[serde(default, rename = "computeModel")]
-    pub compute_model: Option<String>,
+    pub compute_model: ::core::option::Option<String>,
     /// Output only. The number of enabled CPU cores.
     #[serde(default, rename = "cpuCount")]
-    pub cpu_count: Option<i32>,
+    pub cpu_count: ::core::option::Option<i32>,
     /// Optional. The list of customer contacts.
     #[serde(default, rename = "customerContacts")]
-    pub customer_contacts: Option<Vec<CustomerContact>>,
+    pub customer_contacts:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CustomerContact>>>,
     /// Output only. Size, in terabytes, of the DATA disk group.
     #[serde(default, rename = "dataStorageSizeTb")]
-    pub data_storage_size_tb: Option<f64>,
+    pub data_storage_size_tb: ::core::option::Option<f64>,
     /// Output only. The database server type of the Exadata Infrastructure.
     #[serde(default, rename = "databaseServerType")]
-    pub database_server_type: Option<String>,
+    pub database_server_type: ::core::option::Option<String>,
     /// Output only. The local node storage allocated in GBs.
     #[serde(default, rename = "dbNodeStorageSizeGb")]
-    pub db_node_storage_size_gb: Option<i32>,
+    pub db_node_storage_size_gb: ::core::option::Option<i32>,
     /// Output only. The software version of the database servers (dom0) in the Exadata Infrastructure.
     #[serde(default, rename = "dbServerVersion")]
-    pub db_server_version: Option<String>,
+    pub db_server_version: ::core::option::Option<String>,
     /// Optional. Maintenance window for repair.
     #[serde(default, rename = "maintenanceWindow")]
-    pub maintenance_window: Option<MaintenanceWindow>,
+    pub maintenance_window: ::core::option::Option<::std::boxed::Box<MaintenanceWindow>>,
     /// Output only. The total number of CPU cores available.
     #[serde(default, rename = "maxCpuCount")]
-    pub max_cpu_count: Option<i32>,
+    pub max_cpu_count: ::core::option::Option<i32>,
     /// Output only. The total available DATA disk group size.
     #[serde(default, rename = "maxDataStorageTb")]
-    pub max_data_storage_tb: Option<f64>,
+    pub max_data_storage_tb: ::core::option::Option<f64>,
     /// Output only. The total local node storage available in GBs.
     #[serde(default, rename = "maxDbNodeStorageSizeGb")]
-    pub max_db_node_storage_size_gb: Option<i32>,
+    pub max_db_node_storage_size_gb: ::core::option::Option<i32>,
     /// Output only. The total memory available in GBs.
     #[serde(default, rename = "maxMemoryGb")]
-    pub max_memory_gb: Option<i32>,
+    pub max_memory_gb: ::core::option::Option<i32>,
     /// Output only. The memory allocated in GBs.
     #[serde(default, rename = "memorySizeGb")]
-    pub memory_size_gb: Option<i32>,
+    pub memory_size_gb: ::core::option::Option<i32>,
     /// Output only. The monthly software version of the database servers (dom0) in the Exadata Infrastructure. Example: 20.1.15
     #[serde(default, rename = "monthlyDbServerVersion")]
-    pub monthly_db_server_version: Option<String>,
+    pub monthly_db_server_version: ::core::option::Option<String>,
     /// Output only. The monthly software version of the storage servers (cells) in the Exadata Infrastructure. Example: 20.1.15
     #[serde(default, rename = "monthlyStorageServerVersion")]
-    pub monthly_storage_server_version: Option<String>,
+    pub monthly_storage_server_version: ::core::option::Option<String>,
     /// Output only. The OCID of the next maintenance run.
     #[serde(default, rename = "nextMaintenanceRunId")]
-    pub next_maintenance_run_id: Option<String>,
+    pub next_maintenance_run_id: ::core::option::Option<String>,
     /// Output only. The time when the next maintenance run will occur.
     #[serde(default, rename = "nextMaintenanceRunTime")]
-    pub next_maintenance_run_time: Option<String>,
+    pub next_maintenance_run_time: ::core::option::Option<String>,
     /// Output only. The time when the next security maintenance run will occur.
     #[serde(default, rename = "nextSecurityMaintenanceRunTime")]
-    pub next_security_maintenance_run_time: Option<String>,
+    pub next_security_maintenance_run_time: ::core::option::Option<String>,
     /// Output only. Deep link to the OCI console to view this resource.
     #[serde(default, rename = "ociUrl")]
-    pub oci_url: Option<String>,
+    pub oci_url: ::core::option::Option<String>,
     /// Output only. OCID of created infra. https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm#Oracle
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Required. The shape of the Exadata Infrastructure. The shape determines the amount of CPU, storage, and memory resources allocated to the instance.
     #[serde(default)]
-    pub shape: Option<String>,
+    pub shape: ::core::option::Option<String>,
     /// Output only. The current lifecycle state of the Exadata Infrastructure. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "UPDATING", "TERMINATING", "TERMINATED", "FAILED", "MAINTENANCE_IN_PROGRESS"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. The number of Cloud Exadata storage servers for the Exadata Infrastructure.
     #[serde(default, rename = "storageCount")]
-    pub storage_count: Option<i32>,
+    pub storage_count: ::core::option::Option<i32>,
     /// Output only. The storage server type of the Exadata Infrastructure.
     #[serde(default, rename = "storageServerType")]
-    pub storage_server_type: Option<String>,
+    pub storage_server_type: ::core::option::Option<String>,
     /// Output only. The software version of the storage servers (cells) in the Exadata Infrastructure.
     #[serde(default, rename = "storageServerVersion")]
-    pub storage_server_version: Option<String>,
+    pub storage_server_version: ::core::option::Option<String>,
     /// Optional. The total storage allocated to the Exadata Infrastructure resource, in gigabytes (GB).
     #[serde(default, rename = "totalStorageSizeGb")]
-    pub total_storage_size_gb: Option<i32>,
+    pub total_storage_size_gb: ::core::option::Option<i32>,
 }
 
 /// Details of the Cloud VM Cluster resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/CloudVmCluster/
@@ -630,46 +638,46 @@ pub struct CloudExadataInfrastructureProperties {
 pub struct CloudVmCluster {
     /// Optional. The name of the backup OdbSubnet associated with the VM Cluster. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default, rename = "backupOdbSubnet")]
-    pub backup_odb_subnet: Option<String>,
+    pub backup_odb_subnet: ::core::option::Option<String>,
     /// Optional. CIDR range of the backup subnet.
     #[serde(default, rename = "backupSubnetCidr")]
-    pub backup_subnet_cidr: Option<String>,
+    pub backup_subnet_cidr: ::core::option::Option<String>,
     /// Optional. Network settings. CIDR to use for cluster IP allocation.
     #[serde(default)]
-    pub cidr: Option<String>,
+    pub cidr: ::core::option::Option<String>,
     /// Output only. The date and time that the VM cluster was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. User friendly name for this resource.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Required. The name of the Exadata Infrastructure resource on which VM cluster resource is created, in the following format: projects/{project}/locations/{region}/cloudExadataInfrastuctures/{cloud_extradata_infrastructure}
     #[serde(default, rename = "exadataInfrastructure")]
-    pub exadata_infrastructure: Option<String>,
+    pub exadata_infrastructure: ::core::option::Option<String>,
     /// Output only. The GCP Oracle zone where Oracle CloudVmCluster is hosted. This will be the same as the gcp_oracle_zone of the CloudExadataInfrastructure. Example: us-east4-b-r2.
     #[serde(default, rename = "gcpOracleZone")]
-    pub gcp_oracle_zone: Option<String>,
+    pub gcp_oracle_zone: ::core::option::Option<String>,
     /// Output only. The identity connector details which will allow OCI to securely access the resources in the customer project.
     #[serde(default, rename = "identityConnector")]
-    pub identity_connector: Option<IdentityConnector>,
+    pub identity_connector: ::core::option::Option<::std::boxed::Box<IdentityConnector>>,
     /// Optional. Labels or tags associated with the VM Cluster.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the VM Cluster resource with the format: projects/{project}/locations/{region}/cloudVmClusters/{cloud_vm_cluster}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The name of the VPC network. Format: projects/{project}/global/networks/{network}
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Optional. The name of the OdbNetwork associated with the VM Cluster. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network} It is optional but if specified, this should match the parent ODBNetwork of the odb_subnet and backup_odb_subnet.
     #[serde(default, rename = "odbNetwork")]
-    pub odb_network: Option<String>,
+    pub odb_network: ::core::option::Option<String>,
     /// Optional. The name of the OdbSubnet associated with the VM Cluster for IP allocation. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default, rename = "odbSubnet")]
-    pub odb_subnet: Option<String>,
+    pub odb_subnet: ::core::option::Option<String>,
     /// Optional. Various properties of the VM Cluster.
     #[serde(default)]
-    pub properties: Option<CloudVmClusterProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<CloudVmClusterProperties>>,
 }
 
 /// Various properties and settings associated with Exadata VM cluster.
@@ -677,103 +685,104 @@ pub struct CloudVmCluster {
 pub struct CloudVmClusterProperties {
     /// Optional. OCI Cluster name.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// Output only. Compartment ID of cluster.
     #[serde(default, rename = "compartmentId")]
-    pub compartment_id: Option<String>,
+    pub compartment_id: ::core::option::Option<String>,
     /// Output only. The compute model of the VM Cluster. // TODO: enum values: ["COMPUTE_MODEL_UNSPECIFIED", "COMPUTE_MODEL_ECPU", "COMPUTE_MODEL_OCPU"]
     #[serde(default, rename = "computeModel")]
-    pub compute_model: Option<String>,
+    pub compute_model: ::core::option::Option<String>,
     /// Required. Number of enabled CPU cores.
     #[serde(default, rename = "cpuCoreCount")]
-    pub cpu_core_count: Option<i32>,
+    pub cpu_core_count: ::core::option::Option<i32>,
     /// Optional. The data disk group size to be allocated in TBs.
     #[serde(default, rename = "dataStorageSizeTb")]
-    pub data_storage_size_tb: Option<f64>,
+    pub data_storage_size_tb: ::core::option::Option<f64>,
     /// Optional. Local storage per VM.
     #[serde(default, rename = "dbNodeStorageSizeGb")]
-    pub db_node_storage_size_gb: Option<i32>,
+    pub db_node_storage_size_gb: ::core::option::Option<i32>,
     /// Optional. OCID of database servers.
     #[serde(default, rename = "dbServerOcids")]
-    pub db_server_ocids: Option<Vec<String>>,
+    pub db_server_ocids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Data collection options for diagnostics.
     #[serde(default, rename = "diagnosticsDataCollectionOptions")]
-    pub diagnostics_data_collection_options: Option<DataCollectionOptions>,
+    pub diagnostics_data_collection_options:
+        ::core::option::Option<::std::boxed::Box<DataCollectionOptions>>,
     /// Optional. The type of redundancy. // TODO: enum values: ["DISK_REDUNDANCY_UNSPECIFIED", "HIGH", "NORMAL"]
     #[serde(default, rename = "diskRedundancy")]
-    pub disk_redundancy: Option<String>,
+    pub disk_redundancy: ::core::option::Option<String>,
     /// Output only. DNS listener IP.
     #[serde(default, rename = "dnsListenerIp")]
-    pub dns_listener_ip: Option<String>,
+    pub dns_listener_ip: ::core::option::Option<String>,
     /// Output only. Parent DNS domain where SCAN DNS and hosts names are qualified. ex: ocispdelegated.ocisp10jvnet.oraclevcn.com
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Optional. Grid Infrastructure Version.
     #[serde(default, rename = "giVersion")]
-    pub gi_version: Option<String>,
+    pub gi_version: ::core::option::Option<String>,
     /// Output only. host name without domain. format: "-" with some suffix. ex: sp2-yi0xq where "sp2" is the hostname_prefix.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// Optional. Prefix for VM cluster host names.
     #[serde(default, rename = "hostnamePrefix")]
-    pub hostname_prefix: Option<String>,
+    pub hostname_prefix: ::core::option::Option<String>,
     /// Required. License type of VM Cluster. // TODO: enum values: ["LICENSE_TYPE_UNSPECIFIED", "LICENSE_INCLUDED", "BRING_YOUR_OWN_LICENSE"]
     #[serde(default, rename = "licenseType")]
-    pub license_type: Option<String>,
+    pub license_type: ::core::option::Option<String>,
     /// Optional. Use local backup.
     #[serde(default, rename = "localBackupEnabled")]
-    pub local_backup_enabled: Option<bool>,
+    pub local_backup_enabled: ::core::option::Option<bool>,
     /// Optional. Memory allocated in GBs.
     #[serde(default, rename = "memorySizeGb")]
-    pub memory_size_gb: Option<i32>,
+    pub memory_size_gb: ::core::option::Option<i32>,
     /// Optional. Number of database servers.
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// Output only. Deep link to the OCI console to view this resource.
     #[serde(default, rename = "ociUrl")]
-    pub oci_url: Option<String>,
+    pub oci_url: ::core::option::Option<String>,
     /// Output only. Oracle Cloud Infrastructure ID of VM Cluster.
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Optional. OCPU count per VM. Minimum is 0.1.
     #[serde(default, rename = "ocpuCount")]
-    pub ocpu_count: Option<f32>,
+    pub ocpu_count: ::core::option::Option<f32>,
     /// Output only. SCAN DNS name. ex: sp2-yi0xq-scan.ocispdelegated.ocisp10jvnet.oraclevcn.com
     #[serde(default, rename = "scanDns")]
-    pub scan_dns: Option<String>,
+    pub scan_dns: ::core::option::Option<String>,
     /// Output only. OCID of scan DNS record.
     #[serde(default, rename = "scanDnsRecordId")]
-    pub scan_dns_record_id: Option<String>,
+    pub scan_dns_record_id: ::core::option::Option<String>,
     /// Output only. OCIDs of scan IPs.
     #[serde(default, rename = "scanIpIds")]
-    pub scan_ip_ids: Option<Vec<String>>,
+    pub scan_ip_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. SCAN listener port - TCP
     #[serde(default, rename = "scanListenerPortTcp")]
-    pub scan_listener_port_tcp: Option<i32>,
+    pub scan_listener_port_tcp: ::core::option::Option<i32>,
     /// Output only. SCAN listener port - TLS
     #[serde(default, rename = "scanListenerPortTcpSsl")]
-    pub scan_listener_port_tcp_ssl: Option<i32>,
+    pub scan_listener_port_tcp_ssl: ::core::option::Option<i32>,
     /// Output only. Shape of VM Cluster.
     #[serde(default)]
-    pub shape: Option<String>,
+    pub shape: ::core::option::Option<String>,
     /// Optional. Use exadata sparse snapshots.
     #[serde(default, rename = "sparseDiskgroupEnabled")]
-    pub sparse_diskgroup_enabled: Option<bool>,
+    pub sparse_diskgroup_enabled: ::core::option::Option<bool>,
     /// Optional. SSH public keys to be stored with cluster.
     #[serde(default, rename = "sshPublicKeys")]
-    pub ssh_public_keys: Option<Vec<String>>,
+    pub ssh_public_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. State of the cluster. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "UPDATING", "TERMINATING", "TERMINATED", "FAILED", "MAINTENANCE_IN_PROGRESS"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The storage allocation for the disk group, in gigabytes (GB).
     #[serde(default, rename = "storageSizeGb")]
-    pub storage_size_gb: Option<i32>,
+    pub storage_size_gb: ::core::option::Option<i32>,
     /// Optional. Operating system version of the image.
     #[serde(default, rename = "systemVersion")]
-    pub system_version: Option<String>,
+    pub system_version: ::core::option::Option<String>,
     /// Optional. Time zone of VM Cluster to set. Defaults to UTC if not specified.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<TimeZone>,
+    pub time_zone: ::core::option::Option<::std::boxed::Box<TimeZone>>,
 }
 
 /// The CustomerContact reference as defined by Oracle. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/CustomerContact
@@ -781,7 +790,7 @@ pub struct CloudVmClusterProperties {
 pub struct CustomerContact {
     /// Required. The email address used by Oracle to send notifications regarding databases and infrastructure.
     #[serde(default)]
-    pub email: Option<String>,
+    pub email: ::core::option::Option<String>,
 }
 
 /// Data collection options for diagnostics.
@@ -789,13 +798,13 @@ pub struct CustomerContact {
 pub struct DataCollectionOptions {
     /// Optional. Indicates whether diagnostic collection is enabled for the VM cluster
     #[serde(default, rename = "diagnosticsEventsEnabled")]
-    pub diagnostics_events_enabled: Option<bool>,
+    pub diagnostics_events_enabled: ::core::option::Option<bool>,
     /// Optional. Indicates whether health monitoring is enabled for the VM cluster
     #[serde(default, rename = "healthMonitoringEnabled")]
-    pub health_monitoring_enabled: Option<bool>,
+    pub health_monitoring_enabled: ::core::option::Option<bool>,
     /// Optional. Indicates whether incident logs and trace collection are enabled for the VM cluster
     #[serde(default, rename = "incidentLogsEnabled")]
-    pub incident_logs_enabled: Option<bool>,
+    pub incident_logs_enabled: ::core::option::Option<bool>,
 }
 
 /// Data collection options for diagnostics. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/DataCollectionOptions
@@ -803,13 +812,13 @@ pub struct DataCollectionOptions {
 pub struct DataCollectionOptionsCommon {
     /// Optional. Indicates whether to enable data collection for diagnostics.
     #[serde(default, rename = "isDiagnosticsEventsEnabled")]
-    pub is_diagnostics_events_enabled: Option<bool>,
+    pub is_diagnostics_events_enabled: ::core::option::Option<bool>,
     /// Optional. Indicates whether to enable health monitoring.
     #[serde(default, rename = "isHealthMonitoringEnabled")]
-    pub is_health_monitoring_enabled: Option<bool>,
+    pub is_health_monitoring_enabled: ::core::option::Option<bool>,
     /// Optional. Indicates whether to enable incident logs and trace collection.
     #[serde(default, rename = "isIncidentLogsEnabled")]
-    pub is_incident_logs_enabled: Option<bool>,
+    pub is_incident_logs_enabled: ::core::option::Option<bool>,
 }
 
 /// Data collection options for DbSystem.
@@ -817,10 +826,10 @@ pub struct DataCollectionOptionsCommon {
 pub struct DataCollectionOptionsDbSystem {
     /// Optional. Indicates whether to enable data collection for diagnostics.
     #[serde(default, rename = "isDiagnosticsEventsEnabled")]
-    pub is_diagnostics_events_enabled: Option<bool>,
+    pub is_diagnostics_events_enabled: ::core::option::Option<bool>,
     /// Optional. Indicates whether to enable incident logs and trace collection.
     #[serde(default, rename = "isIncidentLogsEnabled")]
-    pub is_incident_logs_enabled: Option<bool>,
+    pub is_incident_logs_enabled: ::core::option::Option<bool>,
 }
 
 /// Details of the Database resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/Database/
@@ -828,58 +837,58 @@ pub struct DataCollectionOptionsDbSystem {
 pub struct Database {
     /// Optional. The password for the default ADMIN user. Note: Only one of admin_password_secret_version or admin_password can be populated.
     #[serde(default, rename = "adminPassword")]
-    pub admin_password: Option<String>,
+    pub admin_password: ::core::option::Option<String>,
     /// Optional. The resource name of a secret version in Secret Manager which contains the database admin user''s password. Format: projects/{project}/secrets/{secret}/versions/{version}. Note: Only one of admin_password_secret_version or admin_password can be populated.
     #[serde(default, rename = "adminPasswordSecretVersion")]
-    pub admin_password_secret_version: Option<String>,
+    pub admin_password_secret_version: ::core::option::Option<String>,
     /// Optional. The character set for the database. The default is AL32UTF8.
     #[serde(default, rename = "characterSet")]
-    pub character_set: Option<String>,
+    pub character_set: ::core::option::Option<String>,
     /// Output only. The date and time that the Database was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. The database ID of the Database.
     #[serde(default, rename = "databaseId")]
-    pub database_id: Option<String>,
+    pub database_id: ::core::option::Option<String>,
     /// Optional. The name of the DbHome resource associated with the Database.
     #[serde(default, rename = "dbHomeName")]
-    pub db_home_name: Option<String>,
+    pub db_home_name: ::core::option::Option<String>,
     /// Optional. The database name. The name must begin with an alphabetic character and can contain a maximum of eight alphanumeric characters. Special characters are not permitted.
     #[serde(default, rename = "dbName")]
-    pub db_name: Option<String>,
+    pub db_name: ::core::option::Option<String>,
     /// Optional. The DB_UNIQUE_NAME of the Oracle Database being backed up.
     #[serde(default, rename = "dbUniqueName")]
-    pub db_unique_name: Option<String>,
+    pub db_unique_name: ::core::option::Option<String>,
     /// Output only. The GCP Oracle zone where the Database is created.
     #[serde(default, rename = "gcpOracleZone")]
-    pub gcp_oracle_zone: Option<String>,
+    pub gcp_oracle_zone: ::core::option::Option<String>,
     /// Identifier. The name of the Database resource in the following format: projects/{project}/locations/{region}/databases/{database}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The national character set for the database. The default is AL16UTF16.
     #[serde(default, rename = "ncharacterSet")]
-    pub ncharacter_set: Option<String>,
+    pub ncharacter_set: ::core::option::Option<String>,
     /// Output only. HTTPS link to OCI resources exposed to Customer via UI Interface.
     #[serde(default, rename = "ociUrl")]
-    pub oci_url: Option<String>,
+    pub oci_url: ::core::option::Option<String>,
     /// Output only. The Status of Operations Insights for this Database. // TODO: enum values: ["OPERATIONS_INSIGHTS_STATUS_UNSPECIFIED", "ENABLING", "ENABLED", "DISABLING", "NOT_ENABLED", "FAILED_ENABLING", "FAILED_DISABLING"]
     #[serde(default, rename = "opsInsightsStatus")]
-    pub ops_insights_status: Option<String>,
+    pub ops_insights_status: ::core::option::Option<String>,
     /// Optional. The ID of the pluggable database associated with the Database. The ID must be unique within the project and location.
     #[serde(default, rename = "pluggableDatabaseId")]
-    pub pluggable_database_id: Option<String>,
+    pub pluggable_database_id: ::core::option::Option<String>,
     /// Optional. The pluggable database associated with the Database. The name must begin with an alphabetic character and can contain a maximum of thirty alphanumeric characters.
     #[serde(default, rename = "pluggableDatabaseName")]
-    pub pluggable_database_name: Option<String>,
+    pub pluggable_database_name: ::core::option::Option<String>,
     /// Optional. The properties of the Database.
     #[serde(default)]
-    pub properties: Option<DatabaseProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<DatabaseProperties>>,
     /// Optional. The TDE wallet password for the database. Note: Only one of tde_wallet_password_secret_version or tde_wallet_password can be populated.
     #[serde(default, rename = "tdeWalletPassword")]
-    pub tde_wallet_password: Option<String>,
+    pub tde_wallet_password: ::core::option::Option<String>,
     /// Optional. The resource name of a secret version in Secret Manager which contains the TDE wallet password for the database. Format: projects/{project}/secrets/{secret}/versions/{version}. Note: Only one of tde_wallet_password_secret_version or tde_wallet_password can be populated.
     #[serde(default, rename = "tdeWalletPasswordSecretVersion")]
-    pub tde_wallet_password_secret_version: Option<String>,
+    pub tde_wallet_password_secret_version: ::core::option::Option<String>,
 }
 
 /// Details of the Database character set resource.
@@ -887,13 +896,13 @@ pub struct Database {
 pub struct DatabaseCharacterSet {
     /// Output only. The character set name for the Database which is the ID in the resource name.
     #[serde(default, rename = "characterSet")]
-    pub character_set: Option<String>,
+    pub character_set: ::core::option::Option<String>,
     /// Output only. The character set type for the Database. // TODO: enum values: ["CHARACTER_SET_TYPE_UNSPECIFIED", "DATABASE", "NATIONAL"]
     #[serde(default, rename = "characterSetType")]
-    pub character_set_type: Option<String>,
+    pub character_set_type: ::core::option::Option<String>,
     /// Identifier. The name of the Database Character Set resource in the following format: projects/{project}/locations/{region}/databaseCharacterSets/{database_character_set}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// The connection string profile to allow clients to group. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/DatabaseConnectionStringProfile
@@ -901,31 +910,31 @@ pub struct DatabaseCharacterSet {
 pub struct DatabaseConnectionStringProfile {
     /// Output only. The current consumer group being used by the connection. // TODO: enum values: ["CONSUMER_GROUP_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "TP", "TPURGENT"]
     #[serde(default, rename = "consumerGroup")]
-    pub consumer_group: Option<String>,
+    pub consumer_group: ::core::option::Option<String>,
     /// Output only. The display name for the database connection.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The host name format being currently used in connection string. // TODO: enum values: ["HOST_FORMAT_UNSPECIFIED", "FQDN", "IP"]
     #[serde(default, rename = "hostFormat")]
-    pub host_format: Option<String>,
+    pub host_format: ::core::option::Option<String>,
     /// Output only. This field indicates if the connection string is regional and is only applicable for cross-region Data Guard.
     #[serde(default, rename = "isRegional")]
-    pub is_regional: Option<bool>,
+    pub is_regional: ::core::option::Option<bool>,
     /// Output only. The protocol being used by the connection. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "TCP", "TCPS"]
     #[serde(default)]
-    pub protocol: Option<String>,
+    pub protocol: ::core::option::Option<String>,
     /// Output only. The current session mode of the connection. // TODO: enum values: ["SESSION_MODE_UNSPECIFIED", "DIRECT", "INDIRECT"]
     #[serde(default, rename = "sessionMode")]
-    pub session_mode: Option<String>,
+    pub session_mode: ::core::option::Option<String>,
     /// Output only. The syntax of the connection string. // TODO: enum values: ["SYNTAX_FORMAT_UNSPECIFIED", "LONG", "EZCONNECT", "EZCONNECTPLUS"]
     #[serde(default, rename = "syntaxFormat")]
-    pub syntax_format: Option<String>,
+    pub syntax_format: ::core::option::Option<String>,
     /// Output only. This field indicates the TLS authentication type of the connection. // TODO: enum values: ["TLS_AUTHENTICATION_UNSPECIFIED", "SERVER", "MUTUAL"]
     #[serde(default, rename = "tlsAuthentication")]
-    pub tls_authentication: Option<String>,
+    pub tls_authentication: ::core::option::Option<String>,
     /// Output only. The value of the connection string.
     #[serde(default)]
-    pub value: Option<String>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// The configuration of the Database Management service.
@@ -933,10 +942,10 @@ pub struct DatabaseConnectionStringProfile {
 pub struct DatabaseManagementConfig {
     /// Output only. The status of the Database Management service. // TODO: enum values: ["MANAGEMENT_STATE_UNSPECIFIED", "ENABLING", "ENABLED", "DISABLING", "DISABLED", "UPDATING", "FAILED_ENABLING", "FAILED_DISABLING", "FAILED_UPDATING"]
     #[serde(default, rename = "managementState")]
-    pub management_state: Option<String>,
+    pub management_state: ::core::option::Option<String>,
     /// Output only. The Database Management type. // TODO: enum values: ["MANAGEMENT_TYPE_UNSPECIFIED", "BASIC", "ADVANCED"]
     #[serde(default, rename = "managementType")]
-    pub management_type: Option<String>,
+    pub management_type: ::core::option::Option<String>,
 }
 
 /// The properties of a Database.
@@ -944,16 +953,17 @@ pub struct DatabaseManagementConfig {
 pub struct DatabaseProperties {
     /// Output only. The Database Management config.
     #[serde(default, rename = "databaseManagementConfig")]
-    pub database_management_config: Option<DatabaseManagementConfig>,
+    pub database_management_config:
+        ::core::option::Option<::std::boxed::Box<DatabaseManagementConfig>>,
     /// Optional. Backup options for the Database.
     #[serde(default, rename = "dbBackupConfig")]
-    pub db_backup_config: Option<DbBackupConfig>,
+    pub db_backup_config: ::core::option::Option<::std::boxed::Box<DbBackupConfig>>,
     /// Required. The Oracle Database version.
     #[serde(default, rename = "dbVersion")]
-    pub db_version: Option<String>,
+    pub db_version: ::core::option::Option<String>,
     /// Output only. State of the Database. // TODO: enum values: ["DATABASE_LIFECYCLE_STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "UPDATING", "BACKUP_IN_PROGRESS", "UPGRADING", "CONVERTING", "TERMINATING", "TERMINATED", "RESTORE_FAILED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Backup Options for the Database.
@@ -961,25 +971,26 @@ pub struct DatabaseProperties {
 pub struct DbBackupConfig {
     /// Optional. If set to true, enables automatic backups on the database.
     #[serde(default, rename = "autoBackupEnabled")]
-    pub auto_backup_enabled: Option<bool>,
+    pub auto_backup_enabled: ::core::option::Option<bool>,
     /// Optional. The day of the week on which the full backup should be performed on the database. If no value is provided, it will default to Sunday. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "autoFullBackupDay")]
-    pub auto_full_backup_day: Option<String>,
+    pub auto_full_backup_day: ::core::option::Option<String>,
     /// Optional. The window in which the full backup should be performed on the database. If no value is provided, the default is anytime. // TODO: enum values: ["BACKUP_WINDOW_UNSPECIFIED", "SLOT_ONE", "SLOT_TWO", "SLOT_THREE", "SLOT_FOUR", "SLOT_FIVE", "SLOT_SIX", "SLOT_SEVEN", "SLOT_EIGHT", "SLOT_NINE", "SLOT_TEN", "SLOT_ELEVEN", "SLOT_TWELVE"]
     #[serde(default, rename = "autoFullBackupWindow")]
-    pub auto_full_backup_window: Option<String>,
+    pub auto_full_backup_window: ::core::option::Option<String>,
     /// Optional. The window in which the incremental backup should be performed on the database. If no value is provided, the default is anytime except the auto full backup day. // TODO: enum values: ["BACKUP_WINDOW_UNSPECIFIED", "SLOT_ONE", "SLOT_TWO", "SLOT_THREE", "SLOT_FOUR", "SLOT_FIVE", "SLOT_SIX", "SLOT_SEVEN", "SLOT_EIGHT", "SLOT_NINE", "SLOT_TEN", "SLOT_ELEVEN", "SLOT_TWELVE"]
     #[serde(default, rename = "autoIncrementalBackupWindow")]
-    pub auto_incremental_backup_window: Option<String>,
+    pub auto_incremental_backup_window: ::core::option::Option<String>,
     /// Optional. This defines when the backups will be deleted after Database termination. // TODO: enum values: ["BACKUP_DELETION_POLICY_UNSPECIFIED", "DELETE_IMMEDIATELY", "DELETE_AFTER_RETENTION_PERIOD"]
     #[serde(default, rename = "backupDeletionPolicy")]
-    pub backup_deletion_policy: Option<String>,
+    pub backup_deletion_policy: ::core::option::Option<String>,
     /// Optional. Details of the database backup destinations.
     #[serde(default, rename = "backupDestinationDetails")]
-    pub backup_destination_details: Option<Vec<BackupDestinationDetails>>,
+    pub backup_destination_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<BackupDestinationDetails>>>,
     /// Optional. The number of days an automatic backup is retained before being automatically deleted. This value determines the earliest point in time to which a database can be restored. Min: 1, Max: 60.
     #[serde(default, rename = "retentionPeriodDays")]
-    pub retention_period_days: Option<i32>,
+    pub retention_period_days: ::core::option::Option<i32>,
 }
 
 /// Details of the Database Home resource.
@@ -987,16 +998,16 @@ pub struct DbBackupConfig {
 pub struct DbHome {
     /// Required. The Database resource.
     #[serde(default)]
-    pub database: Option<Database>,
+    pub database: ::core::option::Option<::std::boxed::Box<Database>>,
     /// Required. A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation.
     #[serde(default, rename = "dbVersion")]
-    pub db_version: Option<String>,
+    pub db_version: ::core::option::Option<String>,
     /// Optional. The display name for the Database Home. The name does not have to be unique within your project.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Optional. Whether unified auditing is enabled for the Database Home.
     #[serde(default, rename = "isUnifiedAuditingEnabled")]
-    pub is_unified_auditing_enabled: Option<bool>,
+    pub is_unified_auditing_enabled: ::core::option::Option<bool>,
 }
 
 /// Details of the database node resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/DbNode/
@@ -1004,10 +1015,10 @@ pub struct DbHome {
 pub struct DbNode {
     /// Identifier. The name of the database node resource in the following format: projects/{project}/locations/{location}/cloudVmClusters/{cloud_vm_cluster}/dbNodes/{db_node}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Various properties of the database node.
     #[serde(default)]
-    pub properties: Option<DbNodeProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<DbNodeProperties>>,
 }
 
 /// Various properties and settings associated with Db node.
@@ -1015,31 +1026,31 @@ pub struct DbNode {
 pub struct DbNodeProperties {
     /// Output only. The date and time that the database node was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Local storage per database node.
     #[serde(default, rename = "dbNodeStorageSizeGb")]
-    pub db_node_storage_size_gb: Option<i32>,
+    pub db_node_storage_size_gb: ::core::option::Option<i32>,
     /// Optional. Database server OCID.
     #[serde(default, rename = "dbServerOcid")]
-    pub db_server_ocid: Option<String>,
+    pub db_server_ocid: ::core::option::Option<String>,
     /// Optional. DNS
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// Memory allocated in GBs.
     #[serde(default, rename = "memorySizeGb")]
-    pub memory_size_gb: Option<i32>,
+    pub memory_size_gb: ::core::option::Option<i32>,
     /// Output only. OCID of database node.
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Optional. OCPU count per database node.
     #[serde(default, rename = "ocpuCount")]
-    pub ocpu_count: Option<i32>,
+    pub ocpu_count: ::core::option::Option<i32>,
     /// Output only. State of the database node. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "UPDATING", "STOPPING", "STOPPED", "STARTING", "TERMINATING", "TERMINATED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Total CPU core count of the database node.
     #[serde(default, rename = "totalCpuCoreCount")]
-    pub total_cpu_core_count: Option<i32>,
+    pub total_cpu_core_count: ::core::option::Option<i32>,
 }
 
 /// Details of the database server resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/DbServer/
@@ -1047,13 +1058,13 @@ pub struct DbNodeProperties {
 pub struct DbServer {
     /// Optional. User friendly name for this resource.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Identifier. The name of the database server resource with the format: projects/{project}/locations/{location}/cloudExadataInfrastructures/{cloud_exadata_infrastructure}/dbServers/{db_server}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Various properties of the database server.
     #[serde(default)]
-    pub properties: Option<DbServerProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<DbServerProperties>>,
 }
 
 /// Various properties and settings associated with Exadata database server.
@@ -1061,34 +1072,34 @@ pub struct DbServer {
 pub struct DbServerProperties {
     /// Output only. OCID of database nodes associated with the database server.
     #[serde(default, rename = "dbNodeIds")]
-    pub db_node_ids: Option<Vec<String>>,
+    pub db_node_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Local storage per VM.
     #[serde(default, rename = "dbNodeStorageSizeGb")]
-    pub db_node_storage_size_gb: Option<i32>,
+    pub db_node_storage_size_gb: ::core::option::Option<i32>,
     /// Optional. Maximum local storage per VM.
     #[serde(default, rename = "maxDbNodeStorageSizeGb")]
-    pub max_db_node_storage_size_gb: Option<i32>,
+    pub max_db_node_storage_size_gb: ::core::option::Option<i32>,
     /// Optional. Maximum memory allocated in GBs.
     #[serde(default, rename = "maxMemorySizeGb")]
-    pub max_memory_size_gb: Option<i32>,
+    pub max_memory_size_gb: ::core::option::Option<i32>,
     /// Optional. Maximum OCPU count per database.
     #[serde(default, rename = "maxOcpuCount")]
-    pub max_ocpu_count: Option<i32>,
+    pub max_ocpu_count: ::core::option::Option<i32>,
     /// Optional. Memory allocated in GBs.
     #[serde(default, rename = "memorySizeGb")]
-    pub memory_size_gb: Option<i32>,
+    pub memory_size_gb: ::core::option::Option<i32>,
     /// Output only. OCID of database server.
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Optional. OCPU count per database.
     #[serde(default, rename = "ocpuCount")]
-    pub ocpu_count: Option<i32>,
+    pub ocpu_count: ::core::option::Option<i32>,
     /// Output only. State of the database server. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "AVAILABLE", "UNAVAILABLE", "DELETING", "DELETED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Optional. Vm count per database.
     #[serde(default, rename = "vmCount")]
-    pub vm_count: Option<i32>,
+    pub vm_count: ::core::option::Option<i32>,
 }
 
 /// Details of the DbSystem (BaseDB) resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/DbSystem/
@@ -1096,34 +1107,34 @@ pub struct DbServerProperties {
 pub struct DbSystem {
     /// Output only. The date and time that the DbSystem was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. The display name for the System db. The name does not have to be unique within your project.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The ID of the subscription entitlement associated with the DbSystem
     #[serde(default, rename = "entitlementId")]
-    pub entitlement_id: Option<String>,
+    pub entitlement_id: ::core::option::Option<String>,
     /// Optional. The GCP Oracle zone where Oracle DbSystem is hosted. Example: us-east4-b-r2. If not specified, the system will pick a zone based on availability.
     #[serde(default, rename = "gcpOracleZone")]
-    pub gcp_oracle_zone: Option<String>,
+    pub gcp_oracle_zone: ::core::option::Option<String>,
     /// Optional. The labels or tags associated with the DbSystem.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the DbSystem resource in the following format: projects/{project}/locations/{region}/dbSystems/{db_system}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. HTTPS link to OCI resources exposed to Customer via UI Interface.
     #[serde(default, rename = "ociUrl")]
-    pub oci_url: Option<String>,
+    pub oci_url: ::core::option::Option<String>,
     /// Optional. The name of the OdbNetwork associated with the DbSystem. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network} It is optional but if specified, this should match the parent ODBNetwork of the OdbSubnet.
     #[serde(default, rename = "odbNetwork")]
-    pub odb_network: Option<String>,
+    pub odb_network: ::core::option::Option<String>,
     /// Required. The name of the OdbSubnet associated with the DbSystem for IP allocation. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default, rename = "odbSubnet")]
-    pub odb_subnet: Option<String>,
+    pub odb_subnet: ::core::option::Option<String>,
     /// Optional. The properties of the DbSystem.
     #[serde(default)]
-    pub properties: Option<DbSystemProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<DbSystemProperties>>,
 }
 
 /// Summary of the DbSystem initial storage size.
@@ -1131,10 +1142,10 @@ pub struct DbSystem {
 pub struct DbSystemInitialStorageSize {
     /// Output only. The name of the resource.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The properties of the DbSystem initial storage size summary.
     #[serde(default)]
-    pub properties: Option<DbSystemInitialStorageSizeProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<DbSystemInitialStorageSizeProperties>>,
 }
 
 /// The properties of a DbSystem initial storage size summary.
@@ -1142,16 +1153,18 @@ pub struct DbSystemInitialStorageSize {
 pub struct DbSystemInitialStorageSizeProperties {
     /// Output only. List of storage disk details available for launches from backup.
     #[serde(default, rename = "launchFromBackupStorageSizeDetails")]
-    pub launch_from_backup_storage_size_details: Option<Vec<StorageSizeDetails>>,
+    pub launch_from_backup_storage_size_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StorageSizeDetails>>>,
     /// Output only. VM shape platform type // TODO: enum values: ["SHAPE_TYPE_UNSPECIFIED", "STANDARD_X86"]
     #[serde(default, rename = "shapeType")]
-    pub shape_type: Option<String>,
+    pub shape_type: ::core::option::Option<String>,
     /// Output only. The storage option used in DB system. // TODO: enum values: ["STORAGE_MANAGEMENT_UNSPECIFIED", "ASM", "LVM"]
     #[serde(default, rename = "storageManagement")]
-    pub storage_management: Option<String>,
+    pub storage_management: ::core::option::Option<String>,
     /// Output only. List of storage disk details.
     #[serde(default, rename = "storageSizeDetails")]
-    pub storage_size_details: Option<Vec<StorageSizeDetails>>,
+    pub storage_size_details:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<StorageSizeDetails>>>,
 }
 
 /// Details of the DbSystem Options.
@@ -1159,7 +1172,7 @@ pub struct DbSystemInitialStorageSizeProperties {
 pub struct DbSystemOptions {
     /// Optional. The storage option used in DB system. // TODO: enum values: ["STORAGE_MANAGEMENT_UNSPECIFIED", "ASM", "LVM"]
     #[serde(default, rename = "storageManagement")]
-    pub storage_management: Option<String>,
+    pub storage_management: ::core::option::Option<String>,
 }
 
 /// The properties of a DbSystem.
@@ -1167,67 +1180,68 @@ pub struct DbSystemOptions {
 pub struct DbSystemProperties {
     /// Required. The number of CPU cores to enable for the DbSystem.
     #[serde(default, rename = "computeCount")]
-    pub compute_count: Option<i32>,
+    pub compute_count: ::core::option::Option<i32>,
     /// Optional. The compute model of the DbSystem. // TODO: enum values: ["COMPUTE_MODEL_UNSPECIFIED", "ECPU", "OCPU"]
     #[serde(default, rename = "computeModel")]
-    pub compute_model: Option<String>,
+    pub compute_model: ::core::option::Option<String>,
     /// Optional. Data collection options for diagnostics.
     #[serde(default, rename = "dataCollectionOptions")]
-    pub data_collection_options: Option<DataCollectionOptionsDbSystem>,
+    pub data_collection_options:
+        ::core::option::Option<::std::boxed::Box<DataCollectionOptionsDbSystem>>,
     /// Optional. The data storage size in GB that is currently available to DbSystems.
     #[serde(default, rename = "dataStorageSizeGb")]
-    pub data_storage_size_gb: Option<i32>,
+    pub data_storage_size_gb: ::core::option::Option<i32>,
     /// Required. The database edition of the DbSystem. // TODO: enum values: ["DB_SYSTEM_DATABASE_EDITION_UNSPECIFIED", "STANDARD_EDITION", "ENTERPRISE_EDITION", "ENTERPRISE_EDITION_HIGH_PERFORMANCE"]
     #[serde(default, rename = "databaseEdition")]
-    pub database_edition: Option<String>,
+    pub database_edition: ::core::option::Option<String>,
     /// Optional. Details for creating a Database Home.
     #[serde(default, rename = "dbHome")]
-    pub db_home: Option<DbHome>,
+    pub db_home: ::core::option::Option<::std::boxed::Box<DbHome>>,
     /// Optional. The options for the DbSystem.
     #[serde(default, rename = "dbSystemOptions")]
-    pub db_system_options: Option<DbSystemOptions>,
+    pub db_system_options: ::core::option::Option<::std::boxed::Box<DbSystemOptions>>,
     /// Optional. The host domain name of the DbSystem.
     #[serde(default)]
-    pub domain: Option<String>,
+    pub domain: ::core::option::Option<String>,
     /// Output only. The hostname of the DbSystem.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// Optional. Prefix for DB System host names.
     #[serde(default, rename = "hostnamePrefix")]
-    pub hostname_prefix: Option<String>,
+    pub hostname_prefix: ::core::option::Option<String>,
     /// Required. The initial data storage size in GB.
     #[serde(default, rename = "initialDataStorageSizeGb")]
-    pub initial_data_storage_size_gb: Option<i32>,
+    pub initial_data_storage_size_gb: ::core::option::Option<i32>,
     /// Required. The license model of the DbSystem. // TODO: enum values: ["LICENSE_MODEL_UNSPECIFIED", "LICENSE_INCLUDED", "BRING_YOUR_OWN_LICENSE"]
     #[serde(default, rename = "licenseModel")]
-    pub license_model: Option<String>,
+    pub license_model: ::core::option::Option<String>,
     /// Output only. State of the DbSystem. // TODO: enum values: ["DB_SYSTEM_LIFECYCLE_STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "UPDATING", "TERMINATING", "TERMINATED", "FAILED", "MIGRATED", "MAINTENANCE_IN_PROGRESS", "NEEDS_ATTENTION", "UPGRADING"]
     #[serde(default, rename = "lifecycleState")]
-    pub lifecycle_state: Option<String>,
+    pub lifecycle_state: ::core::option::Option<String>,
     /// Optional. The memory size in GB.
     #[serde(default, rename = "memorySizeGb")]
-    pub memory_size_gb: Option<i32>,
+    pub memory_size_gb: ::core::option::Option<i32>,
     /// Optional. The number of nodes in the DbSystem.
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// Output only. OCID of the DbSystem.
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Optional. The private IP address of the DbSystem.
     #[serde(default, rename = "privateIp")]
-    pub private_ip: Option<String>,
+    pub private_ip: ::core::option::Option<String>,
     /// Optional. The reco/redo storage size in GB.
     #[serde(default, rename = "recoStorageSizeGb")]
-    pub reco_storage_size_gb: Option<i32>,
+    pub reco_storage_size_gb: ::core::option::Option<i32>,
     /// Required. Shape of DB System.
     #[serde(default)]
-    pub shape: Option<String>,
+    pub shape: ::core::option::Option<String>,
     /// Required. SSH public keys to be stored with the DbSystem.
     #[serde(default, rename = "sshPublicKeys")]
-    pub ssh_public_keys: Option<Vec<String>>,
+    pub ssh_public_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Time zone of the DbSystem.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<TimeZone>,
+    pub time_zone: ::core::option::Option<::std::boxed::Box<TimeZone>>,
 }
 
 /// Details of the Database System Shapes resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/DbSystemShapeSummary/
@@ -1235,40 +1249,40 @@ pub struct DbSystemProperties {
 pub struct DbSystemShape {
     /// Optional. Number of cores per node.
     #[serde(default, rename = "availableCoreCountPerNode")]
-    pub available_core_count_per_node: Option<i32>,
+    pub available_core_count_per_node: ::core::option::Option<i32>,
     /// Optional. Storage per storage server in terabytes.
     #[serde(default, rename = "availableDataStorageTb")]
-    pub available_data_storage_tb: Option<i32>,
+    pub available_data_storage_tb: ::core::option::Option<i32>,
     /// Optional. Memory per database server node in gigabytes.
     #[serde(default, rename = "availableMemoryPerNodeGb")]
-    pub available_memory_per_node_gb: Option<i32>,
+    pub available_memory_per_node_gb: ::core::option::Option<i32>,
     /// Optional. Maximum number of database servers.
     #[serde(default, rename = "maxNodeCount")]
-    pub max_node_count: Option<i32>,
+    pub max_node_count: ::core::option::Option<i32>,
     /// Optional. Maximum number of storage servers.
     #[serde(default, rename = "maxStorageCount")]
-    pub max_storage_count: Option<i32>,
+    pub max_storage_count: ::core::option::Option<i32>,
     /// Optional. Minimum core count per node.
     #[serde(default, rename = "minCoreCountPerNode")]
-    pub min_core_count_per_node: Option<i32>,
+    pub min_core_count_per_node: ::core::option::Option<i32>,
     /// Optional. Minimum node storage per database server in gigabytes.
     #[serde(default, rename = "minDbNodeStoragePerNodeGb")]
-    pub min_db_node_storage_per_node_gb: Option<i32>,
+    pub min_db_node_storage_per_node_gb: ::core::option::Option<i32>,
     /// Optional. Minimum memory per node in gigabytes.
     #[serde(default, rename = "minMemoryPerNodeGb")]
-    pub min_memory_per_node_gb: Option<i32>,
+    pub min_memory_per_node_gb: ::core::option::Option<i32>,
     /// Optional. Minimum number of database servers.
     #[serde(default, rename = "minNodeCount")]
-    pub min_node_count: Option<i32>,
+    pub min_node_count: ::core::option::Option<i32>,
     /// Optional. Minimum number of storage servers.
     #[serde(default, rename = "minStorageCount")]
-    pub min_storage_count: Option<i32>,
+    pub min_storage_count: ::core::option::Option<i32>,
     /// Identifier. The name of the Database System Shape resource with the format: projects/{project}/locations/{region}/dbSystemShapes/{db_system_shape}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. shape
     #[serde(default)]
-    pub shape: Option<String>,
+    pub shape: ::core::option::Option<String>,
 }
 
 /// A valid Oracle Database version.
@@ -1276,10 +1290,10 @@ pub struct DbSystemShape {
 pub struct DbVersion {
     /// Output only. The name of the DbVersion resource in the following format: projects/{project}/locations/{region}/dbVersions/{db_version}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. The properties of the DbVersion.
     #[serde(default)]
-    pub properties: Option<DbVersionProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<DbVersionProperties>>,
 }
 
 /// The properties of a DbVersion.
@@ -1287,19 +1301,19 @@ pub struct DbVersion {
 pub struct DbVersionProperties {
     /// Output only. True if this version of the Oracle Database software is the latest version for a release.
     #[serde(default, rename = "isLatestForMajorVersion")]
-    pub is_latest_for_major_version: Option<bool>,
+    pub is_latest_for_major_version: ::core::option::Option<bool>,
     /// Output only. True if this version of the Oracle Database software is the preview version.
     #[serde(default, rename = "isPreviewDbVersion")]
-    pub is_preview_db_version: Option<bool>,
+    pub is_preview_db_version: ::core::option::Option<bool>,
     /// Output only. True if this version of the Oracle Database software is supported for Upgrade.
     #[serde(default, rename = "isUpgradeSupported")]
-    pub is_upgrade_supported: Option<bool>,
+    pub is_upgrade_supported: ::core::option::Option<bool>,
     /// Output only. True if this version of the Oracle Database software supports pluggable databases.
     #[serde(default, rename = "supportsPdb")]
-    pub supports_pdb: Option<bool>,
+    pub supports_pdb: ::core::option::Option<bool>,
     /// Output only. A valid Oracle Database version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// The encryption key used to encrypt the Autonomous Database.
@@ -1307,10 +1321,10 @@ pub struct DbVersionProperties {
 pub struct EncryptionKey {
     /// Optional. The KMS key used to encrypt the Autonomous Database. This field is required if the provider is GOOGLE_MANAGED. The name of the KMS key resource in the following format: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKey")]
-    pub kms_key: Option<String>,
+    pub kms_key: ::core::option::Option<String>,
     /// Optional. The provider of the encryption key. // TODO: enum values: ["PROVIDER_UNSPECIFIED", "GOOGLE_MANAGED", "ORACLE_MANAGED"]
     #[serde(default)]
-    pub provider: Option<String>,
+    pub provider: ::core::option::Option<String>,
 }
 
 /// The history of the encryption keys used to encrypt the Autonomous Database.
@@ -1318,10 +1332,10 @@ pub struct EncryptionKey {
 pub struct EncryptionKeyHistoryEntry {
     /// Output only. The date and time when the encryption key was activated on the Autonomous Database..
     #[serde(default, rename = "activationTime")]
-    pub activation_time: Option<String>,
+    pub activation_time: ::core::option::Option<String>,
     /// Output only. The encryption key used to encrypt the Autonomous Database.
     #[serde(default, rename = "encryptionKey")]
-    pub encryption_key: Option<EncryptionKey>,
+    pub encryption_key: ::core::option::Option<::std::boxed::Box<EncryptionKey>>,
 }
 
 /// Details of the Entitlement resource.
@@ -1329,16 +1343,16 @@ pub struct EncryptionKeyHistoryEntry {
 pub struct Entitlement {
     /// Details of the OCI Cloud Account.
     #[serde(default, rename = "cloudAccountDetails")]
-    pub cloud_account_details: Option<CloudAccountDetails>,
+    pub cloud_account_details: ::core::option::Option<::std::boxed::Box<CloudAccountDetails>>,
     /// Output only. Google Cloud Marketplace order ID (aka entitlement ID)
     #[serde(default, rename = "entitlementId")]
-    pub entitlement_id: Option<String>,
+    pub entitlement_id: ::core::option::Option<String>,
     /// Identifier. The name of the Entitlement resource with the format: projects/{project}/locations/{region}/entitlements/{entitlement}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. Entitlement State. // TODO: enum values: ["STATE_UNSPECIFIED", "ACCOUNT_NOT_LINKED", "ACCOUNT_NOT_ACTIVE", "ACTIVE", "ACCOUNT_SUSPENDED", "NOT_APPROVED_IN_PRIVATE_MARKETPLACE"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// ExadbVmCluster represents a cluster of VMs that are used to run Exadata workloads. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/ExadbVmCluster/
@@ -1346,34 +1360,34 @@ pub struct Entitlement {
 pub struct ExadbVmCluster {
     /// Required. Immutable. The name of the backup OdbSubnet associated with the ExadbVmCluster. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default, rename = "backupOdbSubnet")]
-    pub backup_odb_subnet: Option<String>,
+    pub backup_odb_subnet: ::core::option::Option<String>,
     /// Output only. The date and time that the ExadbVmCluster was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. Immutable. The display name for the ExadbVmCluster. The name does not have to be unique within your project. The name must be 1-255 characters long and can only contain alphanumeric characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The ID of the subscription entitlement associated with the ExadbVmCluster.
     #[serde(default, rename = "entitlementId")]
-    pub entitlement_id: Option<String>,
+    pub entitlement_id: ::core::option::Option<String>,
     /// Output only. Immutable. The GCP Oracle zone where Oracle ExadbVmCluster is hosted. Example: us-east4-b-r2. During creation, the system will pick the zone assigned to the ExascaleDbStorageVault.
     #[serde(default, rename = "gcpOracleZone")]
-    pub gcp_oracle_zone: Option<String>,
+    pub gcp_oracle_zone: ::core::option::Option<String>,
     /// Optional. The labels or tags associated with the ExadbVmCluster.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the ExadbVmCluster resource in the following format: projects/{project}/locations/{region}/exadbVmClusters/{exadb_vm_cluster}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. Immutable. The name of the OdbNetwork associated with the ExadbVmCluster. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network} It is optional but if specified, this should match the parent ODBNetwork of the OdbSubnet.
     #[serde(default, rename = "odbNetwork")]
-    pub odb_network: Option<String>,
+    pub odb_network: ::core::option::Option<String>,
     /// Required. Immutable. The name of the OdbSubnet associated with the ExadbVmCluster for IP allocation. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default, rename = "odbSubnet")]
-    pub odb_subnet: Option<String>,
+    pub odb_subnet: ::core::option::Option<String>,
     /// Required. The properties of the ExadbVmCluster.
     #[serde(default)]
-    pub properties: Option<ExadbVmClusterProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<ExadbVmClusterProperties>>,
 }
 
 /// The properties of an ExadbVmCluster.
@@ -1381,61 +1395,63 @@ pub struct ExadbVmCluster {
 pub struct ExadbVmClusterProperties {
     /// Optional. Immutable. The number of additional ECPUs per node for an Exadata VM cluster on exascale infrastructure.
     #[serde(default, rename = "additionalEcpuCountPerNode")]
-    pub additional_ecpu_count_per_node: Option<i32>,
+    pub additional_ecpu_count_per_node: ::core::option::Option<i32>,
     /// Optional. Immutable. The cluster name for Exascale vm cluster. The cluster name must begin with an alphabetic character and may contain hyphens(-) but can not contain underscores(_). It should be not more than 11 characters and is not case sensitive. OCI Cluster name.
     #[serde(default, rename = "clusterName")]
-    pub cluster_name: Option<String>,
+    pub cluster_name: ::core::option::Option<String>,
     /// Optional. Immutable. Indicates user preference for data collection options.
     #[serde(default, rename = "dataCollectionOptions")]
-    pub data_collection_options: Option<DataCollectionOptionsCommon>,
+    pub data_collection_options:
+        ::core::option::Option<::std::boxed::Box<DataCollectionOptionsCommon>>,
     /// Required. Immutable. The number of ECPUs enabled per node for an exadata vm cluster on exascale infrastructure.
     #[serde(default, rename = "enabledEcpuCountPerNode")]
-    pub enabled_ecpu_count_per_node: Option<i32>,
+    pub enabled_ecpu_count_per_node: ::core::option::Option<i32>,
     /// Required. Immutable. The name of ExascaleDbStorageVault associated with the ExadbVmCluster. It can refer to an existing ExascaleDbStorageVault. Or a new one can be created during the ExadbVmCluster creation (requires storage_vault_properties to be set). Format: projects/{project}/locations/{location}/exascaleDbStorageVaults/{exascale_db_storage_vault}
     #[serde(default, rename = "exascaleDbStorageVault")]
-    pub exascale_db_storage_vault: Option<String>,
+    pub exascale_db_storage_vault: ::core::option::Option<String>,
     /// Output only. The Oracle Grid Infrastructure (GI) software version.
     #[serde(default, rename = "giVersion")]
-    pub gi_version: Option<String>,
+    pub gi_version: ::core::option::Option<String>,
     /// Required. Immutable. Grid Infrastructure Version.
     #[serde(default, rename = "gridImageId")]
-    pub grid_image_id: Option<String>,
+    pub grid_image_id: ::core::option::Option<String>,
     /// Output only. The hostname of the ExadbVmCluster.
     #[serde(default)]
-    pub hostname: Option<String>,
+    pub hostname: ::core::option::Option<String>,
     /// Required. Immutable. Prefix for VM cluster host names.
     #[serde(default, rename = "hostnamePrefix")]
-    pub hostname_prefix: Option<String>,
+    pub hostname_prefix: ::core::option::Option<String>,
     /// Optional. Immutable. The license type of the ExadbVmCluster. // TODO: enum values: ["LICENSE_MODEL_UNSPECIFIED", "LICENSE_INCLUDED", "BRING_YOUR_OWN_LICENSE"]
     #[serde(default, rename = "licenseModel")]
-    pub license_model: Option<String>,
+    pub license_model: ::core::option::Option<String>,
     /// Output only. State of the cluster. // TODO: enum values: ["EXADB_VM_CLUSTER_LIFECYCLE_STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "UPDATING", "TERMINATING", "TERMINATED", "FAILED", "MAINTENANCE_IN_PROGRESS"]
     #[serde(default, rename = "lifecycleState")]
-    pub lifecycle_state: Option<String>,
+    pub lifecycle_state: ::core::option::Option<String>,
     /// Output only. Memory per VM (GB) (Read-only): Shows the amount of memory allocated to each VM. Memory is calculated based on 2.75 GB per Total ECPUs.
     #[serde(default, rename = "memorySizeGb")]
-    pub memory_size_gb: Option<i32>,
+    pub memory_size_gb: ::core::option::Option<i32>,
     /// Required. The number of nodes/VMs in the ExadbVmCluster.
     #[serde(default, rename = "nodeCount")]
-    pub node_count: Option<i32>,
+    pub node_count: ::core::option::Option<i32>,
     /// Output only. Deep link to the OCI console to view this resource.
     #[serde(default, rename = "ociUri")]
-    pub oci_uri: Option<String>,
+    pub oci_uri: ::core::option::Option<String>,
     /// Optional. Immutable. SCAN listener port - TCP
     #[serde(default, rename = "scanListenerPortTcp")]
-    pub scan_listener_port_tcp: Option<i32>,
+    pub scan_listener_port_tcp: ::core::option::Option<i32>,
     /// Required. Immutable. The shape attribute of the VM cluster. The type of Exascale storage used for Exadata VM cluster. The default is SMART_STORAGE which supports Oracle Database 23ai and later // TODO: enum values: ["SHAPE_ATTRIBUTE_UNSPECIFIED", "SMART_STORAGE", "BLOCK_STORAGE"]
     #[serde(default, rename = "shapeAttribute")]
-    pub shape_attribute: Option<String>,
+    pub shape_attribute: ::core::option::Option<String>,
     /// Required. Immutable. The SSH public keys for the ExadbVmCluster.
     #[serde(default, rename = "sshPublicKeys")]
-    pub ssh_public_keys: Option<Vec<String>>,
+    pub ssh_public_keys: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Immutable. The time zone of the ExadbVmCluster.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<TimeZone>,
+    pub time_zone: ::core::option::Option<::std::boxed::Box<TimeZone>>,
     /// Required. Immutable. Total storage details for the ExadbVmCluster.
     #[serde(default, rename = "vmFileSystemStorage")]
-    pub vm_file_system_storage: Option<ExadbVmClusterStorageDetails>,
+    pub vm_file_system_storage:
+        ::core::option::Option<::std::boxed::Box<ExadbVmClusterStorageDetails>>,
 }
 
 /// The storage allocation for the exadbvmcluster, in gigabytes (GB).
@@ -1443,7 +1459,7 @@ pub struct ExadbVmClusterProperties {
 pub struct ExadbVmClusterStorageDetails {
     /// Required. The storage allocation for the exadbvmcluster per node, in gigabytes (GB). This field is used to calculate the total storage allocation for the exadbvmcluster.
     #[serde(default, rename = "sizeInGbsPerNode")]
-    pub size_in_gbs_per_node: Option<i32>,
+    pub size_in_gbs_per_node: ::core::option::Option<i32>,
 }
 
 /// The storage details of the ExascaleDbStorageVault.
@@ -1451,10 +1467,10 @@ pub struct ExadbVmClusterStorageDetails {
 pub struct ExascaleDbStorageDetails {
     /// Output only. The available storage capacity for the ExascaleDbStorageVault, in gigabytes (GB).
     #[serde(default, rename = "availableSizeGbs")]
-    pub available_size_gbs: Option<i32>,
+    pub available_size_gbs: ::core::option::Option<i32>,
     /// Required. The total storage allocation for the ExascaleDbStorageVault, in gigabytes (GB).
     #[serde(default, rename = "totalSizeGbs")]
-    pub total_size_gbs: Option<i32>,
+    pub total_size_gbs: ::core::option::Option<i32>,
 }
 
 /// ExascaleDbStorageVault represents a storage vault exadb vm cluster resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/ExascaleDbStorageVault/
@@ -1462,25 +1478,25 @@ pub struct ExascaleDbStorageDetails {
 pub struct ExascaleDbStorageVault {
     /// Output only. The date and time when the ExascaleDbStorageVault was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Required. The display name for the ExascaleDbStorageVault. The name does not have to be unique within your project. The name must be 1-255 characters long and can only contain alphanumeric characters.
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Output only. The ID of the subscription entitlement associated with the ExascaleDbStorageVault.
     #[serde(default, rename = "entitlementId")]
-    pub entitlement_id: Option<String>,
+    pub entitlement_id: ::core::option::Option<String>,
     /// Optional. The GCP Oracle zone where Oracle ExascaleDbStorageVault is hosted. Example: us-east4-b-r2. If not specified, the system will pick a zone based on availability.
     #[serde(default, rename = "gcpOracleZone")]
-    pub gcp_oracle_zone: Option<String>,
+    pub gcp_oracle_zone: ::core::option::Option<String>,
     /// Optional. The labels or tags associated with the ExascaleDbStorageVault.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The resource name of the ExascaleDbStorageVault. Format: projects/{project}/locations/{location}/exascaleDbStorageVaults/{exascale_db_storage_vault}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The properties of the ExascaleDbStorageVault.
     #[serde(default)]
-    pub properties: Option<ExascaleDbStorageVaultProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<ExascaleDbStorageVaultProperties>>,
 }
 
 /// The properties of the ExascaleDbStorageVault. next ID: 12
@@ -1488,37 +1504,38 @@ pub struct ExascaleDbStorageVault {
 pub struct ExascaleDbStorageVaultProperties {
     /// Optional. The size of additional flash cache in percentage of high capacity database storage.
     #[serde(default, rename = "additionalFlashCachePercent")]
-    pub additional_flash_cache_percent: Option<i32>,
+    pub additional_flash_cache_percent: ::core::option::Option<i32>,
     /// Output only. The shape attributes of the VM clusters attached to the ExascaleDbStorageVault.
     #[serde(default, rename = "attachedShapeAttributes")]
-    pub attached_shape_attributes: Option<Vec<String>>,
+    pub attached_shape_attributes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The shape attributes available for the VM clusters to be attached to the ExascaleDbStorageVault.
     #[serde(default, rename = "availableShapeAttributes")]
-    pub available_shape_attributes: Option<Vec<String>>,
+    pub available_shape_attributes: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The description of the ExascaleDbStorageVault.
     #[serde(default)]
-    pub description: Option<String>,
+    pub description: ::core::option::Option<String>,
     /// Required. The storage details of the ExascaleDbStorageVault.
     #[serde(default, rename = "exascaleDbStorageDetails")]
-    pub exascale_db_storage_details: Option<ExascaleDbStorageDetails>,
+    pub exascale_db_storage_details:
+        ::core::option::Option<::std::boxed::Box<ExascaleDbStorageDetails>>,
     /// Output only. Deep link to the OCI console to view this resource.
     #[serde(default, rename = "ociUri")]
-    pub oci_uri: Option<String>,
+    pub oci_uri: ::core::option::Option<String>,
     /// Output only. The OCID for the ExascaleDbStorageVault.
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Output only. The state of the ExascaleDbStorageVault. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "UPDATING", "TERMINATING", "TERMINATED", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
     /// Output only. The time zone of the ExascaleDbStorageVault.
     #[serde(default, rename = "timeZone")]
-    pub time_zone: Option<TimeZone>,
+    pub time_zone: ::core::option::Option<::std::boxed::Box<TimeZone>>,
     /// Output only. The number of VM clusters associated with the ExascaleDbStorageVault.
     #[serde(default, rename = "vmClusterCount")]
-    pub vm_cluster_count: Option<i32>,
+    pub vm_cluster_count: ::core::option::Option<i32>,
     /// Output only. The list of VM cluster OCIDs associated with the ExascaleDbStorageVault.
     #[serde(default, rename = "vmClusterIds")]
-    pub vm_cluster_ids: Option<Vec<String>>,
+    pub vm_cluster_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The request for OracleDatabase.FailoverAutonomousDatabase.
@@ -1526,7 +1543,7 @@ pub struct ExascaleDbStorageVaultProperties {
 pub struct FailoverAutonomousDatabaseRequest {
     /// Optional. The peer database name to fail over to. Required for cross-region standby, and must be omitted for in-region Data Guard.
     #[serde(default, rename = "peerAutonomousDatabase")]
-    pub peer_autonomous_database: Option<String>,
+    pub peer_autonomous_database: ::core::option::Option<String>,
 }
 
 /// The request for AutonomousDatabase.GenerateWallet.
@@ -1534,13 +1551,13 @@ pub struct FailoverAutonomousDatabaseRequest {
 pub struct GenerateAutonomousDatabaseWalletRequest {
     /// Optional. True when requesting regional connection strings in PDB connect info, applicable to cross-region Data Guard only.
     #[serde(default, rename = "isRegional")]
-    pub is_regional: Option<bool>,
+    pub is_regional: ::core::option::Option<bool>,
     /// Required. The password used to encrypt the keys inside the wallet. The password must be a minimum of 8 characters.
     #[serde(default)]
-    pub password: Option<String>,
+    pub password: ::core::option::Option<String>,
     /// Optional. The type of wallet generation for the Autonomous Database. The default value is SINGLE. // TODO: enum values: ["GENERATE_TYPE_UNSPECIFIED", "ALL", "SINGLE"]
     #[serde(default, rename = "type")]
-    pub type_: Option<String>,
+    pub type_: ::core::option::Option<String>,
 }
 
 /// The response for AutonomousDatabase.GenerateWallet.
@@ -1548,7 +1565,7 @@ pub struct GenerateAutonomousDatabaseWalletRequest {
 pub struct GenerateAutonomousDatabaseWalletResponse {
     /// Output only. The base64 encoded wallet files.
     #[serde(default, rename = "archiveContent")]
-    pub archive_content: Option<String>,
+    pub archive_content: ::core::option::Option<String>,
 }
 
 /// Details of the Oracle Grid Infrastructure (GI) version resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/GiVersionSummary/
@@ -1556,10 +1573,10 @@ pub struct GenerateAutonomousDatabaseWalletResponse {
 pub struct GiVersion {
     /// Identifier. The name of the Oracle Grid Infrastructure (GI) version resource with the format: projects/{project}/locations/{region}/giVersions/{gi_versions}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. version
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// The identity connector details which will allow OCI to securely access the resources in the customer project.
@@ -1567,10 +1584,10 @@ pub struct GiVersion {
 pub struct IdentityConnector {
     /// Output only. The connection state of the identity connector. // TODO: enum values: ["CONNECTION_STATE_UNSPECIFIED", "CONNECTED", "PARTIALLY_CONNECTED", "DISCONNECTED", "UNKNOWN"]
     #[serde(default, rename = "connectionState")]
-    pub connection_state: Option<String>,
+    pub connection_state: ::core::option::Option<String>,
     /// Output only. A google managed service account on which customers can grant roles to access resources in the customer project. Example: p176944527254-55-75119d87fd8f@gcp-sa-oci.iam.gserviceaccount.com
     #[serde(default, rename = "serviceAgentEmail")]
-    pub service_agent_email: Option<String>,
+    pub service_agent_email: ::core::option::Option<String>,
 }
 
 /// The response for AutonomousDatabaseBackup.List.
@@ -1578,10 +1595,11 @@ pub struct IdentityConnector {
 pub struct ListAutonomousDatabaseBackupsResponse {
     /// The list of Autonomous Database Backups.
     #[serde(default, rename = "autonomousDatabaseBackups")]
-    pub autonomous_database_backups: Option<Vec<AutonomousDatabaseBackup>>,
+    pub autonomous_database_backups:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutonomousDatabaseBackup>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for AutonomousDatabaseCharacterSet.List.
@@ -1589,10 +1607,11 @@ pub struct ListAutonomousDatabaseBackupsResponse {
 pub struct ListAutonomousDatabaseCharacterSetsResponse {
     /// The list of Autonomous Database Character Sets.
     #[serde(default, rename = "autonomousDatabaseCharacterSets")]
-    pub autonomous_database_character_sets: Option<Vec<AutonomousDatabaseCharacterSet>>,
+    pub autonomous_database_character_sets:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutonomousDatabaseCharacterSet>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for AutonomousDatabase.List.
@@ -1600,10 +1619,11 @@ pub struct ListAutonomousDatabaseCharacterSetsResponse {
 pub struct ListAutonomousDatabasesResponse {
     /// The list of Autonomous Databases.
     #[serde(default, rename = "autonomousDatabases")]
-    pub autonomous_databases: Option<Vec<AutonomousDatabase>>,
+    pub autonomous_databases:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutonomousDatabase>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for AutonomousDbVersion.List.
@@ -1611,10 +1631,11 @@ pub struct ListAutonomousDatabasesResponse {
 pub struct ListAutonomousDbVersionsResponse {
     /// The list of Autonomous Database versions.
     #[serde(default, rename = "autonomousDbVersions")]
-    pub autonomous_db_versions: Option<Vec<AutonomousDbVersion>>,
+    pub autonomous_db_versions:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<AutonomousDbVersion>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for CloudExadataInfrastructures.list.
@@ -1622,10 +1643,11 @@ pub struct ListAutonomousDbVersionsResponse {
 pub struct ListCloudExadataInfrastructuresResponse {
     /// The list of Exadata Infrastructures.
     #[serde(default, rename = "cloudExadataInfrastructures")]
-    pub cloud_exadata_infrastructures: Option<Vec<CloudExadataInfrastructure>>,
+    pub cloud_exadata_infrastructures:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CloudExadataInfrastructure>>>,
     /// A token for fetching next page of response.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for CloudVmCluster.List.
@@ -1633,10 +1655,11 @@ pub struct ListCloudExadataInfrastructuresResponse {
 pub struct ListCloudVmClustersResponse {
     /// The list of VM Clusters.
     #[serde(default, rename = "cloudVmClusters")]
-    pub cloud_vm_clusters: Option<Vec<CloudVmCluster>>,
+    pub cloud_vm_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<CloudVmCluster>>>,
     /// A token to fetch the next page of results.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for DatabaseCharacterSet.List.
@@ -1644,10 +1667,11 @@ pub struct ListCloudVmClustersResponse {
 pub struct ListDatabaseCharacterSetsResponse {
     /// The list of DatabaseCharacterSets.
     #[serde(default, rename = "databaseCharacterSets")]
-    pub database_character_sets: Option<Vec<DatabaseCharacterSet>>,
+    pub database_character_sets:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DatabaseCharacterSet>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for Database.List.
@@ -1655,10 +1679,10 @@ pub struct ListDatabaseCharacterSetsResponse {
 pub struct ListDatabasesResponse {
     /// The list of Databases.
     #[serde(default)]
-    pub databases: Option<Vec<Database>>,
+    pub databases: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Database>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for DbNode.List.
@@ -1666,10 +1690,10 @@ pub struct ListDatabasesResponse {
 pub struct ListDbNodesResponse {
     /// The list of DB Nodes
     #[serde(default, rename = "dbNodes")]
-    pub db_nodes: Option<Vec<DbNode>>,
+    pub db_nodes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DbNode>>>,
     /// A token identifying a page of results the node should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for DbServer.List.
@@ -1677,10 +1701,10 @@ pub struct ListDbNodesResponse {
 pub struct ListDbServersResponse {
     /// The list of database servers.
     #[serde(default, rename = "dbServers")]
-    pub db_servers: Option<Vec<DbServer>>,
+    pub db_servers: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DbServer>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for DbSystemInitialStorageSizes.List.
@@ -1688,10 +1712,11 @@ pub struct ListDbServersResponse {
 pub struct ListDbSystemInitialStorageSizesResponse {
     /// The list of DbSystemInitialStorageSizes.
     #[serde(default, rename = "dbSystemInitialStorageSizes")]
-    pub db_system_initial_storage_sizes: Option<Vec<DbSystemInitialStorageSize>>,
+    pub db_system_initial_storage_sizes:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DbSystemInitialStorageSize>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for DbSystemShape.List.
@@ -1699,10 +1724,10 @@ pub struct ListDbSystemInitialStorageSizesResponse {
 pub struct ListDbSystemShapesResponse {
     /// The list of Database System shapes.
     #[serde(default, rename = "dbSystemShapes")]
-    pub db_system_shapes: Option<Vec<DbSystemShape>>,
+    pub db_system_shapes: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DbSystemShape>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for DbSystem.List.
@@ -1710,10 +1735,10 @@ pub struct ListDbSystemShapesResponse {
 pub struct ListDbSystemsResponse {
     /// The list of DbSystems.
     #[serde(default, rename = "dbSystems")]
-    pub db_systems: Option<Vec<DbSystem>>,
+    pub db_systems: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DbSystem>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for DbVersions.List.
@@ -1721,10 +1746,10 @@ pub struct ListDbSystemsResponse {
 pub struct ListDbVersionsResponse {
     /// The list of DbVersions.
     #[serde(default, rename = "dbVersions")]
-    pub db_versions: Option<Vec<DbVersion>>,
+    pub db_versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<DbVersion>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for Entitlement.List.
@@ -1732,10 +1757,10 @@ pub struct ListDbVersionsResponse {
 pub struct ListEntitlementsResponse {
     /// The list of Entitlements
     #[serde(default)]
-    pub entitlements: Option<Vec<Entitlement>>,
+    pub entitlements: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Entitlement>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for ExadbVmCluster.List.
@@ -1743,10 +1768,11 @@ pub struct ListEntitlementsResponse {
 pub struct ListExadbVmClustersResponse {
     /// The list of ExadbVmClusters.
     #[serde(default, rename = "exadbVmClusters")]
-    pub exadb_vm_clusters: Option<Vec<ExadbVmCluster>>,
+    pub exadb_vm_clusters:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExadbVmCluster>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for ExascaleDbStorageVault.List.
@@ -1754,10 +1780,11 @@ pub struct ListExadbVmClustersResponse {
 pub struct ListExascaleDbStorageVaultsResponse {
     /// The ExascaleDbStorageVaults.
     #[serde(default, rename = "exascaleDbStorageVaults")]
-    pub exascale_db_storage_vaults: Option<Vec<ExascaleDbStorageVault>>,
+    pub exascale_db_storage_vaults:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<ExascaleDbStorageVault>>>,
     /// A token identifying a page of results the server should return. If present, the next page token can be provided to a subsequent ListExascaleDbStorageVaults call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for GiVersion.List.
@@ -1765,10 +1792,10 @@ pub struct ListExascaleDbStorageVaultsResponse {
 pub struct ListGiVersionsResponse {
     /// The list of Oracle Grid Infrastructure (GI) versions.
     #[serde(default, rename = "giVersions")]
-    pub gi_versions: Option<Vec<GiVersion>>,
+    pub gi_versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<GiVersion>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response message for Locations.ListLocations.
@@ -1776,10 +1803,10 @@ pub struct ListGiVersionsResponse {
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
-    pub locations: Option<Vec<Location>>,
+    pub locations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Location>>>,
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for MinorVersion.List.
@@ -1787,10 +1814,10 @@ pub struct ListLocationsResponse {
 pub struct ListMinorVersionsResponse {
     /// The list of MinorVersions.
     #[serde(default, rename = "minorVersions")]
-    pub minor_versions: Option<Vec<MinorVersion>>,
+    pub minor_versions: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<MinorVersion>>>,
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The response for OdbNetwork.List.
@@ -1798,13 +1825,13 @@ pub struct ListMinorVersionsResponse {
 pub struct ListOdbNetworksResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of ODB Networks.
     #[serde(default, rename = "odbNetworks")]
-    pub odb_networks: Option<Vec<OdbNetwork>>,
+    pub odb_networks: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OdbNetwork>>>,
     /// Unreachable locations when listing resources across all locations using wildcard location ''-''.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response for OdbSubnet.List.
@@ -1812,13 +1839,13 @@ pub struct ListOdbNetworksResponse {
 pub struct ListOdbSubnetsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of ODB Subnets.
     #[serde(default, rename = "odbSubnets")]
-    pub odb_subnets: Option<Vec<OdbSubnet>>,
+    pub odb_subnets: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<OdbSubnet>>>,
     /// Unreachable locations when listing resources across all locations using wildcard location ''-''.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -1826,13 +1853,13 @@ pub struct ListOdbSubnetsResponse {
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub operations: Option<Vec<Operation>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<::std::boxed::Box<Operation>>>,
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
-    pub unreachable: Option<Vec<String>>,
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The response for PluggableDatabase.List.
@@ -1840,10 +1867,11 @@ pub struct ListOperationsResponse {
 pub struct ListPluggableDatabasesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: Option<String>,
+    pub next_page_token: ::core::option::Option<String>,
     /// The list of PluggableDatabases.
     #[serde(default, rename = "pluggableDatabases")]
-    pub pluggable_databases: Option<Vec<PluggableDatabase>>,
+    pub pluggable_databases:
+        ::core::option::Option<::std::vec::Vec<::std::boxed::Box<PluggableDatabase>>>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1851,19 +1879,19 @@ pub struct ListPluggableDatabasesResponse {
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
-    pub display_name: Option<String>,
+    pub display_name: ::core::option::Option<String>,
     /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// The canonical id for this location. For example: "us-east1".
     #[serde(default, rename = "locationId")]
-    pub location_id: Option<String>,
+    pub location_id: ::core::option::Option<String>,
     /// Service-specific metadata. For example the available capacity at the given location.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
 /// Metadata for a given Location.
@@ -1871,7 +1899,7 @@ pub struct Location {
 pub struct LocationMetadata {
     /// Output only. Google Cloud Platform Oracle zones in a location.
     #[serde(default, rename = "gcpOracleZones")]
-    pub gcp_oracle_zones: Option<Vec<String>>,
+    pub gcp_oracle_zones: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Maintenance window as defined by Oracle. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/MaintenanceWindow
@@ -1879,31 +1907,31 @@ pub struct LocationMetadata {
 pub struct MaintenanceWindow {
     /// Optional. Determines the amount of time the system will wait before the start of each database server patching operation. Custom action timeout is in minutes and valid value is between 15 to 120 (inclusive).
     #[serde(default, rename = "customActionTimeoutMins")]
-    pub custom_action_timeout_mins: Option<i32>,
+    pub custom_action_timeout_mins: ::core::option::Option<i32>,
     /// Optional. Days during the week when maintenance should be performed.
     #[serde(default, rename = "daysOfWeek")]
-    pub days_of_week: Option<Vec<String>>,
+    pub days_of_week: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The window of hours during the day when maintenance should be performed. The window is a 4 hour slot. Valid values are: 0 - represents time slot 0:00 - 3:59 UTC 4 - represents time slot 4:00 - 7:59 UTC 8 - represents time slot 8:00 - 11:59 UTC 12 - represents time slot 12:00 - 15:59 UTC 16 - represents time slot 16:00 - 19:59 UTC 20 - represents time slot 20:00 - 23:59 UTC
     #[serde(default, rename = "hoursOfDay")]
-    pub hours_of_day: Option<Vec<i32>>,
+    pub hours_of_day: ::core::option::Option<::std::vec::Vec<i32>>,
     /// Optional. If true, enables the configuration of a custom action timeout (waiting period) between database server patching operations.
     #[serde(default, rename = "isCustomActionTimeoutEnabled")]
-    pub is_custom_action_timeout_enabled: Option<bool>,
+    pub is_custom_action_timeout_enabled: ::core::option::Option<bool>,
     /// Optional. Lead time window allows user to set a lead time to prepare for a down time. The lead time is in weeks and valid value is between 1 to 4.
     #[serde(default, rename = "leadTimeWeek")]
-    pub lead_time_week: Option<i32>,
+    pub lead_time_week: ::core::option::Option<i32>,
     /// Optional. Months during the year when maintenance should be performed.
     #[serde(default)]
-    pub months: Option<Vec<String>>,
+    pub months: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Cloud CloudExadataInfrastructure node patching method, either "ROLLING" or "NONROLLING". Default value is ROLLING. // TODO: enum values: ["PATCHING_MODE_UNSPECIFIED", "ROLLING", "NON_ROLLING"]
     #[serde(default, rename = "patchingMode")]
-    pub patching_mode: Option<String>,
+    pub patching_mode: ::core::option::Option<String>,
     /// Optional. The maintenance window scheduling preference. // TODO: enum values: ["MAINTENANCE_WINDOW_PREFERENCE_UNSPECIFIED", "CUSTOM_PREFERENCE", "NO_PREFERENCE"]
     #[serde(default)]
-    pub preference: Option<String>,
+    pub preference: ::core::option::Option<String>,
     /// Optional. Weeks during the month when maintenance should be performed. Weeks start on the 1st, 8th, 15th, and 22nd days of the month, and have a duration of 7 days. Weeks start and end based on calendar dates, not days of the week.
     #[serde(default, rename = "weeksOfMonth")]
-    pub weeks_of_month: Option<Vec<i32>>,
+    pub weeks_of_month: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// MinorVersion represents a minor version of a GI. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/GiMinorVersionSummary/
@@ -1911,13 +1939,13 @@ pub struct MaintenanceWindow {
 pub struct MinorVersion {
     /// Optional. The ID of the Grid Image.
     #[serde(default, rename = "gridImageId")]
-    pub grid_image_id: Option<String>,
+    pub grid_image_id: ::core::option::Option<String>,
     /// Identifier. The name of the MinorVersion resource with the format: projects/{project}/locations/{region}/giVersions/{gi_version}/minorVersions/{minor_version}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Optional. The valid Oracle grid infrastructure software version.
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Represents OdbNetwork resource.
@@ -1925,25 +1953,25 @@ pub struct MinorVersion {
 pub struct OdbNetwork {
     /// Output only. The date and time that the OdbNetwork was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The ID of the subscription entitlement associated with the OdbNetwork.
     #[serde(default, rename = "entitlementId")]
-    pub entitlement_id: Option<String>,
+    pub entitlement_id: ::core::option::Option<String>,
     /// Optional. The GCP Oracle zone where OdbNetwork is hosted. Example: us-east4-b-r2. If not specified, the system will pick a zone based on availability.
     #[serde(default, rename = "gcpOracleZone")]
-    pub gcp_oracle_zone: Option<String>,
+    pub gcp_oracle_zone: ::core::option::Option<String>,
     /// Optional. Labels or tags associated with the resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the OdbNetwork resource in the following format: projects/{project}/locations/{region}/odbNetworks/{odb_network}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. The name of the VPC network in the following format: projects/{project}/global/networks/{network}
     #[serde(default)]
-    pub network: Option<String>,
+    pub network: ::core::option::Option<String>,
     /// Output only. State of the ODB Network. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "TERMINATING", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// Represents OdbSubnet resource.
@@ -1951,22 +1979,22 @@ pub struct OdbNetwork {
 pub struct OdbSubnet {
     /// Required. The CIDR range of the subnet.
     #[serde(default, rename = "cidrRange")]
-    pub cidr_range: Option<String>,
+    pub cidr_range: ::core::option::Option<String>,
     /// Output only. The date and time that the OdbNetwork was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Optional. Labels or tags associated with the resource.
     #[serde(default)]
-    pub labels: Option<serde_json::Value>,
+    pub labels: ::core::option::Option<serde_json::Value>,
     /// Identifier. The name of the OdbSubnet resource in the following format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Required. Purpose of the subnet. // TODO: enum values: ["PURPOSE_UNSPECIFIED", "CLIENT_SUBNET", "BACKUP_SUBNET"]
     #[serde(default)]
-    pub purpose: Option<String>,
+    pub purpose: ::core::option::Option<String>,
     /// Output only. State of the ODB Subnet. // TODO: enum values: ["STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "TERMINATING", "FAILED"]
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1974,19 +2002,19 @@ pub struct OdbSubnet {
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub done: Option<bool>,
+    pub done: ::core::option::Option<bool>,
     /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub error: Option<Status>,
+    pub error: ::core::option::Option<::std::boxed::Box<Status>>,
     /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
     #[serde(default)]
-    pub metadata: Option<serde_json::Value>,
+    pub metadata: ::core::option::Option<serde_json::Value>,
     /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
-    pub response: Option<serde_json::Value>,
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1994,28 +2022,28 @@ pub struct Operation {
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
-    pub api_version: Option<String>,
+    pub api_version: ::core::option::Option<String>,
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Output only. The time the operation finished running.
     #[serde(default, rename = "endTime")]
-    pub end_time: Option<String>,
+    pub end_time: ::core::option::Option<String>,
     /// Output only. An estimated percentage of the operation that has been completed at a given moment of time, between 0 and 100.
     #[serde(default, rename = "percentComplete")]
-    pub percent_complete: Option<f64>,
+    pub percent_complete: ::core::option::Option<f64>,
     /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: Option<bool>,
+    pub requested_cancellation: ::core::option::Option<bool>,
     /// Output only. The status of the operation.
     #[serde(default, rename = "statusMessage")]
-    pub status_message: Option<String>,
+    pub status_message: ::core::option::Option<String>,
     /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub target: Option<String>,
+    pub target: ::core::option::Option<String>,
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
-    pub verb: Option<String>,
+    pub verb: ::core::option::Option<String>,
 }
 
 /// The PluggableDatabase resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/PluggableDatabase/
@@ -2023,16 +2051,16 @@ pub struct OperationMetadata {
 pub struct PluggableDatabase {
     /// Output only. The date and time that the PluggableDatabase was created.
     #[serde(default, rename = "createTime")]
-    pub create_time: Option<String>,
+    pub create_time: ::core::option::Option<String>,
     /// Identifier. The name of the PluggableDatabase resource in the following format: projects/{project}/locations/{region}/pluggableDatabases/{pluggable_database}
     #[serde(default)]
-    pub name: Option<String>,
+    pub name: ::core::option::Option<String>,
     /// Output only. HTTPS link to OCI resources exposed to Customer via UI Interface.
     #[serde(default, rename = "ociUrl")]
-    pub oci_url: Option<String>,
+    pub oci_url: ::core::option::Option<String>,
     /// Optional. The properties of the PluggableDatabase.
     #[serde(default)]
-    pub properties: Option<PluggableDatabaseProperties>,
+    pub properties: ::core::option::Option<::std::boxed::Box<PluggableDatabaseProperties>>,
 }
 
 /// The connection strings used to connect to the Oracle Database.
@@ -2040,13 +2068,13 @@ pub struct PluggableDatabase {
 pub struct PluggableDatabaseConnectionStrings {
     /// Optional. All connection strings to use to connect to the pluggable database.
     #[serde(default, rename = "allConnectionStrings")]
-    pub all_connection_strings: Option<serde_json::Value>,
+    pub all_connection_strings: ::core::option::Option<serde_json::Value>,
     /// Optional. The default connection string to use to connect to the pluggable database.
     #[serde(default, rename = "pdbDefault")]
-    pub pdb_default: Option<String>,
+    pub pdb_default: ::core::option::Option<String>,
     /// Optional. The default connection string to use to connect to the pluggable database using IP.
     #[serde(default, rename = "pdbIpDefault")]
-    pub pdb_ip_default: Option<String>,
+    pub pdb_ip_default: ::core::option::Option<String>,
 }
 
 /// The Pluggable Database Node Level Details.
@@ -2054,13 +2082,13 @@ pub struct PluggableDatabaseConnectionStrings {
 pub struct PluggableDatabaseNodeLevelDetails {
     /// Required. The Node name of the Database home.
     #[serde(default, rename = "nodeName")]
-    pub node_name: Option<String>,
+    pub node_name: ::core::option::Option<String>,
     /// Required. The mode that the pluggable database is in to open it. // TODO: enum values: ["PLUGGABLE_DATABASE_OPEN_MODE_UNSPECIFIED", "READ_ONLY", "READ_WRITE", "MOUNTED", "MIGRATE"]
     #[serde(default, rename = "openMode")]
-    pub open_mode: Option<String>,
+    pub open_mode: ::core::option::Option<String>,
     /// Required. The OCID of the Pluggable Database.
     #[serde(default, rename = "pluggableDatabaseId")]
-    pub pluggable_database_id: Option<String>,
+    pub pluggable_database_id: ::core::option::Option<String>,
 }
 
 /// The properties of a PluggableDatabase.
@@ -2068,43 +2096,47 @@ pub struct PluggableDatabaseNodeLevelDetails {
 pub struct PluggableDatabaseProperties {
     /// Required. The OCID of the compartment.
     #[serde(default, rename = "compartmentId")]
-    pub compartment_id: Option<String>,
+    pub compartment_id: ::core::option::Option<String>,
     /// Optional. The Connection strings used to connect to the Oracle Database.
     #[serde(default, rename = "connectionStrings")]
-    pub connection_strings: Option<PluggableDatabaseConnectionStrings>,
+    pub connection_strings:
+        ::core::option::Option<::std::boxed::Box<PluggableDatabaseConnectionStrings>>,
     /// Required. The OCID of the CDB.
     #[serde(default, rename = "containerDatabaseOcid")]
-    pub container_database_ocid: Option<String>,
+    pub container_database_ocid: ::core::option::Option<String>,
     /// Output only. The configuration of the Database Management service.
     #[serde(default, rename = "databaseManagementConfig")]
-    pub database_management_config: Option<DatabaseManagementConfig>,
+    pub database_management_config:
+        ::core::option::Option<::std::boxed::Box<DatabaseManagementConfig>>,
     /// Optional. Defined tags for this resource. Each key is predefined and scoped to a namespace.
     #[serde(default, rename = "definedTags")]
-    pub defined_tags: Option<serde_json::Value>,
+    pub defined_tags: ::core::option::Option<serde_json::Value>,
     /// Optional. Free-form tags for this resource. Each tag is a simple key-value pair with no predefined name, type, or namespace.
     #[serde(default, rename = "freeformTags")]
-    pub freeform_tags: Option<serde_json::Value>,
+    pub freeform_tags: ::core::option::Option<serde_json::Value>,
     /// Optional. The restricted mode of the pluggable database. If a pluggable database is opened in restricted mode, the user needs both create a session and have restricted session privileges to connect to it.
     #[serde(default, rename = "isRestricted")]
-    pub is_restricted: Option<bool>,
+    pub is_restricted: ::core::option::Option<bool>,
     /// Output only. Additional information about the current lifecycle state.
     #[serde(default, rename = "lifecycleDetails")]
-    pub lifecycle_details: Option<String>,
+    pub lifecycle_details: ::core::option::Option<String>,
     /// Output only. The current state of the pluggable database. // TODO: enum values: ["PLUGGABLE_DATABASE_LIFECYCLE_STATE_UNSPECIFIED", "PROVISIONING", "AVAILABLE", "TERMINATING", "TERMINATED", "UPDATING", "FAILED", "RELOCATING", "RELOCATED", "REFRESHING", "RESTORE_IN_PROGRESS", "RESTORE_FAILED", "BACKUP_IN_PROGRESS", "DISABLED"]
     #[serde(default, rename = "lifecycleState")]
-    pub lifecycle_state: Option<String>,
+    pub lifecycle_state: ::core::option::Option<String>,
     /// Output only. The OCID of the pluggable database.
     #[serde(default)]
-    pub ocid: Option<String>,
+    pub ocid: ::core::option::Option<String>,
     /// Output only. The status of Operations Insights for this Database. // TODO: enum values: ["OPERATIONS_INSIGHTS_STATE_UNSPECIFIED", "ENABLING", "ENABLED", "DISABLING", "NOT_ENABLED", "FAILED_ENABLING", "FAILED_DISABLING"]
     #[serde(default, rename = "operationsInsightsState")]
-    pub operations_insights_state: Option<String>,
+    pub operations_insights_state: ::core::option::Option<String>,
     /// Required. The database name.
     #[serde(default, rename = "pdbName")]
-    pub pdb_name: Option<String>,
+    pub pdb_name: ::core::option::Option<String>,
     /// Optional. Pluggable Database Node Level Details
     #[serde(default, rename = "pdbNodeLevelDetails")]
-    pub pdb_node_level_details: Option<Vec<PluggableDatabaseNodeLevelDetails>>,
+    pub pdb_node_level_details: ::core::option::Option<
+        ::std::vec::Vec<::std::boxed::Box<PluggableDatabaseNodeLevelDetails>>,
+    >,
 }
 
 /// The request for ExadbVmCluster.RemoveVirtualMachine.
@@ -2112,10 +2144,10 @@ pub struct PluggableDatabaseProperties {
 pub struct RemoveVirtualMachineExadbVmClusterRequest {
     /// Required. The list of host names of db nodes to be removed from the ExadbVmCluster.
     #[serde(default)]
-    pub hostnames: Option<Vec<String>>,
+    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. An optional ID to identify the request. This value is used to identify duplicate requests. If you make a request with the same request ID and the original request is still in progress or completed, the server ignores the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
-    pub request_id: Option<String>,
+    pub request_id: ::core::option::Option<String>,
 }
 
 /// The request for AutonomousDatabase.Restore.
@@ -2123,7 +2155,7 @@ pub struct RemoveVirtualMachineExadbVmClusterRequest {
 pub struct RestoreAutonomousDatabaseRequest {
     /// Required. The time and date to restore the database to.
     #[serde(default, rename = "restoreTime")]
-    pub restore_time: Option<String>,
+    pub restore_time: ::core::option::Option<String>,
 }
 
 /// Details of scheduled operation. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/ScheduledOperationDetails
@@ -2131,13 +2163,13 @@ pub struct RestoreAutonomousDatabaseRequest {
 pub struct ScheduledOperationDetails {
     /// Output only. Day of week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: Option<String>,
+    pub day_of_week: ::core::option::Option<String>,
     /// Output only. Auto start time.
     #[serde(default, rename = "startTime")]
-    pub start_time: Option<TimeOfDay>,
+    pub start_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
     /// Output only. Auto stop time.
     #[serde(default, rename = "stopTime")]
-    pub stop_time: Option<TimeOfDay>,
+    pub stop_time: ::core::option::Option<::std::boxed::Box<TimeOfDay>>,
 }
 
 /// The source configuration for the standby Autonomous Database.
@@ -2145,10 +2177,10 @@ pub struct ScheduledOperationDetails {
 pub struct SourceConfig {
     /// Optional. This field specifies if the replication of automatic backups is enabled when creating a Data Guard.
     #[serde(default, rename = "automaticBackupsReplicationEnabled")]
-    pub automatic_backups_replication_enabled: Option<bool>,
+    pub automatic_backups_replication_enabled: ::core::option::Option<bool>,
     /// Optional. The name of the primary Autonomous Database that is used to create a Peer Autonomous Database from a source.
     #[serde(default, rename = "autonomousDatabase")]
-    pub autonomous_database: Option<String>,
+    pub autonomous_database: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -2156,13 +2188,13 @@ pub struct SourceConfig {
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub code: Option<i32>,
+    pub code: ::core::option::Option<i32>,
     /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub details: Option<Vec<serde_json::Value>>,
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub message: Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// The initial storage size, in gigabytes, that is applicable for virtual machine DBSystem.
@@ -2170,10 +2202,10 @@ pub struct Status {
 pub struct StorageSizeDetails {
     /// Output only. The data storage size, in gigabytes, that is applicable for virtual machine DBSystem.
     #[serde(default, rename = "dataStorageSizeInGbs")]
-    pub data_storage_size_in_gbs: Option<i32>,
+    pub data_storage_size_in_gbs: ::core::option::Option<i32>,
     /// Output only. The RECO/REDO storage size, in gigabytes, that is applicable for virtual machine DBSystem.
     #[serde(default, rename = "recoStorageSizeInGbs")]
-    pub reco_storage_size_in_gbs: Option<i32>,
+    pub reco_storage_size_in_gbs: ::core::option::Option<i32>,
 }
 
 /// The request for OracleDatabase.SwitchoverAutonomousDatabase.
@@ -2181,7 +2213,7 @@ pub struct StorageSizeDetails {
 pub struct SwitchoverAutonomousDatabaseRequest {
     /// Optional. The peer database name to switch over to. Required for cross-region standby, and must be omitted for in-region Data Guard.
     #[serde(default, rename = "peerAutonomousDatabase")]
-    pub peer_autonomous_database: Option<String>,
+    pub peer_autonomous_database: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -2189,16 +2221,16 @@ pub struct SwitchoverAutonomousDatabaseRequest {
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
-    pub hours: Option<i32>,
+    pub hours: ::core::option::Option<i32>,
     /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
     #[serde(default)]
-    pub minutes: Option<i32>,
+    pub minutes: ::core::option::Option<i32>,
     /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
     #[serde(default)]
-    pub nanos: Option<i32>,
+    pub nanos: ::core::option::Option<i32>,
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
-    pub seconds: Option<i32>,
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
@@ -2206,8 +2238,8 @@ pub struct TimeOfDay {
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
-    pub id: Option<String>,
+    pub id: ::core::option::Option<String>,
     /// Optional. IANA Time Zone Database version number. For example "2019a".
     #[serde(default)]
-    pub version: Option<String>,
+    pub version: ::core::option::Option<String>,
 }
